@@ -6124,7 +6124,7 @@ async function renderWeeklyRecords(){
 
   } catch(e){
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--red);">
-      ❌ Error al cargar los records. <a href="https://rf4game.com/records/" target="_blank" style="color:var(--accent);">Ver en rf4game.com</a>
+      ❌ Error al cargar los records. <a href="https://rf4game.com/records/" target="_blank" style="color:var(--accent);">Error: ${e.message}</a>
     </td></tr>`;
   }
 }
