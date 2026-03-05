@@ -20,6 +20,10 @@ try:
     time.sleep(5)
     rows = driver.find_elements(By.CSS_SELECTOR, '.records .row')
     print(f"Filas encontradas: {len(rows)}")
+    if len(rows) > 1:
+        cols = rows[1].find_elements(By.CSS_SELECTOR, '.col')
+        print(f"Col0 HTML: {cols[0].get_attribute('innerHTML')[:300]}")
+        print(f"Col3 HTML: {cols[3].get_attribute('innerHTML')[:300]}")
     for row in rows:
         cols = row.find_elements(By.CSS_SELECTOR, '.col')
         if len(cols) >= 5:
@@ -30,22 +34,20 @@ try:
             if key in seen:
                 continue
             seen.add(key)
-            # Imagen pez (background-image)
             try:
                 div = cols[0].find_element(By.CSS_SELECTOR, '[style*="background-image"]')
                 style = div.get_attribute('style')
                 img_pez = 'https:' + re.search(r"url\('(.+?)'\)", style).group(1)
             except:
                 img_pez = ''
-            # Nombre y imagen señuelo
             try:
                 div = cols[3].find_element(By.CSS_SELECTOR, '[style*="background-image"]')
                 senuelo = div.get_attribute('title').split(';')[0].strip()
                 style = div.get_attribute('style')
                 img_senuelo = 'https:' + re.search(r"url\('(.+?)'\)", style).group(1)
             except:
-                senuelo = ''
                 img_senuelo = ''
+                senuelo = ''
             records.append({
                 'pez':         pez,
                 'img_pez':     img_pez,
