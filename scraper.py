@@ -15,15 +15,12 @@ try:
     driver = webdriver.Chrome(options=options)
     driver.get('https://rf4game.com/records/weekly/region/EN/')
     time.sleep(5)
-
     rows = driver.find_elements(By.CSS_SELECTOR, '.records .row:not(.header)')
     print(f"Filas encontradas: {len(rows)}")
-
     if rows:
         row = rows[0]
         print("CLASES DE FILA:", row.get_attribute('class'))
         print("HTML FILA:", row.get_attribute('innerHTML')[:500])
-
     for row in rows:
         cols = row.find_elements(By.CSS_SELECTOR, '.cell')
         if len(cols) >= 5:
