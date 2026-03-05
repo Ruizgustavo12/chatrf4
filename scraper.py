@@ -15,9 +15,9 @@ try:
     res = requests.get(url, headers=headers, timeout=15)
     soup = BeautifulSoup(res.text, 'html.parser')
 
-    rows = soup.select('table tr')
+    rows = soup.select('.records.flex_table .rows > .row')
     for row in rows:
-        cols = row.find_all('td')
+        cols = row.select('.cell')
         if len(cols) >= 5:
             records.append({
                 'pez':       cols[0].get_text(strip=True),
