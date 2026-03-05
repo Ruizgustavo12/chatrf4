@@ -1,27 +1,64 @@
-name: Scrape RF4 Records
-on:
-  schedule:
-    - cron: '0 * * * *'
-  workflow_dispatch:
-jobs:
-  scrape:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - run: pip install requests beautifulsoup4 selenium webdriver-manager
-      - run: python scraper.py
-      - name: Commit records.json
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Ruizgustavo12/chatrf4.git
-          git add records.json
-          git diff --cached --quiet || git commit -m "Update records"
-          git push
+import json
+import re
+from datetime import datetime
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+import time
+options = Options()
+options.add_argument('--headless')
+options.add_argument('--no-sandbox')
+options.add_argument('--disable-dev-shm-usage')
+records = []
+seen = set()
+def extraer_url(style):
+    match = re.search(r"url\(['\"]?(.+?)['\"]?\)", style)
+    return 'https:' + match.group(1) if match else ''
+try:
+    driver = webdriver.Chrome(options=options)
+    driver.get('https://rf4game.com/records/weekly/region/EN/')
+    time.sleep(5)
+    rows = driver.find_elements(By.CSS_SELECTOR, '.records .row')
+    print(f"Filas encontradas: {len(rows)}")
+    for row in rows:
+        cols = row.find_elements(By.CSS_SELECTOR, '.col')
+        if len(cols) >= 5:
+            pez = cols[0].text.strip()
+            if pez in ('', 'Fish'):
+                continue
+            key = (pez, cols[1].text.strip(), cols[4].text.strip())
+            if key in seen:
+                continue
+            seen.add(key)
+            try:
+                div = cols[0].find_element(By.CSS_SELECTOR, '.item_icon')
+                img_pez = extraer_url(div.get_attribute('style'))
+            except:
+                img_pez = ''
+            try:
+                div = cols[3].find_element(By.CSS_SELECTOR, '.bait_icon')
+                senuelo = div.get_attribute('title').split(';')[0].strip()
+                img_senuelo = extraer_url(div.get_attribute('style'))
+            except:
+                senuelo = ''
+                img_senuelo = ''
+            records.append({
+                'pez':         pez,
+                'img_pez':     img_pez,
+                'peso':        cols[1].text.strip(),
+                'ubicacion':   cols[2].text.strip(),
+                'señuelo':     senuelo,
+                'img_senuelo': img_senuelo,
+                'jugador':     cols[4].text.strip(),
+                'fecha':       cols[5].text.strip() if len(cols) > 5 else '—'
+            })
+    driver.quit()
+except Exception as e:
+    print(f'Error: {e}')
+output = {
+    'updated': datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'),
+    'records': records
+}
+with open('records.json', 'w', encoding='utf-8') as f:
+    json.dump(output, f, ensure_ascii=False, indent=2)
+print(f'Guardados {len(records)} records')
