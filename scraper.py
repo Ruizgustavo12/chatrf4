@@ -3,8 +3,6 @@ from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 import time
 
 options = Options()
@@ -18,7 +16,12 @@ try:
     driver.get('https://rf4game.com/records/weekly/region/EN/')
     time.sleep(5)
     
+    print("PAGE SOURCE:")
+    print(driver.page_source[:3000])
+    
     rows = driver.find_elements(By.CSS_SELECTOR, '.records .row:not(.header)')
+    print(f"Filas encontradas: {len(rows)}")
+    
     for row in rows:
         cols = row.find_elements(By.CSS_SELECTOR, '.cell')
         if len(cols) >= 5:
