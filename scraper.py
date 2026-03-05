@@ -10,22 +10,22 @@ headers = {
 }
 
 records = []
-
 try:
     url = 'https://rf4game.com/records/weekly/region/EN/'
     res = requests.get(url, headers=headers, timeout=15)
     soup = BeautifulSoup(res.text, 'html.parser')
-    
+
     rows = soup.select('table tr')
     for row in rows:
         cols = row.find_all('td')
-        if len(cols) >= 4:
+        if len(cols) >= 5:
             records.append({
-                'jugador': cols[0].get_text(strip=True),
-                'pez':     cols[1].get_text(strip=True),
-                'peso':    cols[2].get_text(strip=True),
-                'carnada': cols[3].get_text(strip=True),
-                'mapa':    cols[4].get_text(strip=True) if len(cols) > 4 else '—'
+                'pez':       cols[0].get_text(strip=True),
+                'peso':      cols[1].get_text(strip=True),
+                'ubicacion': cols[2].get_text(strip=True),
+                'señuelo':   cols[3].get_text(strip=True),
+                'jugador':   cols[4].get_text(strip=True),
+                'fecha':     cols[5].get_text(strip=True) if len(cols) > 5 else '—'
             })
 except Exception as e:
     print(f'Error: {e}')
