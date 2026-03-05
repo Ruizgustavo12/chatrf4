@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -11,6 +12,7 @@ options.add_argument('--no-sandbox')
 options.add_argument('--disable-dev-shm-usage')
 
 records = []
+seen = set()
 
 try:
     driver = webdriver.Chrome(options=options)
@@ -18,30 +20,38 @@ try:
     time.sleep(5)
     rows = driver.find_elements(By.CSS_SELECTOR, '.records .row')
     print(f"Filas encontradas: {len(rows)}")
-    if len(rows) > 1:
-        cols = rows[1].find_elements(By.CSS_SELECTOR, '.col')
-        print(f"Col3 text: '{cols[3].text.strip()}'")
-        print(f"Col3 HTML: {cols[3].get_attribute('innerHTML')[:300]}")
     for row in rows:
         cols = row.find_elements(By.CSS_SELECTOR, '.col')
         if len(cols) >= 5:
             pez = cols[0].text.strip()
             if pez in ('', 'Fish'):
                 continue
+            key = (pez, cols[1].text.strip(), cols[4].text.strip())
+            if key in seen:
+                continue
+            seen.add(key)
+            # Imagen pez (background-image)
             try:
-                img_pez = cols[0].find_element(By.TAG_NAME, 'img').get_attribute('src')
+                div = cols[0].find_element(By.CSS_SELECTOR, '[style*="background-image"]')
+                style = div.get_attribute('style')
+                img_pez = 'https:' + re.search(r"url\('(.+?)'\)", style).group(1)
             except:
                 img_pez = ''
+            # Nombre y imagen señuelo
             try:
-                img_senuelo = cols[3].find_element(By.TAG_NAME, 'img').get_attribute('src')
+                div = cols[3].find_element(By.CSS_SELECTOR, '[style*="background-image"]')
+                senuelo = div.get_attribute('title').split(';')[0].strip()
+                style = div.get_attribute('style')
+                img_senuelo = 'https:' + re.search(r"url\('(.+?)'\)", style).group(1)
             except:
+                senuelo = ''
                 img_senuelo = ''
             records.append({
                 'pez':         pez,
                 'img_pez':     img_pez,
                 'peso':        cols[1].text.strip(),
                 'ubicacion':   cols[2].text.strip(),
-                'señuelo':     cols[3].text.strip(),
+                'señuelo':     senuelo,
                 'img_senuelo': img_senuelo,
                 'jugador':     cols[4].text.strip(),
                 'fecha':       cols[5].text.strip() if len(cols) > 5 else '—'
