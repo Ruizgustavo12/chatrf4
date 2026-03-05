@@ -1,27 +1,36 @@
-import requests
 import json
 from datetime import datetime
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
 
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Accept-Language': 'en-US,en;q=0.9',
-    'Referer': 'https://rf4game.com/records/weekly/region/EN/',
-    'X-Requested-With': 'XMLHttpRequest',
-    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-}
+options = Options()
+options.add_argument('--headless')
+options.add_argument('--no-sandbox')
+options.add_argument('--disable-dev-shm-usage')
 
 records = []
 try:
-    url = 'https://rf4game.com/wp-admin/admin-ajax.php?action=best'
-    res = requests.get(url, headers=headers, timeout=15)
-    print(f'Status: {res.status_code}')
-    print(f'Response: {res.text[:500]}')
-    data = res.json()
-    if isinstance(data, list):
-        for item in data:
-            records.append(item)
-    elif isinstance(data, dict):
-        records = data.get('data', data.get('records', []))
+    driver = webdriver.Chrome(options=options)
+    driver.get('https://rf4game.com/records/weekly/region/EN/')
+    time.sleep(5)
+    
+    rows = driver.find_elements(By.CSS_SELECTOR, '.records .row:not(.header)')
+    for row in rows:
+        cols = row.find_elements(By.CSS_SELECTOR, '.cell')
+        if len(cols) >= 5:
+            records.append({
+                'pez':       cols[0].text.strip(),
+                'peso':      cols[1].text.strip(),
+                'ubicacion': cols[2].text.strip(),
+                'señuelo':   cols[3].text.strip(),
+                'jugador':   cols[4].text.strip(),
+                'fecha':     cols[5].text.strip() if len(cols) > 5 else '—'
+            })
+    driver.quit()
 except Exception as e:
     print(f'Error: {e}')
 
