@@ -18,6 +18,10 @@ try:
     time.sleep(5)
     rows = driver.find_elements(By.CSS_SELECTOR, '.records .row')
     print(f"Filas encontradas: {len(rows)}")
+    if len(rows) > 1:
+        cols = rows[1].find_elements(By.CSS_SELECTOR, '.col')
+        print(f"Col3 text: '{cols[3].text.strip()}'")
+        print(f"Col3 HTML: {cols[3].get_attribute('innerHTML')[:300]}")
     for row in rows:
         cols = row.find_elements(By.CSS_SELECTOR, '.col')
         if len(cols) >= 5:
