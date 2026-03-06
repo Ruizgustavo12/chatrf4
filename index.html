@@ -621,6 +621,9 @@ select.fi option{background:#fff;}
   <button class="sv-nav sv-prev" onclick="svNav(-1)">‹</button>
   <div class="sv-inner">
     <div style="width:100%;height:100%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:5rem" id="svBg">🐟</div>
+    <!-- Click zones: left half = prev, right half = next -->
+    <div onclick="svNav(-1)" style="position:absolute;top:0;left:0;width:40%;height:100%;z-index:5;cursor:pointer;"></div>
+    <div onclick="svNav(1)" style="position:absolute;top:0;right:0;width:40%;height:100%;z-index:5;cursor:pointer;"></div>
     <div class="sv-gradient"></div>
 
     <!-- progress bars — top 8px -->
@@ -2051,7 +2054,7 @@ function renderStories(){
   });
 }
 
-let _svAutoTimer=null; const SV_DURATION=5000;
+let _svAutoTimer=null; const SV_DURATION=10000;
 function _svStartTimer(){
   if(_svAutoTimer) clearTimeout(_svAutoTimer);
   _svAutoTimer=setTimeout(()=>{ if(_svIdx<_stories.length-1){_svIdx++;renderSV();_svStartTimer();}else{closeSV();} },SV_DURATION);
@@ -2130,7 +2133,10 @@ async function reactStory(em){
         storyText: storyPreview,
         time: serverTimestamp()
       });
-      // Historia → solo chat privado, sin notif duplicada
+      // Notif with preview to owner
+      await sendNotifToUserStory(s.userId,
+        `${em} ${window.CU.nick} reaccionó a tu historia`,
+        storyPreview, s.img || '');
     } catch(e){ console.error('Error enviando reacción:', e); }
   }
 }
@@ -2156,8 +2162,10 @@ async function submitStoryComment(){
       storyText: storyPreview,
       time: serverTimestamp()
     });
-    // Also send chat notification
-    // Historia → solo chat privado, sin notif duplicada
+    // Notif with story preview
+    await sendNotifToUserStory(s.userId,
+      `💬 ${window.CU.nick} comentó tu historia: "${text.slice(0,40)}"`,
+      storyPreview, s.img || '');
     toast(`Mensaje enviado a ${s.userNick} 💬`,'ok');
   } catch(e){
     console.error('Error enviando comentario:', e);
@@ -4508,6 +4516,17 @@ async function doLogout(){
 }
 
 // ===== SEND NOTIFICATION TO ANY USER =====
+async function sendNotifToUserStory(uid, text, storyPreview, storyImg){
+  if(!uid || uid===window.CU?.id) return;
+  try {
+    const snap = await getDoc(doc(db,'users',uid));
+    if(!snap.exists()) return;
+    const notifs = snap.data().notifs || [];
+    notifs.unshift({text, time:Date.now(), read:false, storyComment:true, storyPreview: storyPreview||'', storyImg: storyImg||''});
+    await updateDoc(doc(db,'users',uid), {notifs: notifs.slice(0,30)});
+  } catch(e){ console.error('notif story error',e); }
+}
+
 async function sendNotifToUser(uid, text){
   if(!uid || uid===window.CU?.id) return;
   try {
