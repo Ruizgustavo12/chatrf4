@@ -2335,7 +2335,7 @@ async function submitStoryComment(){
     toast('Error al enviar comentario','err');
   }
 }
-
+  
 async function deleteMyStory(){
   const s = _svUserStories.length ? _svUserStories[_svUserIdx] : _stories[_svIdx];
   if(!s || !window.CU || s.userId !== window.CU.id){ toast('No podés eliminar esta historia','err'); return; }
