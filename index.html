@@ -2201,35 +2201,60 @@ function pickStoryEmoji(em){ _storyEmojiPick = em; toast('Emoji '+em+' seleccion
 function renderFeed(){
   const el = document.getElementById('feedPosts');
   if(!el) return;
-  // Save scroll position
   const scrollY = window.scrollY;
-  // Render only changed/new posts to avoid scroll jump
   const newHTML = _posts.map(p=>postHTML(p)).join('');
-  if(el.innerHTML === newHTML) return; // nothing changed
-  // Smart update: update each post individually if it exists
+  // First render - just set innerHTML
+  if(!el.children.length){
+    el.innerHTML = newHTML;
+    return;
+  }
+  // Smart patch: only replace posts that changed, preserve open comments
   const tempDiv = document.createElement('div');
   tempDiv.innerHTML = newHTML;
   const newPosts = Array.from(tempDiv.children);
-  let fullyRebuild = false;
-  if(el.children.length !== newPosts.length){ fullyRebuild = true; }
-  if(fullyRebuild){
+  const existingPosts = Array.from(el.children);
+  // If post count changed, do full rebuild
+  if(existingPosts.length !== newPosts.length){
     el.innerHTML = newHTML;
     window.scrollTo(0, scrollY);
-  } else {
-    // Update each post card that changed
-    newPosts.forEach((newPost, i) => {
-      const existing = el.children[i];
-      if(existing && existing.outerHTML !== newPost.outerHTML){
-        // Only replace if the post id matches (avoid mismatches)
-        if(existing.id === newPost.id){
-          existing.replaceWith(newPost);
-        } else {
-          el.innerHTML = newHTML;
-          window.scrollTo(0, scrollY);
-        }
-      }
-    });
+    return;
   }
+  newPosts.forEach((newPost, i) => {
+    const existing = existingPosts[i];
+    if(!existing || existing.id !== newPost.id){
+      el.innerHTML = newHTML;
+      window.scrollTo(0, scrollY);
+      return;
+    }
+    if(existing.outerHTML === newPost.outerHTML) return; // no change
+    // Patch only changed sub-sections, preserve open state
+    const wasOpen = existing.querySelector('.comments-section.open') !== null;
+    // 1. Update post-stats (reaction counts)
+    const oldStats = existing.querySelector('.post-stats');
+    const newStats = newPost.querySelector('.post-stats');
+    if(oldStats && newStats && oldStats.outerHTML !== newStats.outerHTML){
+      oldStats.replaceWith(newStats);
+    }
+    // 2. Update post-actions (reaction button active state)
+    const oldAct = existing.querySelector('.post-actions');
+    const newAct = newPost.querySelector('.post-actions');
+    if(oldAct && newAct && oldAct.outerHTML !== newAct.outerHTML){
+      oldAct.replaceWith(newAct);
+    }
+    // 3. Update comments section content BUT preserve open/closed state
+    const oldCmts = existing.querySelector('.comments-section');
+    const newCmts = newPost.querySelector('.comments-section');
+    if(oldCmts && newCmts && oldCmts.innerHTML !== newCmts.innerHTML){
+      newCmts.classList.toggle('open', wasOpen); // preserve open state
+      oldCmts.replaceWith(newCmts);
+    }
+    // 4. Update rxn popup (reaction button state)
+    const oldRxnPop = existing.querySelector('.rxn-popup');
+    const newRxnPop = newPost.querySelector('.rxn-popup');
+    if(oldRxnPop && newRxnPop && oldRxnPop.outerHTML !== newRxnPop.outerHTML){
+      oldRxnPop.replaceWith(newRxnPop);
+    }
+  });
 }
 
 function renderProfileFeed(){
@@ -2710,7 +2735,6 @@ async function doReact(pid, emoji){
   else {
     updates[`reactions.${window.CU.id}`] = emoji;
     updates[`reactionCounts.${emoji}`] = increment(1);
-    // Notify post owner if it's not our own post
     if(emoji && !prev) addXP(1,'reacción');
     if(p.userId && p.userId !== window.CU.id && !prev){
       const preview = (p.text||'').slice(0,60) + ((p.text||'').length>60?'...':'');
@@ -2721,6 +2745,12 @@ async function doReact(pid, emoji){
     }
   }
   document.getElementById('rxnp_'+pid)?.classList.remove('show');
+  // Optimistic UI: update local _posts so the feed patch is instant
+  if(!p.reactions) p.reactions = {};
+  if(!p.reactionCounts) p.reactionCounts = {};
+  if(prev){ p.reactionCounts[prev] = Math.max(0,(p.reactionCounts[prev]||1)-1); }
+  if(prev === emoji){ delete p.reactions[window.CU.id]; }
+  else { p.reactions[window.CU.id] = emoji; p.reactionCounts[emoji] = (p.reactionCounts[emoji]||0)+1; }
   await updateDoc(doc(db, 'posts', pid), updates);
 }
 function quickReact(pid){ if(!window.CU){toast('Inicia sesión','err');return;} doReact(pid,'👍'); }
@@ -2802,6 +2832,8 @@ async function reactCmt(e, pid, ci, em){
   else { uRxns[window.CU.id]=em; rCounts[em]=(rCounts[em]||0)+1; }
   c.userReactions=uRxns; c.reactions=rCounts;
   newCmts[ci]=c;
+  // Optimistic UI: update _posts locally so renderFeed doesn't jump
+  p.comments = newCmts;
   await updateDoc(doc(db,'posts',pid),{comments:newCmts});
 }
 function quickCmtRxn(e, pid, ci){
@@ -2880,7 +2912,9 @@ async function submitComment(pid){
   }
   addXP(3,'comentario');
   inp.value='';
-  document.getElementById('cmts_'+pid)?.classList.add('open');
+  // Keep comments open - don't jump, just add class if not already open
+  const cmtsEl = document.getElementById('cmts_'+pid);
+  if(cmtsEl && !cmtsEl.classList.contains('open')) cmtsEl.classList.add('open');
 }
 
 // Mention autocomplete
