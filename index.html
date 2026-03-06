@@ -86,6 +86,15 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
 .sl-profile:hover{background:var(--bg3);}
 .sl-av{width:36px;height:36px;border-radius:50%;border:2px solid var(--accent);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;color:var(--accent);background:var(--bg3);flex-shrink:0;}
 .sl-av img{width:100%;height:100%;object-fit:cover;}
+/* Story ring - anillo de gradiente cuando el usuario tiene historias activas */
+.has-story{border:2px solid transparent!important;background-clip:padding-box;position:relative;}
+.has-story::before{content:'';position:absolute;inset:-3px;border-radius:50%;background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);z-index:-1;animation:storyRingPulse 2s ease-in-out infinite;}
+@keyframes storyRingPulse{0%,100%{opacity:1}50%{opacity:.7}}
+.story-ring-wrap{position:relative;flex-shrink:0;cursor:pointer;}
+.story-ring-av{width:36px;height:36px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;color:var(--accent);background:var(--bg3);}
+.story-ring-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.story-ring-wrap.active::before{content:'';position:absolute;inset:-3px;border-radius:50%;background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366);z-index:0;animation:storyRingPulse 2s ease-in-out infinite;}
+.story-ring-wrap .story-ring-av{position:relative;z-index:1;border:2px solid var(--bg2)!important;}
 .sl-name{font-size:.9rem;font-weight:700;}
 .sl-divider{height:1px;background:var(--border);margin:8px 4px;}
 .sl-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r);cursor:pointer;transition:background .2s;font-size:.88rem;color:var(--muted);}
@@ -437,14 +446,16 @@ select.fi option{background:var(--bg2);}
   <div class="layout">
     <!-- LEFT -->
     <div class="sidebar-left">
-      <div class="sl-profile" onclick="gp('profile')">
-        <div class="sl-av" id="slAv">👤</div>
+      <div class="sl-profile" onclick="_openMyStoryOrCreate()">
+        <div class="story-ring-wrap" id="slStoryRingWrap">
+          <div class="story-ring-av" id="slAv">👤</div>
+        </div>
         <div class="sl-name" id="slName">Mi Perfil</div>
       </div>
       <div class="divider"></div>
       <div class="sl-item" onclick="gp('profile')"><span class="sl-item-icon">👤</span> Mi Perfil</div>
-      <div class="sl-item"><span class="sl-item-icon">👥</span> Amigos</div>
-      <div class="sl-item"><span class="sl-item-icon">📸</span> Fotos</div>
+      <div class="sl-item" onclick="gp('amigos');loadFriendsFeed()"><span class="sl-item-icon">👥</span> Amigos</div>
+      <div class="sl-item" onclick="gp('profile');setTimeout(()=>swPTab(document.querySelector('.ptab:nth-child(3)'),'ptGallery'),300)"><span class="sl-item-icon">📸</span> Fotos</div>
       <div class="sl-item" onclick="gp('spots')"><span class="sl-item-icon">📍</span> Compartir Spot</div>
       <div class="sl-item" onclick="gp('torneos')"><span class="sl-item-icon">🏆</span> Torneos</div>
       <div class="sl-item" onclick="gp('casitrofeo')"><span class="sl-item-icon">🏅</span> Casi Trofeo</div>
@@ -1791,6 +1802,7 @@ function listenStories() {
   _unsubStories = onSnapshot(query(collection(db, 'stories'), orderBy('time', 'desc')), snap => {
     _stories = snap.docs.map(d => ({ id: d.id, ...d.data(), time: d.data().time?.toMillis?.() || Date.now() }));
     renderStories();
+    if(typeof _updateSidebarStoryRing==='function') _updateSidebarStoryRing();
   });
 }
 
@@ -2048,7 +2060,10 @@ window.gp = id => {
   if(!pg) return;
   pg.classList.add('active');
   window.scrollTo(0,0);
-  if(id==='profile') renderProfile();
+  if(id==='profile'){
+    // Si venía de ver otro perfil, resetear al propio
+    if(window._viewingProfileUid){ _resetToMyProfile(); } else { renderProfile(); }
+  }
   if(id==='admin') { loadAdminData(); loadPezSemana(); }
   if(id==='spots'){ loadSpots(); loadFriendSpots(); }
   if(id==='casitrofeo') renderMapPosts();
@@ -2075,36 +2090,117 @@ window.cm = id => {
 document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); }));
 
 // ===== STORIES =====
+// Agrupar stories por usuario para el render
+function _groupStoriesByUser(){
+  const map = new Map(); // userId -> [indices en _stories]
+  _stories.forEach((s,i)=>{
+    const uid = s.userId || s.userNick;
+    if(!map.has(uid)) map.set(uid,[]);
+    map.get(uid).push(i);
+  });
+  return map;
+}
+
 function renderStories(){
   const row = document.getElementById('storiesRow');
-  // keep add button
   const addBtn = row.children[0];
   row.innerHTML = '';
   row.appendChild(addBtn);
-  _stories.forEach((s,i)=>{
+
+  const grouped = _groupStoriesByUser();
+
+  grouped.forEach((indices, uid)=>{
+    const firstIdx = indices[0];
+    const s = _stories[firstIdx];
+    const count = indices.length;
+
     const div = document.createElement('div');
     div.className = 'story-card';
-    div.onclick = () => openSV(i);
+    // Al clickear va a la primera historia de ese usuario
+    div.onclick = () => openSVUser(uid);
+
+    const avHtml = s.userAv
+      ? `<img src="${s.userAv}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+      : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);background:var(--bg3);font-size:.85rem;">${(s.userNick||'?')[0].toUpperCase()}</div>`;
+
     const bg = s.img
       ? `<img src="${s.img}" style="width:100%;height:100%;object-fit:cover">`
       : `<div style="width:100%;height:100%;background:linear-gradient(135deg,#0a2a4a,#0077b6);display:flex;align-items:center;justify-content:center;font-size:3.5rem">${s.emoji||'🎣'}</div>`;
+
+    // Badge si tiene más de 1 historia
+    const badgeHtml = count > 1
+      ? `<div style="position:absolute;top:4px;right:4px;background:var(--accent);color:#000;font-size:.6rem;font-weight:800;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg2);z-index:2;">${count}</div>`
+      : '';
+
     div.innerHTML = `
       ${bg}
       <div class="sv-gradient"></div>
-      <div class="story-user-av"><div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);background:var(--bg3);font-size:.85rem">${s.userNick[0]}</div></div>
+      <div class="story-user-av" style="cursor:pointer;" onclick="event.stopPropagation();openUserProfile('${s.userId||''}','${(s.userNick||'').replace(/'/g,"\\'")}')">
+        ${avHtml}
+      </div>
+      ${badgeHtml}
       <div class="story-gradient"></div>
-      <div class="story-bottom-name">${s.userNick}</div>`;
+      <div class="story-bottom-name" style="cursor:pointer;" onclick="event.stopPropagation();openUserProfile('${s.userId||''}','${(s.userNick||'').replace(/'/g,"\\'")}')">
+        ${esc(s.userNick||'')}
+      </div>`;
     row.appendChild(div);
   });
 }
 
+// Abrir el visor en la primera historia de un usuario específico
+function openSVUser(userId){
+  const grouped = _groupStoriesByUser();
+  const indices = grouped.get(userId);
+  if(!indices || !indices.length) return;
+  // Guardamos los índices del usuario actual para navegar entre sus historias
+  window._svUserIndices = indices;
+  window._svUserPos = 0;
+  _svIdx = indices[0];
+  renderSV();
+  document.getElementById('storyViewer').classList.add('open');
+}
+
+// svNav ahora navega dentro de las historias del mismo usuario primero, luego al siguiente
+function svNav(dir){
+  const indices = window._svUserIndices;
+  if(indices && indices.length > 1){
+    const newPos = (window._svUserPos||0) + dir;
+    if(newPos >= 0 && newPos < indices.length){
+      window._svUserPos = newPos;
+      _svIdx = indices[newPos];
+      renderSV();
+      return;
+    }
+  }
+  // Si llegó al límite del usuario, ir al siguiente/anterior grupo
+  const grouped = _groupStoriesByUser();
+  const userIds = [...grouped.keys()];
+  const currentUid = _stories[_svIdx]?.userId || _stories[_svIdx]?.userNick;
+  const userIdx = userIds.indexOf(currentUid);
+  const nextUserIdx = userIdx + dir;
+  if(nextUserIdx >= 0 && nextUserIdx < userIds.length){
+    openSVUser(userIds[nextUserIdx]);
+  } else {
+    closeSV();
+  }
+}
+
 function openSV(idx){
   _svIdx = idx;
+  // Determinar el usuario y sus índices
+  const s = _stories[idx];
+  if(s){
+    const uid = s.userId || s.userNick;
+    const grouped = _groupStoriesByUser();
+    const indices = grouped.get(uid) || [idx];
+    window._svUserIndices = indices;
+    window._svUserPos = indices.indexOf(idx);
+    if(window._svUserPos < 0) window._svUserPos = 0;
+  }
   renderSV();
   document.getElementById('storyViewer').classList.add('open');
 }
 function closeSV(){ document.getElementById('storyViewer').classList.remove('open'); }
-function svNav(dir){ _svIdx = Math.max(0, Math.min(_stories.length-1, _svIdx+dir)); renderSV(); }
 function renderSV(){
   const s = _stories[_svIdx];
   if(!s) return;
@@ -2116,7 +2212,14 @@ function renderSV(){
   }
   else { bg.innerHTML = `<div style="width:100%;height:100%;background:linear-gradient(135deg,#0a2a4a,#0077b6);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px"><span style="font-size:5rem">${s.emoji||'🎣'}</span></div>`; }
   document.getElementById('svAv').innerHTML = s.userAv ? `<img src="${s.userAv}">` : s.userNick[0];
-  document.getElementById('svName').textContent = s.userNick;
+  // Nombre clickeable → va al perfil
+  const nameEl = document.getElementById('svName');
+  nameEl.textContent = s.userNick;
+  nameEl.style.cursor = 'pointer';
+  nameEl.onclick = () => { closeSV(); openUserProfile(s.userId||'', s.userNick||''); };
+  const avEl = document.getElementById('svAv');
+  avEl.style.cursor = 'pointer';
+  avEl.onclick = () => { closeSV(); openUserProfile(s.userId||'', s.userNick||''); };
   document.getElementById('svTime').textContent = fmtT(s.time);
   document.getElementById('svText').textContent = s.text||'';
   // Show delete button only for own stories
@@ -2129,7 +2232,7 @@ function renderSV(){
   const panel = document.getElementById('svCommentsPanel');
   if(panel) panel.classList.remove('open');
   // Update reaction counts bar
-  updateSvRxnCounts(s);
+  if(typeof updateSvRxnCounts === 'function') updateSvRxnCounts(s);
   // Update react button with my reaction if any
   const myRxn = s.reactions?.[window.CU?.id];
   const btn = document.getElementById('svReactBtn');
@@ -2138,9 +2241,11 @@ function renderSV(){
   const comCount = (s.comments||[]).length;
   const toggleBtn = document.getElementById('svToggleComments');
   if(toggleBtn) toggleBtn.title = `Ver comentarios (${comCount})`;
-  // progress bars
+  // Barras de progreso: solo las historias del usuario actual
   const prog = document.getElementById('svProgress');
-  prog.innerHTML = _stories.map((_,i)=>`<div class="sv-prog-bar"><div class="sv-prog-fill" style="width:${i<_svIdx?100:i===_svIdx?50:0}%"></div></div>`).join('');
+  const userIndices = window._svUserIndices || [_svIdx];
+  const userPos = window._svUserPos || 0;
+  prog.innerHTML = userIndices.map((_,i)=>`<div class="sv-prog-bar"><div class="sv-prog-fill" style="width:${i<userPos?100:i===userPos?50:0}%"></div></div>`).join('');
 }
 async function reactStory(em){
   const s = _stories[_svIdx];
@@ -2307,11 +2412,50 @@ function postHTML(p){
   }
   const sharedHTML = p.sharedFrom ? `<div style="font-size:.72rem;color:var(--muted);margin-bottom:6px;padding:0 14px;">🔁 Compartido de <strong>${esc(p.sharedFrom)}</strong></div>` : '';
   const isMyPost = window.CU && p.userId === window.CU.id;
-  const cmtsHTML = (p.comments||[]).map(c=>`
-    <div class="comment-item">
-      <div class="sl-av" style="width:32px;height:32px;font-size:.75rem;flex-shrink:0;cursor:pointer" onclick="openUserProfile('${c.userId||''}','${esc(c.nick)}')">${(c.nick||'?')[0]}</div>
-      <div class="comment-bubble"><div class="comment-author" style="cursor:pointer" onclick="openUserProfile('${c.userId||''}','${esc(c.nick)}')">${esc(c.nick)}</div><div class="comment-text">${renderCommentText(c.text)}</div></div>
-    </div>`).join('');
+  const cmtsRAW = p.comments||[];
+  // Ordenar por relevancia: primero comentarios con más likes, luego los más recientes
+  const cmtsSorted = [...cmtsRAW].sort((a,b)=>{
+    const aLikes = Object.keys(a.reactions||{}).length;
+    const bLikes = Object.keys(b.reactions||{}).length;
+    if(bLikes !== aLikes) return bLikes - aLikes; // más reacciones primero
+    return (b.time||0) - (a.time||0); // luego más recientes
+  });
+  const cmtsHTML = cmtsSorted.map((c,ci)=>{
+    const cRxns = c.reactions || {};
+    const cRxnGroups = {};
+    Object.values(cRxns).forEach(e=>{ if(e) cRxnGroups[e]=(cRxnGroups[e]||0)+1; });
+    const cRxnCount = Object.keys(cRxns).length;
+    const myCommentRxn = window.CU ? cRxns[window.CU.id] : null;
+    const cRxnHtml = Object.keys(cRxnGroups).length
+      ? `<div style="position:absolute;bottom:-10px;right:4px;background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:1px 6px;font-size:.7rem;display:flex;align-items:center;gap:2px;box-shadow:0 1px 6px rgba(0,0,0,.4);cursor:pointer;z-index:1;" onclick="toggleCommentRxnPop('${p.id}',${ci})">
+          ${Object.entries(cRxnGroups).map(([e,c])=>`${e}${c>1?'<span style="font-size:.58rem;">'+c+'</span>':''}`).join('')}
+        </div>` : '';
+    const topComment = cRxnCount>=3 ? 'border-left:2px solid var(--accent);' : '';
+    // Avatar con foto si existe
+    const cavHtml = c.av
+      ? `<img src="${c.av}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+      : `<span style="font-size:.75rem;font-weight:700;color:var(--accent);">${(c.nick||'?')[0].toUpperCase()}</span>`;
+    return `<div class="comment-item" style="position:relative;margin-bottom:${cRxnCount?'18px':'8px'};">
+      <div class="sl-av" style="width:32px;height:32px;font-size:.75rem;flex-shrink:0;cursor:pointer" onclick="openUserProfile('${c.userId||''}','${esc(c.nick)}')">${cavHtml}</div>
+      <div style="flex:1;position:relative;">
+        <div class="comment-bubble" style="${topComment}">
+          <div class="comment-author" style="cursor:pointer" onclick="openUserProfile('${c.userId||''}','${esc(c.nick)}')">${esc(c.nick)}</div>
+          <div class="comment-text">${renderCommentText(c.text)}</div>
+        </div>
+        ${cRxnHtml}
+        <!-- Popup de reacciones al comentario -->
+        <div id="cRxnPop_${p.id}_${ci}" style="display:none;position:absolute;bottom:calc(100% + 4px);left:0;background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 8px;gap:2px;align-items:center;z-index:600;box-shadow:0 4px 18px rgba(0,0,0,.7);white-space:nowrap;">
+          ${['❤️','😂','👍','😮','🔥','🎣','😢'].map(e=>`<button style="background:none;border:none;font-size:1.1rem;cursor:pointer;padding:2px 3px;border-radius:50%;transition:transform .13s;" onclick="reactToComment('${p.id}',${ci},'${e}')" onmouseover="this.style.transform='scale(1.5) translateY(-3px)'" onmouseout="this.style.transform='scale(1)'">${e}</button>`).join('')}
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:2px 4px;margin-top:2px;">
+          <span style="font-size:.68rem;color:var(--muted);">${c.time?fmtT(c.time):''}</span>
+          <button onclick="toggleCommentRxnPop('${p.id}',${ci})" style="background:none;border:none;color:${myCommentRxn?'var(--accent)':'var(--muted)'};font-size:.7rem;cursor:pointer;font-family:'Exo 2',sans-serif;padding:0;font-weight:${myCommentRxn?'700':'400'};">${myCommentRxn||'Me gusta'}</button>
+          ${c.userId===window.CU?.id?`<button onclick="deleteMyComment('${p.id}',${ci})" style="background:none;border:none;color:var(--muted);font-size:.68rem;cursor:pointer;font-family:'Exo 2',sans-serif;padding:0;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">Eliminar</button>`:''}
+          ${cRxnCount>0?`<span style="font-size:.68rem;color:var(--muted);">${cRxnCount} reacción${cRxnCount>1?'es':''}</span>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
   return `<div class="post" id="post_${p.id}">
     <div class="post-header">
       <div class="post-av" style="cursor:pointer" onclick="openUserProfile('${p.userId}','${esc(p.userNick)}')">${p.userAv?`<img src="${p.userAv}">`:(p.userNick||'U')[0]}</div>
@@ -2820,15 +2964,40 @@ async function addNotif(text){
 }
 
 function playNotifSound(){
+  // Notificación: sonido de campana "ding" suave
   try {
     const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const t = ctx.currentTime;
     const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine';
     o.connect(g); g.connect(ctx.destination);
-    o.frequency.setValueAtTime(660,ctx.currentTime);
-    o.frequency.setValueAtTime(880,ctx.currentTime+0.08);
-    g.gain.setValueAtTime(0.12,ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.25);
-    o.start(); o.stop(ctx.currentTime+0.25);
+    o.frequency.setValueAtTime(987, t);
+    o.frequency.setValueAtTime(1318, t+0.06);
+    o.frequency.setValueAtTime(987, t+0.12);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.18, t+0.03);
+    g.gain.exponentialRampToValueAtTime(0.001, t+0.55);
+    o.start(t); o.stop(t+0.55);
+  } catch(e){}
+}
+
+function playMsgSound(){
+  // Mensaje: sonido de "pop" de burbuja característico de chat
+  try {
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const t = ctx.currentTime;
+    // Nota 1
+    const o1=ctx.createOscillator(), g1=ctx.createGain();
+    o1.type='sine'; o1.frequency.setValueAtTime(600,t); o1.frequency.exponentialRampToValueAtTime(900,t+0.07);
+    g1.gain.setValueAtTime(0.25,t); g1.gain.exponentialRampToValueAtTime(0.001,t+0.18);
+    o1.connect(g1); g1.connect(ctx.destination);
+    o1.start(t); o1.stop(t+0.18);
+    // Nota 2 (eco más agudo)
+    const o2=ctx.createOscillator(), g2=ctx.createGain();
+    o2.type='sine'; o2.frequency.setValueAtTime(900,t+0.09); o2.frequency.exponentialRampToValueAtTime(1200,t+0.16);
+    g2.gain.setValueAtTime(0.15,t+0.09); g2.gain.exponentialRampToValueAtTime(0.001,t+0.28);
+    o2.connect(g2); g2.connect(ctx.destination);
+    o2.start(t+0.09); o2.stop(t+0.28);
   } catch(e){}
 }
 function renderNotifs(){
@@ -4171,6 +4340,10 @@ async function openUserProfile(uid, nick){
         ${friendBtn}
         ${msgBtn}
       </div>
+      <!-- Botón ver perfil completo -->
+      <button onclick="cm('mUserProfile');_openFullProfile('${uid}')" style="width:100%;padding:8px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:var(--rs);font-size:.8rem;font-weight:600;cursor:pointer;margin-bottom:14px;font-family:'Exo 2',sans-serif;transition:all .2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+        👤 Ver perfil completo →
+      </button>
       ${userPosts.length?`
         <div style="font-size:.78rem;color:var(--muted);margin-bottom:8px;">Publicaciones recientes:</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;border-radius:var(--rs);overflow:hidden;">
@@ -4405,19 +4578,7 @@ let _unsubChat = null;
 const msgSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhS0pikrmnj2BKSl+YtcObcmJnirjWx6d5YmFsm8fbtYZnX2OBsNvTsYdeWmN+rt7cvZBrX2Nzptrfv5dxZmZ3n9ncvJp4a2d1l9bav5t7bGh1kM3Vu5l7bGh1jcTRuZl6bGh4jcHQupd7bWh3i7zOuZZ8bml3ibnNuJZ9bmh4iLbMt5V/b2l4hrPLtpSBcGp4hK/KtZOCcGp4g6zJtJODcWt5ga/KtZODcWt5gbDKtpSFcmt7grHLt5WGc2x7g7LMuJaHdG19hLPNuZeJdm5+hbTOupiKd2+AhrXPu5mLd3CBh7bQvJqMe3OEh7fRvZuNfHSFiLjSvpyOfXWGibnTv52PfnaHirrVwJ6QgHiJi7vWwZ+RgXmLjLzXwqCSgniLjLzXwqCSgniKi7vWwZ+QgXiJirrUwJ+QgHeIibfPu5uLfHSGiLjRwJiMdW9+hbXNupuLdm+DhLTNu5mKdW1/hbPMuZaJdGx9g7LLuJSIcmx6ga/It5KHcGl4f6vFs5GHcGl4fqnEs5CHcGt4fbHGtZGHcGt4fLbHtZGGb2x4e7bHtZGFbmt4e7nIt5GFbmt3er3KuZKFbmt3er3KuZKFbmx4er7Lt5OGb214fMLMupSIcG55f8bPvZWJcW96gcnRwJaKcm57gs7Uw5mMdHB9g9LYxpqNdXF+hdPZx5uPd3OAh9fbypyQeHSBidrdy56Se3aEjt3gzp+UfHiGkN/i0KGXfnqIkuDj0qKYf3uKk+Hk06OZgHyLlOLl1KSagX2Mlefm1qWbgn6OmOnm2aadfn+RmersoriggIOUrvDx0KWkg4SWr/Px0qakg4SYsPTy06elg4SZsfXz1KilhIWbsvb01ainhoabtff12ainhoectvf32KuoiIidtvj32aypioqeve'+
 'YAbABAAAA');
 
-function playMsgSound(){
-  try { 
-    const ctx = new (window.AudioContext||window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.frequency.setValueAtTime(880,ctx.currentTime);
-    osc.frequency.setValueAtTime(1100,ctx.currentTime+0.1);
-    gain.gain.setValueAtTime(0.3,ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.3);
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime+0.3);
-  } catch(e){}
-}
+// playMsgSound definida arriba junto a playNotifSound
 
 function openMessenger(){
   om('mMessenger');
@@ -4540,13 +4701,21 @@ function openChatWith(uid, nick){
 
   _unsubChat = onSnapshot(
     query(collection(db,'chats',chatId,'messages'), orderBy('time','asc')),
-    snap=>{
+    async snap=>{
       const el = document.getElementById('chatMessages');
       if(!el) return;
       const msgs = snap.docs.map(d=>({id:d.id,...d.data()}));
       if(!msgs.length){
         el.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem;">Empezá la conversación 👋</div>';
         return;
+      }
+      // Marcar como leídos los mensajes del otro que no tienen mi uid en readBy
+      const unread = snap.docs.filter(d=>{
+        const m=d.data(); return m.uid!==window.CU.id && !(m.readBy||[]).includes(window.CU.id);
+      });
+      if(unread.length){
+        const batch = unread.map(d=>updateDoc(doc(db,'chats',chatId,'messages',d.id),{readBy:[...(d.data().readBy||[]),window.CU.id]}));
+        Promise.all(batch).catch(()=>{});
       }
       el.innerHTML = msgs.map(m=>{
           const mine = m.uid === window.CU.id;
@@ -4555,7 +4724,6 @@ function openChatWith(uid, nick){
           const storyImg = m.storyImg || '';
           const rxns = m.reactions || {};
           const rxnEntries = Object.entries(rxns);
-          // Group reactions by emoji
           const rxnGroups = {};
           rxnEntries.forEach(([,emoji])=>{ if(emoji) rxnGroups[emoji]=(rxnGroups[emoji]||0)+1; });
           const rxnHtml = Object.entries(rxnGroups).length
@@ -4563,6 +4731,12 @@ function openChatWith(uid, nick){
                 ${Object.entries(rxnGroups).map(([e,c])=>`<span>${e}${c>1?`<span style='font-size:.6rem;margin-left:1px;'>${c}</span>`:''}</span>`).join('')}
                </div>` : '';
           const myRxn = rxns[window.CU.id];
+          // Ticks de visto
+          const readBy = m.readBy || [];
+          const wasRead = readBy.includes(uid); // leído por el receptor
+          const tickHtml = mine
+            ? `<span style="font-size:.68rem;color:${wasRead?'#00c6ff':'rgba(255,255,255,.4)'};margin-left:3px;" title="${wasRead?'Visto':'Enviado'}">${wasRead?'✓✓':'✓'}</span>`
+            : '';
           return `<div style="display:flex;flex-direction:column;align-items:${mine?'flex-end':'flex-start'};gap:2px;position:relative;">
             ${isStoryComment && storyImg ? `<div style="max-width:75%;border-radius:${mine?'12px 12px 4px 12px':'12px 12px 12px 4px'};overflow:hidden;border:2px solid rgba(0,198,255,.3);"><img src="${storyImg}" style="width:100%;max-height:120px;object-fit:cover;display:block;"></div>` : ''}
             <div class="msg-rxn-wrap" style="position:relative;display:inline-block;max-width:75%;">
@@ -4573,7 +4747,6 @@ function openChatWith(uid, nick){
                 background:${isStoryComment?(mine?'var(--accent2)':'rgba(0,198,255,.12)'):(mine?'var(--accent)':'var(--bg3)')};
                 color:${mine?'#fff':'var(--text)'};font-size:.84rem;line-height:1.5;word-break:break-word;
                 ${isStoryComment?'border:1px solid rgba(0,198,255,.3);':''}
-                ${myRxn?'border-bottom-right-radius:4px;':''}
                 cursor:pointer;"
                 onmouseenter="showMsgRxnPop('${m.id}')" onmouseleave="hideMsgRxnPop('${m.id}')"
                 ondblclick="reactToMsg('${m.id}','${chatId}','❤️')">
@@ -4581,7 +4754,7 @@ function openChatWith(uid, nick){
               </div>
               ${rxnHtml}
             </div>
-            <div style="font-size:.65rem;color:var(--muted);padding:0 4px;">${time}</div>
+            <div style="font-size:.65rem;color:var(--muted);padding:0 4px;display:flex;align-items:center;gap:2px;">${time}${tickHtml}</div>
           </div>`;
         }).join('');
       el.scrollTop = el.scrollHeight;
@@ -4611,9 +4784,11 @@ async function sendChatMsg(){
   const chatId = [window.CU.id, _chatUserId].sort().join('_');
   try {
     await addDoc(collection(db,'chats',chatId,'messages'),{
-      uid: window.CU.id, nick: window.CU.nick, text, time: serverTimestamp()
+      uid: window.CU.id, nick: window.CU.nick, text, time: serverTimestamp(),
+      readBy: [window.CU.id]  // el receptor lo agrega cuando abre el chat
     });
     sendNotifToUser(_chatUserId, `💬 ${window.CU.nick}: ${text.slice(0,50)}`);
+    playMsgSound();
   } catch(e){ toast('Error al enviar mensaje','err'); inp.value=text; }
 }
 
@@ -5414,6 +5589,169 @@ function renderTrofeoSidebar(items){
   }).join('');
 }
 
+// ===== VER PERFIL COMPLETO DE OTRO USUARIO =====
+// _viewingProfileUid: cuando está seteado, la página de perfil muestra otro usuario
+window._viewingProfileUid = null;
+
+async function _openFullProfile(uid){
+  if(!uid){ return; }
+  if(uid === window.CU?.id){ gp('profile'); return; }
+  window._viewingProfileUid = uid;
+  gp('profile');
+  // Mostrar un loader mientras cargamos
+  const nameEl = document.getElementById('profName');
+  const avEl   = document.getElementById('profAvBig');
+  const bioEl  = document.getElementById('profBioEl');
+  if(nameEl) nameEl.textContent = 'Cargando...';
+  if(avEl)   avEl.innerHTML = '⏳';
+  if(bioEl)  bioEl.textContent = '';
+  // Esconder botones de edición propios
+  const editBtn = document.querySelector('[onclick*="openEditProfile"]');
+  if(editBtn) editBtn.style.display='none';
+  const newPostBtn = document.querySelector('[onclick*="mCreatePost"]');
+  if(newPostBtn) newPostBtn.style.display='none';
+  // Esconder portada edit
+  const coverEdit = document.querySelector('.profile-cover-edit');
+  if(coverEdit) coverEdit.style.display='none';
+  const avEdit = document.querySelector('.profile-av-edit');
+  if(avEdit) avEdit.style.display='none';
+
+  try {
+    const snap = await getDoc(doc(db,'users',uid));
+    if(!snap.exists()){ toast('Usuario no encontrado','err'); gp('home'); return; }
+    const u = snap.data();
+    // Avatar y portada
+    if(avEl) avEl.innerHTML = u.av ? `<img src="${u.av}" style="width:100%;height:100%;object-fit:cover;">` : (u.nick||'?')[0].toUpperCase();
+    const coverEl = document.getElementById('profCoverInner');
+    if(coverEl && u.cover){ document.getElementById('profCover').style.backgroundImage=`url('${u.cover}')`; }
+    // Info básica
+    if(nameEl) nameEl.textContent = u.nick||'?';
+    if(bioEl)  bioEl.textContent  = u.bio||'';
+    // Stats
+    const theirPosts = _posts.filter(p=>p.userId===uid);
+    document.getElementById('profPostCount').textContent  = theirPosts.length;
+    document.getElementById('profFriendCount').textContent = (u.friends||[]).length;
+    document.getElementById('profLikeCount').textContent  = theirPosts.reduce((s,p)=>s+( p.likes||0),0);
+    // Badges
+    const badgesEl = document.getElementById('profBadges');
+    if(badgesEl){
+      const lvl = getLevel(u.xp||0);
+      badgesEl.innerHTML = `<span class="level-badge" style="color:${lvl.color};border-color:${lvl.border};background:${lvl.border.replace(/[\d.]+\)$/,'.1)')};">${lvl.name}</span>`;
+      if((u.streak||0)>=2) badgesEl.innerHTML += `<span class="streak-badge">🔥 ${u.streak} días</span>`;
+    }
+    // XP bar
+    const xpBlock = document.getElementById('profXpBlock');
+    if(xpBlock){ xpBlock.style.display='block'; }
+    const xpBar = document.getElementById('profXpBar');
+    const xpLabel = document.getElementById('profXpLabel');
+    const xpNext  = document.getElementById('profXpNext');
+    const prog = getXpProgress(u.xp||0);
+    if(xpBar)   xpBar.style.width   = prog.pct+'%';
+    if(xpLabel) xpLabel.textContent = (u.xp||0)+' XP';
+    if(xpNext)  xpNext.textContent  = 'Nivel: '+getLevel(u.xp||0).name;
+
+    // Info fields
+    function setF(rowId, elId, val, href){
+      const row=document.getElementById(rowId), el=document.getElementById(elId);
+      if(!row||!el) return;
+      if(val){ row.style.display='flex'; el.textContent=val; if(href){el.href=href;el.target='_blank';} }
+      else row.style.display='none';
+    }
+    setF('profFavFishRow','profFavFish', u.favFish);
+    setF('profFavMapRow','profFavMap', u.favMap);
+    setF('profTechRow','profTech', u.favTech);
+    setF('profExpRow','profExp', u.experience);
+    setF('profCityRow','profCity', u.city);
+    setF('profAgeRow','profAge', u.age);
+    setF('profGenderRow','profGender', u.gender);
+    setF('profYTRow','profYT', u.social_yt, u.social_yt);
+    setF('profDCRow','profDC', u.social_dc);
+    setF('profTWRow','profTW', u.social_tw, u.social_tw);
+    setF('profWebRow','profWeb', u.social_web, u.social_web);
+    document.getElementById('profCountry').textContent = u.country||'No especificado';
+    document.getElementById('profJoined').textContent  = u.joined||'?';
+    const profEmailRow = document.getElementById('profEmailRow');
+    if(profEmailRow) profEmailRow.style.display='none';
+
+    // Amigos en común
+    const myFriendsList2 = window.CU?.friendsList||[];
+    const theirFriendIds = u.friends||[];
+    const mutual = myFriendsList2.filter(f=>theirFriendIds.includes(f.id));
+    const bioEl2 = document.getElementById('profBioEl');
+    // Agregar pill de amigos en común debajo del bio
+    let mutualEl = document.getElementById('_mutualFriendsInfo');
+    if(!mutualEl){ mutualEl=document.createElement('div'); mutualEl.id='_mutualFriendsInfo'; bioEl2?.parentNode?.insertBefore(mutualEl,bioEl2?.nextSibling); }
+    mutualEl.innerHTML = mutual.length
+      ? `<div style="font-size:.78rem;color:var(--accent);margin-top:6px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+          👥 <strong>${mutual.length}</strong> amigo${mutual.length>1?'s':''} en común${mutual.length>0?': '+mutual.slice(0,3).map(f=>`<span style="cursor:pointer;text-decoration:underline;" onclick="openUserProfile('${f.id}','${(f.nick||'').replace(/'/g,"\\'")}')">${esc(f.nick||'')}</span>`).join(', '):''}${mutual.length>3?' y '+(mutual.length-3)+' más':''}
+         </div>` : '';
+
+    // Feed de posts del otro usuario
+    const feedEl = document.getElementById('profileFeed');
+    if(feedEl){
+      if(theirPosts.length){
+        feedEl.innerHTML = theirPosts.map(p=>postHTML(p)).join('');
+      } else {
+        feedEl.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);">Este usuario aún no publicó nada</div>';
+      }
+    }
+
+    // Foto grid
+    const allImgs = theirPosts.flatMap(p=>p.images||[]).slice(0,9);
+    const photoGrid = document.getElementById('profPhotoGrid');
+    if(photoGrid) photoGrid.innerHTML = allImgs.map(img=>`<div style="aspect-ratio:1;overflow:hidden;cursor:pointer;" onclick="openImgLightbox('${img}')"><img src="${img}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>`).join('');
+
+    // Amigos grid
+    const friendsGrid = document.getElementById('profFriendsGrid');
+    if(friendsGrid && (u.friends||[]).length){
+      const fSnaps = await Promise.all((u.friends||[]).slice(0,6).map(fid=>getDoc(doc(db,'users',fid))));
+      friendsGrid.innerHTML = fSnaps.filter(s=>s.exists()).map(s=>{
+        const f=s.data(); const fid=s.id;
+        return `<div style="text-align:center;cursor:pointer;" onclick="cm('mUserProfile');openUserProfile('${fid}','${(f.nick||'').replace(/'/g,"\\'")}')">
+          <div style="width:100%;aspect-ratio:1;border-radius:var(--rs);overflow:hidden;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;">
+            ${f.av?`<img src="${f.av}" style="width:100%;height:100%;object-fit:cover;">`:(f.nick||'?')[0].toUpperCase()}
+          </div>
+          <div style="font-size:.7rem;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(f.nick||'')}</div>
+        </div>`;
+      }).join('');
+    }
+
+    // Mostrar botones de acción: añadir amigo / mensaje
+    const nameRow = document.querySelector('.profile-name-row');
+    if(nameRow){
+      let actionDiv = document.getElementById('_otherProfileActions');
+      if(!actionDiv){ actionDiv=document.createElement('div'); actionDiv.id='_otherProfileActions'; actionDiv.style.cssText='display:flex;gap:8px;flex-wrap:wrap;padding-bottom:14px;'; nameRow.appendChild(actionDiv); }
+      const myFriends = window.CU?.friends||[];
+      const isFriend = myFriends.includes(uid);
+      const safeNick = (u.nick||'').replace(/'/g,"\\'");
+      actionDiv.innerHTML = isFriend
+        ? `<button disabled style="padding:8px 18px;background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:var(--green);border-radius:var(--rs);font-size:.85rem;font-weight:700;font-family:'Exo 2',sans-serif;">✓ Amigos</button>
+           <button onclick="openChatWith('${uid}','${safeNick}')" class="btn btn-s" style="font-size:.85rem;">💬 Mensaje</button>`
+        : `<button onclick="sendFriendRequest('${uid}','${safeNick}')" class="btn btn-p" style="font-size:.85rem;">👥 Añadir amigo</button>`;
+      // Botón volver a mi perfil
+      actionDiv.innerHTML += `<button onclick="_resetToMyProfile()" class="btn btn-s" style="font-size:.85rem;">← Mi perfil</button>`;
+    }
+  } catch(e){
+    console.error('_openFullProfile error:',e);
+    toast('Error al cargar perfil','err');
+  }
+}
+
+// Resetear la página de perfil al perfil propio
+function _resetToMyProfile(){
+  window._viewingProfileUid = null;
+  // Restaurar botones
+  document.querySelectorAll('[onclick*="openEditProfile"]').forEach(b=>b.style.display='');
+  document.querySelectorAll('[onclick*="mCreatePost"]').forEach(b=>b.style.display='');
+  const coverEdit = document.querySelector('.profile-cover-edit');
+  if(coverEdit) coverEdit.style.display='';
+  const avEdit = document.querySelector('.profile-av-edit');
+  if(avEdit) avEdit.style.display='';
+  const actionDiv = document.getElementById('_otherProfileActions');
+  if(actionDiv) actionDiv.remove();
+  renderProfile();
+}
+
 // ===== NUEVAS FUNCIONES: MSG REACTIONS, UNREAD BADGE, STORY COMMENTS =====
 
 // Enviar emoji rápido como mensaje
@@ -5594,6 +5932,106 @@ function updateSvRxnCounts(story){
 }
 
 // ===== EXPOSE NUEVAS FUNCIONES =====
+// ===== REACCIONES EN COMENTARIOS =====
+function toggleCommentRxnPop(pid, ci){
+  // Cerrar todos los demás primero
+  document.querySelectorAll('[id^="cRxnPop_"]').forEach(p=>{ if(p.id!=='cRxnPop_'+pid+'_'+ci) p.style.display='none'; });
+  const pop = document.getElementById('cRxnPop_'+pid+'_'+ci);
+  if(!pop) return;
+  const isOpen = pop.style.display==='flex';
+  pop.style.display = isOpen ? 'none' : 'flex';
+  if(!isOpen){
+    setTimeout(()=>document.addEventListener('click', function close(e){
+      if(!e.target.closest('#cRxnPop_'+pid+'_'+ci)){ pop.style.display='none'; document.removeEventListener('click',close); }
+    }),10);
+  }
+}
+
+async function reactToComment(pid, commentIdx, emoji){
+  if(!window.CU){ toast('Inicia sesión primero','err'); return; }
+  const p = _posts.find(x=>x.id===pid); if(!p) return;
+  const comments = [...(p.comments||[])];
+  if(!comments[commentIdx]) return;
+  const cmt = {...comments[commentIdx]};
+  const rxns = {...(cmt.reactions||{})};
+  // Toggle
+  if(rxns[window.CU.id]===emoji){ delete rxns[window.CU.id]; }
+  else { rxns[window.CU.id]=emoji; }
+  cmt.reactions = rxns;
+  comments[commentIdx] = cmt;
+  p.comments = comments;
+  await updateDoc(doc(db,'posts',pid),{comments});
+  // Cerrar popup
+  const pop = document.getElementById('cRxnPop_'+pid+'_'+commentIdx);
+  if(pop) pop.style.display='none';
+}
+
+async function deleteMyComment(pid, commentIdx){
+  if(!window.CU) return;
+  const p = _posts.find(x=>x.id===pid); if(!p) return;
+  const comments = [...(p.comments||[])];
+  if(!comments[commentIdx] || comments[commentIdx].userId!==window.CU.id){ toast('No podés eliminar este comentario','err'); return; }
+  if(!confirm('¿Eliminar comentario?')) return;
+  comments.splice(commentIdx,1);
+  p.comments = comments;
+  await updateDoc(doc(db,'posts',pid),{comments});
+  toast('Comentario eliminado','ok');
+}
+
+// ===== FEED DE AMIGOS =====
+async function loadFriendsFeed(){
+  const el = document.getElementById('friendsFeedList');
+  if(!el) return;
+  if(!window.CU){ el.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);">Inicia sesión para ver las publicaciones de tus amigos</div>'; return; }
+  const friendIds = window.CU.friends||[];
+  if(!friendIds.length){
+    el.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);">Aún no tenés amigos. ¡Conectate con otros pescadores! 🎣</div>';
+    return;
+  }
+  el.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);">⏳ Cargando...</div>';
+  try {
+    const friendPosts = _posts.filter(p=>friendIds.includes(p.userId)).sort((a,b)=>(b.time||0)-(a.time||0));
+    if(!friendPosts.length){
+      el.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);">Tus amigos aún no publicaron nada 🎣</div>';
+      return;
+    }
+    el.innerHTML = friendPosts.map(p=>postHTML(p)).join('');
+  } catch(e){
+    el.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);">Error al cargar publicaciones</div>';
+  }
+}
+
+// ===== STORY RING EN AVATAR DEL SIDEBAR =====
+function _updateSidebarStoryRing(){
+  if(!window.CU) return;
+  const wrap = document.getElementById('slStoryRingWrap');
+  if(!wrap) return;
+  const myStories = _stories.filter(s=>s.userId===window.CU.id);
+  if(myStories.length>0){
+    wrap.classList.add('active');
+    wrap.title='Ver mis historias';
+  } else {
+    wrap.classList.remove('active');
+    wrap.title='Crear historia';
+  }
+}
+
+function _openMyStoryOrCreate(){
+  if(!window.CU){ gp('profile'); return; }
+  const myStories = _stories.filter(s=>s.userId===window.CU.id);
+  if(myStories.length>0){
+    // Abrir el visor en mis historias
+    openSVUser(window.CU.id);
+  } else {
+    // Abrir modal crear historia
+    om('mAddStory');
+  }
+}
+
+// ===== AMIGOS EN COMÚN EN EL MODAL DE PERFIL =====
+// (ya calculado en openUserProfile, solo asegurarse de llamarlo)
+
+// ===== EXPONER NUEVAS FUNCIONES =====
 // ===== EXPOSE TO HTML — sobreescribe los stubs =====
 const _expose = {
   doLogin,doReg,showReg,showLogin,showTerms,closeTerms,acceptTermsAndRegister,
@@ -5607,7 +6045,7 @@ const _expose = {
   toggleComments,sharePost,
   openImgLightbox,swPTab,
   showRxnPop,schedHideRxnPop,cancelHideRxnPop,
-  openSV,closeSV,svNav,reactStory,submitStoryComment,deleteMyStory,
+  openSV,openSVUser,closeSV,svNav,reactStory,submitStoryComment,deleteMyStory,
   doSearch,
   reportPost,submitReport,
   loadAdminData,deleteAdminPost,resolveReport,
@@ -5619,7 +6057,9 @@ const _expose = {
   swAdminTab, loadAdminData, previewAdminMedia, saveSiteConfig,
   submitPatch, submitTorneo, submitAdminGroup, submitAd, toggleAd,
   banUser, deleteAdminContent, deleteAdminPost, resolveReport,
-  openUserProfile, sendFriendRequest, togglePostMenu, renderProfileFriendsList, openEditPost, saveEditPost, deleteMyPost,
+  openUserProfile, _openFullProfile, _resetToMyProfile, sendFriendRequest, togglePostMenu, renderProfileFriendsList, openEditPost, saveEditPost, deleteMyPost,
+  reactToComment, toggleCommentRxnPop, deleteMyComment, loadFriendsFeed,
+  _openMyStoryOrCreate, _updateSidebarStoryRing,
   toggleMessenger, sendChatMsg, openChatWith, backToMessengerList, openPostWithYt,
   joinGroup, leaveGroup, openGroupPost, showGroupWelcome, previewGroupPostImg, removeGroupPostImg, submitGroupPost,
   acceptFriendRequest, rejectFriendRequest, dismissFriendRequest, sendFriendRequestFromProfile, loadRealFriends, updateNotifBadge, updateMsgBadge,
@@ -5639,6 +6079,14 @@ if(window._q) window._q.forEach(([name,args])=>{ if(window[name]) window[name](.
 // ===== START =====
 init();
 </script>
+<!-- PAGE: AMIGOS FEED -->
+<div class="page" id="page-amigos" style="max-width:680px;margin:0 auto;padding:24px 16px 80px;">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+    <div style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:900;color:var(--accent);">👥 Feed de Amigos</div>
+  </div>
+  <div id="friendsFeedList"><div style="text-align:center;padding:40px;color:var(--muted);">⏳ Cargando publicaciones de tus amigos...</div></div>
+</div>
+
 <!-- ===== FOOTER ===== -->
 <div id="siteFooter" style="display:none;text-align:center;padding:24px 16px;color:var(--muted);font-size:.75rem;border-top:1px solid var(--border);margin-top:32px;line-height:2;">
   <div style="font-family:'Orbitron',monospace;font-size:.7rem;color:var(--accent);letter-spacing:2px;margin-bottom:4px;">🎣 CharlasRF4</div>
