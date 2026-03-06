@@ -169,6 +169,19 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
 
 /* COMMENTS */
 .comments-section{padding:8px 14px;display:none;}
+
+/* Comment menu hover (CSS-only, no JS needed) */
+.cmt-menu-wrap{position:relative;flex-shrink:0;}
+.cmt-menu-wrap .cmt-menu-dropdown{display:none;position:absolute;right:0;top:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);min-width:150px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.6);overflow:hidden;}
+.cmt-menu-wrap:hover .cmt-menu-dropdown{display:block;}
+.cmt-menu-wrap .cmt-dots-btn{background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;}
+.cmt-menu-wrap:hover .cmt-dots-btn{background:var(--bg4);}
+
+/* Comment reaction popup hover (CSS-only) */
+.cmt-rxn-wrap{position:relative;}
+.cmt-rxn-wrap .cmt-rxn-popup{display:none;position:absolute;bottom:calc(100% + 4px);left:0;background:rgba(18,28,42,.97);border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:5px 8px;align-items:center;box-shadow:0 4px 20px rgba(0,0,0,.7);white-space:nowrap;z-index:9998;flex-direction:row;}
+.cmt-rxn-wrap:hover .cmt-rxn-popup{display:flex;}
+
 .comments-section.open{display:block;}
 .comment-input-row{display:flex;gap:8px;margin-bottom:10px;}
 .comment-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:100px;
@@ -2249,9 +2262,9 @@ function postHTML(p){
         +'<div class="comment-bubble" style="margin-bottom:3px;">'
           +'<div style="display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:2px;">'
             +'<div class="comment-author" style="cursor:pointer;" onclick="openUserProfile(\''+c.userId+'\',\''+esc(c.nick)+'\')">'+(c.nick||'?')+'</div>'
-            +'<div style="position:relative;flex-shrink:0;" onmouseenter="showCmtMenu(\''+p.id+'\','+ci+')" onmouseleave="hideCmtMenu(\''+p.id+'\','+ci+')">' 
-              +'<button style="background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;" onmouseover="this.style.background=\'var(--bg4)\'" onmouseout="this.style.background=\'none\'">⋯</button>'
-              +'<div id="cmtmenu_'+p.id+'_'+ci+'" style="display:none;position:absolute;right:0;top:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);min-width:150px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.6);overflow:hidden;" onmouseenter="showCmtMenu(\''+p.id+'\','+ci+')" onmouseleave="hideCmtMenu(\''+p.id+'\','+ci+')">' 
+            +'<div class="cmt-menu-wrap">'
+              +'<button class="cmt-dots-btn">⋯</button>'
+              +'<div class="cmt-menu-dropdown">'
                 +menuBtns
               +'</div>'
             +'</div>'
@@ -2260,11 +2273,12 @@ function postHTML(p){
         +'</div>'
         +'<div style="display:flex;align-items:center;gap:10px;padding:0 4px 4px;flex-wrap:wrap;">'
           +'<span style="font-size:.7rem;color:var(--muted);">'+timeStr+'</span>'
-          +'<div style="position:relative;" onmouseenter="showCmtRxnPop(\''+p.id+'\','+ci+')" onmouseleave="hideCmtRxnPop(\''+p.id+'\','+ci+')">' 
-            +'<button onclick="quickCmtRxn(event,\''+p.id+'\','+ci+')" style="background:none;border:none;font-size:.75rem;font-weight:700;cursor:pointer;padding:2px 6px;border-radius:100px;color:'+(myRxnC?'var(--accent)':'var(--muted)')+';" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'none\'">'+(myRxnC?myRxnC+' ':'')+' Me gusta</button>'
-            +'<div id="crxnp_'+p.id+'_'+ci+'" style="display:none;position:absolute;bottom:calc(100% + 4px);left:0;background:rgba(18,28,42,.97);border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:5px 8px;align-items:center;box-shadow:0 4px 20px rgba(0,0,0,.7);white-space:nowrap;z-index:9998;">'
+          +'<div class="cmt-rxn-wrap">'
+            +'<button onclick="quickCmtRxn(event,\''+p.id+'\','+ci+')" style="background:none;border:none;font-size:.75rem;font-weight:700;cursor:pointer;padding:2px 6px;border-radius:100px;color:'+(myRxnC?'var(--accent)':'var(--muted)')+';padding:2px 6px;">'+(myRxnC?myRxnC+' ':'')+' Me gusta</button>'
+            +'<div class="cmt-rxn-popup">'
               +rxnBtnsHtml
             +'</div>'
+          +'</div>'
           +'</div>'
           +(cRxnTotal>0?'<span style="font-size:.72rem;background:var(--bg3);border-radius:100px;padding:1px 6px;color:var(--muted);">'+cTopRxn+' '+cRxnTotal+'</span>':'')
         +'</div>'
