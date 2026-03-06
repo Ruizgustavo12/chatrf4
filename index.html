@@ -1034,7 +1034,7 @@ select.fi option{background:var(--bg2);}
     </div>
     <!-- Input row -->
     <div id="chatInputRow" style="display:none;padding:8px;border-top:1px solid var(--border);flex-shrink:0;gap:6px;align-items:center;">
-      <button onclick="openEmojiPicker(event,'chatInput')" style="background:none;border:none;font-size:1.2rem;cursor:pointer;padding:4px 6px;color:var(--muted);flex-shrink:0;" title="Emoji">😊</button><input id="chatInput" class="fi" placeholder="Escribe un mensaje..." style="flex:1;font-size:.82rem;" onkeypress="if(event.key==='Enter')sendChatMsg()">
+      <button onclick="openEmojiPicker(event,'chatInput')" style="background:none;border:none;font-size:1.2rem;cursor:pointer;padding:4px 6px;color:var(--muted);flex-shrink:0;" title="Emoji">😊</button><input id="chatInput" class="fi" placeholder="Escribe un mensaje..." style="flex:1;font-size:.82rem;" onkeypress="if(event.key==='Enter')sendChatMsg()" oninput="setChatTyping()">
       <button onclick="sendChatMsg()" style="background:var(--accent);border:none;color:#000;width:34px;height:34px;border-radius:50%;font-size:.9rem;cursor:pointer;flex-shrink:0;">➤</button>
     </div>
   </div>
@@ -1589,7 +1589,7 @@ function _stub(name){ return function(){ _q.push([name, arguments]); }; }
  'doReact','quickReact','saveProfile','openEditProfile','changeCover','changeAvatar',
  'previewPostImg','removePostImg','previewPostMedia','removePostMedia',
  'previewStoryImg','pickStoryEmoji','insertEmoji','insertFishTag',
- 'toggleComments','sharePost','toggleCmtMenu','editCmt','delCmt','quickCmtRxn','showCmtRxnPop','hideCmtRxnPop','cancelHideCmtRxn','reactCmt','openImgLightbox','swPTab','reactChatMsg','showMsgRxnBar','hideMsgRxnBar','keepMsgRxnBar',
+ 'toggleComments','sharePost','toggleCmtMenu','editCmt','delCmt','quickCmtRxn','showCmtRxnPop','hideCmtRxnPop','cancelHideCmtRxn','reactCmt','openImgLightbox','swPTab','reactChatMsg','showMsgRxnBar','hideMsgRxnBar','keepMsgRxnBar','showCmtMenu','hideCmtMenu','setChatTyping',
  'showRxnPop','schedHideRxnPop','cancelHideRxnPop',
  'openSV','closeSV','svNav','reactStory','submitStoryComment','deleteMyStory','doSearch',
  'reportPost','submitReport','loadAdminData','deleteAdminPost','resolveReport',
@@ -2239,19 +2239,19 @@ function postHTML(p){
     const myRxnC = window.CU ? ((c.userReactions||{})[window.CU.id]||'') : '';
     const timeStr = c.time ? fmtT(c.time) : '';
     let menuBtns = '';
-    if(isMine) menuBtns += '<button onmousedown="editCmt(event,\''+p.id+'\','+ci+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:var(--text);padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">✏️ Editar</button>';
-    if(canDel) menuBtns += '<button onmousedown="delCmt(event,\''+p.id+'\','+ci+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#f55;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">🗑 Eliminar</button>';
-    menuBtns += '<button onmousedown="toast(\'Comentario reportado\',\'ok\')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#fa0;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">⚠️ Reportar</button>';
-    const rxnBtnsHtml = CMT_RXNS.map(em=>'<button onmousedown="reactCmt(event,\''+p.id+'\','+ci+',\''+em+'\')" style="background:none;border:none;font-size:1.3rem;cursor:pointer;padding:3px;border-radius:50%;transition:transform .13s;" onmouseover="this.style.transform=\'scale(1.4) translateY(-4px)\'" onmouseout="this.style.transform=\'scale(1)\'">'+em+'</button>').join('');
+    if(isMine) menuBtns += '<button onclick="editCmt(event,\''+p.id+'\','+ci+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:var(--text);padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">✏️ Editar</button>';
+    if(canDel) menuBtns += '<button onclick="delCmt(event,\''+p.id+'\','+ci+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#f55;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">🗑 Eliminar</button>';
+    menuBtns += '<button onclick="toast(\'Comentario reportado\',\'ok\')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#fa0;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">⚠️ Reportar</button>';
+    const rxnBtnsHtml = CMT_RXNS.map(em=>'<button onclick="reactCmt(event,\''+p.id+'\','+ci+',\''+em+'\')" style="background:none;border:none;font-size:1.3rem;cursor:pointer;padding:3px;border-radius:50%;transition:transform .13s;" onmouseover="this.style.transform=\'scale(1.4) translateY(-4px)\'" onmouseout="this.style.transform=\'scale(1)\'">'+em+'</button>').join('');
     return '<div class="comment-item" style="align-items:flex-start;position:relative;">'
       +'<div class="sl-av" style="width:32px;height:32px;font-size:.75rem;flex-shrink:0;cursor:pointer;margin-top:2px;" onclick="openUserProfile(\''+c.userId+'\',\''+esc(c.nick)+'\')">'+((c.av?'<img src="'+c.av+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">':esc((c.nick||'?')[0])))+'</div>'
       +'<div style="flex:1;min-width:0;">'
         +'<div class="comment-bubble" style="margin-bottom:3px;">'
           +'<div style="display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:2px;">'
             +'<div class="comment-author" style="cursor:pointer;" onclick="openUserProfile(\''+c.userId+'\',\''+esc(c.nick)+'\')">'+(c.nick||'?')+'</div>'
-            +'<div style="position:relative;flex-shrink:0;">'
-              +'<button onmousedown="toggleCmtMenu(event,\''+p.id+'\','+ci+')" style="background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;" onmouseover="this.style.background=\'var(--bg4)\'" onmouseout="this.style.background=\'none\'">⋯</button>'
-              +'<div id="cmtmenu_'+p.id+'_'+ci+'" style="display:none;position:absolute;right:0;top:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);min-width:140px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.6);overflow:hidden;">'
+            +'<div style="position:relative;flex-shrink:0;" onmouseenter="showCmtMenu(\''+p.id+'\','+ci+')" onmouseleave="hideCmtMenu(\''+p.id+'\','+ci+')">' 
+              +'<button style="background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;" onmouseover="this.style.background=\'var(--bg4)\'" onmouseout="this.style.background=\'none\'">⋯</button>'
+              +'<div id="cmtmenu_'+p.id+'_'+ci+'" style="display:none;position:absolute;right:0;top:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);min-width:150px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.6);overflow:hidden;" onmouseenter="showCmtMenu(\''+p.id+'\','+ci+')" onmouseleave="hideCmtMenu(\''+p.id+'\','+ci+')">' 
                 +menuBtns
               +'</div>'
             +'</div>'
@@ -2261,7 +2261,7 @@ function postHTML(p){
         +'<div style="display:flex;align-items:center;gap:10px;padding:0 4px 4px;flex-wrap:wrap;">'
           +'<span style="font-size:.7rem;color:var(--muted);">'+timeStr+'</span>'
           +'<div style="position:relative;" onmouseenter="showCmtRxnPop(\''+p.id+'\','+ci+')" onmouseleave="hideCmtRxnPop(\''+p.id+'\','+ci+')">' 
-            +'<button onmousedown="quickCmtRxn(event,\''+p.id+'\','+ci+')" style="background:none;border:none;font-size:.75rem;font-weight:700;cursor:pointer;padding:2px 6px;border-radius:100px;color:'+(myRxnC?'var(--accent)':'var(--muted)')+';" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'none\'">'+(myRxnC?myRxnC+' ':'')
+            +'<button onclick="quickCmtRxn(event,\''+p.id+'\','+ci+')" style="background:none;border:none;font-size:.75rem;font-weight:700;cursor:pointer;padding:2px 6px;border-radius:100px;color:'+(myRxnC?'var(--accent)':'var(--muted)')+';" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'none\'">'+(myRxnC?myRxnC+' ':'')
 +'Me gusta</button>'
             +'<div id="crxnp_'+p.id+'_'+ci+'" style="display:none;position:absolute;bottom:calc(100% + 4px);left:0;background:rgba(18,28,42,.97);border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:5px 8px;align-items:center;box-shadow:0 4px 20px rgba(0,0,0,.7);white-space:nowrap;z-index:9998;">'
               +rxnBtnsHtml
@@ -2314,7 +2314,7 @@ function postHTML(p){
         <div class="rxn-popup" id="rxnp_${p.id}" onmouseenter="cancelHideRxnPop('${p.id}')" onmouseleave="schedHideRxnPop('${p.id}')">${rxnBtns}</div>
       </div>
       <button class="post-action-btn" onclick="toggleComments('${p.id}')">💬 <span style="font-size:.82rem;">Comentar</span></button>
-      <button class="post-action-btn" onclick="reportPost('${p.id}','${esc(p.userNick)}')" style="color:var(--muted);">⚠️ <span style="font-size:.82rem;">Reportar</span></button>
+      <button class="post-action-btn" onclick="sharePost('${p.id}')">🔁 <span style="font-size:.82rem;">Compartir</span></button>
     </div>
     <div class="comments-section" id="cmts_${p.id}">
       ${cmtsHTML}
@@ -2624,27 +2624,23 @@ function toggleComments(pid){
 
 // ── Comment menu/edit/delete/reactions ──
 let _cmtMenuId = null;
-function toggleCmtMenu(e, pid, ci){
-  if(e){ e.stopPropagation(); e.preventDefault(); }
+// Comment menu hover functions
+const _cmtMenuHide = {};
+function showCmtMenu(pid, ci){
   const id = 'cmtmenu_'+pid+'_'+ci;
+  clearTimeout(_cmtMenuHide[id]);
+  document.querySelectorAll('[id^="cmtmenu_"]').forEach(m=>{ if(m.id!==id) m.style.display='none'; });
   const el = document.getElementById(id);
-  if(!el) return;
-  const wasHidden = (el.style.display==='none'||el.style.display==='');
-  document.querySelectorAll('[id^="cmtmenu_"]').forEach(m=>{ m.style.display='none'; });
-  document.querySelectorAll('[id^="crxnp_"]').forEach(m=>{ m.style.display='none'; });
-  if(wasHidden){
-    el.style.display='block';
-    setTimeout(function(){
-      function closeCmtMenu(ev){
-        if(!el.contains(ev.target)){
-          el.style.display='none';
-          document.removeEventListener('click', closeCmtMenu);
-        }
-      }
-      document.addEventListener('click', closeCmtMenu);
-    }, 150);
-  }
+  if(el) el.style.display='block';
 }
+function hideCmtMenu(pid, ci){
+  const id = 'cmtmenu_'+pid+'_'+ci;
+  _cmtMenuHide[id] = setTimeout(function(){
+    const el = document.getElementById(id);
+    if(el) el.style.display='none';
+  }, 200);
+}
+function toggleCmtMenu(e, pid, ci){ showCmtMenu(pid, ci); }
 async function editCmt(e, pid, ci){
   if(e) e.stopPropagation();
   document.querySelectorAll('[id^="cmtmenu_"]').forEach(m=>{ m.style.display='none'; });
@@ -4733,6 +4729,33 @@ function openChatWith(uid, nick){
 
   if(_unsubChat){ _unsubChat(); _unsubChat=null; }
   if(_presenceUnsub){ _presenceUnsub(); _presenceUnsub=null; }
+  // Listen to the chat user's presence
+  if(uid){
+    _presenceUnsub = onSnapshot(doc(db,'presence',uid), snap=>{
+      const statusEl = document.getElementById('chatOnlineStatus');
+      if(!statusEl) return;
+      const typingEl = document.getElementById('chatTypingStatus');
+      if(snap.exists()){
+        const d = snap.data();
+        const now = Date.now();
+        const isOnline = d.last?.toMillis ? (now - d.last.toMillis() < 120000) : false;
+        const isTyping = d.typingTo === window.CU?.id && (now - (d.typingAt?.toMillis?.() || 0) < 5000);
+        if(isTyping){
+          statusEl.style.color='var(--accent)';
+          statusEl.textContent='✍️ escribiendo...';
+        } else if(isOnline){
+          statusEl.style.color='var(--green)';
+          statusEl.textContent='● En línea';
+        } else {
+          statusEl.style.color='var(--muted)';
+          statusEl.textContent='○ Desconectado';
+        }
+      } else {
+        statusEl.style.color='var(--muted)';
+        statusEl.textContent='○ Desconectado';
+      }
+    });
+  }
 
   const chatId = [window.CU.id, uid].sort().join('_');
   _unsubChat = onSnapshot(
@@ -4816,6 +4839,15 @@ async function reactChatMsg(chatId, msgId, emoji){
   } catch(err){ console.error('reactChatMsg error',err); }
 }
 
+let _typingTimer = null;
+function setChatTyping(){
+  if(!window.CU || !_chatUserId) return;
+  clearTimeout(_typingTimer);
+  try{ setDoc(doc(db,'presence',window.CU.id),{typingTo:_chatUserId,typingAt:serverTimestamp()},{merge:true}); }catch(e){}
+  _typingTimer = setTimeout(function(){
+    try{ setDoc(doc(db,'presence',window.CU.id),{typingTo:'',typingAt:serverTimestamp()},{merge:true}); }catch(e){}
+  }, 4000);
+}
 async function sendChatMsg(){
   if(!window.CU){ toast('Iniciá sesión primero','err'); return; }
   const inp = document.getElementById('chatInput');
@@ -4823,6 +4855,8 @@ async function sendChatMsg(){
   const text = inp.value.trim();
   if(!text || !_chatUserId) return;
   inp.value='';
+  // Clear typing indicator
+  try{ setDoc(doc(db,'presence',window.CU.id),{typingTo:'',typingAt:serverTimestamp()},{merge:true}); }catch(e2){}
   const chatId = [window.CU.id, _chatUserId].sort().join('_');
   try {
     await addDoc(collection(db,'chats',chatId,'messages'),{
@@ -5653,7 +5687,7 @@ const _expose = {
   submitPatch, submitTorneo, submitAdminGroup, submitAd, toggleAd,
   banUser, deleteAdminContent, deleteAdminPost, resolveReport,
   openUserProfile, sendFriendRequest, togglePostMenu, renderProfileFriendsList, openEditPost, saveEditPost, deleteMyPost,
-  toggleMessenger, sendChatMsg, openChatWith, backToMessengerList, openPostWithYt, reactChatMsg, showMsgRxnBar, hideMsgRxnBar, keepMsgRxnBar,
+  toggleMessenger, sendChatMsg, openChatWith, backToMessengerList, openPostWithYt, reactChatMsg, showMsgRxnBar, hideMsgRxnBar, keepMsgRxnBar, showCmtMenu, hideCmtMenu, setChatTyping,
   joinGroup, leaveGroup, openGroupPost, showGroupWelcome, previewGroupPostImg, removeGroupPostImg, submitGroupPost,
   acceptFriendRequest, rejectFriendRequest, dismissFriendRequest, sendFriendRequestFromProfile, loadRealFriends, updateNotifBadge, updateMsgBadge,
   previewSpotImg, removeSpotImg, submitSpot, loadSpots, loadFriendSpots, renderFriendSpotsInHome, openEditSpot, saveEditSpot, deleteSpot, scrollToPost, loadVideos, filterVideos,
