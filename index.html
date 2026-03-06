@@ -1589,7 +1589,7 @@ function _stub(name){ return function(){ _q.push([name, arguments]); }; }
  'doReact','quickReact','saveProfile','openEditProfile','changeCover','changeAvatar',
  'previewPostImg','removePostImg','previewPostMedia','removePostMedia',
  'previewStoryImg','pickStoryEmoji','insertEmoji','insertFishTag',
- 'toggleComments','sharePost','toggleCmtMenu','editCmt','delCmt','quickCmtRxn','showCmtRxnPop','hideCmtRxnPop','cancelHideCmtRxn','reactCmt','openImgLightbox','swPTab',
+ 'toggleComments','sharePost','toggleCmtMenu','editCmt','delCmt','quickCmtRxn','showCmtRxnPop','hideCmtRxnPop','cancelHideCmtRxn','reactCmt','openImgLightbox','swPTab','reactChatMsg','showMsgRxnBar','hideMsgRxnBar',
  'showRxnPop','schedHideRxnPop','cancelHideRxnPop',
  'openSV','closeSV','svNav','reactStory','submitStoryComment','deleteMyStory','doSearch',
  'reportPost','submitReport','loadAdminData','deleteAdminPost','resolveReport',
@@ -2624,16 +2624,21 @@ function toggleComments(pid){
 // ── Comment menu/edit/delete/reactions ──
 let _cmtMenuId = null;
 function toggleCmtMenu(e, pid, ci){
-  if(e) e.stopPropagation();
+  if(e){ e.stopPropagation(); e.preventDefault(); }
   const id = 'cmtmenu_'+pid+'_'+ci;
   const el = document.getElementById(id);
   if(!el) return;
-  const wasHidden = el.style.display==='none';
+  const wasHidden = el.style.display==='none' || el.style.display==='';
   document.querySelectorAll('[id^="cmtmenu_"]').forEach(m=>{ m.style.display='none'; });
   if(wasHidden){
     el.style.display='block';
-    const close = function(){ el.style.display='none'; document.removeEventListener('mousedown',close); };
-    setTimeout(()=>document.addEventListener('mousedown', close), 50);
+    const close = function(ev){
+      if(!el.contains(ev.target)){
+        el.style.display='none';
+        document.removeEventListener('mousedown',close);
+      }
+    };
+    setTimeout(()=>document.addEventListener('mousedown', close), 100);
   }
 }
 async function editCmt(e, pid, ci){
@@ -2664,7 +2669,9 @@ let _cmtRxnHide = {};
 function showCmtRxnPop(pid, ci){
   const id='crxnp_'+pid+'_'+ci;
   clearTimeout(_cmtRxnHide[id]);
-  const el=document.getElementById(id); if(el) el.style.display='flex';
+  // Close any other open comment reaction popups first
+  document.querySelectorAll('[id^="crxnp_"]').forEach(function(p){ if(p.id!==id) p.style.display='none'; });
+  const el=document.getElementById(id); if(el){ el.style.display='flex'; el.style.flexWrap='nowrap'; }
 }
 function hideCmtRxnPop(pid, ci){
   const id='crxnp_'+pid+'_'+ci;
@@ -4706,6 +4713,7 @@ function openChatWith(uid, nick){
   if(_presenceUnsub){ _presenceUnsub(); _presenceUnsub=null; }
 
   const chatId = [window.CU.id, uid].sort().join('_');
+  window._activeChatId = chatId;
   _unsubChat = onSnapshot(
     query(collection(db,'chats',chatId,'messages'), orderBy('time','asc')),
     snap=>{
@@ -4718,9 +4726,20 @@ function openChatWith(uid, nick){
             const time = m.time?.toMillis ? fmtT(m.time.toMillis()) : '';
             const isStoryComment = m.storyComment;
             const storyImg = m.storyImg || '';
+            const msgRxns = m.reactions || {};
+            const msgRxnTotal = Object.values(msgRxns).reduce((a,b)=>a+(b||0),0);
+            const msgTopRxns = Object.entries(msgRxns).filter(([k,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k])=>k).join('');
+            const myMsgRxn = window.CU ? (msgRxns[window.CU.id]||'') : '';
+            const rxnBar = `<div class="msg-rxn-bar" id="mrxnbar_${m.id}" style="display:none;position:absolute;${mine?'right:0':'left:0'};bottom:calc(100% + 2px);background:rgba(15,25,35,.97);border:1px solid rgba(255,255,255,.12);border-radius:100px;padding:4px 8px;display:none;align-items:center;gap:4px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.7);white-space:nowrap;">
+              ${ ['👍','❤️','😂','😮','😢','🔥','🎣'].map(em=>`<button onmousedown="reactChatMsg(event,'${chatId}','${m.id}','${em}')" style="background:none;border:none;font-size:1.3rem;cursor:pointer;padding:3px 4px;border-radius:50%;transition:transform .12s;" onmouseover="this.style.transform='scale(1.5) translateY(-4px)'" onmouseout="this.style.transform='scale(1)'">${em}</button>`).join('') }
+            </div>`;
             return `<div style="display:flex;flex-direction:column;align-items:${mine?'flex-end':'flex-start'};gap:2px;">
               ${isStoryComment && storyImg ? `<div style="max-width:75%;border-radius:${mine?'12px 12px 4px 12px':'12px 12px 12px 4px'};overflow:hidden;border:2px solid rgba(0,198,255,.3);"><img src="${storyImg}" style="width:100%;max-height:120px;object-fit:cover;display:block;"></div>` : ''}
-              <div style="max-width:75%;padding:8px 12px;border-radius:${mine?'16px 16px 4px 16px':'16px 16px 16px 4px'};background:${isStoryComment?(mine?'var(--accent2)':'rgba(0,198,255,.12)'):(mine?'var(--accent)':'var(--bg3)')};color:${mine?'#fff':'var(--text)'};font-size:.84rem;line-height:1.5;word-break:break-word;${isStoryComment?'border:1px solid rgba(0,198,255,.3);':''}">${esc(m.text)}</div>
+              <div style="position:relative;" onmouseenter="showMsgRxnBar('${m.id}')" onmouseleave="hideMsgRxnBar('${m.id}')">
+                ${rxnBar}
+                <div style="max-width:75%;padding:8px 12px;border-radius:${mine?'16px 16px 4px 16px':'16px 16px 16px 4px'};background:${isStoryComment?(mine?'var(--accent2)':'rgba(0,198,255,.12)'):(mine?'var(--accent)':'var(--bg3)')};color:${mine?'#fff':'var(--text)'};font-size:.84rem;line-height:1.5;word-break:break-word;${isStoryComment?'border:1px solid rgba(0,198,255,.3);':''};cursor:default;">${esc(m.text)}</div>
+                ${msgRxnTotal>0?`<div style="position:absolute;${mine?'left:-10px':'right:-10px'};bottom:-10px;background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:1px 6px;font-size:.75rem;cursor:pointer;" onmousedown="reactChatMsg(event,'${chatId}','${m.id}','')">${msgTopRxns} ${msgRxnTotal}</div>`:''}
+              </div>
               <div style="font-size:.65rem;color:var(--muted);padding:0 4px;">${time}</div>
             </div>`;
           }).join('')
@@ -4740,6 +4759,39 @@ function backToMessengerList(){
   if(list) list.style.display='block';
   if(inputRow) inputRow.style.display='none';
   renderMessengerList();
+}
+
+
+// ===== CHAT MESSAGE REACTIONS =====
+const _msgRxnHide = {};
+function showMsgRxnBar(msgId){
+  clearTimeout(_msgRxnHide[msgId]);
+  const bar = document.getElementById('mrxnbar_'+msgId);
+  if(bar){ bar.style.display='flex'; }
+}
+function hideMsgRxnBar(msgId){
+  _msgRxnHide[msgId] = setTimeout(()=>{
+    const bar = document.getElementById('mrxnbar_'+msgId);
+    if(bar) bar.style.display='none';
+  }, 400);
+}
+async function reactChatMsg(e, chatId, msgId, emoji){
+  if(e){ e.stopPropagation(); e.preventDefault(); }
+  if(!window.CU){ toast('Iniciá sesión','err'); return; }
+  const msgRef = doc(db,'chats',chatId,'messages',msgId);
+  try {
+    const snap = await getDoc(msgRef);
+    if(!snap.exists()) return;
+    const data = snap.data();
+    const rxns = {...(data.reactions||{})};
+    const prev = rxns[window.CU.id]||'';
+    if(!emoji || prev===emoji){ delete rxns[window.CU.id]; }
+    else { rxns[window.CU.id] = emoji; }
+    await updateDoc(msgRef, {reactions: rxns});
+    // Hide the bar
+    const bar = document.getElementById('mrxnbar_'+msgId);
+    if(bar) bar.style.display='none';
+  } catch(err){ console.error('reactChatMsg error',err); }
 }
 
 async function sendChatMsg(){
@@ -5579,7 +5631,7 @@ const _expose = {
   submitPatch, submitTorneo, submitAdminGroup, submitAd, toggleAd,
   banUser, deleteAdminContent, deleteAdminPost, resolveReport,
   openUserProfile, sendFriendRequest, togglePostMenu, renderProfileFriendsList, openEditPost, saveEditPost, deleteMyPost,
-  toggleMessenger, sendChatMsg, openChatWith, backToMessengerList, openPostWithYt,
+  toggleMessenger, sendChatMsg, openChatWith, backToMessengerList, openPostWithYt, reactChatMsg, showMsgRxnBar, hideMsgRxnBar,
   joinGroup, leaveGroup, openGroupPost, showGroupWelcome, previewGroupPostImg, removeGroupPostImg, submitGroupPost,
   acceptFriendRequest, rejectFriendRequest, dismissFriendRequest, sendFriendRequestFromProfile, loadRealFriends, updateNotifBadge, updateMsgBadge,
   previewSpotImg, removeSpotImg, submitSpot, loadSpots, loadFriendSpots, renderFriendSpotsInHome, openEditSpot, saveEditSpot, deleteSpot, scrollToPost, loadVideos, filterVideos,
