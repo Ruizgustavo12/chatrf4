@@ -117,6 +117,10 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
 .story-add-icon{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));
   display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:#000;font-weight:900;}
 
+/* ===== VERIFICADO ===== */
+.verified-ring{border:3px solid gold !important;box-shadow:0 0 10px rgba(255,215,0,.5);}
+.verified-badge-inline{font-size:.75rem;display:inline-flex;align-items:center;}
+
 /* ===== CARRETES ===== */
 .cfbtn{background:var(--bg3);border:1px solid var(--border);border-radius:100px;color:var(--muted);padding:4px 10px;font-size:.73rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;transition:all .15s;}
 .cfbtn:hover{border-color:var(--accent);color:var(--accent);}
@@ -571,9 +575,14 @@ select.fi option{background:#fff;}
             <div class="profile-av-big" id="profAvBig" style="cursor:pointer;" onclick="openPhotoModal('avatar')">👤</div>
             <div class="profile-av-edit" onclick="document.getElementById('avatarFileInput').click()">📷<input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="changeAvatar(this)"></div>
           </div>
-          <div class="profile-name" id="profName">Mi Perfil</div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:2px;">
+            <div class="profile-name" id="profName">Mi Perfil</div>
+            <span id="profVerifiedBadge" style="display:none;font-size:1.1rem;" title="Usuario Verificado">✅</span>
+          </div>
           <div class="profile-bio" id="profBioEl"></div>
           <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap" id="profBadges"></div>
+          <!-- Botón verificación -->
+          <div id="profVerifBtn" style="margin-top:8px;display:none;"></div>
           <!-- XP + Streak bar -->
           <div id="profXpBlock" style="margin-top:10px;min-width:220px;display:none;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
@@ -1248,6 +1257,7 @@ select.fi option{background:#fff;}
     <button class="adm-tab adm-on" onclick="swAdminTab(this,'admt-reports')">⚠️ Reportes</button>
     <button class="adm-tab" onclick="swAdminTab(this,'admt-posts')">📝 Posts</button>
     <button class="adm-tab" onclick="swAdminTab(this,'admt-users')">👥 Usuarios</button>
+    <button class="adm-tab" onclick="swAdminTab(this,'admt-verif')">✅ Verificaciones</button>
     <button class="adm-tab" onclick="swAdminTab(this,'admt-site')">🎨 Sitio Web</button>
     <button class="adm-tab" onclick="swAdminTab(this,'admt-parches')">🔧 Parches</button>
     <button class="adm-tab" onclick="swAdminTab(this,'admt-torneos')">🏆 Torneos</button>
@@ -1270,6 +1280,15 @@ select.fi option{background:#fff;}
   <!-- TAB: Usuarios -->
   <div id="admt-users" style="display:none;">
     <div id="adminUsersList"><div style="text-align:center;padding:30px;color:var(--muted);">Cargando usuarios...</div></div>
+  </div>
+
+  <!-- TAB: Verificaciones -->
+  <div id="admt-verif" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <span style="font-size:.9rem;font-weight:800;color:var(--text);">Solicitudes de Verificación</span>
+      <button onclick="loadVerifRequests()" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:var(--rs);font-size:.75rem;cursor:pointer;font-family:'Exo 2',sans-serif;">🔄 Actualizar</button>
+    </div>
+    <div id="adminVerifList"><div style="text-align:center;padding:30px;color:var(--muted);">Cargando solicitudes...</div></div>
   </div>
 
   <!-- TAB: Sitio Web (editar nombres de secciones, colores, textos) -->
@@ -2687,10 +2706,10 @@ function postHTML(p){
     }).join('');
   return `<div class="post" id="post_${p.id}">
     <div class="post-header">
-      <div class="post-av" style="cursor:pointer" onclick="openUserProfile('${p.userId}','${esc(p.userNick)}')">${p.userAv?`<img src="${p.userAv}">`:(p.userNick||'U')[0]}</div>
+      <div class="post-av" style="cursor:pointer;${p.userVerified?'border:2px solid gold;box-shadow:0 0 8px rgba(255,215,0,.35);':''}" onclick="openUserProfile('${p.userId}','${esc(p.userNick)}')">${p.userAv?`<img src="${p.userAv}">`:(p.userNick||'U')[0]}</div>
       <div class="post-meta" style="cursor:pointer" onclick="openUserProfile('${p.userId}','${esc(p.userNick)}')">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          <div class="post-author">${esc(p.userNick)}</div>
+          <div class="post-author">${esc(p.userNick)}${p.userVerified?' <span title="Verificado" style="font-size:.75rem;line-height:1;">✅</span>':''}</div>
           ${(()=>{ const plvl=getLevel(p.userXp||0); return `<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:100px;border:1px solid;color:${plvl.color};border-color:${plvl.border};background:${plvl.border.replace(/[\d.]+\)$/,'.08)')};">${plvl.name}</span>`; })()}
         </div>
         <div class="post-time">🌐 ${fmtT(p.time)}</div>
@@ -2831,7 +2850,7 @@ async function submitPost(){
 
   const linkData = (linkUrl && window._pendingLinkData) ? window._pendingLinkData : (linkUrl ? { url:linkUrl, title:linkUrl, desc:'', img:'', site:'' } : null);
   const newPostRef = await addDoc(collection(db,'posts'),{
-    userId:window.CU.id, userNick:window.CU.nick, userAv:window.CU.av||'', userXp:window.CU.xp||0,
+    userId:window.CU.id, userNick:window.CU.nick, userAv:window.CU.av||'', userXp:window.CU.xp||0, userVerified:window.CU.verified||false,
     text, fish, weight, map, tech,
     images: mediaUrls,
     video: videoUrl,
@@ -3253,7 +3272,27 @@ function renderProfile(){
   if(!window.CU) return;
   const avEl = document.getElementById('profAvBig');
   avEl.innerHTML = CU.av ? `<img src="${CU.av}">` : CU.nick[0].toUpperCase();
+  // Marco dorado si verificado
+  if(CU.verified) avEl.classList.add('verified-ring');
+  else avEl.classList.remove('verified-ring');
   document.getElementById('profName').textContent = window.CU.nick;
+  // Badge verificado
+  const badge = document.getElementById('profVerifiedBadge');
+  if(badge) badge.style.display = CU.verified ? 'inline-flex' : 'none';
+  // Botón verificación
+  const verifBtn = document.getElementById('profVerifBtn');
+  if(verifBtn){
+    if(CU.verified){
+      verifBtn.innerHTML = `<span style="background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.35);color:gold;border-radius:100px;padding:4px 12px;font-size:.72rem;font-weight:800;">✅ Cuenta Verificada</span>`;
+      verifBtn.style.display='block';
+    } else if(CU.verifPending){
+      verifBtn.innerHTML = `<span style="background:rgba(255,200,0,.08);border:1px solid rgba(255,200,0,.25);color:gold;border-radius:100px;padding:4px 12px;font-size:.72rem;font-weight:700;">⏳ Verificación pendiente</span>`;
+      verifBtn.style.display='block';
+    } else {
+      verifBtn.innerHTML = `<button onclick="requestVerification()" style="background:rgba(0,198,255,.1);border:1px solid rgba(0,198,255,.3);color:var(--accent);border-radius:100px;padding:5px 14px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;">🔵 Solicitar verificación</button>`;
+      verifBtn.style.display='block';
+    }
+  }
   document.getElementById('profBioEl').textContent = window.CU.bio||'';
 
   // Helper to show/hide optional rows
@@ -3664,7 +3703,7 @@ async function submitReport(){
 function swAdminTab(el, tabId){
   document.querySelectorAll('.adm-tab').forEach(t=>t.classList.remove('adm-on'));
   el.classList.add('adm-on');
-  ['admt-reports','admt-posts','admt-users','admt-site','admt-parches','admt-torneos','admt-grupos','admt-ads']
+  ['admt-reports','admt-posts','admt-users','admt-verif','admt-site','admt-parches','admt-torneos','admt-grupos','admt-ads']
     .forEach(id=>{ const e=document.getElementById(id); if(e) e.style.display='none'; });
   const tab = document.getElementById(tabId);
   if(tab) tab.style.display='block';
@@ -3672,6 +3711,7 @@ function swAdminTab(el, tabId){
   if(tabId==='admt-torneos') loadAdminTorneos();
   if(tabId==='admt-grupos') loadAdminGrupos();
   if(tabId==='admt-users') loadAdminUsers();
+  if(tabId==='admt-verif') loadVerifRequests();
   if(tabId==='admt-site') loadSiteConfig();
   if(tabId==='admt-ads') loadAdminAds();
 }
@@ -3744,10 +3784,17 @@ async function loadAdminUsers(){
         ${u.av?`<img src="${u.av}" style="width:100%;height:100%;object-fit:cover;">`:u.nick?u.nick[0].toUpperCase():'?'}
       </div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:.85rem;font-weight:700;">${esc(u.nick||'')} ${u.nick==='ruizgustavo12'?'<span style=\"font-size:.65rem;background:rgba(255,68,68,.1);color:var(--red);padding:1px 6px;border-radius:100px;\">ADMIN</span>':''}</div>
+        <div style="font-size:.85rem;font-weight:700;display:flex;align-items:center;gap:5px;">
+          ${esc(u.nick||'')} 
+          ${u.nick==='ruizgustavo12'?'<span style=\"font-size:.6rem;background:rgba(255,68,68,.1);color:var(--red);padding:1px 6px;border-radius:100px;\">ADMIN</span>':''}
+          ${u.verified?'<span title=\"Verificado\" style=\"font-size:.8rem;\">✅</span>':u.verifPending?'<span title=\"Verificación pendiente\" style=\"font-size:.75rem;color:gold;\">⏳</span>':''}
+        </div>
         <div style="font-size:.75rem;color:var(--muted);">${u.email||''} · ${u.country||''}</div>
       </div>
-      <button onclick="banUser('${u.id}','${u.nick}')" style="background:rgba(255,68,68,.05);border:1px solid rgba(255,68,68,.2);color:var(--red);padding:4px 10px;border-radius:var(--rs);font-size:.7rem;cursor:pointer;font-family:\'Exo 2\',sans-serif;flex-shrink:0;">🚫 Banear</button>
+      <div style="display:flex;gap:5px;flex-shrink:0;">
+        ${!u.verified?`<button onclick="adminApproveVerif('${u.id}','${(u.nick||'').replace(/'/g,"\''")}','${u.id}')" style="background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.25);color:gold;padding:4px 8px;border-radius:var(--rs);font-size:.68rem;cursor:pointer;font-family:'Exo 2',sans-serif;">✅</button>`:''}
+        <button onclick="banUser('${u.id}','${u.nick}')" style="background:rgba(255,68,68,.05);border:1px solid rgba(255,68,68,.2);color:var(--red);padding:4px 10px;border-radius:var(--rs);font-size:.7rem;cursor:pointer;font-family:\'Exo 2\',sans-serif;">🚫 Banear</button>
+      </div>
     </div>`).join('') : '<div style="text-align:center;padding:30px;color:var(--muted);">Sin usuarios</div>';
 }
 
@@ -4634,6 +4681,132 @@ async function renderSuggestedPosts(){
   } catch(e){ el.innerHTML='<div style="font-size:.75rem;color:var(--muted);padding:6px 4px;"></div>'; }
 }
 
+// ===== SISTEMA DE VERIFICACIÓN =====
+
+function verifiedHTML(nick){ 
+  return `<span title="Usuario Verificado ✅" style="font-size:.75rem;display:inline-flex;align-items:center;">✅</span>`; 
+}
+
+// Aplica marco dorado al avatar de un elemento
+function applyVerifiedRing(el){ if(el) el.classList.add('verified-ring'); }
+
+// Solicitar verificación
+async function requestVerification(){
+  if(!window.CU) return;
+  if(window.CU.verified){ toast('Ya estás verificado ✅','ok'); return; }
+  if(window.CU.verifPending){ toast('Tu solicitud ya está pendiente ⏳','inf'); return; }
+  if(!confirm('¿Querés solicitar la verificación de tu cuenta? El admin revisará tu solicitud.')) return;
+  try {
+    // Marca al usuario con solicitud pendiente
+    await updateDoc(doc(db,'users',window.CU.id),{ verifPending: true, verifRequestTime: Date.now() });
+    window.CU.verifPending = true;
+    // Crea documento en colección verifRequests
+    await setDoc(doc(db,'verifRequests',window.CU.id),{
+      userId: window.CU.id,
+      nick: window.CU.nick,
+      av: window.CU.av||'',
+      requestTime: Date.now(),
+      status: 'pending'
+    });
+    // Notifica al admin (ruizgustavo12)
+    try {
+      const adminSnap = await getDocs(query(collection(db,'users'), where('nick','==','ruizgustavo12')));
+      if(!adminSnap.empty){
+        const adminId = adminSnap.docs[0].id;
+        const adminData = adminSnap.docs[0].data();
+        const adminNotifs = adminData.notifs||[];
+        adminNotifs.unshift({ type:'verifRequest', fromId:window.CU.id, fromNick:window.CU.nick, fromAv:window.CU.av||'', time:Date.now(), text:`${window.CU.nick} solicita verificación` });
+        await updateDoc(doc(db,'users',adminId),{ notifs: adminNotifs.slice(0,50) });
+      }
+    } catch(e){}
+    renderProfile();
+    toast('¡Solicitud enviada! El admin revisará tu cuenta 🕐','ok');
+  } catch(e){ toast('Error al enviar solicitud','err'); }
+}
+
+// Admin: cargar solicitudes pendientes
+async function loadVerifRequests(){
+  const el = document.getElementById('adminVerifList');
+  if(!el) return;
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);">Cargando...</div>';
+  try {
+    const snap = await getDocs(collection(db,'verifRequests'));
+    const reqs = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.requestTime||0)-(a.requestTime||0));
+    if(!reqs.length){ el.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);">Sin solicitudes pendientes 🎉</div>'; return; }
+    el.innerHTML = reqs.map(r=>`
+      <div style="display:flex;align-items:center;gap:12px;padding:14px;border-bottom:1px solid var(--border);background:${r.status==='approved'?'rgba(0,200,0,.04)':r.status==='rejected'?'rgba(255,0,0,.04)':'var(--bg2)'};">
+        <div style="width:44px;height:44px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;background:var(--bg3);flex-shrink:0;${r.status==='approved'?'border:2px solid gold;box-shadow:0 0 8px rgba(255,215,0,.4);':'border:1px solid var(--border);'}">
+          ${r.av?`<img src="${r.av}" style="width:100%;height:100%;object-fit:cover;">`:(r.nick||'?')[0].toUpperCase()}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:.88rem;font-weight:800;">${esc(r.nick||'')} ${r.status==='approved'?'✅':''}</div>
+          <div style="font-size:.72rem;color:var(--muted);">${r.requestTime?new Date(r.requestTime).toLocaleString('es-AR'):'—'}</div>
+          <div style="font-size:.72rem;margin-top:2px;">
+            <span style="padding:2px 8px;border-radius:100px;font-weight:700;font-size:.68rem;${r.status==='approved'?'background:rgba(0,200,0,.15);color:#00c853;':r.status==='rejected'?'background:rgba(255,0,0,.1);color:var(--red);':'background:rgba(255,200,0,.15);color:gold;'}">
+              ${r.status==='approved'?'✅ Aprobado':r.status==='rejected'?'❌ Rechazado':'⏳ Pendiente'}
+            </span>
+          </div>
+        </div>
+        ${r.status==='pending'?`
+        <div style="display:flex;gap:6px;flex-shrink:0;">
+          <button onclick="adminApproveVerif('${r.id}','${(r.nick||'').replace(/'/g,"\\'")}','${r.userId}')" style="background:rgba(0,200,0,.1);border:1px solid rgba(0,200,0,.3);color:#00c853;padding:6px 12px;border-radius:var(--rs);font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;">✅ Aprobar</button>
+          <button onclick="adminRejectVerif('${r.id}','${(r.nick||'').replace(/'/g,"\\'")}','${r.userId}')" style="background:rgba(255,0,0,.06);border:1px solid rgba(255,0,0,.2);color:var(--red);padding:6px 12px;border-radius:var(--rs);font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;">❌ Rechazar</button>
+        </div>`:`
+        <div style="flex-shrink:0;">
+          ${r.status==='approved'
+            ?`<button onclick="adminRevokeVerif('${r.id}','${(r.nick||'').replace(/'/g,"\\'")}','${r.userId}')" style="background:rgba(255,200,0,.08);border:1px solid rgba(255,200,0,.25);color:gold;padding:5px 10px;border-radius:var(--rs);font-size:.7rem;cursor:pointer;font-family:'Exo 2',sans-serif;">↩ Revocar</button>`
+            :`<button onclick="adminApproveVerif('${r.id}','${(r.nick||'').replace(/'/g,"\\'")}','${r.userId}')" style="background:rgba(0,200,0,.1);border:1px solid rgba(0,200,0,.3);color:#00c853;padding:5px 10px;border-radius:var(--rs);font-size:.7rem;cursor:pointer;font-family:'Exo 2',sans-serif;">✅ Aprobar</button>`}
+        </div>`}
+      </div>`).join('');
+  } catch(e){ el.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);">Error al cargar</div>'; }
+}
+
+async function adminApproveVerif(reqId, nick, userId){
+  try {
+    await updateDoc(doc(db,'users',userId),{ verified:true, verifPending:false });
+    await setDoc(doc(db,'verifRequests',reqId),{ status:'approved' },{merge:true});
+    // Notifica al usuario
+    try {
+      const uSnap = await getDoc(doc(db,'users',userId));
+      if(uSnap.exists()){
+        const notifs = uSnap.data().notifs||[];
+        notifs.unshift({ type:'verifApproved', time:Date.now(), text:'¡Tu cuenta fue verificada! ✅' });
+        await updateDoc(doc(db,'users',userId),{ notifs: notifs.slice(0,50) });
+      }
+    } catch(e){}
+    toast(`✅ ${nick} verificado correctamente`,'ok');
+    loadVerifRequests();
+  } catch(e){ toast('Error al verificar','err'); }
+}
+
+async function adminRejectVerif(reqId, nick, userId){
+  try {
+    await updateDoc(doc(db,'users',userId),{ verifPending:false });
+    await setDoc(doc(db,'verifRequests',reqId),{ status:'rejected' },{merge:true});
+    // Notifica al usuario
+    try {
+      const uSnap = await getDoc(doc(db,'users',userId));
+      if(uSnap.exists()){
+        const notifs = uSnap.data().notifs||[];
+        notifs.unshift({ type:'verifRejected', time:Date.now(), text:'Tu solicitud de verificación fue rechazada.' });
+        await updateDoc(doc(db,'users',userId),{ notifs: notifs.slice(0,50) });
+      }
+    } catch(e){}
+    toast(`Solicitud de ${nick} rechazada`,'inf');
+    loadVerifRequests();
+  } catch(e){ toast('Error al rechazar','err'); }
+}
+
+async function adminRevokeVerif(reqId, nick, userId){
+  if(!confirm(`¿Revocar la verificación de ${nick}?`)) return;
+  try {
+    await updateDoc(doc(db,'users',userId),{ verified:false });
+    await setDoc(doc(db,'verifRequests',reqId),{ status:'rejected' },{merge:true});
+    toast(`Verificación de ${nick} revocada`,'inf');
+    loadVerifRequests();
+  } catch(e){ toast('Error al revocar','err'); }
+}
+
 // ===== CARRETES =====
 const CARRETES_DATA = [
   {nombre:'Turion SW 30000',marca:'Reef',capacidad:30000,tipo:'spinning',agua:'💧',rodamientos:40,ratio:4.4,recogida:1.56,freno:36.3,frenoMax:null,peso:127.94,nivel:32,precio:56799,precioReal:216.28},
@@ -5242,10 +5415,10 @@ async function openUserProfile(uid, nick){
       : `<button disabled title="Solo podés mensajear a tus amigos" style="flex:1;padding:8px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:not-allowed;font-family:'Exo 2',sans-serif;">🔒 Mensaje</button>`;
     content.innerHTML = `
       <div style="text-align:center;margin-bottom:16px;">
-        <div style="width:72px;height:72px;border-radius:50%;background:var(--bg3);border:2px solid var(--accent);margin:0 auto 10px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;">
+        <div style="width:72px;height:72px;border-radius:50%;background:var(--bg3);margin:0 auto 10px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;${u.verified?'border:3px solid gold;box-shadow:0 0 14px rgba(255,215,0,.5);':'border:2px solid var(--accent);'}">
           ${u.av?`<img src="${u.av}" style="width:100%;height:100%;object-fit:cover;">`:(u.nick||nick)[0].toUpperCase()}
         </div>
-        <div style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:800;">${esc(u.nick||nick)}</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:6px;font-family:'Orbitron',monospace;font-size:1rem;font-weight:800;">${esc(u.nick||nick)}${u.verified?' <span title="Verificado" style="font-size:.85rem;">✅</span>':''}</div>
         ${(()=>{ const ulvl=getLevel(u.xp||0); const uprog=getXpProgress(u.xp||0); return `
           <div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin:6px 0 2px;">
             <span style="display:inline-flex;align-items:center;gap:5px;padding:3px 12px;border-radius:100px;font-size:.75rem;font-weight:700;border:1px solid;color:${ulvl.color};border-color:${ulvl.border};background:${ulvl.border.replace(/[\d.]+\)$/,'.1)')};">${ulvl.name}</span>
@@ -6763,6 +6936,7 @@ const _expose = {
   doSearch,
   reportPost,submitReport,
   loadAdminData,deleteAdminPost,resolveReport,
+  requestVerification, loadVerifRequests, adminApproveVerif, adminRejectVerif, adminRevokeVerif,
   doForgotPassword,quickLogin,
   createGroup,previewGroupImg,
   submitMapPost,previewMapMedia,filterMapPosts,
