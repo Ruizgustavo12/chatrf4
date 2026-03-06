@@ -2310,7 +2310,7 @@ function postHTML(p){
         +'</div>'
         +'<div style="display:flex;align-items:center;gap:10px;padding:0 4px 4px;flex-wrap:wrap;">'
           +'<span style="font-size:.7rem;color:var(--muted);">'+timeStr+'</span>'
-          +'<button onclick="replyCmt(event,\''+p.id+'\',\''+esc(c.nick)+'\')" style="background:none;border:none;font-size:.75rem;font-weight:700;color:var(--muted);cursor:pointer;padding:2px 6px;border-radius:100px;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">Responder</button>'
+          +'<button onclick="replyCmt(event,\''+p.id+'\',\''+esc(c.nick)+'\')" class="cmt-reply-btn">Responder</button>'
           +'<div class="cmt-rxn-wrap">'
             +'<button onclick="quickCmtRxn(event,\''+p.id+'\','+ci+')" style="background:none;border:none;font-size:.75rem;font-weight:700;cursor:pointer;padding:2px 6px;border-radius:100px;color:'+(myRxnC?'var(--accent)':'var(--muted)')+';padding:2px 6px;">'+(myRxnC?myRxnC+' ':'')+' Me gusta</button>'
             +'<div class="cmt-rxn-popup">'
