@@ -179,7 +179,7 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
 
 /* Comment reaction popup hover (CSS-only) */
 .cmt-rxn-wrap{position:relative;}
-.cmt-rxn-wrap .cmt-rxn-popup{display:none;position:absolute;bottom:calc(100% + 4px);left:0;background:rgba(18,28,42,.97);border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:5px 8px;align-items:center;box-shadow:0 4px 20px rgba(0,0,0,.7);white-space:nowrap;z-index:9998;flex-direction:row;}
+.cmt-rxn-wrap .cmt-rxn-popup{display:none;position:absolute;bottom:100%;left:0;background:rgba(18,28,42,.97);border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:8px 10px 16px;align-items:center;box-shadow:0 4px 20px rgba(0,0,0,.7);white-space:nowrap;z-index:9998;flex-direction:row;}
 .cmt-rxn-wrap:hover .cmt-rxn-popup{display:flex;}
 
 .comments-section.open{display:block;}
@@ -2195,14 +2195,44 @@ function pickStoryEmoji(em){ _storyEmojiPick = em; toast('Emoji '+em+' seleccion
 function renderFeed(){
   const el = document.getElementById('feedPosts');
   if(!el) return;
-  el.innerHTML = _posts.map(p=>postHTML(p)).join('');
+  // Save scroll position
+  const scrollY = window.scrollY;
+  // Render only changed/new posts to avoid scroll jump
+  const newHTML = _posts.map(p=>postHTML(p)).join('');
+  if(el.innerHTML === newHTML) return; // nothing changed
+  // Smart update: update each post individually if it exists
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = newHTML;
+  const newPosts = Array.from(tempDiv.children);
+  let fullyRebuild = false;
+  if(el.children.length !== newPosts.length){ fullyRebuild = true; }
+  if(fullyRebuild){
+    el.innerHTML = newHTML;
+    window.scrollTo(0, scrollY);
+  } else {
+    // Update each post card that changed
+    newPosts.forEach((newPost, i) => {
+      const existing = el.children[i];
+      if(existing && existing.outerHTML !== newPost.outerHTML){
+        // Only replace if the post id matches (avoid mismatches)
+        if(existing.id === newPost.id){
+          existing.replaceWith(newPost);
+        } else {
+          el.innerHTML = newHTML;
+          window.scrollTo(0, scrollY);
+        }
+      }
+    });
+  }
 }
 
 function renderProfileFeed(){
   const el = document.getElementById('profileFeed');
   if(!el||!window.CU) return;
   const mine = _posts.filter(p=>p.userId===window.CU.id);
-  el.innerHTML = mine.length ? mine.map(p=>postHTML(p)).join('') : `<div style="text-align:center;padding:40px;color:var(--muted)">Sin publicaciones aún. ¡Comparte tu primera pesca!</div>`;
+  const scrollY = window.scrollY;
+  const newHTML = mine.length ? mine.map(p=>postHTML(p)).join('') : `<div style="text-align:center;padding:40px;color:var(--muted)">Sin publicaciones aún. ¡Comparte tu primera pesca!</div>`;
+  if(el.innerHTML !== newHTML){ el.innerHTML = newHTML; window.scrollTo(0, scrollY); }
 }
 
 function postHTML(p){
@@ -2621,7 +2651,11 @@ async function doReact(pid, emoji){
     // Notify post owner if it's not our own post
     if(emoji && !prev) addXP(1,'reacción');
     if(p.userId && p.userId !== window.CU.id && !prev){
-      sendNotifToUserWithPost(p.userId, `${emoji} ${window.CU.nick} reaccionó a tu publicación`, p.id);
+      const preview = (p.text||'').slice(0,60) + ((p.text||'').length>60?'...':'');
+      const msg = preview
+        ? `${emoji} ${window.CU.nick} reaccionó a tu publicación: "${preview}"`
+        : `${emoji} ${window.CU.nick} reaccionó a tu publicación`;
+      sendNotifToUserWithPost(p.userId, msg, p.id);
     }
   }
   document.getElementById('rxnp_'+pid)?.classList.remove('show');
