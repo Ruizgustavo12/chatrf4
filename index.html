@@ -502,16 +502,16 @@ select.fi option{background:#fff;}
 
 <!-- PAGE: PROFILE -->
 <div class="page" id="page-profile">
-  <div class="profile-cover" id="profCover">
+  <div class="profile-cover" id="profCover" style="cursor:pointer;" onclick="openPhotoModal('cover')">
     <div id="profCoverInner" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:5rem;opacity:.15">🎣</div>
-    <button class="profile-cover-edit" onclick="document.getElementById('coverFileInput').click()">📷 Editar foto de portada<input type="file" id="coverFileInput" accept="image/*" style="display:none" onchange="changeCover(this)"></button>
+    <button class="profile-cover-edit" onclick="event.stopPropagation();document.getElementById('coverFileInput').click()">📷 Editar foto de portada<input type="file" id="coverFileInput" accept="image/*" style="display:none" onchange="changeCover(this)"></button>
   </div>
   <div class="profile-info-bar">
     <div style="max-width:1080px;margin:0 auto;padding:0 16px">
       <div class="profile-name-row">
         <div>
           <div class="profile-av-wrap">
-            <div class="profile-av-big" id="profAvBig">👤</div>
+            <div class="profile-av-big" id="profAvBig" style="cursor:pointer;" onclick="openPhotoModal('avatar')">👤</div>
             <div class="profile-av-edit" onclick="document.getElementById('avatarFileInput').click()">📷<input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="changeAvatar(this)"></div>
           </div>
           <div class="profile-name" id="profName">Mi Perfil</div>
@@ -1041,13 +1041,59 @@ select.fi option{background:#fff;}
 </div>
 
 
+
+<!-- Photo Modal (Profile/Cover) with reactions & comments -->
+<div class="mo" id="mPhotoModal" onclick="if(event.target===this)cm('mPhotoModal')">
+  <div class="modal" style="width:600px;max-width:97vw;max-height:93vh;display:flex;flex-direction:column;padding:0;overflow:hidden;border-radius:12px;">
+    <!-- Header -->
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--bg2);">
+      <div id="photoModalTitle" style="font-family:'Orbitron',monospace;font-size:.82rem;font-weight:700;color:var(--accent);">📷 Foto</div>
+      <button onclick="cm('mPhotoModal')" style="background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">✕</button>
+    </div>
+    <!-- Image -->
+    <div style="background:#000;flex-shrink:0;display:flex;align-items:center;justify-content:center;max-height:52vh;overflow:hidden;">
+      <img id="photoModalImg" src="" alt="" style="max-width:100%;max-height:52vh;object-fit:contain;display:block;">
+    </div>
+    <!-- Reactions bar -->
+    <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;background:var(--bg2);">
+      <div id="photoModalRxnBar" style="display:flex;gap:4px;flex:1;flex-wrap:wrap;">
+        <!-- reaction buttons rendered by JS -->
+      </div>
+      <div id="photoModalRxnCount" style="font-size:.78rem;color:var(--muted);white-space:nowrap;"></div>
+    </div>
+    <!-- Comments -->
+    <div id="photoModalComments" style="flex:1;overflow-y:auto;padding:10px 14px;min-height:0;display:flex;flex-direction:column;gap:8px;background:var(--bg2);">
+      <div style="text-align:center;color:var(--muted);font-size:.8rem;">Cargando comentarios...</div>
+    </div>
+    <!-- Comment input -->
+    <div style="padding:8px 12px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-shrink:0;background:var(--bg2);">
+      <div id="photoModalUserAv" style="width:32px;height:32px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;flex-shrink:0;overflow:hidden;"></div>
+      <input id="photoModalInput" class="fi" placeholder="Escribe un comentario..." style="flex:1;font-size:.83rem;border-radius:20px;" onkeypress="if(event.key==='Enter')submitPhotoComment()">
+      <button onclick="submitPhotoComment()" style="background:var(--accent);border:none;color:#000;width:32px;height:32px;border-radius:50%;font-size:.85rem;cursor:pointer;flex-shrink:0;">➤</button>
+    </div>
+  </div>
+</div>
+
 <!-- Messenger Modal - se abre desde ícono 💬 de la barra superior -->
 <div class="mo" id="mMessenger">
-  <div class="modal" style="width:340px;max-width:96vw;height:520px;display:flex;flex-direction:column;padding:0;overflow:hidden;">
+  <div class="modal" style="width:340px;max-width:96vw;height:560px;display:flex;flex-direction:column;padding:0;overflow:hidden;">
     <!-- Header -->
-    <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg3);flex-shrink:0;">
-      <div style="font-family:'Orbitron',monospace;font-size:.82rem;font-weight:700;color:var(--accent);">💬 Mensajes</div>
-      <button onclick="cm('mMessenger');backToMessengerList();" style="background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;">✕</button>
+    <div style="padding:10px 14px 0;border-bottom:1px solid var(--border);background:var(--bg3);flex-shrink:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="font-family:'Orbitron',monospace;font-size:.82rem;font-weight:700;color:var(--accent);">💬 Chats</div>
+        <button onclick="cm('mMessenger');backToMessengerList();" style="background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='var(--bg4)'" onmouseout="this.style.background='none'">✕</button>
+      </div>
+      <!-- Search -->
+      <div style="padding:0 0 8px;display:none;" id="msgSearchWrap">
+        <input class="fi" id="msgSearchInput" placeholder="🔍 Buscar en Messenger" style="font-size:.82rem;width:100%;border-radius:20px;" oninput="filterMessengerList()">
+      </div>
+      <!-- Tabs -->
+      <div id="chatTabsRow" style="display:flex;gap:0;border-bottom:none;padding-bottom:0;">
+        <button id="chatTab-all" onclick="switchChatTab('all')" style="flex:1;background:none;border:none;border-bottom:2px solid var(--accent);color:var(--accent);font-family:'Exo 2',sans-serif;font-size:.8rem;font-weight:700;padding:7px 4px;cursor:pointer;transition:all .15s;">Todos</button>
+        <button id="chatTab-unread" onclick="switchChatTab('unread')" style="flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'Exo 2',sans-serif;font-size:.8rem;font-weight:600;padding:7px 4px;cursor:pointer;transition:all .15s;position:relative;">No leídos<span id="unreadChatBadge" style="display:none;position:absolute;top:4px;right:8px;background:var(--accent);color:#fff;border-radius:100px;font-size:.6rem;font-weight:700;padding:0px 5px;"></span></button>
+        <button id="chatTab-groups" onclick="switchChatTab('groups')" style="flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'Exo 2',sans-serif;font-size:.8rem;font-weight:600;padding:7px 4px;cursor:pointer;transition:all .15s;">Grupos</button>
+        <button style="background:none;border:none;color:var(--muted);padding:7px 8px;cursor:pointer;font-size:.8rem;" title="Más opciones">•••</button>
+      </div>
     </div>
     <!-- Content (list or chat) -->
     <div style="flex:1;overflow-y:auto;min-height:0;">
@@ -1635,7 +1681,7 @@ function _stub(name){ return function(){ _q.push([name, arguments]); }; }
 // ===== FIREBASE SETUP (modular ESM — sin eval, compatible con CSP) =====
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, addDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, increment , where } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, addDoc, deleteDoc, onSnapshot, query, orderBy, limit, serverTimestamp, increment , where } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js';
 
 const firebaseConfig = {
@@ -5063,6 +5109,287 @@ function openChatWith(uid, nick){
     }
   );
 }
+
+// ===== CHAT TABS =====
+let _currentChatTab = 'all';
+let _chatLastMsgs = {}; // uid -> {text, time, unread}
+
+function switchChatTab(tab){
+  _currentChatTab = tab;
+  ['all','unread','groups'].forEach(t=>{
+    const btn = document.getElementById('chatTab-'+t);
+    if(!btn) return;
+    if(t===tab){
+      btn.style.borderBottom='2px solid var(--accent)';
+      btn.style.color='var(--accent)';
+      btn.style.fontWeight='700';
+    } else {
+      btn.style.borderBottom='2px solid transparent';
+      btn.style.color='var(--muted)';
+      btn.style.fontWeight='600';
+    }
+  });
+  renderMessengerList();
+}
+
+function filterMessengerList(){
+  renderMessengerList();
+}
+
+// Enhance renderMessengerList to support tabs + last message + unread indicator
+// We patch list.innerHTML generation to include last msg and tabs filter
+// This runs after the existing renderMessengerList sets innerHTML,
+// by wrapping the function.
+const _origRenderMessengerList = renderMessengerList;
+
+// Override renderMessengerList to add tab support + last message display
+function renderMessengerList(){
+  const list = document.getElementById('messengerList');
+  if(!list) return;
+  if(_presenceUnsub){ _presenceUnsub(); _presenceUnsub=null; }
+
+  const friends = window.CU?.friendsList || [];
+
+  _presenceUnsub = onSnapshot(collection(db,'presence'), async snap=>{
+    const now = Date.now();
+    const onlineIds = new Set(
+      snap.docs
+        .map(d=>({id:d.id, ts:d.data().last?.toMillis?.()||0}))
+        .filter(u=>u.id!==window.CU?.id && now-u.ts<120000)
+        .map(u=>u.id)
+    );
+
+    // Load last messages for friends
+    const lastMsgPromises = friends.map(async f=>{
+      try {
+        const chatId = [window.CU.id, f.id].sort().join('_');
+        const q = query(collection(db,'chats',chatId,'messages'), orderBy('time','desc'), limit(1));
+        const s = await getDocs(q);
+        if(!s.empty){
+          const d = s.docs[0].data();
+          _chatLastMsgs[f.id] = {
+            text: d.text||'',
+            time: d.time?.toMillis?.()||0,
+            mine: d.uid===window.CU?.id,
+            unread: !d.mine && !d.readBy?.[window.CU?.id] && d.uid!==window.CU?.id
+          };
+        }
+      } catch(e){}
+    });
+    await Promise.all(lastMsgPromises);
+
+    // Count unread
+    const unreadCount = friends.filter(f=> _chatLastMsgs[f.id]?.unread).length;
+    const unreadBadge = document.getElementById('unreadChatBadge');
+    if(unreadBadge){
+      if(unreadCount>0){ unreadBadge.style.display='inline-block'; unreadBadge.textContent=unreadCount; }
+      else { unreadBadge.style.display='none'; }
+    }
+
+    // Filter friends based on tab
+    let filteredFriends = friends;
+    if(_currentChatTab === 'unread'){
+      filteredFriends = friends.filter(f=> _chatLastMsgs[f.id]?.unread);
+    } else if(_currentChatTab === 'groups'){
+      filteredFriends = []; // Groups tab shows placeholder
+    }
+
+    const searchQ = (document.getElementById('msgSearchInput')?.value||'').toLowerCase();
+
+    const friendItems = filteredFriends
+      .filter(f=> !searchQ || (f.nick||'').toLowerCase().includes(searchQ))
+      .map(f=>{
+        const isOnline = onlineIds.has(f.id);
+        const safeNick = (f.nick||'').replace(/["'<>&]/g,'');
+        const lm = _chatLastMsgs[f.id];
+        const lastTxt = lm ? (lm.mine ? 'Tú: '+lm.text : lm.text) : (isOnline ? 'En línea' : 'Desconectado');
+        const lastTime = lm?.time ? fmtT(lm.time) : '';
+        const hasUnread = lm?.unread;
+        return `<div data-chatuid="${f.id}" data-chatnick="${safeNick}"
+          style="display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-radius:var(--rs);transition:background .15s;${hasUnread?'background:rgba(24,119,242,.07);':''}"
+          onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='${hasUnread?'rgba(24,119,242,.07)':''}'"
+        >
+          <div style="position:relative;width:44px;height:44px;flex-shrink:0;">
+            <div style="width:44px;height:44px;border-radius:50%;background:var(--bg3);border:1px solid ${hasUnread?'var(--accent)':'var(--border)'};display:flex;align-items:center;justify-content:center;font-weight:700;overflow:hidden;">
+              ${f.av?`<img src="${f.av}" style="width:100%;height:100%;object-fit:cover;">`:f.nick[0].toUpperCase()}
+            </div>
+            ${isOnline?'<div style="position:absolute;bottom:1px;right:1px;width:10px;height:10px;background:var(--green);border-radius:50%;border:2px solid var(--bg2);"></div>':''}
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:4px;">
+              <div style="font-size:.85rem;font-weight:${hasUnread?'800':'700'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(f.nick)}</div>
+              <div style="font-size:.65rem;color:${hasUnread?'var(--accent)':'var(--muted)'};white-space:nowrap;flex-shrink:0;">${lastTime}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <div style="font-size:.72rem;color:${hasUnread?'var(--text)':'var(--muted)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;font-weight:${hasUnread?'700':'400'};">${esc(lastTxt)}</div>
+              ${hasUnread?'<div style="width:8px;height:8px;background:var(--accent);border-radius:50%;flex-shrink:0;"></div>':''}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+
+    let groupsHtml = '';
+    if(_currentChatTab === 'groups'){
+      groupsHtml = '<div style="text-align:center;padding:32px 20px;color:var(--muted);font-size:.82rem;line-height:1.6;">Los grupos de chat estarán disponibles próximamente 🎣</div>';
+    }
+
+    if(_currentChatTab === 'unread' && filteredFriends.length===0){
+      list.innerHTML = '<div style="text-align:center;padding:32px 20px;color:var(--muted);font-size:.82rem;">Sin mensajes no leídos ✓</div>';
+    } else if(_currentChatTab === 'groups'){
+      list.innerHTML = groupsHtml;
+    } else {
+      list.innerHTML = friendItems || '<div style="text-align:center;padding:24px;color:var(--muted);font-size:.83rem;">Sin contactos aún</div>';
+    }
+
+    // Cache avatars
+    if(!window._chatUserAvCache) window._chatUserAvCache = {};
+    friends.forEach(f=>{ if(f.av) window._chatUserAvCache[f.id]=f.av; });
+    snap.docs.forEach(d=>{ const u=d.data(); if(u.av) window._chatUserAvCache[d.id]=u.av; });
+
+    list.onclick = (e)=>{
+      const row = e.target.closest('[data-chatuid]');
+      if(row) openChatWith(row.dataset.chatuid, row.dataset.chatnick);
+    };
+  });
+}
+
+// ===== PHOTO MODAL =====
+let _photoModalType = null; // 'avatar' or 'cover'
+let _photoModalUserId = null;
+let _photoModalUnsub = null;
+const PHOTO_REACTIONS = ['👍','❤️','😍','😮','😢','🔥','🎣'];
+
+function openPhotoModal(type){
+  if(!window.CU){ toast('Iniciá sesión primero','err'); return; }
+  const el = type==='avatar' ? document.getElementById('profAvBig') : document.getElementById('profCoverInner');
+  let imgSrc = '';
+  if(type==='avatar'){
+    const img = document.querySelector('#profAvBig img');
+    if(img) imgSrc = img.src;
+    else { toast('Sin foto de perfil','inf'); return; }
+  } else {
+    const img = document.querySelector('#profCoverInner img') || document.querySelector('#profCover img');
+    if(img) imgSrc = img.src;
+    else { toast('Sin foto de portada','inf'); return; }
+  }
+
+  _photoModalType = type;
+  _photoModalUserId = window.CU.id;
+  document.getElementById('photoModalImg').src = imgSrc;
+  document.getElementById('photoModalTitle').textContent = type==='avatar' ? '📷 Foto de perfil' : '🖼 Foto de portada';
+
+  // User avatar in input
+  const uavEl = document.getElementById('photoModalUserAv');
+  if(window.CU.av) uavEl.innerHTML = `<img src="${window.CU.av}" style="width:100%;height:100%;object-fit:cover;">`;
+  else uavEl.textContent = (window.CU.nick||'?')[0].toUpperCase();
+
+  om('mPhotoModal');
+  loadPhotoModalData(type, window.CU.id);
+}
+
+function getPhotoDocId(type, userId){
+  return `photo_${type}_${userId}`;
+}
+
+async function loadPhotoModalData(type, userId){
+  if(_photoModalUnsub){ _photoModalUnsub(); _photoModalUnsub=null; }
+  const docId = getPhotoDocId(type, userId);
+  const ref = doc(db,'photoReactions', docId);
+
+  _photoModalUnsub = onSnapshot(ref, snap=>{
+    const data = snap.exists() ? snap.data() : {};
+    renderPhotoReactions(data.reactions||{});
+    renderPhotoComments(data.comments||[]);
+  });
+}
+
+function renderPhotoReactions(reactions){
+  const bar = document.getElementById('photoModalRxnBar');
+  const countEl = document.getElementById('photoModalRxnCount');
+  if(!bar) return;
+  const myRxn = window.CU ? (reactions[window.CU.id]||'') : '';
+  const total = Object.values(reactions).filter(Boolean).length;
+  // Count per emoji
+  const counts = {};
+  Object.values(reactions).forEach(e=>{ if(e) counts[e]=(counts[e]||0)+1; });
+
+  bar.innerHTML = PHOTO_REACTIONS.map(em=>{
+    const cnt = counts[em]||0;
+    const active = myRxn===em;
+    return `<button onclick="photoDoReact('${em}')" style="background:${active?'rgba(24,119,242,.18)':'none'};border:${active?'1px solid var(--accent)':'1px solid transparent'};border-radius:100px;padding:4px 10px;cursor:pointer;font-size:1rem;display:flex;align-items:center;gap:4px;transition:all .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='${active?'rgba(24,119,242,.18)':'none'}'">
+      <span>${em}</span>${cnt>0?`<span style="font-size:.72rem;color:var(--muted);font-weight:600;">${cnt}</span>`:''}
+    </button>`;
+  }).join('');
+
+  countEl.textContent = total>0 ? total+' '+(total===1?'reacción':'reacciones') : '';
+}
+
+function renderPhotoComments(comments){
+  const el = document.getElementById('photoModalComments');
+  if(!el) return;
+  if(!comments.length){
+    el.innerHTML='<div style="text-align:center;color:var(--muted);font-size:.8rem;padding:20px;">Sin comentarios aún. ¡Sé el primero! 💬</div>';
+    return;
+  }
+  el.innerHTML = comments.map(c=>{
+    const time = c.time ? fmtT(typeof c.time==='number'?c.time:c.time) : '';
+    const av = c.av ? `<img src="${c.av}" style="width:100%;height:100%;object-fit:cover;">` : (c.nick||'?')[0].toUpperCase();
+    return `<div style="display:flex;gap:8px;align-items:flex-start;">
+      <div style="width:32px;height:32px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;overflow:hidden;flex-shrink:0;">${av}</div>
+      <div style="flex:1;">
+        <div style="background:var(--bg3);border-radius:12px;padding:8px 12px;display:inline-block;max-width:100%;">
+          <div style="font-size:.75rem;font-weight:700;color:var(--accent);margin-bottom:2px;">${esc(c.nick||'')}</div>
+          <div style="font-size:.83rem;line-height:1.45;word-break:break-word;">${esc(c.text||'')}</div>
+        </div>
+        <div style="font-size:.65rem;color:var(--muted);padding:2px 6px;">${time}</div>
+      </div>
+    </div>`;
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+async function photoDoReact(emoji){
+  if(!window.CU){ toast('Iniciá sesión','err'); return; }
+  const docId = getPhotoDocId(_photoModalType, _photoModalUserId);
+  const ref = doc(db,'photoReactions',docId);
+  try {
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const reactions = data.reactions||{};
+    if(reactions[window.CU.id]===emoji){
+      delete reactions[window.CU.id];
+    } else {
+      reactions[window.CU.id]=emoji;
+    }
+    await setDoc(ref, {...data, reactions}, {merge:true});
+  } catch(e){ toast('Error al reaccionar','err'); }
+}
+
+async function submitPhotoComment(){
+  if(!window.CU){ toast('Iniciá sesión','err'); return; }
+  const input = document.getElementById('photoModalInput');
+  const text = input?.value?.trim();
+  if(!text) return;
+  input.value='';
+  const docId = getPhotoDocId(_photoModalType, _photoModalUserId);
+  const ref = doc(db,'photoReactions',docId);
+  try {
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const comments = data.comments||[];
+    comments.push({
+      uid: window.CU.id,
+      nick: window.CU.nick||'',
+      av: window.CU.av||'',
+      text: text,
+      time: Date.now()
+    });
+    await setDoc(ref, {...data, comments}, {merge:true});
+  } catch(e){ toast('Error al comentar','err'); }
+}
+
+// Close photo modal and cleanup
+const _origCm = typeof cm === 'function' ? cm : null;
 
 function backToMessengerList(){
   if(_unsubChat){ _unsubChat(); _unsubChat=null; }
