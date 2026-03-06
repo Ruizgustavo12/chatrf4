@@ -121,6 +121,40 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
 .verified-ring{border:3px solid gold !important;box-shadow:0 0 10px rgba(255,215,0,.5);}
 .verified-badge-inline{font-size:.75rem;display:inline-flex;align-items:center;}
 
+/* Perfil verificado — cover especial */
+@keyframes goldShimmer{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes particleFloat{0%{transform:translateY(0) translateX(0) scale(1);opacity:.7}50%{opacity:1}100%{transform:translateY(-120px) translateX(var(--dx)) scale(0);opacity:0}}
+@keyframes avatarPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,.5),0 0 20px rgba(255,215,0,.3)}50%{box-shadow:0 0 0 8px rgba(255,215,0,.0),0 0 40px rgba(255,215,0,.6)}}
+@keyframes ringRotate{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+@keyframes nameGlow{0%,100%{text-shadow:0 0 10px rgba(255,215,0,.5),0 0 20px rgba(255,215,0,.3)}50%{text-shadow:0 0 20px rgba(255,215,0,.9),0 0 40px rgba(255,215,0,.5),0 0 60px rgba(255,165,0,.3)}}
+@keyframes sealFadeIn{from{opacity:0;transform:rotate(-5deg) scale(.8)}to{opacity:1;transform:rotate(-5deg) scale(1)}}
+
+.verif-cover-active{background:linear-gradient(135deg,#0a1628,#1a0a2e,#0d1f3c,#1a2a0a) !important;background-size:400% 400% !important;animation:goldShimmer 8s ease infinite !important;}
+.verif-cover-active::before{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(255,215,0,.08),transparent 40%,transparent 60%,rgba(255,215,0,.05));pointer-events:none;z-index:1;}
+.verif-cover-active .profile-cover-edit{z-index:10;}
+
+/* Avatar ring animado */
+.verif-av-ring{position:relative;}
+.verif-av-ring::before{content:'';position:absolute;inset:-5px;border-radius:50%;border:3px solid transparent;border-top-color:gold;border-right-color:#ffd700;animation:ringRotate 3s linear infinite;z-index:2;pointer-events:none;}
+.verif-av-ring::after{content:'';position:absolute;inset:-9px;border-radius:50%;border:2px solid transparent;border-bottom-color:rgba(255,215,0,.4);border-left-color:rgba(255,165,0,.3);animation:ringRotate 6s linear infinite reverse;z-index:2;pointer-events:none;}
+.verif-av-ring .profile-av-big{border:3px solid gold !important;animation:avatarPulse 3s ease-in-out infinite;box-shadow:0 0 30px rgba(255,215,0,.4);}
+
+/* Nombre dorado */
+.verif-name-gold{background:linear-gradient(90deg,#ffd700,#ffec6e,#ffa500,#ffd700);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:goldShimmer 4s ease infinite;animation-play-state:running;}
+
+/* Sello verificado diagonal */
+.verif-seal{position:absolute;top:22px;right:-32px;background:linear-gradient(135deg,#b8860b,#ffd700,#b8860b);color:#000;font-size:.62rem;font-weight:900;padding:5px 40px;transform:rotate(35deg);letter-spacing:.08em;box-shadow:0 2px 12px rgba(255,215,0,.5);z-index:5;animation:sealFadeIn .5s ease forwards;font-family:'Exo 2',sans-serif;}
+
+/* Banner premium bajo el nombre */
+.verif-banner{display:flex;align-items:center;gap:8px;background:linear-gradient(90deg,rgba(255,215,0,.12),rgba(255,165,0,.08),rgba(255,215,0,.12));border:1px solid rgba(255,215,0,.25);border-radius:100px;padding:5px 14px;margin-top:6px;width:fit-content;}
+
+/* Partículas canvas */
+#verifParticles{position:absolute;inset:0;pointer-events:none;z-index:1;}
+
+/* Stats card verificado */
+.verif-stat-card{background:linear-gradient(135deg,rgba(255,215,0,.08),rgba(255,165,0,.04));border:1px solid rgba(255,215,0,.2);border-radius:14px;padding:14px;text-align:center;transition:transform .2s,box-shadow .2s;}
+.verif-stat-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(255,215,0,.15);}
+
 /* ===== CARRETES ===== */
 .cfbtn{background:var(--bg3);border:1px solid var(--border);border-radius:100px;color:var(--muted);padding:4px 10px;font-size:.73rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;transition:all .15s;}
 .cfbtn:hover{border-color:var(--accent);color:var(--accent);}
@@ -565,6 +599,12 @@ select.fi option{background:#fff;}
 <div class="page" id="page-profile">
   <div class="profile-cover" id="profCover" style="cursor:pointer;" onclick="openPhotoModal('cover')">
     <div id="profCoverInner" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:5rem;opacity:.15">🎣</div>
+    <!-- Canvas partículas doradas (solo verificado) -->
+    <canvas id="verifParticles" style="display:none;"></canvas>
+    <!-- Sello verificado diagonal -->
+    <div id="verifSeal" style="display:none;position:absolute;top:0;right:0;width:110px;height:110px;overflow:hidden;z-index:5;">
+      <div class="verif-seal">✅ VERIFICADO</div>
+    </div>
     <button class="profile-cover-edit" onclick="event.stopPropagation();document.getElementById('coverFileInput').click()">📷 Editar foto de portada<input type="file" id="coverFileInput" accept="image/*" style="display:none" onchange="changeCover(this)"></button>
   </div>
   <div class="profile-info-bar">
@@ -3388,19 +3428,61 @@ function renderProfile(){
   if(!window.CU) return;
   const avEl = document.getElementById('profAvBig');
   avEl.innerHTML = CU.av ? `<img src="${CU.av}">` : CU.nick[0].toUpperCase();
-  // Marco dorado si verificado
-  if(CU.verified) avEl.classList.add('verified-ring');
+  const isVerified = !!CU.verified;
+
+  // ── COVER especial verificado ──
+  const cover = document.getElementById('profCover');
+  const canvas = document.getElementById('verifParticles');
+  const seal = document.getElementById('verifSeal');
+  if(isVerified){
+    cover.classList.add('verif-cover-active');
+    if(canvas){ canvas.style.display='block'; _startVerifParticles(canvas); }
+    if(seal) seal.style.display='block';
+  } else {
+    cover.classList.remove('verif-cover-active');
+    if(canvas){ canvas.style.display='none'; _stopVerifParticles(); }
+    if(seal) seal.style.display='none';
+  }
+
+  // ── AVATAR ring animado ──
+  const avWrapEl = document.querySelector('.profile-av-wrap');
+  if(avWrapEl){
+    if(isVerified) avWrapEl.classList.add('verif-av-ring');
+    else avWrapEl.classList.remove('verif-av-ring');
+  }
+  if(isVerified) avEl.classList.add('verified-ring');
   else avEl.classList.remove('verified-ring');
-  document.getElementById('profName').textContent = window.CU.nick;
-  // Badge verificado
+
+  // ── NOMBRE dorado animado ──
+  const nameEl = document.getElementById('profName');
+  nameEl.textContent = window.CU.nick;
+  if(isVerified) nameEl.classList.add('verif-name-gold');
+  else nameEl.classList.remove('verif-name-gold');
+
+  // ── BADGE ──
   const badge = document.getElementById('profVerifiedBadge');
-  if(badge) badge.style.display = CU.verified ? 'inline-flex' : 'none';
-  // Botón verificación
+  if(badge) badge.style.display = isVerified ? 'inline-flex' : 'none';
+
+  // ── BANNER PREMIUM ──
+  let verifBanner = document.getElementById('verifProfileBanner');
+  if(isVerified){
+    if(!verifBanner){
+      verifBanner = document.createElement('div');
+      verifBanner.id = 'verifProfileBanner';
+      verifBanner.className = 'verif-banner';
+      verifBanner.innerHTML = `<span style="font-size:.75rem;">✨</span><span style="font-size:.72rem;font-weight:800;color:gold;letter-spacing:.05em;">CUENTA VERIFICADA</span><span style="font-size:.75rem;">✨</span>`;
+      nameEl.closest('div').insertAdjacentElement('afterend', verifBanner);
+    }
+    verifBanner.style.display='flex';
+  } else {
+    if(verifBanner) verifBanner.style.display='none';
+  }
+
+  // ── BOTÓN VERIFICACIÓN ──
   const verifBtn = document.getElementById('profVerifBtn');
   if(verifBtn){
-    if(CU.verified){
-      verifBtn.innerHTML = `<span style="background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.35);color:gold;border-radius:100px;padding:4px 12px;font-size:.72rem;font-weight:800;">✅ Cuenta Verificada</span>`;
-      verifBtn.style.display='block';
+    if(isVerified){
+      verifBtn.style.display='none';
     } else if(CU.verifPending){
       verifBtn.innerHTML = `<span style="background:rgba(255,200,0,.08);border:1px solid rgba(255,200,0,.25);color:gold;border-radius:100px;padding:4px 12px;font-size:.72rem;font-weight:700;">⏳ Verificación pendiente</span>`;
       verifBtn.style.display='block';
@@ -4798,6 +4880,52 @@ async function renderSuggestedPosts(){
 }
 
 // ===== SISTEMA DE VERIFICACIÓN =====
+
+// ── Partículas doradas para perfil verificado ──
+let _verifParticleRAF = null;
+function _startVerifParticles(canvas){
+  if(_verifParticleRAF) return; // ya corriendo
+  const cover = document.getElementById('profCover');
+  const W = cover.offsetWidth || 800;
+  const H = cover.offsetHeight || 300;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  const particles = Array.from({length:38}, ()=>_makeParticle(W,H));
+  function step(){
+    ctx.clearRect(0,0,W,H);
+    particles.forEach((p,i)=>{
+      p.y -= p.vy; p.x += p.vx; p.life -= 1;
+      if(p.life <= 0){ particles[i] = _makeParticle(W,H); return; }
+      const alpha = Math.min(1, p.life/40) * p.maxAlpha;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = p.color;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    });
+    _verifParticleRAF = requestAnimationFrame(step);
+  }
+  _verifParticleRAF = requestAnimationFrame(step);
+}
+function _makeParticle(W,H){
+  const colors = ['#ffd700','#ffec6e','#ffa500','#fffacd','#f0e68c'];
+  return {
+    x: Math.random()*W, y: H + Math.random()*20,
+    vx: (Math.random()-.5)*.8, vy: .6+Math.random()*1.2,
+    r: .8+Math.random()*2.2, life: 60+Math.random()*80,
+    maxAlpha: .4+Math.random()*.5,
+    color: colors[Math.floor(Math.random()*colors.length)]
+  };
+}
+function _stopVerifParticles(){
+  if(_verifParticleRAF){ cancelAnimationFrame(_verifParticleRAF); _verifParticleRAF=null; }
+  const canvas = document.getElementById('verifParticles');
+  if(canvas){ const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height); }
+}
 
 function verifiedHTML(nick){ 
   return `<span title="Usuario Verificado ✅" style="font-size:.75rem;display:inline-flex;align-items:center;">✅</span>`; 
@@ -7053,6 +7181,7 @@ const _expose = {
   reportPost,submitReport,
   loadAdminData,deleteAdminPost,resolveReport,
   requestVerification, loadVerifRequests, adminApproveVerif, adminRejectVerif, adminRevokeVerif,
+  _startVerifParticles, _stopVerifParticles,
   _svRegisterView, svToggleViewersList, _renderViewersList,
   doForgotPassword,quickLogin,
   createGroup,previewGroupImg,
