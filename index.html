@@ -595,6 +595,64 @@ select.fi option{background:#fff;}
   </div>
 </div>
 
+<!-- PAGE: USER PROFILE (perfil de otros usuarios) -->
+<div class="page" id="page-userprofile">
+  <!-- Cover -->
+  <div id="upCover" style="height:220px;background:linear-gradient(135deg,#0a1628,#1a2a3a);background-size:cover;background-position:center;position:relative;overflow:hidden;">
+    <div id="upCoverInner" style="width:100%;height:100%;"></div>
+    <button onclick="history.back()" style="position:absolute;top:14px;left:14px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:100px;padding:6px 14px;font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'Exo 2',sans-serif;backdrop-filter:blur(4px);">← Volver</button>
+    <canvas id="upVerifParticles" style="display:none;position:absolute;inset:0;pointer-events:none;"></canvas>
+    <div id="upVerifSeal" style="display:none;position:absolute;top:0;right:0;width:110px;height:110px;overflow:hidden;z-index:5;">
+      <div class="verif-seal">✅ VERIFICADO</div>
+    </div>
+  </div>
+
+  <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px 0;">
+    <div style="max-width:860px;margin:0 auto;">
+      <!-- Avatar + nombre -->
+      <div style="display:flex;align-items:flex-end;gap:16px;padding-bottom:14px;flex-wrap:wrap;">
+        <div id="upAvWrap" style="margin-top:-44px;position:relative;flex-shrink:0;">
+          <div id="upAv" style="width:100px;height:100px;border-radius:50%;border:4px solid var(--bg2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:800;color:var(--accent);background:var(--bg3);">👤</div>
+        </div>
+        <div style="flex:1;min-width:0;padding-top:8px;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div id="upName" style="font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;"></div>
+            <span id="upVerifBadge" style="display:none;font-size:1rem;" title="Verificado">✅</span>
+          </div>
+          <div id="upVerifBanner" style="display:none;" class="verif-banner" style="margin-top:4px;">
+            <span style="font-size:.7rem;">✨</span><span style="font-size:.68rem;font-weight:800;color:gold;letter-spacing:.05em;">CUENTA VERIFICADA</span><span style="font-size:.7rem;">✨</span>
+          </div>
+          <div id="upLevel" style="margin-top:5px;"></div>
+          <div id="upBio" style="font-size:.82rem;color:var(--muted);margin-top:3px;"></div>
+          <div id="upMeta" style="font-size:.75rem;color:var(--muted);margin-top:2px;"></div>
+        </div>
+        <div id="upActions" style="display:flex;gap:8px;flex-wrap:wrap;padding-bottom:8px;"></div>
+      </div>
+      <!-- Stats -->
+      <div style="display:flex;gap:24px;margin-bottom:10px;flex-wrap:wrap;">
+        <div style="text-align:center;"><div id="upPostCount" style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:800;color:var(--accent);">0</div><div style="font-size:.65rem;color:var(--muted);">Posts</div></div>
+        <div style="text-align:center;"><div id="upFriendCount" style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:800;color:var(--accent);">0</div><div style="font-size:.65rem;color:var(--muted);">Amigos</div></div>
+        <div style="text-align:center;"><div id="upMutualCount" style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:800;color:var(--accent);">0</div><div style="font-size:.65rem;color:var(--muted);">En común</div></div>
+      </div>
+      <!-- Tabs -->
+      <div style="display:flex;border-top:1px solid var(--border);gap:2px;" id="upTabs">
+        <div class="ptab on" onclick="swUpTab(this,'upTabPosts')">Publicaciones</div>
+        <div class="ptab" onclick="swUpTab(this,'upTabInfo')">Información</div>
+        <div class="ptab" onclick="swUpTab(this,'upTabFotos')">🖼 Fotos</div>
+        <div class="ptab" onclick="swUpTab(this,'upTabAmigos')">Amigos</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido tabs -->
+  <div style="max-width:860px;margin:0 auto;padding:16px;">
+    <div id="upTabPosts"><div style="color:var(--muted);text-align:center;padding:30px;">Cargando...</div></div>
+    <div id="upTabInfo" style="display:none;"></div>
+    <div id="upTabFotos" style="display:none;"></div>
+    <div id="upTabAmigos" style="display:none;"></div>
+  </div>
+</div>
+
 <!-- PAGE: PROFILE -->
 <div class="page" id="page-profile">
   <div class="profile-cover" id="profCover" style="cursor:pointer;" onclick="openPhotoModal('cover')">
@@ -2296,6 +2354,7 @@ window.gp = id => {
   if(id==='parches') loadParches();
   if(id==='torneos') loadTorneos();
   if(id==='carretes') renderCarretesTable();
+  if(id==='userprofile') {} // cargado desde _loadUserProfilePage
 };
 function setNav(el){ document.querySelectorAll('.tb-nav-btn').forEach(b=>b.classList.remove('on')); el.classList.add('on'); }
 window.setNav = setNav;
@@ -5622,7 +5681,9 @@ async function sendNotifToUserWithPost(uid, text, postId){
 
 // ===== USER PROFILE MODAL =====
 async function openUserProfile(uid, nick){
-  // If no uid but we have a nick, search Firestore by nick
+  // Si es el propio usuario, va al perfil propio
+  if(uid && uid === window.CU?.id){ gp('profile'); return; }
+  // Si no hay uid, busca por nick
   if(!uid && nick){
     try {
       const snap = await getDocs(collection(db,'users'));
@@ -5631,100 +5692,177 @@ async function openUserProfile(uid, nick){
     } catch(e){}
   }
   if(!uid){ toast('Usuario no encontrado','err'); return; }
-  if(uid === window.CU?.id){ gp('profile'); return; }
-  const modal = document.getElementById('mUserProfile');
-  const content = document.getElementById('userProfileContent');
-  content.innerHTML = `<div style="text-align:center;padding:30px;color:var(--muted);">Cargando...</div>`;
-  om('mUserProfile');
+  // Navega a la página de perfil
+  gp('userprofile');
+  _loadUserProfilePage(uid, nick||'');
+}
+
+async function _loadUserProfilePage(uid, nick){
+  // Reset
+  const nameEl = document.getElementById('upName');
+  if(nameEl) nameEl.textContent = nick || '...';
+  document.getElementById('upAv').innerHTML = '👤';
+  document.getElementById('upTabPosts').innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);">Cargando...</div>';
+  document.getElementById('upTabInfo').innerHTML = '';
+  document.getElementById('upTabFotos').innerHTML = '';
+  document.getElementById('upTabAmigos').innerHTML = '';
+  // Activa tab posts
+  swUpTab(document.querySelector('#upTabs .ptab'), 'upTabPosts');
+
   try {
     const snap = await getDoc(doc(db,'users',uid));
-    const u = snap.exists() ? snap.data() : {nick, av:'', bio:'', country:'', favFish:'', favMap:'', joined:'?', friends:[]};
-    const userPosts = _posts.filter(p=>p.userId===uid).slice(0,6);
-    const myFriends = window.CU?.friends || [];
-    const isFriend = myFriends.includes(uid);
-    const theirFriends = u.friends || [];
-    const theyFollowMe = theirFriends.includes(window.CU?.id||'');
-    // Mutual friends: people who are in both myFriends and theirFriends
-    const myFriendsList = window.CU?.friendsList || [];
-    const mutualFriends = myFriendsList.filter(f => theirFriends.includes(f.id));
-    // Determine button state
-    let friendBtn = '';
-    if(isFriend){
-      friendBtn = `<button disabled style="flex:1;padding:8px;background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:var(--green);border-radius:var(--rs);font-size:.82rem;font-weight:700;font-family:'Exo 2',sans-serif;">✓ Amigos</button>`;
+    const u = snap.exists() ? snap.data() : {nick, av:'', bio:'', country:'', favFish:'', friends:[], xp:0};
+    const uNick = u.nick || nick;
+    const isVerified = !!u.verified;
+
+    // ── COVER ──
+    const cover = document.getElementById('upCover');
+    const coverInner = document.getElementById('upCoverInner');
+    const upCanvas = document.getElementById('upVerifParticles');
+    const upSeal = document.getElementById('upVerifSeal');
+    if(u.cover){
+      coverInner.innerHTML = `<img src="${u.cover}" style="width:100%;height:100%;object-fit:cover;">`;
+    } else if(isVerified){
+      coverInner.innerHTML = '';
+      cover.style.background = 'linear-gradient(135deg,#0a1628,#1a0a2e,#0d1f3c)';
     } else {
-      friendBtn = `<button id="btnAddFriend_${uid}" onclick="sendFriendRequestFromProfile('${uid}','${(u.nick||nick).replace(/'/g,'\'')}')" class="btn btn-p" style="flex:1;font-size:.82rem;">👥 Añadir amigo</button>`;
+      coverInner.innerHTML = '';
+      cover.style.background = 'linear-gradient(135deg,#0a1628,#1a2a3a)';
     }
+    if(isVerified){
+      cover.classList.add('verif-cover-active');
+      if(upCanvas){ upCanvas.style.display='block'; _startVerifParticlesEl(upCanvas, cover); }
+      if(upSeal) upSeal.style.display='block';
+    } else {
+      cover.classList.remove('verif-cover-active');
+      if(upCanvas) upCanvas.style.display='none';
+      if(upSeal) upSeal.style.display='none';
+    }
+
+    // ── AVATAR ──
+    const avEl = document.getElementById('upAv');
+    avEl.innerHTML = u.av ? `<img src="${u.av}" style="width:100%;height:100%;object-fit:cover;">` : uNick[0].toUpperCase();
+    const avWrap = document.getElementById('upAvWrap');
+    if(isVerified){
+      avEl.style.cssText += ';border:3px solid gold;box-shadow:0 0 20px rgba(255,215,0,.5);animation:avatarPulse 3s ease-in-out infinite;';
+      avWrap.classList.add('verif-av-ring');
+    } else {
+      avEl.style.border = '4px solid var(--bg2)';
+      avEl.style.boxShadow = '';
+      avWrap.classList.remove('verif-av-ring');
+    }
+
+    // ── NOMBRE ──
+    const nEl = document.getElementById('upName');
+    nEl.textContent = uNick;
+    if(isVerified) nEl.classList.add('verif-name-gold');
+    else nEl.classList.remove('verif-name-gold');
+    document.getElementById('upVerifBadge').style.display = isVerified ? 'inline-flex' : 'none';
+    document.getElementById('upVerifBanner').style.display = isVerified ? 'flex' : 'none';
+
+    // ── NIVEL ──
+    const lvl = getLevel(u.xp||0);
+    document.getElementById('upLevel').innerHTML = `<span style="display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border-radius:100px;font-size:.72rem;font-weight:700;border:1px solid;color:${lvl.color};border-color:${lvl.border};background:${lvl.border.replace(/[\d.]+\)$/,'.1)')};">${lvl.name}</span>${(u.streak||0)>=2?` <span style="font-size:.7rem;color:#ff8c42;font-weight:700;margin-left:4px;">🔥 ${u.streak} días</span>`:''}`;
+    document.getElementById('upBio').textContent = u.bio||'';
+    const meta = [u.country, u.favFish?'🎣 '+u.favFish:'', u.favMap?'📍 '+u.favMap:''].filter(Boolean).join(' · ');
+    document.getElementById('upMeta').textContent = meta;
+
+    // ── STATS ──
+    const userPosts = _posts.filter(p=>p.userId===uid);
+    document.getElementById('upPostCount').textContent = userPosts.length;
+    document.getElementById('upFriendCount').textContent = (u.friends||[]).length;
+    const myFriends = window.CU?.friends || [];
+    const mutualFriends = (window.CU?.friendsList||[]).filter(f=>(u.friends||[]).includes(f.id));
+    document.getElementById('upMutualCount').textContent = mutualFriends.length;
+
+    // ── ACCIONES ──
+    const isFriend = myFriends.includes(uid);
+    const friendBtn = isFriend
+      ? `<button disabled style="padding:8px 16px;background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:var(--green);border-radius:var(--rs);font-size:.82rem;font-weight:700;font-family:'Exo 2',sans-serif;">✓ Amigos</button>`
+      : `<button id="btnAddFriend_${uid}" onclick="sendFriendRequestFromProfile('${uid}','${uNick.replace(/'/g,"\'")}','page')" class="btn btn-p" style="font-size:.82rem;">👥 Añadir amigo</button>`;
     const msgBtn = isFriend
-      ? `<button onclick="cm('mUserProfile');openChatWith('${uid}','${(u.nick||nick).replace(/'/g,'\'')}')" class="btn btn-s" style="flex:1;font-size:.82rem;">💬 Mensaje</button>`
-      : `<button disabled title="Solo podés mensajear a tus amigos" style="flex:1;padding:8px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:not-allowed;font-family:'Exo 2',sans-serif;">🔒 Mensaje</button>`;
-    content.innerHTML = `
-      <div style="text-align:center;margin-bottom:16px;">
-        <div style="width:72px;height:72px;border-radius:50%;background:var(--bg3);margin:0 auto 10px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;${u.verified?'border:3px solid gold;box-shadow:0 0 14px rgba(255,215,0,.5);':'border:2px solid var(--accent);'}">
-          ${u.av?`<img src="${u.av}" style="width:100%;height:100%;object-fit:cover;">`:(u.nick||nick)[0].toUpperCase()}
-        </div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:6px;font-family:'Orbitron',monospace;font-size:1rem;font-weight:800;">${esc(u.nick||nick)}${u.verified?' <span title="Verificado" style="font-size:.85rem;">✅</span>':''}</div>
-        ${(()=>{ const ulvl=getLevel(u.xp||0); const uprog=getXpProgress(u.xp||0); return `
-          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin:6px 0 2px;">
-            <span style="display:inline-flex;align-items:center;gap:5px;padding:3px 12px;border-radius:100px;font-size:.75rem;font-weight:700;border:1px solid;color:${ulvl.color};border-color:${ulvl.border};background:${ulvl.border.replace(/[\d.]+\)$/,'.1)')};">${ulvl.name}</span>
-            <div style="width:140px;">
-              <div style="background:var(--bg3);border-radius:100px;height:5px;overflow:hidden;"><div style="height:100%;border-radius:100px;background:linear-gradient(90deg,${ulvl.color},${ulvl.color}88);width:${uprog.pct}%;"></div></div>
-              <div style="font-size:.6rem;color:var(--muted);text-align:center;margin-top:2px;">${u.xp||0} XP</div>
-            </div>
-            ${(u.streak||0)>=2?`<span style="font-size:.68rem;color:#ff8c42;font-weight:700;">🔥 ${u.streak} días de racha</span>`:''}
-          </div>`;})()}
-        ${u.bio?`<div style="font-size:.8rem;color:var(--muted);margin-top:4px;">${esc(u.bio)}</div>`:''}
-        <div style="font-size:.75rem;color:var(--muted);margin-top:4px;">${u.country||''} ${u.favFish?'· 🎣 '+u.favFish:''}</div>
-        ${mutualFriends.length>0?`<div style="font-size:.75rem;color:var(--accent);margin-top:5px;display:flex;align-items:center;gap:5px;justify-content:center;">👥 <strong>${mutualFriends.length}</strong> amigo${mutualFriends.length>1?'s':''} en común: ${mutualFriends.slice(0,2).map(f=>esc(f.nick||'')).join(', ')}${mutualFriends.length>2?' y '+(mutualFriends.length-2)+' más':''}</div>`:''}
-        ${u.emailPublic?`<div style="font-size:.75rem;color:var(--muted);margin-top:4px;">✉️ ${esc(u.emailPublic)}</div>`:''}
-        ${!isFriend?'<div style="font-size:.72rem;color:var(--muted);margin-top:6px;">Hazte amigo para poder enviar mensajes</div>':''}
-      </div>
-      <div style="display:flex;gap:8px;margin-bottom:16px;">
-        ${friendBtn}
-        ${msgBtn}
-      </div>
-      ${userPosts.length?`
-        <div style="font-size:.78rem;color:var(--muted);margin-bottom:8px;">Publicaciones recientes:</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;border-radius:var(--rs);overflow:hidden;">
-          ${userPosts.map(p=>p.images&&p.images[0]
-            ?`<div style="aspect-ratio:1;overflow:hidden;"><img src="${p.images[0]}" style="width:100%;height:100%;object-fit:cover;"></div>`
-            :`<div style="aspect-ratio:1;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--muted);padding:4px;text-align:center;">${(p.text||'').slice(0,30)}</div>`
-          ).join('')}
-        </div>`:''}
-      ${theirFriends.length ? `
-        <div style="margin-top:16px;">
-          <div style="font-size:.78rem;font-weight:700;color:var(--accent);margin-bottom:10px;">👥 Amigos (${theirFriends.length})</div>
-          <div id="modalFriendsList_${uid}" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
-        </div>` : ''}
-    `;
-    // Load friends in modal
-    if(theirFriends.length){
-      const fSnaps = await Promise.all(theirFriends.slice(0,9).map(fid => getDoc(doc(db,'users',fid))));
-      const modalGrid = document.getElementById('modalFriendsList_'+uid);
-      if(modalGrid){
-        const myF = window.CU?.friends || [];
-        modalGrid.innerHTML = fSnaps.filter(s=>s.exists()).map(s=>{
-          const f = s.data(); const fid = s.id;
-          const isMe = window.CU?.id === fid;
-          const alreadyFriend = myF.includes(fid);
-          const addBtn = (!isMe && !alreadyFriend)
-            ? `<button onclick="sendFriendRequest('${fid}','${(f.nick||'').replace(/'/g,"\'")}','modal');event.stopPropagation();" style="margin-top:4px;width:100%;padding:3px;background:var(--accent);border:none;border-radius:var(--rs);color:#000;font-size:.65rem;font-weight:700;cursor:pointer;">+ Agregar</button>`
-            : alreadyFriend && !isMe ? `<div style="margin-top:4px;font-size:.65rem;color:var(--green);text-align:center;font-weight:700;">✓ Amigos</div>` : '';
-          const lvl = getLevel(f.xp||0);
-          return `<div onclick="cm('mUserProfile');openUserProfile('${fid}','${(f.nick||'').replace(/'/g,"\'")}');" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:8px;text-align:center;cursor:pointer;">
-            <div style="width:36px;height:36px;border-radius:50%;background:var(--bg4);margin:0 auto 4px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;">
-              ${f.av?`<img src="${f.av}" style="width:100%;height:100%;object-fit:cover;">`:(f.nick||'?')[0].toUpperCase()}
-            </div>
-            <div style="font-size:.68rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(f.nick||'?')}</div>
-            ${addBtn}
-          </div>`;
-        }).join('');
-      }
+      ? `<button onclick="openChatWith('${uid}','${uNick.replace(/'/g,"\'")}')" class="btn btn-s" style="font-size:.82rem;">💬 Mensaje</button>`
+      : `<button disabled title="Solo podés mensajear a tus amigos" style="padding:8px 16px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:var(--rs);font-size:.82rem;font-weight:700;cursor:not-allowed;font-family:'Exo 2',sans-serif;">🔒 Mensaje</button>`;
+    document.getElementById('upActions').innerHTML = friendBtn + msgBtn;
+
+    // ── TAB POSTS ──
+    document.getElementById('upTabPosts').innerHTML = userPosts.length
+      ? userPosts.map(p=>postHTML(p)).join('')
+      : '<div style="text-align:center;padding:40px;color:var(--muted);">Sin publicaciones aún</div>';
+
+    // ── TAB INFO ──
+    const infoRows = [
+      u.country ? `<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);min-width:100px;font-size:.8rem;">País</span><span style="font-size:.82rem;">${esc(u.country)}</span></div>` : '',
+      u.favFish ? `<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);min-width:100px;font-size:.8rem;">Pez favorito</span><span style="font-size:.82rem;">🎣 ${esc(u.favFish)}</span></div>` : '',
+      u.favMap  ? `<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);min-width:100px;font-size:.8rem;">Mapa favorito</span><span style="font-size:.82rem;">📍 ${esc(u.favMap)}</span></div>` : '',
+      u.favTech ? `<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);min-width:100px;font-size:.8rem;">Técnica</span><span style="font-size:.82rem;">${esc(u.favTech)}</span></div>` : '',
+      u.joined  ? `<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);min-width:100px;font-size:.8rem;">Miembro desde</span><span style="font-size:.82rem;">${u.joined}</span></div>` : '',
+      u.emailPublic ? `<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);min-width:100px;font-size:.8rem;">Email</span><span style="font-size:.82rem;">✉️ ${esc(u.emailPublic)}</span></div>` : '',
+      mutualFriends.length ? `<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);min-width:100px;font-size:.8rem;">Amigos en común</span><span style="font-size:.82rem;color:var(--accent);">👥 ${mutualFriends.length}: ${mutualFriends.slice(0,3).map(f=>esc(f.nick||'')).join(', ')}${mutualFriends.length>3?' y más':''}</span></div>` : '',
+    ].filter(Boolean).join('');
+    document.getElementById('upTabInfo').innerHTML = infoRows || '<div style="color:var(--muted);padding:20px;text-align:center;font-size:.85rem;">Sin información disponible</div>';
+
+    // ── TAB FOTOS ──
+    const allImgs = userPosts.flatMap(p=>p.images||[]).filter(Boolean);
+    document.getElementById('upTabFotos').innerHTML = allImgs.length
+      ? `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">${allImgs.map(img=>`<div style="aspect-ratio:1;overflow:hidden;cursor:pointer;" onclick="openImgLightbox('${img}')"><img src="${img}" style="width:100%;height:100%;object-fit:cover;transition:transform .2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"></div>`).join('')}</div>`
+      : '<div style="color:var(--muted);text-align:center;padding:30px;">Sin fotos aún</div>';
+
+    // ── TAB AMIGOS ──
+    if((u.friends||[]).length){
+      const fSnaps = await Promise.all((u.friends||[]).slice(0,18).map(fid=>getDoc(doc(db,'users',fid))));
+      const myF = window.CU?.friends || [];
+      document.getElementById('upTabAmigos').innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">${fSnaps.filter(s=>s.exists()).map(s=>{
+        const f=s.data(); const fid=s.id;
+        const isMe = window.CU?.id===fid;
+        const alrFriend = myF.includes(fid);
+        const addBtn = (!isMe && !alrFriend) ? `<button onclick="sendFriendRequest('${fid}','${(f.nick||'').replace(/'/g,"\'")}','page');event.stopPropagation();" style="margin-top:5px;width:100%;padding:4px;background:var(--accent);border:none;border-radius:var(--rs);color:#000;font-size:.65rem;font-weight:700;cursor:pointer;">+ Agregar</button>` : alrFriend&&!isMe?`<div style="margin-top:5px;font-size:.65rem;color:var(--green);text-align:center;font-weight:700;">✓ Amigos</div>`:'';
+        return `<div onclick="openUserProfile('${fid}','${(f.nick||'').replace(/'/g,"\'")}');" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center;cursor:pointer;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="width:44px;height:44px;border-radius:50%;background:var(--bg4);margin:0 auto 6px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;${f.verified?'border:2px solid gold;':'border:1px solid var(--border);'}">
+            ${f.av?`<img src="${f.av}" style="width:100%;height:100%;object-fit:cover;">`:(f.nick||'?')[0].toUpperCase()}
+          </div>
+          <div style="font-size:.72rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(f.nick||'?')}${f.verified?' ✅':''}</div>
+          ${addBtn}
+        </div>`;
+      }).join('')}</div>`;
+    } else {
+      document.getElementById('upTabAmigos').innerHTML = '<div style="color:var(--muted);text-align:center;padding:30px;">Sin amigos aún</div>';
     }
-    const dummy = null; // placeholder
+
   } catch(e){
-    content.innerHTML = `<div style="text-align:center;padding:20px;color:var(--muted);">No se pudo cargar el perfil</div>`;
+    document.getElementById('upTabPosts').innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);">No se pudo cargar el perfil</div>';
   }
 }
+
+function swUpTab(btn, tabId){
+  document.querySelectorAll('#upTabs .ptab').forEach(t=>t.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  ['upTabPosts','upTabInfo','upTabFotos','upTabAmigos'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display = id===tabId?'block':'none';
+  });
+}
+
+function _startVerifParticlesEl(canvas, container){
+  const W = container.offsetWidth||800, H = container.offsetHeight||220;
+  canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  const particles=Array.from({length:30},()=>_makeParticle(W,H));
+  function step(){
+    ctx.clearRect(0,0,W,H);
+    particles.forEach((p,i)=>{
+      p.y-=p.vy; p.x+=p.vx; p.life-=1;
+      if(p.life<=0){particles[i]=_makeParticle(W,H);return;}
+      const alpha=Math.min(1,p.life/40)*p.maxAlpha;
+      ctx.save(); ctx.globalAlpha=alpha; ctx.fillStyle=p.color; ctx.shadowColor=p.color; ctx.shadowBlur=8;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); ctx.restore();
+    });
+    canvas._raf=requestAnimationFrame(step);
+  }
+  if(canvas._raf) cancelAnimationFrame(canvas._raf);
+  canvas._raf=requestAnimationFrame(step);
+}
+
 
 // Called from profile modal - updates button visually
 async function sendFriendRequestFromProfile(uid, nick){
@@ -7183,6 +7321,7 @@ const _expose = {
   requestVerification, loadVerifRequests, adminApproveVerif, adminRejectVerif, adminRevokeVerif,
   _startVerifParticles, _stopVerifParticles,
   _svRegisterView, svToggleViewersList, _renderViewersList,
+  swUpTab, _loadUserProfilePage, _startVerifParticlesEl,
   doForgotPassword,quickLogin,
   createGroup,previewGroupImg,
   submitMapPost,previewMapMedia,filterMapPosts,
