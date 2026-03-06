@@ -2322,59 +2322,69 @@ async function _svRegisterView(){
   if(!s || !window.CU || !db) return;
   const storyId = s.id || ('story_'+s.time);
   const isOwner = s.userId === window.CU.id;
-  // Apaga listener anterior
-  if(window._svViewsUnsub){ window._svViewsUnsub(); window._svViewsUnsub=null; }
+
+  // Cancela listener anterior ANTES de arrancar uno nuevo
+  if(window._svViewsUnsub){ window._svViewsUnsub(); window._svViewsUnsub = null; }
+
   // Oculta panel lista si cambia historia
   const listPanel = document.getElementById('svViewersList');
   if(listPanel) listPanel.style.display='none';
-  // Muestra el ojito solo si es dueño o verificado viendo una historia propia
+
+  // Muestra el ojito
   const wrap = document.getElementById('svViewsWrap');
   if(wrap) wrap.style.display='flex';
+
   try {
-    // Registra la vista del usuario actual (no registra si es el propio dueño)
+    // Registra la vista solo si NO es el dueño
     if(!isOwner){
-      await setDoc(doc(db,'storyViews',storyId+'_'+window.CU.id),{
+      await setDoc(doc(db,'storyViews', storyId+'_'+window.CU.id),{
         storyId, viewerId: window.CU.id, viewerNick: window.CU.nick,
         viewerAv: window.CU.av||'', time: Date.now()
       });
     }
-    // Escucha el conteo en tiempo real
+
+    // Escucha en tiempo real — excluye al dueño del conteo
     const q = query(collection(db,'storyViews'), where('storyId','==',storyId));
     window._svViewsUnsub = onSnapshot(q, snap=>{
-      const total = snap.size;
+      // Filtra para no contar al propio dueño si quedara algún doc suyo
+      const views = snap.docs.filter(d => d.data().viewerId !== s.userId);
+      const total = views.length;
       const el = document.getElementById('svViewsCount');
       if(el) el.textContent = total;
-      // Actualiza lista si está abierta y el usuario es dueño verificado
+      // Actualiza lista si está abierta
       const listEl = document.getElementById('svViewersList');
       const tot = document.getElementById('svViewersTotal');
       const items = document.getElementById('svViewersItems');
       if(tot) tot.textContent = total;
-      if(items && listEl && listEl.style.display!=='none'){
-        _renderViewersList(snap.docs);
+      if(items && listEl && listEl.style.display !== 'none'){
+        _renderViewersList(views);
       }
     });
-  } catch(e){}
+  } catch(e){ console.error('_svRegisterView error',e); }
 }
 
 function svToggleViewersList(){
   const s = _stories[_svIdx];
-  if(!s) return;
-  const isOwner = window.CU && s.userId === window.CU.id;
-  const isVerified = window.CU && window.CU.verified;
+  if(!s || !window.CU) return;
+  const isOwner = s.userId === window.CU.id;
+  const isVerified = window.CU.verified;
   const panel = document.getElementById('svViewersList');
   if(!panel) return;
-  // Solo el dueño verificado puede ver la lista
-  if(!isOwner || !isVerified){
-    // Para no-dueños o no-verificados solo muestra tooltip
-    if(!isOwner){ return; } // no-dueño: no hace nada
-    // Dueño pero no verificado: hint
+
+  // No-dueño: mensaje explicativo
+  if(!isOwner){
+    toast('Solo los dueños verificados pueden ver quién vio sus historias ✅','inf');
+    return;
+  }
+  // Dueño pero NO verificado
+  if(!isVerified){
     toast('Solo cuentas verificadas pueden ver quién vio sus historias ✅','inf');
     return;
   }
+  // Dueño Y verificado: toggle panel
   const open = panel.style.display !== 'none';
   panel.style.display = open ? 'none' : 'block';
   if(!open){
-    // Renderiza lista inmediatamente con los datos del último snapshot
     const storyId = s.id || ('story_'+s.time);
     getDocs(query(collection(db,'storyViews'), where('storyId','==',storyId)))
       .then(snap=>{ _renderViewersList(snap.docs); document.getElementById('svViewersTotal').textContent=snap.size; })
@@ -2385,10 +2395,14 @@ function svToggleViewersList(){
 function _renderViewersList(docs){
   const el = document.getElementById('svViewersItems');
   if(!el) return;
-  if(!docs.length){ el.innerHTML='<div style="text-align:center;padding:10px;color:rgba(255,255,255,.4);font-size:.75rem;">Nadie lo vio todavía</div>'; return; }
-  const sorted = [...docs].sort((a,b)=>(b.data().time||0)-(a.data().time||0));
+  if(!docs || !docs.length){ el.innerHTML='<div style="text-align:center;padding:10px;color:rgba(255,255,255,.4);font-size:.75rem;">Nadie lo vio todavía</div>'; return; }
+  const sorted = [...docs].sort((a,b)=>{
+    const ta = (typeof a.data === 'function' ? a.data().time : a.time) || 0;
+    const tb = (typeof b.data === 'function' ? b.data().time : b.time) || 0;
+    return tb - ta;
+  });
   el.innerHTML = sorted.map(d=>{
-    const v = d.data();
+    const v = typeof d.data === 'function' ? d.data() : d;
     const av = v.viewerAv ? `<img src="${v.viewerAv}" style="width:100%;height:100%;object-fit:cover;">` : (v.viewerNick||'?')[0].toUpperCase();
     const t = v.time ? new Date(v.time).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}) : '';
     return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.06);">
