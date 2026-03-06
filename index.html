@@ -294,7 +294,7 @@ select.fi option{background:var(--bg2);}
 .sv-emoji-btn:hover{transform:scale(1.3);}
 /* Bottom bar de la historia */
 #svBottomBar{position:absolute;bottom:0;left:0;right:0;padding:8px 10px 12px;display:flex;gap:7px;align-items:center;z-index:15;background:linear-gradient(to top,rgba(0,0,0,.6),transparent);}
-#svDeleteBtn{position:absolute;top:10px;right:52px;z-index:25;}
+#svDeleteBtn{position:absolute;top:52px;right:10px;z-index:25;}
 #svDeleteBtn button{background:rgba(220,50,50,.5);border:1px solid rgba(255,100,100,.4);color:#fff;border-radius:50%;width:34px;height:34px;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 #svDeleteBtn button:hover{background:rgba(220,50,50,.8);}
 
@@ -419,6 +419,7 @@ select.fi option{background:var(--bg2);}
     <span>🔍</span>
     <input type="text" placeholder="Buscar en CharlasRF4..." id="searchInput" oninput="doSearch(this.value)">
   </div>
+  <div id="topbarStreak" style="display:none;align-items:center;gap:5px;background:rgba(255,100,0,.12);border:1px solid rgba(255,100,0,.35);color:#ff8c42;border-radius:100px;padding:4px 12px;font-size:.75rem;font-weight:800;white-space:nowrap;cursor:default;" title="Tu racha activa">🔥 <span id="topbarStreakNum">0</span> días</div>
   <div class="tb-nav">
     <button class="tb-nav-btn on" onclick="gp('home');setNav(this)" title="Inicio">🏠</button>
     <button class="tb-nav-btn" onclick="gp('home');setNav(this)" title="Amigos">👥</button>
@@ -734,7 +735,7 @@ select.fi option{background:var(--bg2);}
         <button id="svReactBtn" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:50%;width:38px;height:38px;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s;" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'">👍</button>
         <div id="svReactPop" style="display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(20,30,45,.97);border:1px solid rgba(255,255,255,.2);border-radius:100px;padding:6px 10px;gap:4px;align-items:center;box-shadow:0 4px 24px rgba(0,0,0,.7);white-space:nowrap;z-index:100;"
           onmouseenter="this.style.display='flex'" onmouseleave="this.style.display='none'">
-          ${['❤️','😮','😂','🎣','👏','🔥','😍','🐟','🏆','💀'].map(em=>`<button onclick="reactStory('${em}')" style="background:none;border:none;font-size:1.4rem;cursor:pointer;transition:transform .13s;padding:2px;" onmouseover="this.style.transform='scale(1.5) translateY(-4px)'" onmouseout="this.style.transform='scale(1)'">${em}</button>`).join('')}
+          ${['❤️','😮','😂','🎣','👏','🔥','😍','🐟','🏆','💀'].map(em=>{const enc=encodeURIComponent(em);return `<button onclick="reactStory(decodeURIComponent('${enc}'))" style="background:none;border:none;font-size:1.4rem;cursor:pointer;transition:transform .13s;padding:2px;" onmouseover="this.style.transform='scale(1.5) translateY(-4px)'" onmouseout="this.style.transform='scale(1)'">${em}</button>`;}).join('')}
         </div>
       </div>
       <!-- Comment input -->
@@ -1135,7 +1136,7 @@ select.fi option{background:var(--bg2);}
     <div id="chatInputRow" style="display:none;flex-direction:column;border-top:1px solid var(--border);flex-shrink:0;">
       <!-- Quick emoji reactions bar -->
       <div id="chatQuickEmoji" style="display:flex;gap:2px;padding:5px 8px 2px;border-bottom:1px solid rgba(255,255,255,.04);">
-        ${['😂','❤️','👍','🔥','😮','🎣','🐟','👏','💀','🏆'].map(e=>`<button onclick="sendChatEmoji('${e}')" style="background:none;border:none;font-size:1.1rem;cursor:pointer;padding:2px 4px;border-radius:6px;transition:transform .12s,background .12s;" onmouseover="this.style.transform='scale(1.35)';this.style.background='rgba(255,255,255,.07)'" onmouseout="this.style.transform='scale(1)';this.style.background='none'">${e}</button>`).join('')}
+        ${['😂','❤️','👍','🔥','😮','🎣','🐟','👏','💀','🏆'].map(e=>{const enc=encodeURIComponent(e);return `<button onclick="sendChatEmoji(decodeURIComponent('${enc}'))" style="background:none;border:none;font-size:1.1rem;cursor:pointer;padding:2px 4px;border-radius:6px;transition:transform .12s,background .12s;" onmouseover="this.style.transform='scale(1.35)';this.style.background='rgba(255,255,255,.07)'" onmouseout="this.style.transform='scale(1)';this.style.background='none'">${e}</button>`;}).join('')}
       </div>
       <!-- Text input -->
       <div style="padding:8px;display:flex;gap:6px;align-items:center;">
@@ -2234,14 +2235,10 @@ function renderSV(){
     const spId = s.yt.match(/track\/([a-zA-Z0-9]+)/)?.[1] || '';
     if(spId){
       const bgImg = s.img ? `<img src="${s.img}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(4px) brightness(.45);">` : `<div style="position:absolute;inset:0;background:linear-gradient(135deg,#1DB954 0%,#0a1a0a 100%);"></div>`;
-      bg.innerHTML = `<div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:80px;">
+      bg.innerHTML = `<div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:90px;">
         ${bgImg}
-        <div style="position:relative;z-index:2;width:100%;padding:0 12px;display:flex;flex-direction:column;align-items:center;gap:10px;">
-          <div style="background:rgba(0,0,0,.5);border-radius:12px;padding:8px;display:flex;align-items:center;gap:8px;width:100%;">
-            <span style="font-size:1.4rem;">🎵</span>
-            <span style="font-size:.8rem;color:#1DB954;font-weight:700;">Spotify</span>
-          </div>
-          <iframe src="https://open.spotify.com/embed/track/${spId}?utm_source=generator&theme=0" width="100%" height="80" style="border-radius:12px;border:none;position:relative;z-index:2;" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        <div style="position:relative;z-index:2;width:100%;padding:0 10px;">
+          <iframe src="https://open.spotify.com/embed/track/${spId}?utm_source=generator&theme=0" width="100%" height="152" frameborder="0" style="border-radius:12px;border:none;" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>
         </div>
       </div>`;
     } else {
@@ -4899,7 +4896,7 @@ function openChatWith(uid, nick){
                 cursor:pointer;"
                 onmouseenter="showMsgRxnPop('${m.id}')" onmouseleave="hideMsgRxnPop('${m.id}')"
                 ondblclick="reactToMsg('${m.id}','${chatId}','❤️')">
-                ${esc(m.text)}
+                ${m.text ? m.text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;") : ""}
               </div>
               ${rxnHtml}
             </div>
@@ -5485,6 +5482,13 @@ function renderXPUI(){
     if(sb){
       if(streak>=2){ sb.style.display='inline-flex'; sb.textContent='🔥 '+streak+' días'; }
       else { sb.style.display='none'; }
+    }
+    // Update topbar streak
+    const tsEl = document.getElementById('topbarStreak');
+    const tsNum = document.getElementById('topbarStreakNum');
+    if(tsEl && tsNum){
+      if(streak>=1){ tsEl.style.display='inline-flex'; tsNum.textContent=streak; }
+      else { tsEl.style.display='none'; }
     }
   }
 
