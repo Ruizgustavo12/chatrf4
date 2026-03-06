@@ -2352,7 +2352,8 @@ async function deleteMyStory(){
 async function submitStory(){
   if(!window.CU){ toast('Inicia sesión primero','err'); return; }
   const text = document.getElementById('storyText').value.trim();
-  if(!text && !_storyImgData){ toast('Escribe algo o sube una imagen','err'); return; }
+  const yt = document.getElementById('storyYT')?.value.trim()||'';
+if(!text && !_storyImgData && !yt){ toast('Escribe algo, sube una imagen o pega un video de YouTube','err'); return; }
   toast('Publicando historia...','inf');
   let imgUrl = '';
   if(_storyImgData) imgUrl = await uploadImage(_storyImgData, 'stories');
