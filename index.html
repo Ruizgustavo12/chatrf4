@@ -2263,7 +2263,32 @@ function renderProfileFeed(){
   const mine = _posts.filter(p=>p.userId===window.CU.id);
   const scrollY = window.scrollY;
   const newHTML = mine.length ? mine.map(p=>postHTML(p)).join('') : `<div style="text-align:center;padding:40px;color:var(--muted)">Sin publicaciones aún. ¡Comparte tu primera pesca!</div>`;
-  if(el.innerHTML !== newHTML){ el.innerHTML = newHTML; window.scrollTo(0, scrollY); }
+  if(el.innerHTML === newHTML) return;
+  if(!el.children.length){ el.innerHTML = newHTML; return; }
+  // Smart patch - same as renderFeed
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = newHTML;
+  const newPosts = Array.from(tempDiv.children);
+  const existingPosts = Array.from(el.children);
+  if(existingPosts.length !== newPosts.length){ el.innerHTML = newHTML; window.scrollTo(0,scrollY); return; }
+  newPosts.forEach((newPost,i)=>{
+    const existing = existingPosts[i];
+    if(!existing || existing.id !== newPost.id){ el.innerHTML = newHTML; window.scrollTo(0,scrollY); return; }
+    if(existing.outerHTML === newPost.outerHTML) return;
+    const wasOpen = existing.querySelector('.comments-section.open') !== null;
+    const oldStats = existing.querySelector('.post-stats');
+    const newStats = newPost.querySelector('.post-stats');
+    if(oldStats && newStats && oldStats.outerHTML !== newStats.outerHTML) oldStats.replaceWith(newStats);
+    const oldAct = existing.querySelector('.post-actions');
+    const newAct = newPost.querySelector('.post-actions');
+    if(oldAct && newAct && oldAct.outerHTML !== newAct.outerHTML) oldAct.replaceWith(newAct);
+    const oldCmts = existing.querySelector('.comments-section');
+    const newCmts = newPost.querySelector('.comments-section');
+    if(oldCmts && newCmts && oldCmts.innerHTML !== newCmts.innerHTML){
+      newCmts.classList.toggle('open', wasOpen);
+      oldCmts.replaceWith(newCmts);
+    }
+  });
 }
 
 function postHTML(p){
@@ -2285,7 +2310,31 @@ function postHTML(p){
       videoHTML = `<video src="${p.video}" controls style="width:100%;border-radius:var(--rs);margin-bottom:10px;max-height:320px;display:block;"></video>`;
     }
   }
-  const sharedHTML = p.sharedFrom ? ('<div style="display:flex;align-items:center;gap:6px;font-size:.83rem;color:var(--muted);margin-bottom:8px;padding:4px 14px;">↗️ <strong style="color:var(--text);">' + esc(p.userNick||'') + '</strong>&nbsp;compartió la publicación de&nbsp;<strong style="color:var(--accent);">' + esc(p.sharedFrom||'') + '</strong></div>') : '';
+  const sharedHTML = p.sharedFrom ? (function(){
+    // Use snapshot first (always available), then live post as override
+    const snap = p.sharedSnapshot || {};
+    const orig = p.sharedPostId ? _posts.find(op=>op.id===p.sharedPostId) : null;
+    // Prefer snapshot data - it was saved at share time, always reliable
+    const origText = snap.text || (orig ? orig.text : '');
+    const snapImg = snap.images && snap.images[0] ? snap.images[0] : (snap.userAv||'');
+    const liveImg = orig ? (orig.images&&orig.images[0]||'') : '';
+    const origImg = liveImg || snapImg;
+    const origNick = snap.userNick || (orig ? orig.userNick : p.sharedFrom) || p.sharedFrom;
+    const origAv = snap.userAv || (orig ? orig.userAv : '');
+    const origAvLetter = (origNick||'?')[0].toUpperCase();
+    const origAvHTML = origAv ? '<img src="'+origAv+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' : origAvLetter;
+    return '<div style="margin:0 14px 10px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--bg3);">'
+      +'<div style="display:flex;align-items:center;gap:8px;padding:10px 12px 8px;">'
+        +'<div style="width:32px;height:32px;border-radius:50%;border:1px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;color:var(--accent);background:var(--bg4);flex-shrink:0;">'+origAvHTML+'</div>'
+        +'<div>'
+          +'<div style="font-size:.84rem;font-weight:700;color:var(--text);">'+esc(origNick||'')+'</div>'
+          +(origText ? '<div style="font-size:.78rem;color:var(--muted);margin-top:1px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">'+esc(origText)+'</div>' : '')
+        +'</div>'
+      +'</div>'
+      +(origImg ? '<img src="'+origImg+'" style="width:100%;max-height:240px;object-fit:cover;display:block;border-top:1px solid var(--border);" loading="lazy">' : '')
+      +(!origText && !origImg ? '<div style="padding:10px 12px;font-size:.78rem;color:var(--muted);">📸 Publicación compartida</div>' : '')
+    +'</div>';
+  })() : '';
   const linkHTML = (function(){
     var lnk = p.link || null;
     if(!lnk && p.text){ var _um=(p.text.match(/https?:\/\/[^\s]+/)||[])[0]; if(_um) return '<div style="padding:0 14px 6px;"><a href="'+esc(_um)+'" target="_blank" rel="noopener" style="color:#5897fb;font-size:.83rem;text-decoration:none;word-break:break-all;">'+esc(_um)+'</a></div>'; }
@@ -2415,17 +2464,17 @@ function postHTML(p){
       <div style="position:relative;">
         <button class="post-menu" onclick="togglePostMenu('${p.id}', event)" style="font-size:1.3rem;line-height:1;">⋯</button>
         <div id="pmenu_${p.id}" data-owner="${p.userId}" style="display:none;position:absolute;right:0;top:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);min-width:150px;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,.5);overflow:hidden;">
-          <button onclick="togglePostMenu('${p.id}', event); openEditPost('${p.id}','${esc(p.text||'')}')" data-owner-only="true" style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:var(--text);padding:12px 16px;cursor:pointer;font-size:.88rem;text-align:left;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">✏️ Editar</button>
+          ${!p.sharedFrom ? `<button onclick="togglePostMenu('${p.id}', event); openEditPost('${p.id}','${esc(p.text||'')}')" data-owner-only="true" style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:var(--text);padding:12px 16px;cursor:pointer;font-size:.88rem;text-align:left;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">✏️ Editar</button>` : ''}
           <button onclick="togglePostMenu('${p.id}', event); deleteMyPost('${p.id}')" data-owner-only="true" style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:var(--red);padding:12px 16px;cursor:pointer;font-size:.88rem;text-align:left;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">🗑 Eliminar</button>
           <button onclick="togglePostMenu('${p.id}', event); reportPost('${p.id}','${esc(p.userNick)}')" data-other-only="true" style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:var(--warn);padding:12px 16px;cursor:pointer;font-size:.88rem;text-align:left;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">⚠️ Reportar</button>
         </div>
       </div>
     </div>
     ${sharedHTML}
-    ${linkHTML}
-    ${p.text?`<div class="post-text">${renderCommentText(p.text)}</div>`:''}
-    ${fishTag}
-    ${imgHTML}
+    ${!p.sharedFrom && linkHTML}
+    ${!p.sharedFrom && p.text?`<div class="post-text">${renderCommentText(p.text)}</div>`:''}
+    ${!p.sharedFrom && fishTag}
+    ${!p.sharedFrom && imgHTML}
     ${videoHTML}
     <div class="post-stats">
       <div class="post-rxn-summary" onclick="openReactionsModal('${p.id}')" style="${totalRxn>0?'cursor:pointer':'cursor:default'}">
@@ -4409,10 +4458,17 @@ async function sharePost(pid){
   // Create shared copy in user's feed
   await addDoc(collection(db,'posts'),{
     userId: window.CU.id, userNick: window.CU.nick, userAv: window.CU.av||'',
-    text: p.text, fish: p.fish||'', weight: p.weight||0,
-    map: p.map||'', tech: p.tech||'', images: p.images||[],
+    text: '', fish: '', weight: 0, map: '', tech: '', images: [],
     time: serverTimestamp(), likes:0, comments:[], reactions:{}, reactionCounts:{},
-    sharedFrom: p.userNick, sharedPostId: pid
+    sharedFrom: p.userNick, sharedPostId: pid,
+    sharedSnapshot: {
+      text: p.text||'',
+      images: p.images||[],
+      userNick: p.userNick||'',
+      userAv: p.userAv||'',
+      fish: p.fish||'',
+      weight: p.weight||0
+    }
   });
   // Notify original post owner
   if(p.userId && p.userId !== window.CU.id){
