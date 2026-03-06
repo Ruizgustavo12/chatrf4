@@ -32,6 +32,10 @@
       _deferredPrompt = null;
     });
     function installPwa(){
+      function goToProfile(){
+  const nick = window.CU?.nickLower || window.CU?.nick || '';
+  if(nick) window.location.href = 'perfil.html?u=' + nick;
+}
       if(_deferredPrompt){
         _deferredPrompt.prompt();
         _deferredPrompt.userChoice.then(()=>{ _deferredPrompt=null; });
@@ -394,7 +398,7 @@ select.fi option{background:var(--bg2);}
         <div class="sl-name" id="slName">Mi Perfil</div>
       </div>
       <div class="divider"></div>
-      <div class="sl-item" onclick="window.location.href='perfil.html?u='+(window.CU?.nickLower||window.CU?.nick||'')"><span class="sl-item-icon">👤</span> Mi Perfil</div>
+      <div class="sl-item" onclick="goToProfile()"><span class="sl-item-icon">👤</span> Mi Perfil</div>
       <div class="sl-item"><span class="sl-item-icon">👥</span> Amigos</div>
       <div class="sl-item"><span class="sl-item-icon">📸</span> Fotos</div>
       <div class="sl-item" onclick="gp('spots')"><span class="sl-item-icon">📍</span> Compartir Spot</div>
