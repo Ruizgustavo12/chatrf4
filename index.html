@@ -1608,7 +1608,7 @@ function _stub(name){ return function(){ _q.push([name, arguments]); }; }
  'doReact','quickReact','saveProfile','openEditProfile','changeCover','changeAvatar',
  'previewPostImg','removePostImg','previewPostMedia','removePostMedia',
  'previewStoryImg','pickStoryEmoji','insertEmoji','insertFishTag',
- 'toggleComments','sharePost','toggleCmtMenu','editCmt','delCmt','quickCmtRxn','replyCmt','showCmtRxnPop','hideCmtRxnPop','cancelHideCmtRxn','reactCmt','openImgLightbox','swPTab','reactChatMsg','showMsgRxnBar','hideMsgRxnBar','keepMsgRxnBar','showCmtMenu','hideCmtMenu','setChatTyping',
+ 'toggleComments','sharePost','toggleCmtMenu','editCmt','delCmt','quickCmtRxn','replyCmt','toggleReplies','showCmtRxnPop','hideCmtRxnPop','cancelHideCmtRxn','reactCmt','openImgLightbox','swPTab','reactChatMsg','showMsgRxnBar','hideMsgRxnBar','keepMsgRxnBar','showCmtMenu','hideCmtMenu','setChatTyping',
  'showRxnPop','schedHideRxnPop','cancelHideRxnPop',
  'openSV','closeSV','svNav','reactStory','submitStoryComment','deleteMyStory','doSearch',
  'reportPost','submitReport','loadAdminData','deleteAdminPost','resolveReport',
@@ -2327,47 +2327,56 @@ function postHTML(p){
         +'</div>'
       +'</div>'
     +'</div>'
-    // Append replies to this comment, indented
-    + allCmts.filter(function(r){ return r.replyTo && c.nick && r.replyTo.toLowerCase()===c.nick.toLowerCase() && allCmts.indexOf(r)>ci; })
-      .slice(0,10).map(function(r,ri){
-        const rMine = window.CU && r.userId===window.CU.id;
-        const rCanDel = window.CU && (r.userId===window.CU.id || p.userId===window.CU.id);
-        const rRxns = r.reactions||{};
-        const rRxnTotal = Object.values(rRxns).reduce((a,b)=>a+b,0);
-        const rTopRxn = Object.entries(rRxns).filter(e=>e[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,2).map(e=>e[0]).join('');
-        const myRxnR = window.CU ? ((r.userReactions||{})[window.CU.id]||'') : '';
-        const rIdx = allCmts.indexOf(r);
-        let rMenuBtns = '';
-        if(rMine) rMenuBtns += '<button onclick="editCmt(event,\''+p.id+'\','+rIdx+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:var(--text);padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">✏️ Editar</button>';
-        if(rCanDel) rMenuBtns += '<button onclick="delCmt(event,\''+p.id+'\','+rIdx+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#f55;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">🗑 Eliminar</button>';
-        rMenuBtns += '<button onclick="toast(\'Comentario reportado\',\'ok\')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#fa0;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">⚠️ Reportar</button>';
-        const rRxnBtns = CMT_RXNS.map(em=>'<button onclick="reactCmt(event,\''+p.id+'\','+rIdx+',\''+em+'\')" style="background:none;border:none;font-size:1.3rem;cursor:pointer;padding:3px;border-radius:50%;transition:transform .13s;" onmouseover="this.style.transform=\'scale(1.4) translateY(-4px)\'" onmouseout="this.style.transform=\'scale(1)\'">'+em+'</button>').join('');
-        return '<div class="comment-item" style="align-items:flex-start;position:relative;margin-left:36px;margin-top:4px;padding-left:8px;border-left:2px solid rgba(0,198,255,.2);">'
-          +'<div class="sl-av" style="width:26px;height:26px;font-size:.68rem;flex-shrink:0;cursor:pointer;margin-top:2px;" onclick="openUserProfile(\''+r.userId+'\',\''+esc(r.nick)+'\')">'+(r.av?'<img src="'+r.av+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">':esc((r.nick||'?')[0]))+'</div>'
-          +'<div style="flex:1;min-width:0;">'
-            +'<div class="comment-bubble" style="margin-bottom:3px;">'
-              +'<div style="display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:2px;">'
-                +'<div class="comment-author" style="cursor:pointer;font-size:.74rem;" onclick="openUserProfile(\''+r.userId+'\',\''+esc(r.nick)+'\')">'+(r.nick||'?')+'</div>'
-                +'<div class="cmt-menu-wrap">'
-                  +'<button class="cmt-dots-btn">⋯</button>'
-                  +'<div class="cmt-menu-dropdown">'+rMenuBtns+'</div>'
+    // Replies collapsed block
+    + (function(){
+        const replies = allCmts.filter(function(r2){ return r2.replyTo && c.nick && r2.replyTo.toLowerCase()===c.nick.toLowerCase() && allCmts.indexOf(r2)>ci; });
+        if(!replies.length) return '';
+        const rid = 'replies_'+p.id+'_'+ci;
+        function replyHTML(r2){
+          const rMine = window.CU && r2.userId===window.CU.id;
+          const rCanDel = window.CU && (r2.userId===window.CU.id || p.userId===window.CU.id);
+          const r2Rxns = r2.reactions||{};
+          const r2RxnTotal = Object.values(r2Rxns).reduce((a,b)=>a+b,0);
+          const r2TopRxn = Object.entries(r2Rxns).filter(e=>e[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,2).map(e=>e[0]).join('');
+          const myR2Rxn = window.CU ? ((r2.userReactions||{})[window.CU.id]||'') : '';
+          const r2Idx = allCmts.indexOf(r2);
+          let r2Menu = '';
+          if(rMine) r2Menu += '<button onclick="editCmt(event,\''+p.id+'\','+r2Idx+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:var(--text);padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">✏️ Editar</button>';
+          if(rCanDel) r2Menu += '<button onclick="delCmt(event,\''+p.id+'\','+r2Idx+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#f55;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">🗑 Eliminar</button>';
+          r2Menu += '<button onclick="toast(\'Comentario reportado\',\'ok\')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#fa0;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">⚠️ Reportar</button>';
+          const r2RxnBtns = CMT_RXNS.map(em=>'<button onclick="reactCmt(event,\''+p.id+'\','+r2Idx+',\''+em+'\')" style="background:none;border:none;font-size:1.2rem;cursor:pointer;padding:3px;border-radius:50%;transition:transform .13s;" onmouseover="this.style.transform=\'scale(1.4) translateY(-4px)\'" onmouseout="this.style.transform=\'scale(1)\'">'+em+'</button>').join('');
+          const avHTML = r2.av ? '<img src="'+r2.av+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' : esc((r2.nick||'?')[0]);
+          return '<div class="comment-item" style="display:flex;align-items:flex-start;margin-top:6px;">'
+            +'<div class="sl-av" style="width:28px;height:28px;font-size:.68rem;flex-shrink:0;cursor:pointer;margin-top:2px;" onclick="openUserProfile(\''+r2.userId+'\',\''+esc(r2.nick)+'\')">'+avHTML+'</div>'
+            +'<div style="flex:1;min-width:0;">'
+              +'<div class="comment-bubble" style="margin-bottom:3px;">'
+                +'<div style="display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:2px;">'
+                  +'<div class="comment-author" style="cursor:pointer;font-size:.74rem;" onclick="openUserProfile(\''+r2.userId+'\',\''+esc(r2.nick)+'\')">'+esc(r2.nick||'?')+'</div>'
+                  +'<div class="cmt-menu-wrap"><button class="cmt-dots-btn">⋯</button><div class="cmt-menu-dropdown">'+r2Menu+'</div></div>'
                 +'</div>'
+                +'<div class="comment-text" style="font-size:.81rem;">'+renderCommentText(r2.text)+(r2.edited?' <span style="font-size:.6rem;color:var(--muted);">(editado)</span>':'')+'</div>'
               +'</div>'
-              +'<div class="comment-text" style="font-size:.8rem;">'+renderCommentText(r.text)+(r.edited?' <span style="font-size:.6rem;color:var(--muted);">(editado)</span>':'')+'</div>'
-            +'</div>'
-            +'<div style="display:flex;align-items:center;gap:8px;padding:0 4px 2px;flex-wrap:wrap;">'
-              +'<span style="font-size:.66rem;color:var(--muted);">'+(r.time?fmtT(r.time):'')+'</span>'
-              +'<button onclick="replyCmt(event,\''+p.id+'\',\''+esc(c.nick)+'\')" class="cmt-reply-btn" style="font-size:.7rem;">Responder</button>'
-              +'<div class="cmt-rxn-wrap">'
-                +'<button onclick="quickCmtRxn(event,\''+p.id+'\','+rIdx+')" style="background:none;border:none;font-size:.7rem;font-weight:700;cursor:pointer;padding:2px 5px;border-radius:100px;color:'+(myRxnR?'var(--accent)':'var(--muted)')+';padding:2px 5px;">'+(myRxnR?myRxnR+' ':'')+' Me gusta</button>'
-                +'<div class="cmt-rxn-popup">'+rRxnBtns+'</div>'
+              +'<div style="display:flex;align-items:center;gap:8px;padding:0 4px 2px;flex-wrap:wrap;">'
+                +'<span style="font-size:.66rem;color:var(--muted);">'+(r2.time?fmtT(r2.time):'')+'</span>'
+                +'<button onclick="replyCmt(event,\''+p.id+'\',\''+esc(c.nick)+'\')" class="cmt-reply-btn" style="font-size:.7rem;">Responder</button>'
+                +'<div class="cmt-rxn-wrap">'
+                  +'<button onclick="quickCmtRxn(event,\''+p.id+'\','+r2Idx+')" style="background:none;border:none;font-size:.72rem;font-weight:700;cursor:pointer;padding:2px 5px;border-radius:100px;color:'+(myR2Rxn?'var(--accent)':'var(--muted)')+';">'+(myR2Rxn?myR2Rxn+' ':'')+' Me gusta</button>'
+                  +'<div class="cmt-rxn-popup">'+r2RxnBtns+'</div>'
+                +'</div>'
+                +(r2RxnTotal>0?'<span style="font-size:.68rem;background:var(--bg3);border-radius:100px;padding:1px 5px;color:var(--muted);">'+r2TopRxn+' '+r2RxnTotal+'</span>':'')
               +'</div>'
-              +(rRxnTotal>0?'<span style="font-size:.68rem;background:var(--bg3);border-radius:100px;padding:1px 5px;color:var(--muted);">'+rTopRxn+' '+rRxnTotal+'</span>':'')
             +'</div>'
-          +'</div>'
-        +'</div>';
-      }).join('');
-  }).join('');
+          +'</div>';
+        }
+        const repliesHTML = replies.slice(0,30).map(replyHTML).join('');
+        const label = replies.length === 1 ? '↩ Ver 1 respuesta' : '↩ Ver las '+replies.length+' respuestas';
+        return '<div style="margin-left:40px;margin-top:4px;padding-left:10px;border-left:2px solid var(--border);">'
+          +'<button onclick="toggleReplies(\''+rid+'\')" id="btn_'+rid+'" style="background:none;border:none;color:var(--accent);font-size:.78rem;font-weight:700;cursor:pointer;padding:4px 0;display:flex;align-items:center;gap:5px;">'+label+'</button>'
+          +'<div id="'+rid+'" style="display:none;">'+repliesHTML+'</div>'
+          +'</div>';
+      })()
+
+    }).join('');
   return `<div class="post" id="post_${p.id}">
     <div class="post-header">
       <div class="post-av" style="cursor:pointer" onclick="openUserProfile('${p.userId}','${esc(p.userNick)}')">${p.userAv?`<img src="${p.userAv}">`:(p.userNick||'U')[0]}</div>
@@ -2801,6 +2810,18 @@ function quickCmtRxn(e, pid, ci){
   const c=(p.comments||[])[ci]; if(!c) return;
   const prev=window.CU?((c.userReactions||{})[window.CU.id]||''):'';
   reactCmt(null,pid,ci,prev||'👍');
+}
+function toggleReplies(rid){
+  const el = document.getElementById(rid);
+  const btn = document.getElementById('btn_'+rid);
+  if(!el) return;
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  if(btn){
+    const txt = btn.textContent;
+    // Toggle arrow direction
+    btn.textContent = txt.replace(/^[↩↪]/, open ? '↩' : '↪');
+  }
 }
 function replyCmt(e, pid, nick){
   if(e) e.stopPropagation();
@@ -5805,7 +5826,7 @@ const _expose = {
   previewStoryImg,pickStoryEmoji,
   insertEmoji,insertFishTag,openEmojiPicker,insertEmojiChar,
   toggleComments,sharePost,
-  reactCmt,editCmt,delCmt,quickCmtRxn,replyCmt,
+  reactCmt,editCmt,delCmt,quickCmtRxn,replyCmt,toggleReplies,
   openImgLightbox,swPTab,
   showRxnPop,schedHideRxnPop,cancelHideRxnPop,
   openSV,closeSV,svNav,reactStory,reportStory,submitStoryComment,deleteMyStory,
