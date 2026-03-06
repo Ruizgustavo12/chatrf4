@@ -2349,7 +2349,9 @@ async function submitStory(){
   if(_storyImgData) imgUrl = await uploadImage(_storyImgData, 'stories');
   await addDoc(collection(db, 'stories'), {
     userId:window.CU.id, userNick:window.CU.nick, userAv:window.CU.av||'',
-    text, emoji:_storyEmojiPick||'🎣', img:imgUrl, time:serverTimestamp()
+   text, emoji:_storyEmojiPick||'🎣', img:imgUrl, 
+yt: document.getElementById('storyYT')?.value.trim()||'',
+time:serverTimestamp()
   });
   _storyImgData = null; _storyEmojiPick = '';
   document.getElementById('storyText').value='';
