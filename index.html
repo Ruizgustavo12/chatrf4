@@ -305,6 +305,84 @@ select.fi option{background:var(--bg2);}
 .badge-blue{background:rgba(0,198,255,.12);border:1px solid rgba(0,198,255,.25);color:var(--accent);}
 .badge-gold{background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.25);color:var(--gold);}
 .badge-green{background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.2);color:var(--green);}
+
+/* ===== UNREAD MSG BADGE (Facebook style) ===== */
+.msg-unread-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:18px;height:18px;padding:0 5px;
+  background:var(--red);color:#fff;font-size:.65rem;font-weight:800;
+  border-radius:100px;border:2px solid var(--bg2);
+  position:absolute;top:-4px;right:-4px;
+  animation:badgePop .3s cubic-bezier(.34,1.56,.64,1);
+  pointer-events:none;line-height:1;
+}
+@keyframes badgePop{from{transform:scale(0)}to{transform:scale(1)}}
+
+/* Chat list item unread highlight */
+.chat-item-unread{
+  background:rgba(0,198,255,.06)!important;
+  border-left:3px solid var(--accent)!important;
+}
+.chat-item-unread .chat-preview-text{
+  color:var(--text)!important;font-weight:700!important;
+}
+.chat-unread-count{
+  min-width:20px;height:20px;padding:0 5px;
+  background:var(--accent);color:#000;font-size:.65rem;font-weight:800;
+  border-radius:100px;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+
+/* ===== MSG REACTIONS ===== */
+.msg-rxn-wrap{position:relative;display:inline-flex;align-items:center;}
+.msg-rxn-popup{
+  display:none;position:absolute;bottom:calc(100% + 6px);
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:100px;padding:5px 8px;gap:2px;align-items:center;
+  z-index:700;box-shadow:0 6px 24px rgba(0,0,0,.8);white-space:nowrap;
+  animation:rxnPop .16s ease;
+}
+.msg-rxn-popup.left{left:0;}.msg-rxn-popup.right{right:0;}
+.msg-rxn-popup.show{display:flex;}
+.msg-rxn-popup:hover{display:flex!important;}
+.msg-rxn-btn-small{background:none;border:none;font-size:1.2rem;cursor:pointer;padding:2px 3px;border-radius:50%;transition:transform .13s;line-height:1;}
+.msg-rxn-btn-small:hover{transform:scale(1.5) translateY(-4px);}
+/* Reaction bubble on message */
+.msg-rxn-bubble{
+  position:absolute;bottom:-10px;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:100px;padding:2px 6px;font-size:.72rem;
+  display:flex;align-items:center;gap:2px;cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,.4);z-index:1;
+  transition:transform .15s;
+}
+.msg-rxn-bubble:hover{transform:scale(1.1);}
+.msg-rxn-bubble.mine{right:4px;}.msg-rxn-bubble.theirs{left:4px;}
+
+/* ===== STORY REACTIONS & COMMENTS panel ===== */
+.sv-comments-panel{
+  position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(to top,rgba(0,0,0,.97) 60%,transparent);
+  border-radius:0 0 var(--r) var(--r);
+  padding:12px;max-height:55%;overflow-y:auto;
+  display:none;flex-direction:column;gap:6px;
+}
+.sv-comments-panel.open{display:flex;}
+.sv-comment-item{display:flex;gap:7px;align-items:flex-start;}
+.sv-comment-bubble{background:rgba(255,255,255,.12);border-radius:12px 12px 12px 4px;padding:6px 10px;flex:1;backdrop-filter:blur(4px);}
+.sv-comment-author{font-size:.72rem;font-weight:700;color:var(--accent);}
+.sv-comment-text{font-size:.8rem;color:#fff;line-height:1.4;}
+/* Story reaction counter bar */
+.sv-rxn-counts{
+  position:absolute;top:64px;left:12px;
+  display:flex;gap:4px;flex-wrap:wrap;
+}
+.sv-rxn-count-pill{
+  background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.15);
+  border-radius:100px;padding:2px 8px;font-size:.75rem;
+  display:flex;align-items:center;gap:3px;backdrop-filter:blur(4px);
+  animation:rxnPop .2s ease;
+}
 </style>
 </head>
 <body>
@@ -605,12 +683,18 @@ select.fi option{background:var(--bg2);}
       </div>
     </div>
     <div class="sv-text" id="svText"></div>
+    <!-- Reaction counts bar -->
+    <div class="sv-rxn-counts" id="svRxnCounts"></div>
     <!-- Delete button (own stories) -->
     <div id="svDeleteBtn" style="display:none;position:absolute;top:10px;right:52px;z-index:10;">
       <button onclick="deleteMyStory()" title="Eliminar historia" style="background:rgba(255,68,68,.4);border:1px solid rgba(255,68,68,.6);color:#fff;border-radius:50%;width:32px;height:32px;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">🗑</button>
     </div>
-    <!-- Comment + React bar -->
-    <div style="position:absolute;bottom:10px;left:12px;right:12px;display:flex;gap:8px;align-items:center;">
+    <!-- Story comments panel (slides up) -->
+    <div class="sv-comments-panel" id="svCommentsPanel">
+      <div id="svCommentsList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
+    </div>
+    <!-- Bottom bar: react + comment + toggle comments -->
+    <div style="position:absolute;bottom:10px;left:12px;right:12px;display:flex;gap:8px;align-items:center;z-index:10;">
       <!-- React button with floating popup -->
       <div style="position:relative;" id="svReactWrap"
         onmouseenter="document.getElementById('svReactPop').style.display='flex'"
@@ -619,13 +703,17 @@ select.fi option{background:var(--bg2);}
         <!-- Floating reaction popup -->
         <div id="svReactPop" style="display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(30,40,55,.97);border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:6px 10px;gap:6px;align-items:center;box-shadow:0 4px 20px rgba(0,0,0,.6);white-space:nowrap;z-index:100;"
           onmouseenter="this.style.display='flex'" onmouseleave="this.style.display='none'">
-          ${['❤️','😮','😂','🎣','👏','🔥','😍'].map(em=>`
+          ${['❤️','😮','😂','🎣','👏','🔥','😍','🐟','🏆','💀'].map(em=>`
             <button onclick="reactStory('${em}')" title="${em}" style="background:none;border:none;font-size:1.5rem;cursor:pointer;transition:transform .15s;border-radius:50%;padding:2px;" onmouseover="this.style.transform='scale(1.4) translateY(-4px)'" onmouseout="this.style.transform='scale(1) translateY(0)'">${em}</button>
           `).join('')}
         </div>
       </div>
+      <!-- Comment input -->
       <input id="svCommentInput" placeholder="Comentar historia..." style="flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:100px;padding:8px 14px;color:#fff;font-size:.82rem;outline:none;font-family:'Exo 2',sans-serif;" onkeypress="if(event.key==='Enter')submitStoryComment()">
+      <!-- Send -->
       <button onclick="submitStoryComment()" style="background:var(--accent);border:none;border-radius:50%;width:34px;height:34px;color:#000;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">➤</button>
+      <!-- Toggle comments panel -->
+      <button onclick="toggleSvCommentsPanel()" id="svToggleComments" title="Ver comentarios" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:50%;width:34px;height:34px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">💬</button>
     </div>
   </div>
   <button class="sv-nav sv-next" onclick="svNav(1)">›</button>
@@ -1008,10 +1096,17 @@ select.fi option{background:var(--bg2);}
       <div id="messengerList" style="padding:6px;"></div>
       <div id="chatWindow" style="display:none;flex-direction:column;height:100%;"></div>
     </div>
-    <!-- Input row -->
-    <div id="chatInputRow" style="display:none;padding:8px;border-top:1px solid var(--border);flex-shrink:0;gap:6px;align-items:center;">
-      <input id="chatInput" class="fi" placeholder="Escribe un mensaje..." style="flex:1;font-size:.82rem;" onkeypress="if(event.key==='Enter')sendChatMsg()">
-      <button onclick="sendChatMsg()" style="background:var(--accent);border:none;color:#000;width:34px;height:34px;border-radius:50%;font-size:.9rem;cursor:pointer;flex-shrink:0;">➤</button>
+    <!-- Input row with emoji reactions quick-bar -->
+    <div id="chatInputRow" style="display:none;flex-direction:column;border-top:1px solid var(--border);flex-shrink:0;">
+      <!-- Quick emoji reactions bar -->
+      <div id="chatQuickEmoji" style="display:flex;gap:2px;padding:5px 8px 2px;border-bottom:1px solid rgba(255,255,255,.04);">
+        ${['😂','❤️','👍','🔥','😮','🎣','🐟','👏','💀','🏆'].map(e=>`<button onclick="sendChatEmoji('${e}')" style="background:none;border:none;font-size:1.1rem;cursor:pointer;padding:2px 4px;border-radius:6px;transition:transform .12s,background .12s;" onmouseover="this.style.transform='scale(1.35)';this.style.background='rgba(255,255,255,.07)'" onmouseout="this.style.transform='scale(1)';this.style.background='none'">${e}</button>`).join('')}
+      </div>
+      <!-- Text input -->
+      <div style="padding:8px;display:flex;gap:6px;align-items:center;">
+        <input id="chatInput" class="fi" placeholder="Escribe un mensaje..." style="flex:1;font-size:.82rem;" onkeypress="if(event.key==='Enter')sendChatMsg()">
+        <button onclick="sendChatMsg()" style="background:var(--accent);border:none;color:#000;width:34px;height:34px;border-radius:50%;font-size:.9rem;cursor:pointer;flex-shrink:0;">➤</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1888,6 +1983,8 @@ function onLogin(){
     renderSuggestedUsers();
     renderFriendSpotsInHome();
     checkDailyStreak();
+    // Start listening for unread msg counts
+    setTimeout(listenUnreadCounts, 1500);
   });
   loadSavedAccounts();
 }
@@ -2028,6 +2125,19 @@ function renderSV(){
   // Clear comment input
   const cinp = document.getElementById('svCommentInput');
   if(cinp) cinp.value = '';
+  // Close comments panel on nav
+  const panel = document.getElementById('svCommentsPanel');
+  if(panel) panel.classList.remove('open');
+  // Update reaction counts bar
+  updateSvRxnCounts(s);
+  // Update react button with my reaction if any
+  const myRxn = s.reactions?.[window.CU?.id];
+  const btn = document.getElementById('svReactBtn');
+  if(btn) btn.textContent = myRxn || '👍';
+  // Update comments toggle badge
+  const comCount = (s.comments||[]).length;
+  const toggleBtn = document.getElementById('svToggleComments');
+  if(toggleBtn) toggleBtn.title = `Ver comentarios (${comCount})`;
   // progress bars
   const prog = document.getElementById('svProgress');
   prog.innerHTML = _stories.map((_,i)=>`<div class="sv-prog-bar"><div class="sv-prog-fill" style="width:${i<_svIdx?100:i===_svIdx?50:0}%"></div></div>`).join('');
@@ -2035,56 +2145,86 @@ function renderSV(){
 async function reactStory(em){
   const s = _stories[_svIdx];
   if(!s || !window.CU) return;
+  // Toggle: if same remove, else set
+  const prev = s.reactions?.[window.CU.id];
+  const newEm = prev === em ? null : em;
+  // Update local state
+  if(!s.reactions) s.reactions = {};
+  if(newEm){ s.reactions[window.CU.id] = newEm; } else { delete s.reactions[window.CU.id]; }
   // Update reaction button
   const btn = document.getElementById('svReactBtn');
-  if(btn) btn.textContent = em;
+  if(btn) btn.textContent = newEm || '👍';
   // Hide popup
   const pop = document.getElementById('svReactPop');
   if(pop) pop.style.display = 'none';
-  toast('Reaccionaste con ' + em, 'inf');
-  // Send reaction as private message if not own story
-  if(s.userId && s.userId !== window.CU.id){
-    try {
+  // Update counts bar
+  updateSvRxnCounts(s);
+  if(newEm) toast('Reaccionaste con ' + newEm, 'inf');
+  // Persist to Firestore
+  try {
+    const rxnKey = `reactions.${window.CU.id}`;
+    if(newEm){
+      await updateDoc(doc(db,'stories',s.id), {[rxnKey]: newEm});
+    } else {
+      const rxns = {...(s.reactions||{})};
+      delete rxns[window.CU.id];
+      await updateDoc(doc(db,'stories',s.id), {reactions: rxns});
+    }
+    // Send reaction as private message if not own story
+    if(newEm && s.userId && s.userId !== window.CU.id){
       const storyPreview = s.text ? s.text.slice(0,40) : (s.img ? '📸 imagen' : '🎣');
       const chatId = [window.CU.id, s.userId].sort().join('_');
       await addDoc(collection(db,'chats',chatId,'messages'),{
         uid: window.CU.id,
         nick: window.CU.nick,
-        text: `${em} Reaccionó a tu historia: "${storyPreview}"`,
+        text: `${newEm} Reaccionó a tu historia: "${storyPreview}"`,
         storyComment: true,
         storyImg: s.img || '',
         time: serverTimestamp()
       });
-      sendNotifToUser(s.userId, `💬 ${window.CU.nick} reaccionó a tu historia con ${em}`);
-    } catch(e){ console.error('Error enviando reacción:', e); }
-  }
+      sendNotifToUser(s.userId, `${newEm} ${window.CU.nick} reaccionó a tu historia`);
+    }
+  } catch(e){ console.error('Error guardando reacción en historia:', e); }
 }
 
 async function submitStoryComment(){
   if(!window.CU){ toast('Inicia sesión primero','err'); return; }
   const s = _stories[_svIdx];
   if(!s) return;
-  if(s.userId === window.CU.id){ toast('No podés comentar tu propia historia','err'); return; }
   const input = document.getElementById('svCommentInput');
   const text = input ? input.value.trim() : '';
   if(!text){ toast('Escribe un comentario','err'); return; }
   input.value = '';
   try {
-    const storyPreview = s.text ? s.text.slice(0,40) : (s.img ? '📸 imagen' : '🎣');
-    const msgText = `📖 Comentó tu historia "${storyPreview}":
-${text}`;
-    const chatId = [window.CU.id, s.userId].sort().join('_');
-    await addDoc(collection(db,'chats',chatId,'messages'),{
-      uid: window.CU.id,
-      nick: window.CU.nick,
-      text: msgText,
-      storyComment: true,
-      storyImg: s.img || '',
-      time: serverTimestamp()
-    });
-    // Also send chat notification
-    sendNotifToUser(s.userId, `💬 ${window.CU.nick} comentó tu historia`);
-    toast(`Mensaje enviado a ${s.userNick} 💬`,'ok');
+    const newComment = {
+      uid: window.CU.id, nick: window.CU.nick,
+      av: window.CU.av||'', text, time: Date.now()
+    };
+    // Save comment on the story document
+    const comments = [...(s.comments||[]), newComment];
+    await updateDoc(doc(db,'stories',s.id), {comments});
+    s.comments = comments; // update local
+    // Refresh comments panel if open
+    const panel = document.getElementById('svCommentsPanel');
+    if(panel && panel.classList.contains('open')) _renderSvComments();
+    // Update toggle badge
+    const toggleBtn = document.getElementById('svToggleComments');
+    if(toggleBtn) toggleBtn.title = `Ver comentarios (${comments.length})`;
+    // If not own story, also send as chat message
+    if(s.userId && s.userId !== window.CU.id){
+      const storyPreview = s.text ? s.text.slice(0,40) : (s.img ? '📸 imagen' : '🎣');
+      const chatId = [window.CU.id, s.userId].sort().join('_');
+      await addDoc(collection(db,'chats',chatId,'messages'),{
+        uid: window.CU.id,
+        nick: window.CU.nick,
+        text: `📖 Comentó tu historia "${storyPreview}": ${text}`,
+        storyComment: true,
+        storyImg: s.img || '',
+        time: serverTimestamp()
+      });
+      sendNotifToUser(s.userId, `💬 ${window.CU.nick} comentó tu historia`);
+    }
+    toast('Comentario enviado 💬','ok');
   } catch(e){
     console.error('Error enviando comentario:', e);
     toast('Error al enviar comentario','err');
@@ -4382,9 +4522,10 @@ function openChatWith(uid, nick){
     chatWin.innerHTML = `
       <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg3);">
         <button onclick="backToMessengerList()" style="background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:0 4px;">‹</button>
-        <div style="font-size:.88rem;font-weight:700;">${esc(nick)}</div>
+        <div style="font-size:.88rem;font-weight:700;flex:1;">${esc(nick)}</div>
+        <div id="chatTypingIndicator" style="font-size:.7rem;color:var(--accent);display:none;font-style:italic;">escribiendo...</div>
       </div>
-      <div id="chatMessages" style="flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;min-height:0;"></div>`;
+      <div id="chatMessages" style="flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;min-height:0;"></div>`;
   }
   const inputRow = document.getElementById('chatInputRow');
   if(inputRow) inputRow.style.display='flex';
@@ -4393,25 +4534,56 @@ function openChatWith(uid, nick){
   if(_presenceUnsub){ _presenceUnsub(); _presenceUnsub=null; }
 
   const chatId = [window.CU.id, uid].sort().join('_');
+
+  // Mark messages as read
+  _markChatRead(chatId, uid);
+
   _unsubChat = onSnapshot(
     query(collection(db,'chats',chatId,'messages'), orderBy('time','asc')),
     snap=>{
       const el = document.getElementById('chatMessages');
       if(!el) return;
       const msgs = snap.docs.map(d=>({id:d.id,...d.data()}));
-      el.innerHTML = msgs.length
-        ? msgs.map(m=>{
-            const mine = m.uid === window.CU.id;
-            const time = m.time?.toMillis ? fmtT(m.time.toMillis()) : '';
-            const isStoryComment = m.storyComment;
-            const storyImg = m.storyImg || '';
-            return `<div style="display:flex;flex-direction:column;align-items:${mine?'flex-end':'flex-start'};gap:2px;">
-              ${isStoryComment && storyImg ? `<div style="max-width:75%;border-radius:${mine?'12px 12px 4px 12px':'12px 12px 12px 4px'};overflow:hidden;border:2px solid rgba(0,198,255,.3);"><img src="${storyImg}" style="width:100%;max-height:120px;object-fit:cover;display:block;"></div>` : ''}
-              <div style="max-width:75%;padding:8px 12px;border-radius:${mine?'16px 16px 4px 16px':'16px 16px 16px 4px'};background:${isStoryComment?(mine?'var(--accent2)':'rgba(0,198,255,.12)'):(mine?'var(--accent)':'var(--bg3)')};color:${mine?'#fff':'var(--text)'};font-size:.84rem;line-height:1.5;word-break:break-word;${isStoryComment?'border:1px solid rgba(0,198,255,.3);':''}">${esc(m.text)}</div>
-              <div style="font-size:.65rem;color:var(--muted);padding:0 4px;">${time}</div>
-            </div>`;
-          }).join('')
-        : '<div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem;">Empezá la conversación 👋</div>';
+      if(!msgs.length){
+        el.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem;">Empezá la conversación 👋</div>';
+        return;
+      }
+      el.innerHTML = msgs.map(m=>{
+          const mine = m.uid === window.CU.id;
+          const time = m.time?.toMillis ? fmtT(m.time.toMillis()) : '';
+          const isStoryComment = m.storyComment;
+          const storyImg = m.storyImg || '';
+          const rxns = m.reactions || {};
+          const rxnEntries = Object.entries(rxns);
+          // Group reactions by emoji
+          const rxnGroups = {};
+          rxnEntries.forEach(([,emoji])=>{ if(emoji) rxnGroups[emoji]=(rxnGroups[emoji]||0)+1; });
+          const rxnHtml = Object.entries(rxnGroups).length
+            ? `<div class="msg-rxn-bubble ${mine?'mine':'theirs'}" onclick="openMsgReactionsDetail('${m.id}','${chatId}')">
+                ${Object.entries(rxnGroups).map(([e,c])=>`<span>${e}${c>1?`<span style='font-size:.6rem;margin-left:1px;'>${c}</span>`:''}</span>`).join('')}
+               </div>` : '';
+          const myRxn = rxns[window.CU.id];
+          return `<div style="display:flex;flex-direction:column;align-items:${mine?'flex-end':'flex-start'};gap:2px;position:relative;">
+            ${isStoryComment && storyImg ? `<div style="max-width:75%;border-radius:${mine?'12px 12px 4px 12px':'12px 12px 12px 4px'};overflow:hidden;border:2px solid rgba(0,198,255,.3);"><img src="${storyImg}" style="width:100%;max-height:120px;object-fit:cover;display:block;"></div>` : ''}
+            <div class="msg-rxn-wrap" style="position:relative;display:inline-block;max-width:75%;">
+              <div id="msgRxnPop_${m.id}" class="msg-rxn-popup ${mine?'right':'left'}" style="bottom:calc(100% + 4px);${mine?'right:0':'left:0'}">
+                ${['❤️','😂','😮','👍','🔥','🎣','😢'].map(e=>`<button class="msg-rxn-btn-small" onclick="reactToMsg('${m.id}','${chatId}','${e}')" title="${e}">${e}</button>`).join('')}
+              </div>
+              <div style="padding:8px 12px;border-radius:${mine?'16px 16px 4px 16px':'16px 16px 16px 4px'};
+                background:${isStoryComment?(mine?'var(--accent2)':'rgba(0,198,255,.12)'):(mine?'var(--accent)':'var(--bg3)')};
+                color:${mine?'#fff':'var(--text)'};font-size:.84rem;line-height:1.5;word-break:break-word;
+                ${isStoryComment?'border:1px solid rgba(0,198,255,.3);':''}
+                ${myRxn?'border-bottom-right-radius:4px;':''}
+                cursor:pointer;"
+                onmouseenter="showMsgRxnPop('${m.id}')" onmouseleave="hideMsgRxnPop('${m.id}')"
+                ondblclick="reactToMsg('${m.id}','${chatId}','❤️')">
+                ${esc(m.text)}
+              </div>
+              ${rxnHtml}
+            </div>
+            <div style="font-size:.65rem;color:var(--muted);padding:0 4px;">${time}</div>
+          </div>`;
+        }).join('');
       el.scrollTop = el.scrollHeight;
     }
   );
@@ -5242,6 +5414,186 @@ function renderTrofeoSidebar(items){
   }).join('');
 }
 
+// ===== NUEVAS FUNCIONES: MSG REACTIONS, UNREAD BADGE, STORY COMMENTS =====
+
+// Enviar emoji rápido como mensaje
+async function sendChatEmoji(emoji){
+  if(!window.CU||!_chatUserId){ return; }
+  const chatId = [window.CU.id, _chatUserId].sort().join('_');
+  try {
+    await addDoc(collection(db,'chats',chatId,'messages'),{
+      uid: window.CU.id, nick: window.CU.nick, text: emoji, time: serverTimestamp()
+    });
+    sendNotifToUser(_chatUserId, `💬 ${window.CU.nick}: ${emoji}`);
+    playMsgSound();
+  } catch(e){ toast('Error al enviar','err'); }
+}
+
+// Mostrar/ocultar popup de reacciones en mensaje
+function showMsgRxnPop(msgId){
+  const pop = document.getElementById('msgRxnPop_'+msgId);
+  if(pop){ pop.style.display='flex'; }
+}
+function hideMsgRxnPop(msgId){
+  setTimeout(()=>{
+    const pop = document.getElementById('msgRxnPop_'+msgId);
+    if(pop && !pop.matches(':hover')) pop.style.display='none';
+  }, 200);
+}
+
+// Reaccionar a un mensaje (doble-click o popup)
+async function reactToMsg(msgId, chatId, emoji){
+  if(!window.CU) return;
+  try {
+    const msgRef = doc(db,'chats',chatId,'messages',msgId);
+    const snap = await getDoc(msgRef);
+    if(!snap.exists()) return;
+    const rxns = snap.data().reactions || {};
+    // Toggle: if same emoji remove, else set new
+    if(rxns[window.CU.id] === emoji){
+      delete rxns[window.CU.id];
+    } else {
+      rxns[window.CU.id] = emoji;
+    }
+    await updateDoc(msgRef, {reactions: rxns});
+    // close popup
+    const pop = document.getElementById('msgRxnPop_'+msgId);
+    if(pop) pop.style.display='none';
+  } catch(e){ console.error('reactToMsg:',e); }
+}
+
+// Ver quién reaccionó a un mensaje
+async function openMsgReactionsDetail(msgId, chatId){
+  try {
+    const snap = await getDoc(doc(db,'chats',chatId,'messages',msgId));
+    if(!snap.exists()) return;
+    const rxns = snap.data().reactions || {};
+    const entries = Object.entries(rxns).filter(([,e])=>e);
+    if(!entries.length) return;
+    const list = entries.map(([uid,emoji])=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:1.3rem;">${emoji}</span>
+      <span style="font-size:.83rem;">${uid===window.CU?.id?'Tú':uid.slice(0,8)+'...'}</span>
+    </div>`).join('');
+    toast(`${entries.length} reacción${entries.length>1?'es':''}`, 'inf');
+  } catch(e){}
+}
+
+// Marcar mensajes como leídos
+async function _markChatRead(chatId, otherUid){
+  if(!window.CU) return;
+  try {
+    const readRef = doc(db,'chats',chatId,'read',window.CU.id);
+    await setDoc(readRef, {lastRead: serverTimestamp()}, {merge:true});
+    // Update local unread count for this user
+    const notifs = (window.CU._chatUnread||{});
+    notifs[otherUid] = 0;
+    window.CU._chatUnread = notifs;
+    _updateChatListBadges();
+  } catch(e){}
+}
+
+// Actualizar badges de no leídos en la lista del messenger
+function _updateChatListBadges(){
+  // Called after re-render of messenger list
+  const unread = window.CU?._chatUnread || {};
+  Object.entries(unread).forEach(([uid, count])=>{
+    const row = document.querySelector(`[data-chatuid="${uid}"]`);
+    if(!row) return;
+    let badge = row.querySelector('.chat-unread-count');
+    if(count > 0){
+      if(!badge){
+        badge = document.createElement('div');
+        badge.className = 'chat-unread-count';
+        row.style.background='rgba(0,198,255,.06)';
+        row.style.borderLeft='3px solid var(--accent)';
+        row.appendChild(badge);
+      }
+      badge.textContent = count > 99 ? '99+' : count;
+      badge.style.display='flex';
+    } else if(badge){
+      badge.remove();
+      row.style.background='';
+      row.style.borderLeft='';
+    }
+  });
+}
+
+// Listener para contar mensajes no leídos de cada chat (se llama en init)
+function listenUnreadCounts(){
+  if(!window.CU) return;
+  const friends = window.CU.friendsList || [];
+  friends.forEach(f=>{
+    const chatId = [window.CU.id, f.id].sort().join('_');
+    // Listen to read marker
+    onSnapshot(doc(db,'chats',chatId,'read',window.CU.id), readSnap=>{
+      const lastRead = readSnap.exists() ? readSnap.data().lastRead?.toMillis?.() || 0 : 0;
+      // Count messages after lastRead from other user
+      getDocs(query(collection(db,'chats',chatId,'messages'), orderBy('time','desc'))).then(snap=>{
+        const unread = snap.docs
+          .map(d=>({...d.data(), ts: d.data().time?.toMillis?.() || 0}))
+          .filter(m => m.uid !== window.CU.id && m.ts > lastRead).length;
+        window.CU._chatUnread = window.CU._chatUnread || {};
+        window.CU._chatUnread[f.id] = unread;
+        // Update total msg badge
+        const total = Object.values(window.CU._chatUnread).reduce((a,b)=>a+b,0);
+        const badge = document.getElementById('msgBadge');
+        if(badge){
+          badge.textContent = total > 99 ? '99+' : total;
+          badge.style.display = total > 0 ? 'flex' : 'none';
+        }
+        _updateChatListBadges();
+      }).catch(()=>{});
+    });
+  });
+}
+
+// ===== STORY: toggle comments panel =====
+function toggleSvCommentsPanel(){
+  const panel = document.getElementById('svCommentsPanel');
+  if(!panel) return;
+  if(panel.classList.contains('open')){
+    panel.classList.remove('open');
+  } else {
+    panel.classList.add('open');
+    _renderSvComments();
+  }
+}
+
+function _renderSvComments(){
+  const panel = document.getElementById('svCommentsList');
+  if(!panel) return;
+  const story = _stories[_svIdx];
+  if(!story){ panel.innerHTML='<div style="color:rgba(255,255,255,.5);font-size:.78rem;text-align:center;">Sin comentarios aún</div>'; return; }
+  const comments = story.comments || [];
+  if(!comments.length){
+    panel.innerHTML='<div style="color:rgba(255,255,255,.5);font-size:.78rem;text-align:center;">Sin comentarios aún. ¡Sé el primero!</div>';
+    return;
+  }
+  panel.innerHTML = comments.map(c=>`
+    <div class="sv-comment-item">
+      <div style="width:26px;height:26px;border-radius:50%;background:rgba(0,198,255,.2);border:1px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:var(--accent);flex-shrink:0;">
+        ${c.av?`<img src="${c.av}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:esc(c.nick||'?')[0].toUpperCase()}
+      </div>
+      <div class="sv-comment-bubble">
+        <div class="sv-comment-author">${esc(c.nick||'?')}</div>
+        <div class="sv-comment-text">${esc(c.text||'')}</div>
+      </div>
+    </div>`).join('');
+}
+
+// Actualizar contadores de reacciones en las historias (barra superior)
+function updateSvRxnCounts(story){
+  const el = document.getElementById('svRxnCounts');
+  if(!el) return;
+  if(!story){ el.innerHTML=''; return; }
+  const rxns = story.reactions || {};
+  const counts = {};
+  Object.values(rxns).forEach(e=>{ if(e) counts[e]=(counts[e]||0)+1; });
+  const entries = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  el.innerHTML = entries.map(([e,c])=>`<div class="sv-rxn-count-pill">${e}<span style="font-size:.7rem;font-weight:700;color:rgba(255,255,255,.9);">${c}</span></div>`).join('');
+}
+
+// ===== EXPOSE NUEVAS FUNCIONES =====
 // ===== EXPOSE TO HTML — sobreescribe los stubs =====
 const _expose = {
   doLogin,doReg,showReg,showLogin,showTerms,closeTerms,acceptTermsAndRegister,
@@ -5276,7 +5628,9 @@ const _expose = {
   previewPezSemanaImg, submitPezSemana, deletePezSemana, loadPezSemana, buildPezSemanaCard, openPezSemanalModal, openReactionsModal, buildRxnLabel,
   addXP, renderXPUI, checkDailyStreak, getLevel, getXpProgress,
   loadXPLevels, saveXPLevels, addXPLevelRow, renderXPLevelsAdmin,
-  listenTrofeosFeed, filterTrofeoFeed, renderTrofeosFeed, trofeoFeedCardHTML, renderTrofeoSidebar
+  listenTrofeosFeed, filterTrofeoFeed, renderTrofeosFeed, trofeoFeedCardHTML, renderTrofeoSidebar,
+  sendChatEmoji, reactToMsg, openMsgReactionsDetail, showMsgRxnPop, hideMsgRxnPop,
+  toggleSvCommentsPanel, updateSvRxnCounts, listenUnreadCounts
 };
 Object.entries(_expose).forEach(([k,v])=>{ window[k]=v; });
 // Replay any calls that happened before module loaded
