@@ -2261,8 +2261,7 @@ function postHTML(p){
         +'<div style="display:flex;align-items:center;gap:10px;padding:0 4px 4px;flex-wrap:wrap;">'
           +'<span style="font-size:.7rem;color:var(--muted);">'+timeStr+'</span>'
           +'<div style="position:relative;" onmouseenter="showCmtRxnPop(\''+p.id+'\','+ci+')" onmouseleave="hideCmtRxnPop(\''+p.id+'\','+ci+')">' 
-            +'<button onclick="quickCmtRxn(event,\''+p.id+'\','+ci+')" style="background:none;border:none;font-size:.75rem;font-weight:700;cursor:pointer;padding:2px 6px;border-radius:100px;color:'+(myRxnC?'var(--accent)':'var(--muted)')+';" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'none\'">'+(myRxnC?myRxnC+' ':'')
-+'Me gusta</button>'
+            +'<button onclick="quickCmtRxn(event,\''+p.id+'\','+ci+')" style="background:none;border:none;font-size:.75rem;font-weight:700;cursor:pointer;padding:2px 6px;border-radius:100px;color:'+(myRxnC?'var(--accent)':'var(--muted)')+';" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'none\'">'+(myRxnC?myRxnC+' ':'')+' Me gusta</button>'
             +'<div id="crxnp_'+p.id+'_'+ci+'" style="display:none;position:absolute;bottom:calc(100% + 4px);left:0;background:rgba(18,28,42,.97);border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:5px 8px;align-items:center;box-shadow:0 4px 20px rgba(0,0,0,.7);white-space:nowrap;z-index:9998;">'
               +rxnBtnsHtml
             +'</div>'
