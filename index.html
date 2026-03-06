@@ -811,51 +811,54 @@ select.fi option{background:var(--bg2);}
 
 <!-- Create Post -->
 <div class="mo" id="mCreatePost">
-  <div class="modal modal-md" style="padding:0;overflow:hidden;">
-    <!-- Header -->
-    <div style="padding:16px;border-bottom:1px solid var(--border);position:relative;text-align:center;">
-      <div style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;color:var(--text);">Crear publicación</div>
-      <button class="mcx" onclick="cm('mCreatePost')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:var(--bg3);border:none;color:var(--text);width:32px;height:32px;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
-    </div>
-
-    <!-- User row -->
-    <div style="display:flex;align-items:center;gap:10px;padding:12px 16px 0;">
-      <div class="sl-av" id="cpAv" style="width:44px;height:44px;flex-shrink:0;">👤</div>
+  <div class="modal modal-md">
+    <button class="mcx" onclick="cm('mCreatePost')">✕</button>
+    <div class="mt">📝 Crear Publicación</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div class="sl-av" id="cpAv" style="width:44px;height:44px">👤</div>
       <div>
-        <div style="font-weight:700;font-size:.92rem;" id="cpName">Usuario</div>
-        <div style="display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:2px 8px;margin-top:3px;cursor:pointer;font-size:.72rem;color:var(--text);">
-          🌍 Público <span style="font-size:.6rem;color:var(--muted);">▾</span>
-        </div>
+        <div style="font-weight:700;font-size:.9rem" id="cpName">Usuario</div>
+        <select class="fi" style="width:auto;font-size:.72rem;padding:3px 9px;margin-top:3px">
+          <option>🌍 Público</option><option>👥 Amigos</option><option>🔒 Solo yo</option>
+        </select>
       </div>
     </div>
-
-    <!-- Textarea -->
-    <div style="position:relative;padding:8px 16px;">
-      <textarea class="fi" id="postText"
-        placeholder="¿Qué estás pensando?"
-        style="min-height:80px;border:none;background:transparent;resize:none;font-size:1.05rem;padding:6px 0;width:100%;outline:none;"
-        oninput="handlePostMentionInput(this);autoDetectLink(this.value)"></textarea>
-      <div id="mention_postText" style="display:none;position:absolute;top:calc(100% - 4px);left:16px;right:16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);min-width:200px;max-height:200px;overflow-y:auto;z-index:600;box-shadow:0 4px 16px rgba(0,0,0,.6);"></div>
+    <div style="position:relative;margin-bottom:8px;">
+      <textarea class="fi" id="postText" placeholder="¿Qué estás pensando? Comparte tu pesca... Usá @ para etiquetar personas" style="min-height:100px;border-radius:var(--r);" oninput="handlePostMentionInput(this)"></textarea>
+      <div id="mention_postText" style="display:none;position:absolute;bottom:calc(100% - 4px);left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);min-width:200px;max-height:200px;overflow-y:auto;z-index:600;box-shadow:0 4px 16px rgba(0,0,0,.6);"></div>
     </div>
 
-    <!-- Link preview (inline, like Facebook) -->
-    <div id="linkPreviewBox" style="display:none;margin:0 16px 10px;border-radius:var(--rs);overflow:hidden;border:1px solid var(--border);background:var(--bg3);position:relative;">
-      <button onclick="clearPostLink()" style="position:absolute;top:6px;right:6px;z-index:5;background:rgba(0,0,0,.6);border:none;color:#fff;width:24px;height:24px;border-radius:50%;font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
-      <div id="linkPreviewInner"></div>
-    </div>
-
-    <!-- YouTube preview -->
-    <div id="ytPreviewBox" style="display:none;margin:0 16px 10px;">
-      <div style="font-size:.72rem;color:#ff6666;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:5px;">▶️ YouTube</div>
-      <input class="fi" id="ytUrlInput" placeholder="https://www.youtube.com/watch?v=..." style="font-size:.82rem;margin-bottom:6px;" oninput="previewYtEmbed(this.value)">
-      <div id="ytPreview" style="border-radius:var(--rs);overflow:hidden;display:none;"></div>
+    <!-- YouTube - siempre visible -->
+    <div style="margin-bottom:10px;background:rgba(255,40,40,.06);border:1px solid rgba(255,40,40,.2);border-radius:var(--rs);padding:10px;">
+      <div style="font-size:.72rem;color:#ff6666;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:5px;">▶️ Link de YouTube <span style="color:var(--muted);font-weight:400;">(opcional)</span></div>
+      <input class="fi" id="ytUrlInput" placeholder="Pegá el link: https://www.youtube.com/watch?v=..." style="font-size:.82rem;margin-bottom:0;" oninput="previewYtEmbed(this.value)">
+      <div id="ytPreview" style="margin-top:8px;border-radius:var(--rs);overflow:hidden;display:none;"></div>
     </div>
 
     <!-- Fotos preview -->
-    <div id="postMediaPreview" style="display:none;margin:0 16px 8px;flex-wrap:wrap;gap:6px;"></div>
-    <div id="postMediaCount" style="font-size:.75rem;color:var(--muted);padding:0 16px;margin-bottom:4px;"></div>
+    <div id="postMediaPreview" style="display:none;margin-bottom:8px;flex-wrap:wrap;gap:6px;"></div>
+    <div id="postMediaCount" style="font-size:.75rem;color:var(--muted);margin-bottom:6px;"></div>
 
-    <!-- Fish tag row -->
+    <!-- Acciones -->
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+      <label class="btn btn-s" style="font-size:.8rem;cursor:pointer;display:flex;align-items:center;gap:5px">
+        📸 Fotos (máx 5) <input type="file" accept="image/*" id="postImgInput" style="display:none" multiple onchange="previewPostMedia(this,'image')">
+      </label>
+      <button class="btn btn-s" style="font-size:.8rem" onclick="insertEmoji()">😊 Emoji</button>
+      <button class="btn btn-s" style="font-size:.8rem" onclick="insertFishTag()">🎣 Etiqueta pez</button>
+      <button class="btn btn-s" style="font-size:.8rem" onclick="focusPostTextAndAt()">🏷️ Etiquetar persona</button>
+      <button class="btn btn-s" style="font-size:.8rem" onclick="toggleLinkInput()">🔗 Link</button>
+    </div>
+
+    <!-- Link preview section -->
+    <div id="linkInputRow" style="display:none;margin-bottom:10px;">
+      <div style="display:flex;gap:6px;align-items:center;">
+        <input class="fi" id="postLinkInput" placeholder="Pegá el link: https://..." style="font-size:.82rem;flex:1;"
+          oninput="debounceLinkPreview(this.value)">
+        <button onclick="clearPostLink()" style="background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:4px;">✕</button>
+      </div>
+      <div id="linkPreviewBox" style="margin-top:8px;display:none;"></div>
+    </div>
     <div id="fishTagRow" style="display:none;margin-bottom:12px">
       <div class="frow">
         <div class="fg"><label class="fl">Pez capturado</label><input class="fi" id="tagFish" placeholder="Ej: Catfish, Bream..."></div>
@@ -879,39 +882,7 @@ select.fi option{background:var(--bg2);}
         </div>
       </div>
     </div>
-    <!-- "Agregar a tu publicación" bar — Facebook style -->
-    <div style="margin:8px 16px;border:1px solid var(--border);border-radius:var(--rs);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
-      <span style="font-size:.85rem;font-weight:600;color:var(--text);">Agregar a tu publicación</span>
-      <div style="display:flex;gap:4px;align-items:center;">
-        <!-- Fotos -->
-        <label title="Foto/Video" style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='transparent'">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="#45bd62"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-          <input type="file" accept="image/*" id="postImgInput" style="display:none" multiple onchange="previewPostMedia(this,'image')">
-        </label>
-        <!-- Etiquetar -->
-        <button title="Etiquetar persona" onclick="focusPostTextAndAt()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='transparent'">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="#1877f2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/><path d="M16 11h-3V8h-2v3H8v2h3v3h2v-3h3z"/></svg>
-        </button>
-        <!-- Emoji -->
-        <button title="Sentimiento/Emoji" onclick="insertEmoji()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='transparent'">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="#f7b928"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
-        </button>
-        <!-- Ubicación / Pez -->
-        <button title="Etiquetar pez" onclick="insertFishTag()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='transparent'">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="#f5533d"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-        </button>
-        <!-- GIF / YouTube -->
-        <button title="YouTube" onclick="document.getElementById('ytPreviewBox').style.display=document.getElementById('ytPreviewBox').style.display==='none'?'block':'none'" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='transparent'">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="#ff0000"><path d="M21.58 7.19c-.23-.86-.91-1.54-1.77-1.77C18.25 5 12 5 12 5s-6.25 0-7.81.42c-.86.23-1.54.91-1.77 1.77C2 8.75 2 12 2 12s0 3.25.42 4.81c.23.86.91 1.54 1.77 1.77C5.75 19 12 19 12 19s6.25 0 7.81-.42c.86-.23 1.54-.91 1.77-1.77C22 15.25 22 12 22 12s0-3.25-.42-4.81zM10 15V9l5.2 3-5.2 3z"/></svg>
-        </button>
-        <!-- Más -->
-        <button title="Más opciones" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.1rem;color:var(--muted);transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='transparent'">···</button>
-      </div>
-    </div>
-
-    <div style="padding:10px 16px 16px;">
-      <button class="btn btn-p btn-full" onclick="submitPost()" style="font-size:1rem;padding:10px;border-radius:var(--rs);">Publicar</button>
-    </div>
+    <button class="btn btn-p btn-full" onclick="submitPost()">Publicar</button>
   </div>
 </div>
 
@@ -2241,35 +2212,53 @@ function postHTML(p){
       videoHTML = `<video src="${p.video}" controls style="width:100%;border-radius:var(--rs);margin-bottom:10px;max-height:320px;display:block;"></video>`;
     }
   }
-  const sharedHTML = p.sharedFrom ? `<div style="font-size:.72rem;color:var(--muted);margin-bottom:6px;padding:0 14px;">🔁 Compartido de <strong>${esc(p.sharedFrom)}</strong></div>` : '';
-  const linkHTML = p.link ? (() => {
-    const lu = esc(p.link.url||'');
-    const lt = esc(p.link.title||p.link.url||'');
-    const ld = p.link.desc ? esc(p.link.desc) : '';
-    const li = p.link.img ? esc(p.link.img) : '';
-    const ls = p.link.site ? esc(p.link.site).toUpperCase() : '';
-    // Truncate URL display like Facebook
-    let luDisplay = p.link.url||'';
-    try { luDisplay = new URL(p.link.url).hostname + (new URL(p.link.url).pathname.length>1 ? new URL(p.link.url).pathname : ''); } catch(e){}
-    if(luDisplay.length > 55) luDisplay = luDisplay.slice(0,55)+'...';
-    return `<div style="margin:0 0 10px;">
-      <div style="padding:0 14px 6px;"><a href="${lu}" target="_blank" rel="noopener" style="color:#5897fb;font-size:.82rem;text-decoration:none;word-break:break-all;">${esc(luDisplay)}</a></div>
-      <a href="${lu}" target="_blank" rel="noopener" style="display:block;text-decoration:none;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--bg3);">
-        ${li ? `<img src="${li}" style="width:100%;max-height:280px;object-fit:cover;display:block;" loading="lazy" onerror="this.style.display='none'">` : ''}
-        <div style="padding:10px 14px 12px;">
-          ${ls ? `<div style="font-size:.63rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">${ls}</div>` : ''}
-          <div style="font-size:.9rem;font-weight:700;color:var(--text);line-height:1.35;margin-bottom:4px;">${lt}</div>
-          ${ld ? `<div style="font-size:.8rem;color:var(--muted);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${ld}</div>` : ''}
-        </div>
-      </a>
-    </div>`;
-  })() : '';
+  const sharedHTML = p.sharedFrom ? `<div style="font-size:.82rem;color:var(--muted);margin-bottom:8px;padding:0 14px;display:flex;align-items:center;gap:5px;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="opacity:.6"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+    <span><strong style="color:var(--text);">\${esc(p.userNick)}</strong> compartió la publicación de <strong style="color:var(--accent);">\${esc(p.sharedFrom)}</strong></span>
+  </div>` : '';
+  const linkHTML = p.link ? `<a href="${esc(p.link.url)}" target="_blank" rel="noopener" style="display:block;text-decoration:none;margin:0 14px 10px;border-radius:var(--rs);overflow:hidden;border:1px solid var(--border);background:var(--bg3);transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+    ${p.link.img ? `<img src="${esc(p.link.img)}" style="width:100%;max-height:220px;object-fit:cover;display:block;" loading="lazy" onerror="this.style.display='none'">` : ''}
+    <div style="padding:10px 12px;">
+      <div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">${esc(p.link.site||'')}</div>
+      <div style="font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3;">${esc(p.link.title||p.link.url)}</div>
+      ${p.link.desc ? `<div style="font-size:.78rem;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${esc(p.link.desc)}</div>` : ''}
+    </div>
+  </a>` : '';
   const isMyPost = window.CU && p.userId === window.CU.id;
-  const cmtsHTML = (p.comments||[]).map(c=>`
-    <div class="comment-item">
-      <div class="sl-av" style="width:32px;height:32px;font-size:.75rem;flex-shrink:0;cursor:pointer" onclick="openUserProfile('${c.userId||''}','${esc(c.nick)}')">${(c.nick||'?')[0]}</div>
-      <div class="comment-bubble"><div class="comment-author" style="cursor:pointer" onclick="openUserProfile('${c.userId||''}','${esc(c.nick)}')">${esc(c.nick)}</div><div class="comment-text">${renderCommentText(c.text)}</div></div>
-    </div>`).join('');
+  const cmtsHTML = (p.comments||[]).map((c,ci)=>{
+    const isMyC = window.CU && (c.userId===window.CU.id || p.userId===window.CU.id);
+    const cRxns = c.reactions||{};
+    const cRxnTotal = Object.values(cRxns).reduce((a,b)=>a+b,0);
+    const cTopRxn = Object.entries(cRxns).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([e])=>e).join('');
+    const myRxnC = window.CU ? (c.userReactions?.[window.CU.id]||'') : '';
+    return `
+    <div class="comment-item" id="cmt_${p.id}_${ci}" style="position:relative;">
+      <div class="sl-av" style="width:32px;height:32px;font-size:.75rem;flex-shrink:0;cursor:pointer;align-self:flex-start;margin-top:2px;" onclick="openUserProfile('${c.userId||''}','${esc(c.nick)}')">${(c.nick||'?')[0]}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="comment-bubble" style="position:relative;margin-bottom:3px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:2px;">
+            <div class="comment-author" style="cursor:pointer;" onclick="openUserProfile('${c.userId||''}','${esc(c.nick)}')">${esc(c.nick)}</div>
+            ${isMyC ? `<button onclick="toggleCmtMenu('${p.id}',${ci},event)" style="background:none;border:none;color:var(--muted);font-size:.95rem;cursor:pointer;padding:0 4px;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;" onmouseover="this.style.background='var(--bg4)'" onmouseout="this.style.background='none'">⋯</button>
+            <div id="cmtmenu_${p.id}_${ci}" style="display:none;position:absolute;right:0;top:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);min-width:130px;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.5);overflow:hidden;">
+              <button onclick="editComment('${p.id}',${ci})" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:var(--text);padding:10px 14px;cursor:pointer;font-size:.85rem;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">✏️ Editar</button>
+              <button onclick="deleteComment('${p.id}',${ci})" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:var(--red);padding:10px 14px;cursor:pointer;font-size:.85rem;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">🗑 Eliminar</button>
+            </div>` : ''}
+          </div>
+          <div class="comment-text">${renderCommentText(c.text)}${c.edited?'<span style="font-size:.65rem;color:var(--muted);margin-left:4px;">(editado)</span>':''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:0 4px 4px;">
+          <span style="font-size:.7rem;color:var(--muted);">${fmtT(c.time)}</span>
+          <div style="position:relative;" onmouseenter="showCmtRxnPop('${p.id}',${ci})" onmouseleave="schedHideCmtRxnPop('${p.id}',${ci})">
+            <button id="crxnt_${p.id}_${ci}" onclick="quickReactComment('${p.id}',${ci})"
+              style="background:none;border:none;font-size:.75rem;font-weight:700;cursor:pointer;padding:2px 5px;border-radius:100px;color:${myRxnC?'var(--accent)':'var(--muted)'};"
+              onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">${myRxnC?myRxnC+' ':''}Me gusta</button>
+            <div id="crxnp_${p.id}_${ci}" style="display:none;position:absolute;bottom:calc(100% + 4px);left:0;background:rgba(18,28,42,.97);border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:5px 10px;gap:4px;align-items:center;box-shadow:0 4px 20px rgba(0,0,0,.7);white-space:nowrap;z-index:300;"></div>
+          </div>
+          ${cRxnTotal>0 ? `<span style="font-size:.72rem;color:var(--muted);">${cTopRxn} ${cRxnTotal}</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
   return `<div class="post" id="post_${p.id}">
     <div class="post-header">
       <div class="post-av" style="cursor:pointer" onclick="openUserProfile('${p.userId}','${esc(p.userNick)}')">${p.userAv?`<img src="${p.userAv}">`:(p.userNick||'U')[0]}</div>
@@ -2312,7 +2301,7 @@ function postHTML(p){
         <div class="rxn-popup" id="rxnp_${p.id}" onmouseenter="cancelHideRxnPop('${p.id}')" onmouseleave="schedHideRxnPop('${p.id}')">${rxnBtns}</div>
       </div>
       <button class="post-action-btn" onclick="toggleComments('${p.id}')">💬 <span style="font-size:.82rem;">Comentar</span></button>
-      <button class="post-action-btn" onclick="reportPost('${p.id}','${esc(p.userNick)}')" style="color:var(--muted);">⚠️ <span style="font-size:.82rem;">Reportar</span></button>
+      <button class="post-action-btn" onclick="sharePost('${p.id}')">↗️ <span style="font-size:.82rem;">Compartir</span></button>
     </div>
     <div class="comments-section" id="cmts_${p.id}">
       ${cmtsHTML}
@@ -2332,71 +2321,59 @@ function postHTML(p){
 
 // ── Link preview helpers ──
 let _linkDebounceTimer = null;
-let _autoLinkDetected = '';
-
-function clearPostLink(){
-  const box = document.getElementById('linkPreviewBox');
-  const inner = document.getElementById('linkPreviewInner');
-  if(box){ box.style.display='none'; }
-  if(inner){ inner.innerHTML=''; }
-  window._pendingLinkData = null;
-  _autoLinkDetected = '';
+function toggleLinkInput(){
+  const row = document.getElementById('linkInputRow');
+  if(!row) return;
+  row.style.display = row.style.display === 'none' ? 'block' : 'none';
+  if(row.style.display === 'block') document.getElementById('postLinkInput').focus();
 }
-
+function clearPostLink(){
+  const inp = document.getElementById('postLinkInput');
+  const box = document.getElementById('linkPreviewBox');
+  if(inp) inp.value = '';
+  if(box){ box.style.display='none'; box.innerHTML=''; }
+  window._pendingLinkData = null;
+}
 function debounceLinkPreview(val){
   clearTimeout(_linkDebounceTimer);
   if(!val.trim()){ clearPostLink(); return; }
   _linkDebounceTimer = setTimeout(()=>fetchLinkPreview(val.trim()), 700);
 }
-
-// Auto-detect URLs typed in textarea
-function autoDetectLink(text){
-  const urlMatch = text.match(/https?:\/\/[^\s]+/);
-  if(urlMatch && urlMatch[0] !== _autoLinkDetected){
-    _autoLinkDetected = urlMatch[0];
-    clearTimeout(_linkDebounceTimer);
-    _linkDebounceTimer = setTimeout(()=>fetchLinkPreview(urlMatch[0]), 900);
-  } else if(!urlMatch && _autoLinkDetected){
-    clearPostLink();
-  }
-}
-
 async function fetchLinkPreview(url){
   if(!url.startsWith('http')) url = 'https://' + url;
   const box = document.getElementById('linkPreviewBox');
-  const inner = document.getElementById('linkPreviewInner');
-  if(!box||!inner) return;
+  if(!box) return;
   box.style.display = 'block';
-  inner.innerHTML = '<div style="color:var(--muted);font-size:.8rem;padding:12px;text-align:center;">⏳ Cargando vista previa...</div>';
+  box.innerHTML = '<div style="color:var(--muted);font-size:.8rem;padding:8px;">Cargando vista previa...</div>';
   try {
     const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
     const resp = await fetch(proxyUrl);
     const json = await resp.json();
     const parser = new DOMParser();
-    const doc2 = parser.parseFromString(json.contents, 'text/html');
-    const getMeta = (p) => doc2.querySelector(`meta[property="${p}"]`)?.getAttribute('content') ||
-                           doc2.querySelector(`meta[name="${p}"]`)?.getAttribute('content') || '';
-    const title = getMeta('og:title') || doc2.querySelector('title')?.textContent || url;
+    const doc = parser.parseFromString(json.contents, 'text/html');
+    const getMeta = (p) => doc.querySelector(`meta[property="${p}"]`)?.getAttribute('content') ||
+                           doc.querySelector(`meta[name="${p}"]`)?.getAttribute('content') || '';
+    const title = getMeta('og:title') || doc.querySelector('title')?.textContent || url;
     const desc  = getMeta('og:description') || getMeta('description') || '';
     const img   = getMeta('og:image') || '';
     const site  = getMeta('og:site_name') || new URL(url).hostname;
     window._pendingLinkData = { url, title, desc, img, site };
-    // Render inline preview (Facebook style: image full width, info below)
-    inner.innerHTML =
-      (img ? `<img src="${img}" style="width:100%;max-height:240px;object-fit:cover;display:block;" loading="lazy" onerror="this.style.display='none'">` : '') +
-      `<div style="padding:10px 12px 12px;">
-        <div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">${site.toUpperCase()}</div>
-        <div style="font-size:.88rem;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:3px;">${title}</div>
+    box.innerHTML = `<a href="${url}" target="_blank" rel="noopener" style="display:block;text-decoration:none;border-radius:var(--rs);overflow:hidden;border:1px solid var(--border);background:var(--bg3);">
+      ${img ? `<img src="${img}" style="width:100%;max-height:200px;object-fit:cover;display:block;" loading="lazy" onerror="this.style.display='none'">` : ''}
+      <div style="padding:10px 12px;">
+        <div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">${site}</div>
+        <div style="font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:4px;">${title}</div>
         ${desc ? `<div style="font-size:.78rem;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${desc}</div>` : ''}
-      </div>`;
+      </div>
+    </a>`;
+    // Update input with cleaned URL
+    document.getElementById('postLinkInput').value = url;
+    document.getElementById('postLinkInput').dataset.linkData = JSON.stringify(window._pendingLinkData);
   } catch(e){
-    inner.innerHTML = '<div style="color:var(--muted);font-size:.78rem;padding:10px;">No se pudo cargar la vista previa.</div>';
+    box.innerHTML = '<div style="color:var(--muted);font-size:.78rem;padding:8px;">No se pudo cargar la vista previa del link.</div>';
     window._pendingLinkData = { url, title:url, desc:'', img:'', site:'' };
   }
 }
-
-// Legacy toggle (kept for compatibility)
-function toggleLinkInput(){ fetchLinkPreview(''); }
 
 async function submitPost(){
   if(!window.CU){ toast('Inicia sesión primero','err'); return; }
@@ -2405,8 +2382,8 @@ async function submitPost(){
   const weight = parseFloat(document.getElementById('tagWeight').value)||0;
   const map = document.getElementById('tagMap').value;
   const tech = document.getElementById('tagTech').value;
-  const linkUrl = (window._pendingLinkData?.url) || '';
-  if(!text && !fish && !_postMediaFiles.length && !linkUrl){ toast('Escribe algo o pegá un link para publicar','err'); return; }
+  const linkUrl = document.getElementById('postLinkInput')?.value.trim()||'';
+  if(!text && !fish && !_postMediaFiles.length && !linkUrl){ toast('Escribe algo para publicar','err'); return; }
 
   toast('Publicando...','inf');
   const mediaUrls = [];
@@ -2457,6 +2434,7 @@ async function submitPost(){
   clearYtInput();
   clearPostLink();
   document.getElementById('postMediaPreview').style.display='none';
+  document.getElementById('linkInputRow').style.display='none';
   cm('mCreatePost');
   addNotif('📝 Publicaste una nueva captura'+(fish?`: ${fish} ${weight?weight+'kg':''}`:''));
   addXP(10,'publicación');
@@ -4073,26 +4051,112 @@ function renderMapPosts(){
 }
 
 // ===== SHARE POST =====
+
+// ── Comment menu ──
+function toggleCmtMenu(pid, ci, e){
+  e.stopPropagation();
+  const id = 'cmtmenu_'+pid+'_'+ci;
+  const el = document.getElementById(id);
+  if(!el) return;
+  // Close all other menus first
+  document.querySelectorAll('[id^="cmtmenu_"]').forEach(m=>{ if(m.id!==id) m.style.display='none'; });
+  el.style.display = el.style.display==='none' ? 'block' : 'none';
+  const close = ()=>{ el.style.display='none'; document.removeEventListener('click',close); };
+  setTimeout(()=>document.addEventListener('click',close),10);
+}
+
+async function editComment(pid, ci){
+  const p = _posts.find(p=>p.id===pid); if(!p) return;
+  const c = (p.comments||[])[ci]; if(!c) return;
+  const newText = prompt('Editar comentario:', c.text);
+  if(newText===null || newText.trim()===c.text) return;
+  const newComments = [...(p.comments||[])];
+  newComments[ci] = {...c, text:newText.trim(), edited:true};
+  await updateDoc(doc(db,'posts',pid),{comments:newComments});
+  toast('Comentario editado ✅','ok');
+}
+
+async function deleteComment(pid, ci){
+  const p = _posts.find(p=>p.id===pid); if(!p) return;
+  if(!confirm('¿Eliminar este comentario?')) return;
+  const newComments = (p.comments||[]).filter((_,i)=>i!==ci);
+  await updateDoc(doc(db,'posts',pid),{comments:newComments});
+  toast('Comentario eliminado','ok');
+}
+
+// ── Comment reactions ──
+let _cmtRxnTimers = {};
+const CMT_REACTIONS = ['👍','❤️','😂','😮','😢','🔥'];
+
+function showCmtRxnPop(pid, ci){
+  const popId = 'crxnp_'+pid+'_'+ci;
+  const pop = document.getElementById(popId);
+  if(!pop) return;
+  clearTimeout(_cmtRxnTimers[popId]);
+  if(pop.children.length===0){
+    CMT_REACTIONS.forEach(em=>{
+      const b = document.createElement('button');
+      b.textContent = em;
+      b.style.cssText = 'background:none;border:none;font-size:1.3rem;cursor:pointer;transition:transform .13s;padding:2px;border-radius:50%;';
+      b.onmouseover = function(){ this.style.transform='scale(1.45) translateY(-4px)'; };
+      b.onmouseout  = function(){ this.style.transform='scale(1)'; };
+      b.onclick = (e)=>{ e.stopPropagation(); reactComment(pid,ci,em); pop.style.display='none'; };
+      pop.appendChild(b);
+    });
+  }
+  pop.style.display = 'flex';
+}
+function schedHideCmtRxnPop(pid, ci){
+  const popId = 'crxnp_'+pid+'_'+ci;
+  _cmtRxnTimers[popId] = setTimeout(()=>{
+    const p2 = document.getElementById(popId); if(p2) p2.style.display='none';
+  }, 300);
+}
+
+async function reactComment(pid, ci, em){
+  if(!window.CU){ toast('Inicia sesión para reaccionar','err'); return; }
+  const p = _posts.find(p=>p.id===pid); if(!p) return;
+  const newComments = [...(p.comments||[])];
+  const c = {...(newComments[ci]||{})};
+  const userRxns = {...(c.userReactions||{})};
+  const rxnCounts = {...(c.reactions||{})};
+  const prev = userRxns[window.CU.id];
+  if(prev){ rxnCounts[prev] = Math.max(0,(rxnCounts[prev]||1)-1); }
+  if(prev===em){ delete userRxns[window.CU.id]; }
+  else { userRxns[window.CU.id]=em; rxnCounts[em]=(rxnCounts[em]||0)+1; }
+  c.userReactions = userRxns; c.reactions = rxnCounts;
+  newComments[ci] = c;
+  await updateDoc(doc(db,'posts',pid),{comments:newComments});
+}
+
+async function quickReactComment(pid, ci){
+  const p = _posts.find(p=>p.id===pid); if(!p) return;
+  const c = (p.comments||[])[ci]; if(!c) return;
+  const prev = c.userReactions?.[window.CU?.id]||'';
+  await reactComment(pid, ci, prev ? prev : '👍');
+}
+
 async function sharePost(pid){
   if(!window.CU){ toast('Inicia sesión para compartir','err'); return; }
   const p = _posts.find(p=>p.id===pid);
   if(!p){ toast('Post no encontrado','err'); return; }
-  try {
-    await navigator.clipboard.writeText(window.location.href+'#post_'+pid);
-  } catch(e){}
-  // Create shared copy in user's feed
+  if(p.userId === window.CU.id){ toast('No podés compartir tu propia publicación','err'); return; }
+  // Create shared post in user feed — carries all original content + sharedFrom label
   await addDoc(collection(db,'posts'),{
     userId: window.CU.id, userNick: window.CU.nick, userAv: window.CU.av||'',
-    text: p.text, fish: p.fish||'', weight: p.weight||0,
+    userXp: window.CU.xp||0,
+    text: p.text||'', fish: p.fish||'', weight: p.weight||0,
     map: p.map||'', tech: p.tech||'', images: p.images||[],
+    video: p.video||'', link: p.link||null,
     time: serverTimestamp(), likes:0, comments:[], reactions:{}, reactionCounts:{},
-    sharedFrom: p.userNick, sharedPostId: pid
+    sharedFrom: p.userNick, sharedFromId: p.userId, sharedPostId: pid
   });
   // Notify original post owner
   if(p.userId && p.userId !== window.CU.id){
-    sendNotifToUserWithPost(p.userId, `🔁 ${window.CU.nick} compartió tu publicación`, p.id);
+    sendNotifToUserWithPost(p.userId, '↗️ ' + window.CU.nick + ' compartió tu publicación', p.id);
   }
-  toast('¡Publicación compartida en tu perfil! 📋','ok');
+  addXP(2,'compartir');
+  toast('¡Compartido en tu perfil! ↗️','ok');
 }
 
 // ===== USER MENU & LOGOUT =====
@@ -5416,14 +5480,14 @@ function renderTrofeoSidebar(items){
 // ===== EXPOSE TO HTML — sobreescribe los stubs =====
 const _expose = {
   doLogin,doReg,showReg,showLogin,showTerms,closeTerms,acceptTermsAndRegister,
-  submitPost,submitStory,submitComment,toggleLinkInput,clearPostLink,debounceLinkPreview,fetchLinkPreview,autoDetectLink,handleMentionInput,insertMention,searchMentionedUser,handlePostMentionInput,insertPostMention,focusPostTextAndAt,
+  submitPost,submitStory,submitComment,toggleLinkInput,clearPostLink,debounceLinkPreview,fetchLinkPreview,handleMentionInput,insertMention,searchMentionedUser,handlePostMentionInput,insertPostMention,focusPostTextAndAt,
   doReact,quickReact,
   saveProfile,openEditProfile,
   changeCover,changeAvatar,
   previewPostImg,removePostImg,previewPostMedia,removePostMedia,
   previewStoryImg,pickStoryEmoji,
   insertEmoji,insertFishTag,
-  toggleComments,sharePost,
+  toggleComments,sharePost,toggleCmtMenu,editComment,deleteComment,reactComment,quickReactComment,showCmtRxnPop,schedHideCmtRxnPop,
   openImgLightbox,swPTab,
   showRxnPop,schedHideRxnPop,cancelHideRxnPop,
   openSV,closeSV,svNav,reactStory,reportStory,submitStoryComment,deleteMyStory,
