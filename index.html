@@ -2910,11 +2910,19 @@ async function searchMentionedUser(nick){
 function showNotifToast(text){
   const ct = document.getElementById('toastCt');
   if(!ct) return;
+  const isMsg = text?.startsWith('💬');
   const t = document.createElement('div');
   t.className='toast ok';
   t.style.cssText='display:flex;gap:8px;align-items:center;max-width:300px;cursor:pointer;';
-  t.innerHTML='<span>🔔</span><span style="font-size:.82rem;flex:1;">'+text.slice(0,80)+'</span>';
-  t.onclick=()=>{ t.remove(); openNotifDropdown(); };
+  t.innerHTML=(isMsg?'<span>💬</span>':'<span>🔔</span>')+'<span style="font-size:.82rem;flex:1;">'+text.slice(0,80)+'</span>';
+  t.onclick=()=>{
+    t.remove();
+    if(isMsg){
+      openMessenger();
+    } else {
+      openNotifDropdown();
+    }
+  };
   ct.appendChild(t);
   setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(()=>t.remove(),400); },4000);
 }
@@ -5848,6 +5856,12 @@ function listenNotifs(){
   onSnapshot(doc(db,'users',window.CU.id), snap=>{
     if(!snap.exists()) return;
     const d = snap.data();
+    // Sincronizar window.CU con datos frescos (archivedChats, deletedChats, friendsList)
+    if(window.CU){
+      window.CU.archivedChats = d.archivedChats || [];
+      window.CU.deletedChats  = d.deletedChats  || [];
+      if(d.friendsList) window.CU.friendsList = d.friendsList;
+    }
     const newNotifs = d.notifs || [];
     const prevUnread = _notifs.filter(n=>!n.read).length;
     _notifs = newNotifs;
@@ -5855,24 +5869,25 @@ function listenNotifs(){
     if(newUnread > prevUnread){
       const latest = _notifs[0];
       if(latest){
-        // Play sound
         if(latest.text?.startsWith('💬')) playMsgSound();
         else playNotifSound();
-        // Mini toast notification
         showNotifToast(latest.text||'Nueva notificación');
       }
     }
     renderNotifs(); updateNotifBadge(); updateMsgBadge();
+    // Re-renderizar lista del messenger si está abierto
+    if(_messengerOpen && document.getElementById('messengerList')?.style.display !== 'none'){
+      renderMessengerList();
+    }
   });
 
-  // ✅ Listener en tiempo real para badge de mensajes no leídos
+  // Listener en tiempo real para badge de mensajes no leídos
   listenUnreadMsgsBadge();
 }
 
 // Escucha mensajes no leídos en tiempo real de todos los amigos
 let _unsubMsgBadgeListeners = [];
 function listenUnreadMsgsBadge(){
-  // Limpiar listeners anteriores
   _unsubMsgBadgeListeners.forEach(u=>u());
   _unsubMsgBadgeListeners = [];
   const friends = window.CU?.friendsList || [];
@@ -5880,25 +5895,28 @@ function listenUnreadMsgsBadge(){
   if(!myId || !friends.length) return;
   friends.forEach(f=>{
     const chatId = [myId, f.id].sort().join('_');
+    // Escuchar los últimos 20 mensajes para contar no leídos correctamente
     const q = query(
       collection(db,'chats',chatId,'messages'),
       orderBy('time','desc'),
-      limit(5)
+      limit(20)
     );
     const unsub = onSnapshot(q, snap=>{
       const myData = window.CU || {};
       const archived = myData.archivedChats || [];
       const deleted  = myData.deletedChats  || [];
-      const hasUnread = snap.docs.some(d=>{
+      // Contar cuántos mensajes no leídos hay de esa persona
+      const unreadCount = snap.docs.filter(d=>{
         const m = d.data();
         return m.uid !== myId && !m.read && !(m.deletedFor||{})[myId];
-      });
-      if(hasUnread){
-        _chatLastMsgs[f.id] = { ..._chatLastMsgs[f.id], unread: true };
-      } else {
-        if(_chatLastMsgs[f.id]) _chatLastMsgs[f.id].unread = false;
-      }
+      }).length;
+      const lm = _chatLastMsgs[f.id] || {};
+      _chatLastMsgs[f.id] = { ...lm, unread: unreadCount > 0, unreadCount };
       updateMsgBadge();
+      // Si el messenger está abierto y muestra la lista, actualizar en tiempo real
+      if(_messengerOpen && document.getElementById('messengerList')?.style.display !== 'none'){
+        renderMessengerList();
+      }
     });
     _unsubMsgBadgeListeners.push(unsub);
   });
@@ -8629,10 +8647,10 @@ function renderMessengerList(){
   if(!list) return;
   if(_presenceUnsub){ _presenceUnsub(); _presenceUnsub=null; }
 
-  const friends = window.CU?.friendsList || [];
-  const archived = window.CU?.archivedChats || [];
-
   _presenceUnsub = onSnapshot(collection(db,'presence'), async snap=>{
+    // Leer siempre frescos desde window.CU para reflejar cambios de archivado/no leídos
+    const friends = window.CU?.friendsList || [];
+    const archived = window.CU?.archivedChats || [];
     const now = Date.now();
     const onlineIds = new Set(
       snap.docs
@@ -8705,6 +8723,7 @@ function renderMessengerList(){
         const lastTxt = lm ? (lm.mine ? 'Tú: '+lm.text : lm.text) : (isOnline ? '● En línea' : '');
         const lastTime = lm?.time ? fmtT(lm.time) : '';
         const hasUnread = !!lm?.unread;
+        const unreadCount = lm?.unreadCount || 0;
         const isArch = archived.includes(f.id);
         const avInner = f.av
           ? `<img src="${f.av}" style="width:100%;height:100%;object-fit:cover;">`
@@ -8721,7 +8740,7 @@ function renderMessengerList(){
             </div>
             <div style="display:flex;align-items:center;gap:4px;">
               <div style="font-size:.74rem;color:${hasUnread?'var(--text)':'var(--muted)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;font-weight:${hasUnread?'600':'400'};">${esc(lastTxt)}${isArch?' 📦':''}</div>
-              ${hasUnread?'<div style="min-width:16px;height:16px;background:var(--accent);border-radius:100px;display:flex;align-items:center;justify-content:center;font-size:.58rem;font-weight:800;color:#000;padding:0 3px;flex-shrink:0;">N</div>':''}
+              ${hasUnread?`<div style="min-width:16px;height:16px;background:var(--accent);border-radius:100px;display:flex;align-items:center;justify-content:center;font-size:.58rem;font-weight:800;color:#000;padding:0 3px;flex-shrink:0;">${unreadCount > 9 ? '9+' : (unreadCount || '')}</div>`:''}
             </div>
           </div>
           <button class="cgear" onclick="openChatMenu(event,'${f.id}','${safeNick}',${hasUnread},${isArch})" style="opacity:0;transition:opacity .15s;background:var(--bg3);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:.82rem;" onmouseover="this.style.background='var(--bg4)'" onmouseout="this.style.background='var(--bg3)'" title="Opciones">⚙️</button>
