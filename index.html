@@ -2493,7 +2493,7 @@ function _stub(name){ return function(){ _q.push([name, arguments]); }; }
 // ===== FIREBASE SETUP (modular ESM — sin eval, compatible con CSP) =====
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, addDoc, deleteDoc, onSnapshot, query, orderBy, limit, serverTimestamp, increment , where } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, addDoc, deleteDoc, onSnapshot, query, orderBy, limit, serverTimestamp, increment, where, deleteField } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js';
 
 const firebaseConfig = {
@@ -2589,18 +2589,18 @@ async function uploadImage(fileOrBase64, folder) {
 
 // Caché de usuarios verificados — se actualiza en tiempo real
 window._verifUsers = {};
+window._usersShop = {}; // cache shopEquipped de todos los usuarios, actualizado en tiempo real
 function listenVerifiedUsers(){
   return new Promise(resolve => {
     let resolved = false;
-    // Escucha toda la colección users y filtra verificados localmente
-    // (evita problemas de índices en Firestore con where)
     onSnapshot(collection(db,'users'), snap => {
       window._verifUsers = {};
+      window._usersShop = {};
       snap.docs.forEach(d => {
         const data = d.data();
         if(data.verified === true) window._verifUsers[d.id] = true;
+        if(data.shopEquipped) window._usersShop[d.id] = data.shopEquipped;
       });
-      console.log('[RF4] Usuarios verificados cargados:', Object.keys(window._verifUsers));
       if(!resolved){ resolved=true; resolve(); }
       else { renderFeed(); renderProfileFeed(); }
     });
@@ -3551,10 +3551,12 @@ function postHTML(p){
   // Verificar estado en tiempo real desde el caché de usuarios verificados
   const isVerif = !!(p.userVerified || (window._verifUsers && window._verifUsers[p.userId]));
   const _isMyPost = window.CU && p.userId === window.CU.id;
-  // Tema de post: usar el guardado en el post (postTheme), o el equipado actualmente si es mío
-  const _postTheme = p.postTheme ||
-    (_isMyPost && window.CU?.shopEquipped?.postcolor
-      ? (SHOP_ITEMS.find(i=>i.id===window.CU.shopEquipped.postcolor)?.theme || '') : '');
+  // Leer shopEquipped del autor desde el cache global _usersShop (tiempo real, visible para TODOS)
+  const _authorShop = (window._usersShop && window._usersShop[p.userId]) || {};
+  const _postColorId = _authorShop.postcolor || null;
+  const _postTheme = _postColorId ? (SHOP_ITEMS.find(i=>i.id===_postColorId)?.theme || '') : '';
+  const _postBadge = _authorShop.badge ? (SHOP_ITEMS.find(i=>i.id===_authorShop.badge)?.preview || '') : '';
+  const _postTitulo = _authorShop.titulo ? (()=>{ const t=SHOP_ITEMS.find(i=>i.id===_authorShop.titulo); return t ? t.emoji+' '+t.name : ''; })() : '';
   return `<div class="post${isVerif?' post-verified':''}${_postTheme?' '+_postTheme:''}" id="post_${p.id}">
     ${isVerif?`<div class="verif-post-tag"><img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAAVABcDASIAAhEBAxEB/8QAGQABAAIDAAAAAAAAAAAAAAAAAAEIBAUH/8QAKRAAAQMDBAEBCQAAAAAAAAAAAQIDBAAFEQYHEiExCBMUFRYiQUJhgf/EABUBAQEAAAAAAAAAAAAAAAAAAAAG/8QAIxEAAQMDAgcAAAAAAAAAAAAAEQABAgQFURLwAxMUITFBYf/aAAwDAQACEQMRAD8As9uTuBYtCQmnbqXnZMgKMaMynKneJSFd+E45A9kZwcZNY22+5unddPSItsEqPMZCnDHkN4UWgQAvKcp8qAxnP87rmHqW06v5xg6kuFumS7IuJ7vJchJIcjlKjhaiQU/n0DgHBHRwa1WwVput53Ni36PZ/hlltLTzSAW1BI+kp9nzwObuXOSir99ABKRb8KxUErN1TyfWHclgfURvJ8Mpydyqo3DkhtJZgO4yd4+qzVKUqIVGoUlKk8VAKB+xFSAB4AFKURKUpRF//9k=" style="width:14px;height:14px;vertical-align:middle;display:inline-block;margin-left:1px;" title="Verificado"> VERIFICADO</div>`:''}
     <div class="post-header" style="position:relative;">
@@ -3563,8 +3565,8 @@ function postHTML(p){
       </div>
       <div class="post-meta" style="cursor:pointer" onclick="openUserProfile('${p.userId}','${esc(p.userNick)}')">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          <div class="post-author">${esc(p.userNick)}${isVerif?' <span title="Verificado" style="font-size:.75rem;line-height:1;"><img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAAVABcDASIAAhEBAxEB/8QAGQABAAIDAAAAAAAAAAAAAAAAAAEIBAUH/8QAKRAAAQMDBAEBCQAAAAAAAAAAAQIDBAAFEQYHEiExCBMUFRYiQUJhgf/EABUBAQEAAAAAAAAAAAAAAAAAAAAG/8QAIxEAAQMDAgcAAAAAAAAAAAAAEQABAgQFURLwAxMUITFBYf/aAAwDAQACEQMRAD8As9uTuBYtCQmnbqXnZMgKMaMynKneJSFd+E45A9kZwcZNY22+5unddPSItsEqPMZCnDHkN4UWgQAvKcp8qAxnP87rmHqW06v5xg6kuFumS7IuJ7vJchJIcjlKjhaiQU/n0DgHBHRwa1WwVput53Ni36PZ/hlltLTzSAW1BI+kp9nzwObuXOSir99ABKRb8KxUErN1TyfWHclgfURvJ8Mpydyqo3DkhtJZgO4yd4+qzVKUqIVGoUlKk8VAKB+xFSAB4AFKURKUpRF//9k=" style="width:15px;height:15px;vertical-align:middle;display:inline-block;margin-left:3px;" title="Verificado"></span>':''}${p.userBadge?' <span style="font-size:1rem;" title="Badge">' + p.userBadge + '</span>':''}</div>
-          ${p.userTitulo?`<span style="font-size:.6rem;font-weight:800;color:var(--muted);background:rgba(0,0,0,.06);border-radius:100px;padding:1px 8px;letter-spacing:.04em;">${esc(p.userTitulo)}</span>`:''}
+          <div class="post-author">${esc(p.userNick)}${isVerif?' <span title="Verificado" style="font-size:.75rem;line-height:1;"><img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAAVABcDASIAAhEBAxEB/8QAGQABAAIDAAAAAAAAAAAAAAAAAAEIBAUH/8QAKRAAAQMDBAEBCQAAAAAAAAAAAQIDBAAFEQYHEiExCBMUFRYiQUJhgf/EABUBAQEAAAAAAAAAAAAAAAAAAAAG/8QAIxEAAQMDAgcAAAAAAAAAAAAAEQABAgQFURLwAxMUITFBYf/aAAwDAQACEQMRAD8As9uTuBYtCQmnbqXnZMgKMaMynKneJSFd+E45A9kZwcZNY22+5unddPSItsEqPMZCnDHkN4UWgQAvKcp8qAxnP87rmHqW06v5xg6kuFumS7IuJ7vJchJIcjlKjhaiQU/n0DgHBHRwa1WwVput53Ni36PZ/hlltLTzSAW1BI+kp9nzwObuXOSir99ABKRb8KxUErN1TyfWHclgfURvJ8Mpydyqo3DkhtJZgO4yd4+qzVKUqIVGoUlKk8VAKB+xFSAB4AFKURKUpRF//9k=" style="width:15px;height:15px;vertical-align:middle;display:inline-block;margin-left:3px;" title="Verificado"></span>':''}${_postBadge?' <span style="font-size:1rem;" title="Badge">'+_postBadge+'</span>':''}</div>
+          ${_postTitulo?`<span style="font-size:.6rem;font-weight:800;color:var(--muted);background:rgba(0,0,0,.06);border-radius:100px;padding:1px 8px;letter-spacing:.04em;">${esc(_postTitulo)}</span>`:''}
           ${(()=>{ const plvl=getLevel(p.userXp||0); return `<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:100px;border:1px solid;color:${plvl.color};border-color:${plvl.border};background:${plvl.border.replace(/[\d.]+\)$/,'.08)')};">${plvl.name}</span>`; })()}
         </div>
         <div class="post-time">🌐 ${fmtT(p.time)}</div>
@@ -3716,24 +3718,12 @@ async function submitPost(){
   if(postMentionEl) postMentionEl.style.display='none';
 
   const linkData = (linkUrl && window._pendingLinkData) ? window._pendingLinkData : (linkUrl ? { url:linkUrl, title:linkUrl, desc:'', img:'', site:'' } : null);
-  // Get current equipped postcolor theme so ALL users see it
-  const activePostcolor = _equippedItems?.postcolor || window.CU?.shopEquipped?.postcolor || null;
-  const activePostTheme = activePostcolor ? (SHOP_ITEMS.find(i=>i.id===activePostcolor)?.theme || '') : '';
-  // Also save badge and title so all users see them on this post
-  const activeBadgeId = _equippedItems?.badge || window.CU?.shopEquipped?.badge || null;
-  const activeTituloId = _equippedItems?.titulo || window.CU?.shopEquipped?.titulo || null;
-  const activeBadgeEmoji = activeBadgeId ? (SHOP_ITEMS.find(i=>i.id===activeBadgeId)?.preview || '') : '';
-  const activeTituloName = activeTituloId ? (SHOP_ITEMS.find(i=>i.id===activeTituloId)?.name || '') : '';
-  const activeTituloEmoji = activeTituloId ? (SHOP_ITEMS.find(i=>i.id===activeTituloId)?.emoji || '') : '';
   const newPostRef = await addDoc(collection(db,'posts'),{
     userId:window.CU.id, userNick:window.CU.nick, userAv:window.CU.av||'', userXp:window.CU.xp||0, userVerified:window.CU.verified||false,
     text, fish, weight, map, tech,
     images: mediaUrls,
     video: videoUrl,
     link: linkData,
-    postTheme: activePostTheme,
-    userBadge: activeBadgeEmoji,
-    userTitulo: activeTituloEmoji ? (activeTituloEmoji + ' ' + activeTituloName) : '',
     time: serverTimestamp(),
     likes:0, comments:[], reactions:{}, reactionCounts:{}
   });
@@ -4724,6 +4714,7 @@ async function toggleEquipItem(itemId){
   const item = SHOP_ITEMS.find(i=>i.id===itemId);
   if(!item) return;
   const alreadyEquipped = _equippedItems[item.cat] === itemId;
+
   if(alreadyEquipped){
     delete _equippedItems[item.cat];
     toast(`${item.emoji} "${item.name}" desequipado`, 'inf');
@@ -4731,57 +4722,25 @@ async function toggleEquipItem(itemId){
     _equippedItems[item.cat] = itemId;
     toast(`${item.emoji} "${item.name}" ¡equipado!`, 'ok');
   }
-  // Save to Firestore
-  try {
-    await setDoc(doc(db,'users',window.CU.id), { shopEquipped: _equippedItems }, { merge:true });
-    window.CU.shopEquipped = _equippedItems;
-  } catch(e){ console.warn('shop save error',e); }
 
-  // If postcolor changed → update ALL user's posts in Firestore so everyone sees the theme
-  if(item.cat === 'postcolor'){
-    const newTheme = alreadyEquipped ? '' : (item.theme || '');
-    _updateAllMyPostThemes(newTheme);
-  }
-  // If badge changed → update all posts
-  if(item.cat === 'badge'){
-    const newBadge = alreadyEquipped ? '' : (item.preview || '');
-    _updateAllMyPostField('userBadge', newBadge);
-  }
-  // If titulo changed → update all posts
-  if(item.cat === 'titulo'){
-    const newTitulo = alreadyEquipped ? '' : ((item.emoji||'') + ' ' + (item.name||'')).trim();
-    _updateAllMyPostField('userTitulo', newTitulo);
-  }
+  // Save to Firestore — usar updateDoc con deleteField() para borrar correctamente
+  try {
+    const firestoreUpdate = {};
+    if(alreadyEquipped){
+      // deleteField() borra el campo correctamente en Firestore (setDoc merge NO borra)
+      firestoreUpdate[`shopEquipped.${item.cat}`] = deleteField();
+    } else {
+      firestoreUpdate[`shopEquipped.${item.cat}`] = itemId;
+    }
+    await updateDoc(doc(db,'users',window.CU.id), firestoreUpdate);
+    window.CU.shopEquipped = { ..._equippedItems };
+  } catch(e){ console.warn('shop save error',e); }
 
   renderShopGrid();
   applyShopEffects();
 }
 
-// Update postTheme field on all posts of current user in Firestore
-async function _updateAllMyPostThemes(theme){
-  if(!window.CU?.id) return;
-  try {
-    const snap = await getDocs(query(collection(db,'posts'), where('userId','==',window.CU.id)));
-    const batch_updates = snap.docs.map(d => updateDoc(d.ref, { postTheme: theme }));
-    await Promise.all(batch_updates);
-    // Also update local cache
-    _posts.forEach(p=>{ if(p.userId===window.CU.id) p.postTheme = theme; });
-    renderFeed();
-    renderProfileFeed();
-  } catch(e){ console.warn('postTheme batch update error', e); }
-}
 
-// Update any field on all posts of current user
-async function _updateAllMyPostField(field, value){
-  if(!window.CU?.id) return;
-  try {
-    const snap = await getDocs(query(collection(db,'posts'), where('userId','==',window.CU.id)));
-    await Promise.all(snap.docs.map(d => updateDoc(d.ref, { [field]: value })));
-    _posts.forEach(p=>{ if(p.userId===window.CU.id) p[field] = value; });
-    renderFeed();
-    renderProfileFeed();
-  } catch(e){ console.warn(field+' batch update error', e); }
-}
 
 function applyShopEffects(){
   // ── MARCO en avatar ──
@@ -4881,11 +4840,15 @@ async function loadShopEquipped(){
   if(!window.CU?.id) return;
   try {
     const snap = await getDoc(doc(db,'users',window.CU.id));
-    if(snap.exists() && snap.data().shopEquipped){
-      _equippedItems = snap.data().shopEquipped;
-      window.CU.shopEquipped = _equippedItems;
+    if(snap.exists()){
+      // Siempre usar el valor de Firestore, aunque sea {} vacío
+      _equippedItems = snap.data().shopEquipped || {};
+      window.CU.shopEquipped = { ..._equippedItems };
+    } else {
+      _equippedItems = {};
+      window.CU.shopEquipped = {};
     }
-  } catch(e){}
+  } catch(e){ _equippedItems = window.CU?.shopEquipped || {}; }
   applyShopEffects();
 }
 
