@@ -113,7 +113,7 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
     transform:translateX(-50%);
     pointer-events:none;
   }
-  #mobileSearchBtn{display:flex !important;}
+
 }
 /* ===== MOBILE FIXES ===== */
 @media(max-width:768px){
@@ -148,32 +148,8 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
   .ptab{display:inline-block;white-space:nowrap;}
   .profile-layout{grid-template-columns:1fr !important;}
 
-  /* Barra de búsqueda bajo el topbar en mobile */
-  .mobile-searchbar{
-    display:flex !important;
-    position:fixed;
-    top:52px;
-    left:0;right:0;
-    background:var(--bg2);
-    border-bottom:1px solid var(--border);
-    padding:7px 12px;
-    z-index:999;
-    align-items:center;
-    gap:8px;
-  }
-  .mobile-searchbar input{
-    flex:1;
-    background:var(--bg3);
-    border:1px solid var(--border);
-    border-radius:100px;
-    padding:8px 16px;
-    color:var(--text);
-    font-family:'Exo 2',sans-serif;
-    font-size:.88rem;
-    outline:none;
-  }
-  /* Layout push down para barra de búsqueda */
-  .layout{padding-top:106px;}
+  /* Layout push down sin barra de búsqueda */
+  .layout{padding-top:52px;}
 
   /* Menú hamburguesa derecha */
   .mobile-hamburger{display:flex !important;}
@@ -206,7 +182,7 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
 }
 
 /* Siempre oculto en desktop */
-.mobile-searchbar{display:none;}
+
 .mobile-hamburger{display:none;}
 .mobile-only-btn{display:none !important;}
 @media(max-width:768px){.mobile-only-btn{display:flex !important;}}
@@ -242,7 +218,7 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
   /* Layout: full width, padding bottom para bottom nav */
   .layout{
     grid-template-columns:1fr;
-    padding-top:106px;
+    padding-top:52px;
     padding-bottom:60px;
   }
 
@@ -312,8 +288,7 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
 /* Elementos que SOLO aparecen en mobile */
 .tb-mobile-logo{display:none;}
 .bottom-nav{display:none;}
-#mobileSearchBtn{display:none !important;}
-#mobileSearchBar{display:none;}
+
 
 
 /* ===== LEFT SIDEBAR ===== */
@@ -921,14 +896,7 @@ select.fi option{background:#fff;}
     <span>🔍</span>
     <input type="text" placeholder="Buscar en CharlasRF4..." id="searchInput" oninput="doSearch(this.value)">
   </div>
-  <!-- Lupa mobile (solo visible en mobile) -->
-  <div class="tb-icon-btn" id="mobileSearchBtn" onclick="toggleMobileSearch()" title="Buscar" style="display:none;">
-    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-  </div>
-  <!-- Barra búsqueda mobile expandida -->
-  <div id="mobileSearchBar" style="display:none;position:fixed;top:52px;left:0;right:0;background:var(--bg2);padding:8px 12px;border-bottom:1px solid var(--border);z-index:1001;">
-    <input type="text" id="mobileSearchInput" placeholder="Buscar en CharlasRF4..." oninput="doSearch(this.value)" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:8px 16px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.9rem;outline:none;">
-  </div>
+
   <div class="tb-nav">
     <button class="tb-nav-btn on" onclick="gp('home');setNav(this)" title="Inicio">🏠</button>
     <button class="tb-nav-btn" onclick="gp('amigos');setNav(this);renderAmigosPage();" title="Amigos">👥</button>
@@ -972,11 +940,7 @@ select.fi option{background:#fff;}
   </div>
 </nav>
 
-<!-- MOBILE SEARCHBAR (fixed under topbar, mobile only) -->
-<div class="mobile-searchbar" id="mobileSearchbarFixed">
-  <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:var(--muted);flex-shrink:0;"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-  <input type="text" placeholder="Buscar en CharlasRF4..." oninput="doSearch(this.value)" id="mobileSearchFixed">
-</div>
+
 
 <!-- MOBILE DRAWER OVERLAY -->
 <div id="mobileDrawerOverlay" onclick="closeMobileDrawer()"></div>
@@ -3673,23 +3637,6 @@ function closeMobileDrawer(){
 window.openMobileDrawer = openMobileDrawer;
 window.closeMobileDrawer = closeMobileDrawer;
 
-// Show/hide mobile search icon based on screen size
-function updateMobileUI(){
-  const isMobile = window.innerWidth <= 768;
-  const mobileSearchBtn = document.getElementById('mobileSearchBtn');
-  if(mobileSearchBtn) mobileSearchBtn.style.display = isMobile ? 'flex' : 'none';
-}
-window.addEventListener('resize', updateMobileUI);
-document.addEventListener('DOMContentLoaded', updateMobileUI);
-
-function toggleMobileSearch(){
-  const bar = document.getElementById('mobileSearchBar');
-  if(!bar) return;
-  const visible = bar.style.display !== 'none';
-  bar.style.display = visible ? 'none' : 'block';
-  if(!visible) document.getElementById('mobileSearchInput').focus();
-}
-window.toggleMobileSearch = toggleMobileSearch;
 
 // Sync mobile bottom nav badge with desktop badge
 function syncMobileBadges(){
