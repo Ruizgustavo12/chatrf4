@@ -3659,7 +3659,7 @@ const FISH_DB = [
   {n:"Espinoso de Nueve Espinas",img:"stickleback_ninesp",t:"70 g",r:"90 g"},
   {n:"Pez Lobo del Norte",img:"d_zubatka",t:"13 kg",r:"17 kg"},
   {n:"Opa",img:"lampris_g",t:"140 kg",r:"200 kg"},
-  {n:"Orenji",img:"https://en.rf4h.ru/templates/rf4m/fish/V90JXd1TrvE9Bw_128.webp",t:"25 kg",r:"35 kg"},
+  {n:"Orenji",img:"https://en.rf4h.ru/templates/rf4m/fish/V90JXd1TrvE9Bw_128.webp",t:"25 kg",r:"35 kg",map:"https://en.rf4h.ru/templates/rf4m/maps/img/copper_83.webp"},
   {n:"Ostra",img:"ostrea_ed",t:"300 g",r:"370 g"},
   {n:"Peled",img:"peled",t:"3 kg",r:"4 kg"},
   {n:"Perca de Río",img:"perch",t:"1.600 kg",r:"2.700 kg"},
@@ -3776,7 +3776,7 @@ function renderTrofeos(data) {
     const isNA = v => v==='—';
     return `<div class="trof-row" style="${bg}">
       <img class="trof-fish-img" src="${f.img.startsWith('data:')||f.img.startsWith('http') ? f.img : base+f.img+'.png'}" onerror="if(!this.src.includes('rf4h.ru'))this.src='${base}fish.png'" alt="${f.n}" loading="lazy">
-      <div class="trof-name">${f.n}</div>
+      <div class="trof-name">${f.n}${f.map?`<img src="${f.map}" title="Mapa" style="width:18px;height:18px;object-fit:contain;margin-left:6px;border-radius:3px;vertical-align:middle;opacity:.85;">`:''}</div>
       <img class="trof-icon" src="${troff}" alt="trofeo">
       <div class="trof-weight${isNA(f.t)?' na':''}">${f.t}</div>
       <div class="trof-weight rare${isNA(f.r)?' na':''}" style="display:flex;align-items:center;justify-content:center;gap:5px;">
