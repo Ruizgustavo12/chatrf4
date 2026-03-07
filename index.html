@@ -456,6 +456,72 @@ select.fi option{background:#fff;}
 
 /* ===== PROFILE PAGE ===== */
 .profile-cover{height:300px;background:linear-gradient(135deg,#e7f3ff,#1877f222);background-size:cover;background-position:center;position:relative;overflow:hidden;}
+
+/* ── BANNERS ANIMADOS DE TIENDA ── */
+/* Capa de partículas que se pone DENTRO del cover */
+#profileBannerCanvas { position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2; }
+
+/* Banner Fuego */
+.banner-fuego .profile-cover {
+  background: linear-gradient(180deg,#0a0000 0%,#1a0500 40%,#3d0f00 100%) !important;
+}
+/* Banner Flores */
+.banner-flores .profile-cover {
+  background: linear-gradient(180deg,#0d0018 0%,#1a0035 40%,#2a0050 100%) !important;
+}
+/* Banner Océano */
+.banner-ocean .profile-cover {
+  background: linear-gradient(180deg,#000d1a 0%,#001f3f 50%,#003366 100%) !important;
+}
+/* Banner Aurora */
+.banner-aurora .profile-cover {
+  background: linear-gradient(180deg,#000d0a 0%,#001a10 50%,#002a1a 100%) !important;
+}
+/* Banner Galaxia */
+.banner-galaxy .profile-cover {
+  background: linear-gradient(180deg,#050010 0%,#0d0030 50%,#1a0050 100%) !important;
+}
+/* Banner Tormenta */
+.banner-storm .profile-cover {
+  background: linear-gradient(180deg,#060608 0%,#0d0d14 50%,#12121e 100%) !important;
+}
+
+/* partícula genérica */
+.shop-banner-particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: bannerFloat linear infinite;
+}
+@keyframes bannerFloat {
+  0%   { transform: translateY(100%) translateX(0) scale(1); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: .8; }
+  100% { transform: translateY(-120%) translateX(var(--dx,20px)) scale(.4); opacity: 0; }
+}
+@keyframes bannerFlicker {
+  0%,100%{ transform: scaleY(1) scaleX(1); }
+  50%    { transform: scaleY(1.08) scaleX(.96); }
+}
+@keyframes petalSpin {
+  0%   { transform: translateY(0) rotate(0deg) translateX(0); opacity:0; }
+  5%   { opacity:.9; }
+  95%  { opacity:.7; }
+  100% { transform: translateY(-130%) rotate(var(--rot,360deg)) translateX(var(--dx,30px)); opacity:0; }
+}
+@keyframes starTwinkle {
+  0%,100%{ opacity:.3; transform:scale(.8); }
+  50%    { opacity:1;  transform:scale(1.2); }
+}
+@keyframes lightningFlash {
+  0%,90%,100%{ opacity:0; }
+  92%,98%    { opacity:.6; }
+}
+@keyframes waveMove {
+  0%  { transform:translateX(0) translateY(0); }
+  50% { transform:translateX(-30px) translateY(8px); }
+  100%{ transform:translateX(0) translateY(0); }
+}
 .profile-cover-img{width:100%;height:100%;object-fit:cover;}
 .profile-cover-edit{position:absolute;bottom:14px;right:14px;background:rgba(0,0,0,.7);border:1px solid var(--border);color:var(--text);
   padding:7px 14px;border-radius:var(--rs);font-size:.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;}
@@ -848,6 +914,8 @@ select.fi option{background:#fff;}
     <div id="profCoverInner" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:5rem;opacity:.15">🎣</div>
     <!-- Canvas partículas doradas (solo verificado) -->
     <canvas id="verifParticles" style="display:none;"></canvas>
+    <!-- Canvas banner animado tienda -->
+    <canvas id="profileBannerCanvas" style="display:none;"></canvas>
     <!-- Sello verificado diagonal -->
     <div id="verifSeal" style="display:none;position:absolute;top:0;right:0;width:110px;height:110px;overflow:hidden;z-index:5;">
       <div class="verif-seal">✅ VERIFICADO</div>
@@ -984,6 +1052,7 @@ select.fi option{background:#fff;}
             <button class="shop-cat-btn" onclick="filterShopCat(this,'titulo')">📛 Títulos</button>
             <button class="shop-cat-btn" onclick="filterShopCat(this,'postcolor')" style="background:linear-gradient(135deg,rgba(0,150,255,.15),rgba(150,0,255,.1));border-color:rgba(100,100,255,.3);">🎨 Colores de Post</button>
           </div>
+    <button class="shop-cat-btn" onclick="filterShopCat(this,'banner')" style="background:linear-gradient(135deg,rgba(255,80,0,.15),rgba(255,200,0,.1));border-color:rgba(255,120,0,.3);">🖼 Banners</button>
 
           <!-- Grid de ítems -->
           <div id="shopItemsGridProfile" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;"></div>
@@ -2091,6 +2160,7 @@ select.fi option{background:#fff;}
     <button class="shop-cat-btn" onclick="filterShopCat(this,'titulo')">📛 Títulos</button>
     <button class="shop-cat-btn" onclick="filterShopCat(this,'postcolor')" style="background:linear-gradient(135deg,rgba(0,150,255,.15),rgba(150,0,255,.1));border-color:rgba(100,100,255,.3);">🎨 Colores de Post</button>
   </div>
+    <button class="shop-cat-btn" onclick="filterShopCat(this,'banner')" style="background:linear-gradient(135deg,rgba(255,80,0,.15),rgba(255,200,0,.1));border-color:rgba(255,120,0,.3);">🖼 Banners</button>
   <!-- Grid de ítems -->
   <div id="shopItemsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;"></div>
 </div>
@@ -4305,10 +4375,229 @@ const SHOP_ITEMS = [
   { id:'post_rosa',     cat:'postcolor', name:'Rosa Oscuro',       preview:'🌸', emoji:'🌸', price:550,  desc:'Fondo rosa profundo',                     theme:'post-theme-rosa' },
   { id:'post_carbon',   cat:'postcolor', name:'Carbono',           preview:'⚫', emoji:'⚫', price:400,  desc:'Gris oscuro premium minimalista',         theme:'post-theme-carbon' },
   { id:'post_sunset',   cat:'postcolor', name:'Atardecer',         preview:'🌅', emoji:'🌅', price:700,  desc:'Fondo sunset naranja cálido',             theme:'post-theme-sunset' },
-]
+  // ── BANNERS ANIMADOS DE PORTADA ──
+  { id:'banner_fuego',  cat:'banner', name:'Fuego Vivo',         preview:'🔥', emoji:'🔥', price:1200, desc:'Llamas y brasas animadas en tu portada',    exclusive:false, bannerFn:'bannerFuego'  },
+  { id:'banner_flores', cat:'banner', name:'Pétalo Oscuro',      preview:'🌸', emoji:'🌸', price:1000, desc:'Pétalos violetas flotando en la oscuridad', exclusive:false, bannerFn:'bannerFlores' },
+  { id:'banner_ocean',  cat:'banner', name:'Océano Profundo',    preview:'🌊', emoji:'💧', price:900,  desc:'Burbujas y olas en el abismo',              exclusive:false, bannerFn:'bannerOcean'  },
+  { id:'banner_aurora', cat:'banner', name:'Aurora Boreal',      preview:'🌌', emoji:'🌠', price:1100, desc:'Luces polares danzando en el cielo',         exclusive:true,  bannerFn:'bannerAurora' },
+  { id:'banner_galaxy', cat:'banner', name:'Galaxia',            preview:'⭐', emoji:'✨', price:1300, desc:'Miles de estrellas y nebulosas',             exclusive:true,  bannerFn:'bannerGalaxy' },
+  { id:'banner_storm',  cat:'banner', name:'Tormenta Eléctrica', preview:'⚡', emoji:'⚡', price:1400, desc:'Rayos y tormenta en tu portada',             exclusive:true,  bannerFn:'bannerStorm'  },
+];
 
 // Efectos de partículas activos
 let _shopParticleInterval = null;
+let _bannerAnimFrame = null; // RAF para banners animados
+
+// ── BANNER ENGINE (Canvas 2D) ──
+function stopBannerAnim(){
+  if(_bannerAnimFrame){ cancelAnimationFrame(_bannerAnimFrame); _bannerAnimFrame=null; }
+  const cv = document.getElementById('profileBannerCanvas');
+  if(cv){ cv.style.display='none'; const ctx=cv.getContext('2d'); ctx.clearRect(0,0,cv.width,cv.height); }
+  // Restaurar fondo del cover
+  const cover = document.getElementById('profCover');
+  if(cover) cover.style.background='';
+}
+
+function startBannerAnim(fnName){
+  stopBannerAnim();
+  const cv = document.getElementById('profileBannerCanvas');
+  if(!cv) return;
+  const cover = document.getElementById('profCover');
+  cv.style.display='block';
+  // Resize canvas to match element
+  function resize(){ cv.width=cv.offsetWidth||cover?.offsetWidth||800; cv.height=cv.offsetHeight||cover?.offsetHeight||300; }
+  resize();
+  window[fnName](cv, resize);
+}
+
+function bannerFuego(cv, resize){
+  const ctx = cv.getContext('2d');
+  if(document.getElementById('profCover')) document.getElementById('profCover').style.background='linear-gradient(180deg,#0a0000,#2d0800,#4a1000)';
+  // partículas de fuego
+  const particles = Array.from({length:120},()=>mkFireParticle(cv));
+  // brasas
+  const embers = Array.from({length:40},()=>mkEmber(cv));
+  function mkFireParticle(c){
+    return { x:Math.random()*c.width, y:c.height+Math.random()*60,
+      size:3+Math.random()*18, speed:0.8+Math.random()*2.5,
+      wobble:Math.random()*Math.PI*2, wobbleSpeed:0.03+Math.random()*.05,
+      alpha:0.6+Math.random()*.4,
+      hue: 10+Math.random()*30 // rojo a naranja
+    };
+  }
+  function mkEmber(c){ return { x:Math.random()*c.width, y:c.height+Math.random()*40, size:1+Math.random()*3, speed:1+Math.random()*3, vx:(Math.random()-.5)*1.5, alpha:Math.random() }; }
+  function draw(){
+    resize(); ctx.clearRect(0,0,cv.width,cv.height);
+    // llamas
+    particles.forEach(p=>{
+      p.y -= p.speed; p.wobble += p.wobbleSpeed; p.x += Math.sin(p.wobble)*1.2;
+      p.size *= .995; p.alpha -= .003;
+      if(p.y < -p.size || p.alpha<=0){ Object.assign(p, mkFireParticle(cv)); p.y=cv.height+10; }
+      const prog = 1-(p.y/cv.height);
+      const grd = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.size);
+      grd.addColorStop(0, `hsla(${p.hue+prog*20},100%,70%,${p.alpha})`);
+      grd.addColorStop(.5,`hsla(${p.hue},100%,50%,${p.alpha*.7})`);
+      grd.addColorStop(1, `hsla(${p.hue-10},100%,30%,0)`);
+      ctx.beginPath(); ctx.fillStyle=grd; ctx.ellipse(p.x,p.y,p.size*.5,p.size,0,0,Math.PI*2); ctx.fill();
+    });
+    // brasas flotantes
+    embers.forEach(e=>{
+      e.y -= e.speed; e.x += e.vx; e.alpha -= .008;
+      if(e.y<-10||e.alpha<=0){ Object.assign(e,mkEmber(cv)); e.y=cv.height; }
+      ctx.beginPath(); ctx.fillStyle=`rgba(255,${100+Math.random()*100},0,${e.alpha})`; ctx.arc(e.x,e.y,e.size,0,Math.PI*2); ctx.fill();
+    });
+    _bannerAnimFrame = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function bannerFlores(cv, resize){
+  const ctx = cv.getContext('2d');
+  if(document.getElementById('profCover')) document.getElementById('profCover').style.background='linear-gradient(180deg,#0d0018,#1e0042,#2d0060)';
+  const petals = Array.from({length:80},()=>mkPetal(cv));
+  const particles = Array.from({length:40},()=>mkSparkle(cv));
+  function mkPetal(c){ return { x:Math.random()*c.width, y:c.height+Math.random()*100, size:6+Math.random()*16, speed:.4+Math.random()*1.4, vx:(Math.random()-.5)*1, rot:Math.random()*Math.PI*2, rotSpeed:.02+Math.random()*.04, alpha:.7+Math.random()*.3, hue:270+Math.random()*60 }; }
+  function mkSparkle(c){ return { x:Math.random()*c.width, y:Math.random()*c.height, size:1+Math.random()*2, twinkle:Math.random()*Math.PI*2, speed:.02+Math.random()*.04 }; }
+  function drawPetal(x,y,size,rot,alpha,hue){
+    ctx.save(); ctx.translate(x,y); ctx.rotate(rot); ctx.globalAlpha=alpha;
+    const g = ctx.createRadialGradient(0,0,0,0,0,size);
+    g.addColorStop(0,`hsla(${hue},100%,80%,.9)`);
+    g.addColorStop(.6,`hsla(${hue-20},90%,60%,.6)`);
+    g.addColorStop(1,`hsla(${hue-30},80%,40%,0)`);
+    ctx.fillStyle=g;
+    ctx.beginPath(); ctx.ellipse(0,-size*.5,size*.4,size*.9,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(size*.4,0,size*.4,size*.9,Math.PI/3,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-size*.4,0,size*.4,size*.9,-Math.PI/3,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+  function draw(){
+    resize(); ctx.clearRect(0,0,cv.width,cv.height);
+    // estrellas de fondo
+    particles.forEach(s=>{
+      s.twinkle+=s.speed; const a=.3+.6*((Math.sin(s.twinkle)+1)/2);
+      ctx.beginPath(); ctx.fillStyle=`rgba(200,160,255,${a})`; ctx.arc(s.x,s.y,s.size,0,Math.PI*2); ctx.fill();
+    });
+    // pétalos
+    petals.forEach(p=>{
+      p.y-=p.speed; p.x+=p.vx+Math.sin(p.rot)*.5; p.rot+=p.rotSpeed; p.alpha-=.002;
+      if(p.y<-p.size*2||p.alpha<=0){ Object.assign(p,mkPetal(cv)); p.y=cv.height+20; }
+      drawPetal(p.x,p.y,p.size,p.rot,p.alpha,p.hue);
+    });
+    _bannerAnimFrame = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function bannerOcean(cv, resize){
+  const ctx=cv.getContext('2d');
+  if(document.getElementById('profCover')) document.getElementById('profCover').style.background='linear-gradient(180deg,#00050f,#001530,#002050)';
+  const bubbles=Array.from({length:60},()=>mkBubble(cv));
+  let t=0;
+  function mkBubble(c){ return {x:Math.random()*c.width, y:c.height+Math.random()*50, r:2+Math.random()*12, speed:.3+Math.random()*1, vx:(Math.random()-.5)*.8, alpha:.4+Math.random()*.5}; }
+  function draw(){
+    t+=.01; resize(); ctx.clearRect(0,0,cv.width,cv.height);
+    // olas
+    for(let w=0;w<3;w++){
+      ctx.beginPath(); ctx.moveTo(0,cv.height);
+      for(let x=0;x<=cv.width;x+=10){
+        const y=cv.height*.7+Math.sin(x*.02+t+w*2)*15+Math.sin(x*.04-t*.7+w)*8;
+        ctx.lineTo(x,y);
+      }
+      ctx.lineTo(cv.width,cv.height); ctx.closePath();
+      ctx.fillStyle=`rgba(0,100,200,${.08+w*.04})`; ctx.fill();
+    }
+    // burbujas
+    bubbles.forEach(b=>{
+      b.y-=b.speed; b.x+=b.vx+Math.sin(t+b.r)*.3; b.alpha-=.0015;
+      if(b.y<-b.r*2||b.alpha<=0){ Object.assign(b,mkBubble(cv)); b.y=cv.height; }
+      ctx.beginPath(); ctx.strokeStyle=`rgba(100,200,255,${b.alpha})`; ctx.lineWidth=1.5;
+      ctx.arc(b.x,b.y,b.r,0,Math.PI*2); ctx.stroke();
+      ctx.fillStyle=`rgba(150,220,255,${b.alpha*.2})`; ctx.fill();
+    });
+    _bannerAnimFrame=requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function bannerAurora(cv, resize){
+  const ctx=cv.getContext('2d');
+  if(document.getElementById('profCover')) document.getElementById('profCover').style.background='linear-gradient(180deg,#000508,#001010,#001a15)';
+  const stars=Array.from({length:80},()=>({x:Math.random()*800,y:Math.random()*300,r:Math.random()*1.5,t:Math.random()*Math.PI*2}));
+  let t=0;
+  function draw(){
+    t+=.008; resize();
+    // actualiza posiciones estrella
+    stars.forEach(s=>{ s.x=(s.x/800)*cv.width; s.y=(s.y/300)*cv.height; });
+    ctx.clearRect(0,0,cv.width,cv.height);
+    // estrellas
+    stars.forEach(s=>{ s.t+=.02; const a=.3+.6*((Math.sin(s.t)+1)/2); ctx.beginPath(); ctx.fillStyle=`rgba(200,255,240,${a})`; ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill(); });
+    // cortinas de aurora
+    const cols=['rgba(0,255,150','rgba(0,200,255','rgba(100,0,255','rgba(0,255,100'];
+    for(let i=0;i<4;i++){
+      ctx.save(); ctx.globalAlpha=.15+Math.sin(t+i)*0.07;
+      const grd=ctx.createLinearGradient(0,0,0,cv.height);
+      grd.addColorStop(0,`${cols[i%cols.length]},0)`);
+      grd.addColorStop(.3,`${cols[i%cols.length]},.6)`);
+      grd.addColorStop(1,`${cols[(i+1)%cols.length]},0)`);
+      ctx.fillStyle=grd;
+      ctx.beginPath();
+      const xBase=(i/4)*cv.width+Math.sin(t*.5+i)*60;
+      const ww=cv.width*.35;
+      ctx.moveTo(xBase,0);
+      for(let y=0;y<=cv.height;y+=5){
+        ctx.lineTo(xBase+Math.sin(y*.02+t+i)*40+ww*(y/cv.height),y);
+      }
+      ctx.lineTo(xBase+ww,cv.height); ctx.lineTo(xBase,0); ctx.closePath(); ctx.fill(); ctx.restore();
+    }
+    _bannerAnimFrame=requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function bannerGalaxy(cv, resize){
+  const ctx=cv.getContext('2d');
+  if(document.getElementById('profCover')) document.getElementById('profCover').style.background='linear-gradient(180deg,#000005,#050010,#0a0020)';
+  const stars=Array.from({length:200},()=>({x:Math.random(),y:Math.random(),r:.5+Math.random()*2,t:Math.random()*Math.PI*2,speed:.01+Math.random()*.04,col:[`255,255,255`,`200,200,255`,`255,220,180`,`180,220,255`][Math.floor(Math.random()*4)]}));
+  const nebula=Array.from({length:8},()=>({x:Math.random(),y:Math.random(),r:40+Math.random()*80,hue:200+Math.random()*160,t:Math.random()*Math.PI*2}));
+  let t=0;
+  function draw(){
+    t+=.005; resize(); ctx.clearRect(0,0,cv.width,cv.height);
+    // nebulosas
+    nebula.forEach(n=>{ n.t+=.003; const g=ctx.createRadialGradient(n.x*cv.width,n.y*cv.height,0,n.x*cv.width,n.y*cv.height,n.r*(1+Math.sin(n.t)*.1)); g.addColorStop(0,`hsla(${n.hue},100%,60%,.12)`); g.addColorStop(1,`hsla(${n.hue},80%,40%,0)`); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(n.x*cv.width,n.y*cv.height,n.r*1.5,0,Math.PI*2); ctx.fill(); });
+    // estrellas
+    stars.forEach(s=>{ s.t+=s.speed; const a=.4+.6*((Math.sin(s.t)+1)/2); ctx.beginPath(); ctx.fillStyle=`rgba(${s.col},${a})`; ctx.arc(s.x*cv.width,s.y*cv.height,s.r*(a*.5+.5),0,Math.PI*2); ctx.fill(); });
+    _bannerAnimFrame=requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function bannerStorm(cv, resize){
+  const ctx=cv.getContext('2d');
+  if(document.getElementById('profCover')) document.getElementById('profCover').style.background='linear-gradient(180deg,#050507,#0a0a10,#101018)';
+  const drops=Array.from({length:120},()=>mkDrop(cv));
+  let t=0, lightningT=0, lightningAlpha=0;
+  function mkDrop(c){ return {x:Math.random()*c.width, y:Math.random()*c.height, speed:4+Math.random()*8, len:8+Math.random()*20, alpha:.2+Math.random()*.5}; }
+  function drawLightning(x,y,x2,y2,depth){
+    if(depth<=0) return; const mx=(x+x2)/2+(Math.random()-.5)*60; const my=(y+y2)/2+(Math.random()-.5)*20;
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(mx,my); ctx.lineTo(x2,y2);
+    ctx.strokeStyle=`rgba(200,220,255,${lightningAlpha})`; ctx.lineWidth=depth*.5; ctx.stroke();
+    drawLightning(x,y,mx,my,depth-1); drawLightning(mx,my,x2,y2,depth-1);
+  }
+  function draw(){
+    t+=1; lightningT--; resize(); ctx.clearRect(0,0,cv.width,cv.height);
+    // lluvia
+    ctx.strokeStyle='rgba(150,180,255,.4)'; ctx.lineWidth=1;
+    drops.forEach(d=>{
+      d.y+=d.speed; if(d.y>cv.height){ Object.assign(d,mkDrop(cv)); d.y=-d.len; }
+      ctx.beginPath(); ctx.globalAlpha=d.alpha; ctx.moveTo(d.x,d.y); ctx.lineTo(d.x-2,d.y+d.len); ctx.stroke();
+    });
+    ctx.globalAlpha=1;
+    // rayos aleatorios
+    if(lightningT<=0){ lightningAlpha=.6+Math.random()*.4; lightningT=80+Math.random()*200; drawLightning(Math.random()*cv.width,0,Math.random()*cv.width,cv.height*.6,4); }
+    _bannerAnimFrame=requestAnimationFrame(draw);
+  }
+  draw();
+}
 let _shopFilter = 'all';
 let _equippedItems = {}; // { marco: 'marco_oro', badge: 'badge_shark', ... }
 
@@ -4324,16 +4613,18 @@ function renderShopGrid(){
   const gridProfile = document.getElementById('shopItemsGridProfile');
   if(!grid && !gridProfile) return;
   const items = _shopFilter === 'all' ? SHOP_ITEMS : SHOP_ITEMS.filter(i=>i.cat===_shopFilter);
-  const CAT_LABEL = {marco:'🖼 Marco',badge:'🏅 Badge',efecto:'✨ Efecto',titulo:'📛 Título',postcolor:'🎨 Color de Post'};
+  const CAT_LABEL = {marco:'🖼 Marco',badge:'🏅 Badge',efecto:'✨ Efecto',titulo:'📛 Título',postcolor:'🎨 Color de Post',banner:'🖼 Banner Animado'};
   const _shopHTML = items.map(item => {
     const isEquipped = _equippedItems[item.cat] === item.id;
     const postPreview = item.cat==='postcolor' ? `<div class="${item.theme}" style="border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:.63rem;color:#ddd;line-height:1.5;text-align:left;"><div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;"><div style="width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.2);flex-shrink:0;"></div><span style="font-weight:700;">ruizgustavo12</span></div><div>🎣 ¡Gran pesca hoy!</div></div>` : '';
+    const bannerPreview = item.cat==='banner' ? `<div style="width:100%;height:60px;border-radius:8px;margin-bottom:8px;overflow:hidden;position:relative;background:${item.id==='banner_fuego'?'linear-gradient(180deg,#0a0000,#2d0800)':item.id==='banner_flores'?'linear-gradient(180deg,#0d0018,#2d0060)':item.id==='banner_ocean'?'linear-gradient(180deg,#00050f,#002050)':item.id==='banner_aurora'?'linear-gradient(180deg,#000508,#001a15)':item.id==='banner_galaxy'?'linear-gradient(180deg,#000005,#0a0020)':'linear-gradient(180deg,#050507,#101018)'};display:flex;align-items:center;justify-content:center;font-size:1.8rem;">${item.preview}</div>` : '';
     return `
     <div class="shop-item${isEquipped?' equipped':''}" id="sitem_${item.id}">
       ${isEquipped ? '<div class="shop-item-equipped-badge">✓ ACTIVO</div>' : ''}
       ${item.exclusive ? '<div style="position:absolute;top:6px;left:6px;background:linear-gradient(135deg,gold,#ff8c00);color:#000;font-size:.5rem;font-weight:900;border-radius:100px;padding:2px 6px;">✦ EXCL.</div>' : ''}
       ${postPreview}
-      ${!item.theme ? `<span style="font-size:2.2rem;display:block;margin-bottom:6px;">${item.preview}</span>` : ''}
+      ${bannerPreview}
+      ${!item.theme && !item.bannerFn ? `<span style="font-size:2.2rem;display:block;margin-bottom:6px;">${item.preview}</span>` : ''}
       <div class="shop-item-name">${item.name}</div>
       <div class="shop-item-type">${CAT_LABEL[item.cat]||item.cat}</div>
       <div style="font-size:.62rem;color:var(--muted);margin-bottom:8px;line-height:1.35;">${item.desc}</div>
@@ -4421,6 +4712,17 @@ function applyShopEffects(){
   _stopShopParticles();
   const efectoId = _equippedItems.efecto;
   if(efectoId) _startShopParticles(efectoId);
+
+  // ── BANNER ANIMADO ──
+  const bannerId = _equippedItems.banner;
+  stopBannerAnim();
+  if(bannerId){
+    const bItem = SHOP_ITEMS.find(i=>i.id===bannerId);
+    if(bItem?.bannerFn && typeof window[bItem.bannerFn]==='function'){
+      // pequeño delay para que el DOM esté listo
+      setTimeout(()=>startBannerAnim(bItem.bannerFn), 100);
+    }
+  }
 }
 
 function _stopShopParticles(){
@@ -8669,6 +8971,14 @@ window.renderShopPage = renderShopPage;
 window.renderShopGrid = renderShopGrid;
 window.filterShopCat = filterShopCat;
 window.toggleEquipItem = toggleEquipItem;
+window.bannerFuego = bannerFuego;
+window.bannerFlores = bannerFlores;
+window.bannerOcean = bannerOcean;
+window.bannerAurora = bannerAurora;
+window.bannerGalaxy = bannerGalaxy;
+window.bannerStorm = bannerStorm;
+window.stopBannerAnim = stopBannerAnim;
+window.startBannerAnim = startBannerAnim;
 
 function renderTrofeosFeed(){
   const el = document.getElementById('trofeosFeed');
