@@ -7263,7 +7263,11 @@ function toggleVoiceBtn(){
 }
 
 async function toggleVoiceRecord(){
-  toast('🎤 Mensajes de voz — ¡Muy pronto!','inf');
+  if(_mediaRecorder && _mediaRecorder.state === 'recording'){
+    stopAndSendVoice();
+  } else {
+    await startVoiceRecord();
+  }
 }
 
 async function startVoiceRecord(){
@@ -7306,7 +7310,7 @@ async function startVoiceRecord(){
   _voiceTimerInterval = setInterval(()=>{
     _voiceSeconds++;
     updateVoiceTimer();
-    if(_voiceSeconds >= 20){ stopAndSendVoice(); } // max 20s para no superar 800KB en Firestore
+    if(_voiceSeconds >= 60){ stopAndSendVoice(); } // max 60s
   }, 1000);
 
   // Wave animation
@@ -7385,25 +7389,31 @@ async function stopAndSendVoice(){
   toast('Enviando audio...','inf');
 
   try {
-    // Convertir a base64 data URL — guardamos directo en Firestore
-    const base64 = await blobToBase64(blob);
-    const dataUrl = 'data:' + mimeType + ';base64,' + base64;
-    console.log('[Voice] base64 length:', base64.length);
-
-    if(base64.length > 800000){
-      toast('Audio muy largo, grabá menos de 20 segundos','err');
-      return;
-    }
-
     if(!window.CU || !_chatUserId){
       toast('Error: sesión no válida','err'); return;
     }
+
+    // Subir a Cloudinary (resource_type=video acepta audio también)
+    const ext = mimeType.includes('ogg') ? 'ogg' : mimeType.includes('mp4') ? 'mp4' : 'webm';
+    const formData = new FormData();
+    formData.append('file', blob, 'voice_' + Date.now() + '.' + ext);
+    formData.append('upload_preset', 'charlasrf4');
+    formData.append('folder', 'voices');
+
+    const res = await fetch('https://api.cloudinary.com/v1_1/da0n5tg3g/video/upload', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    console.log('[Voice] Cloudinary:', data);
+
+    if(!data.secure_url) throw new Error(data.error?.message || 'Upload falló');
 
     const chatId = [window.CU.id, _chatUserId].sort().join('_');
     await addDoc(collection(db,'chats',chatId,'messages'),{
       uid: window.CU.id,
       nick: window.CU.nick,
-      audioUrl: dataUrl,
+      audioUrl: data.secure_url,
       audioDuration: duration,
       text: '',
       time: serverTimestamp()
@@ -7411,7 +7421,7 @@ async function stopAndSendVoice(){
     toast('Audio enviado 🎤','ok');
   } catch(e){
     console.error('[Voice] Error:', e);
-    toast('Error: ' + e.message,'err');
+    toast('Error al enviar audio: ' + e.message,'err');
   }
 }
 
