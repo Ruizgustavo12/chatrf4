@@ -382,6 +382,15 @@ select.fi option{background:#fff;}
 .badge-blue{background:rgba(0,198,255,.12);border:1px solid rgba(0,198,255,.25);color:var(--accent);}
 .badge-gold{background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.25);color:var(--gold);}
 .badge-green{background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.2);color:var(--green);}
+
+/* ── EXCLUSIVOS VERIFICADOS ── */
+@keyframes goldFall{0%{transform:translateY(0)rotate(0);opacity:1}100%{transform:translateY(110vh)rotate(720deg);opacity:0}}
+@keyframes goldPulse{0%,100%{box-shadow:0 0 8px rgba(255,215,0,.5)}50%{box-shadow:0 0 20px rgba(255,215,0,.9),0 0 35px rgba(255,165,0,.4)}}
+.story-verif{outline:2.5px solid gold;outline-offset:2px;animation:goldPulse 2s ease-in-out infinite;}
+.chat-gold-bg{background:linear-gradient(180deg,rgba(40,28,0,.7)0%,var(--bg2)55%)!important;}
+.chat-gold-header{border-bottom:1px solid rgba(255,215,0,.25)!important;background:linear-gradient(90deg,rgba(255,215,0,.06),transparent)!important;}
+.pinned-label{display:inline-flex;align-items:center;gap:5px;padding:2px 10px;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);border-radius:100px;font-size:.65rem;font-weight:800;color:gold;margin-bottom:4px;}
+.visitors-card{background:linear-gradient(135deg,rgba(255,215,0,.07),rgba(255,165,0,.03));border:1px solid rgba(255,215,0,.2);border-radius:var(--r);padding:14px;margin-bottom:12px;}
 </style>
 </head>
 <body>
@@ -696,6 +705,7 @@ select.fi option{background:#fff;}
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;padding-bottom:14px">
           <button class="btn btn-p" onclick="openEditProfile()">✏ Editar perfil</button>
+          <button id="btnAnonMode" onclick="toggleAnonMode()" style="display:none;background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:100px;padding:5px 12px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;transition:all .2s;">👻 Modo anónimo</button>
           <button class="btn btn-s" onclick="om('mCreatePost')">+ Publicación</button>
         </div>
       </div>
@@ -717,6 +727,13 @@ select.fi option{background:#fff;}
   <div class="profile-layout">
     <!-- Left -->
     <div id="profileLeftCol">
+      <div id="profVisitorsCard" class="visitors-card" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <span style="font-size:.78rem;font-weight:800;color:gold;">👁 Quién visitó tu perfil</span>
+          <span style="font-size:.58rem;color:rgba(255,215,0,.5);font-weight:700;">SOLO ✅</span>
+        </div>
+        <div id="profVisitorsList"><div style="font-size:.72rem;color:var(--muted);">Cargando...</div></div>
+      </div>
       <div class="profile-about-card">
         <div class="pac-title" style="display:flex;align-items:center;justify-content:space-between">Fotos <span style="font-size:.72rem;color:var(--accent);cursor:pointer">Ver todas</span></div>
         <div id="profPhotoGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;border-radius:var(--rs);overflow:hidden"></div>
@@ -2041,7 +2058,8 @@ function listenStories() {
     const expiredIds = [];
     _stories = snap.docs.filter(d => {
       const t = d.data().time?.toMillis?.() || 0;
-      if(t && (now - t) > 86400000){ expiredIds.push(d.id); return false; }
+      const ttl = d.data().userVerified ? 172800000 : 86400000;
+      if(t && (now - t) > ttl){ expiredIds.push(d.id); return false; }
       return true;
     }).map(d => ({ id: d.id, ...d.data(), time: d.data().time?.toMillis?.() || Date.now() }));
     expiredIds.forEach(id => deleteDoc(doc(db, 'stories', id)).catch(()=>{}));
@@ -2396,6 +2414,7 @@ function renderStories(){
       <div class="story-bottom-name">${s.userNick}</div>`;
     row.appendChild(div);
   });
+  setTimeout(applyVerifStoryRings,60);
 }
 
 let _svAutoTimer=null; const SV_DURATION=10000;
@@ -2649,7 +2668,8 @@ async function submitStory(){
   if(_storyImgData) imgUrl = await uploadImage(_storyImgData, 'stories');
   await addDoc(collection(db, 'stories'), {
     userId:window.CU.id, userNick:window.CU.nick, userAv:window.CU.av||'',
-    text, emoji:_storyEmojiPick||'🎣', img:imgUrl, yt:'', time:serverTimestamp()
+    text, emoji:_storyEmojiPick||'🎣', img:imgUrl, yt:'', time:serverTimestamp(),
+    userVerified:window.CU?.verified||false
   });
   _storyImgData = null; _storyEmojiPick = '';
   document.getElementById('storyText').value='';
@@ -2731,7 +2751,13 @@ function renderProfileFeed(){
   if(!el||!window.CU) return;
   const mine = _posts.filter(p=>p.userId===window.CU.id);
   const scrollY = window.scrollY;
-  const newHTML = mine.length ? mine.map(p=>postHTML(p)).join('') : `<div style="text-align:center;padding:40px;color:var(--muted)">Sin publicaciones aún. ¡Comparte tu primera pesca!</div>`;
+  let pinnedH='';
+  if(window.CU?.verified&&window.CU.pinnedPostId){
+    const pp=mine.find(p=>p.id===window.CU.pinnedPostId);
+    if(pp) pinnedH=`<div style='margin-bottom:6px;'><span class='pinned-label'>📌 Post fijado</span>${postHTML(pp)}</div>`;
+  }
+  const rest=mine.filter(p=>p.id!==window.CU?.pinnedPostId);
+  const newHTML = pinnedH+(rest.length?rest.map(p=>postHTML(p)).join(''):(!pinnedH?`<div style="text-align:center;padding:40px;color:var(--muted)">Sin publicaciones aún. ¡Comparte tu primera pesca!</div>`:''));
   if(el.innerHTML === newHTML) return;
   if(!el.children.length){ el.innerHTML = newHTML; return; }
   // Smart patch - same as renderFeed
@@ -2933,6 +2959,7 @@ function postHTML(p){
         <button class="post-menu" onclick="togglePostMenu('${p.id}', event)" style="font-size:1.3rem;line-height:1;">⋯</button>
         <div id="pmenu_${p.id}" data-owner="${p.userId}" style="display:none;position:absolute;right:0;top:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);min-width:150px;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,.5);overflow:hidden;">
           ${!p.sharedFrom ? `<button onclick="togglePostMenu('${p.id}', event); openEditPost('${p.id}','${esc(p.text||'')}')" data-owner-only="true" style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:var(--text);padding:12px 16px;cursor:pointer;font-size:.88rem;text-align:left;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">✏️ Editar</button>` : ''}
+          ${window.CU?.verified&&p.userId===window.CU?.id?`<button onclick="togglePostMenu('${p.id}',event);${p.id===window.CU?.pinnedPostId?'unpinPost()':"pinPost('${p.id}')"};" style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:gold;padding:12px 16px;cursor:pointer;font-size:.88rem;text-align:left;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">${p.id===window.CU?.pinnedPostId?'📌 Desfijar':'📌 Fijar en perfil'}</button>`:''}
           <button onclick="togglePostMenu('${p.id}', event); deleteMyPost('${p.id}')" data-owner-only="true" style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:var(--red);padding:12px 16px;cursor:pointer;font-size:.88rem;text-align:left;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">🗑 Eliminar</button>
           <button onclick="togglePostMenu('${p.id}', event); reportPost('${p.id}','${esc(p.userNick)}')" data-other-only="true" style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:var(--warn);padding:12px 16px;cursor:pointer;font-size:.88rem;text-align:left;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">⚠️ Reportar</button>
         </div>
@@ -3054,6 +3081,7 @@ async function submitPost(){
   if(!text && !fish && !_postMediaFiles.length && !linkUrl && !videoUrl0){ toast('Escribe algo o agrega un video para publicar','err'); return; }
 
   toast('Publicando...','inf');
+  if(window.CU?.verified) launchGoldConfetti();
   const mediaUrls = [];
   for(const m of _postMediaFiles){
     if(m.type==='image') mediaUrls.push(await uploadImage(m.file,'posts'));
@@ -3551,6 +3579,9 @@ function renderProfile(){
     }
   }
   document.getElementById('profBioEl').textContent = window.CU.bio||'';
+  // Exclusivos verificados
+  const _ab=document.getElementById('btnAnonMode'); if(_ab) _ab.style.display=isVerified?'inline-flex':'none';
+  if(isVerified){ loadProfileVisitors(); } else { const _vc=document.getElementById('profVisitorsCard'); if(_vc)_vc.style.display='none'; }
 
   // Helper to show/hide optional rows
   function setInfoField(rowId, elId, val, href){
@@ -3661,6 +3692,7 @@ function openEditProfile(){
   document.getElementById('epTW').value = window.CU.social_tw||'';
   document.getElementById('epWeb').value = window.CU.social_web||'';
   om('mEditProfile');
+  setTimeout(setupBioLimit,50);
 }
 
 async function changeCover(input){
@@ -5698,6 +5730,7 @@ async function openUserProfile(uid, nick){
 }
 
 async function _loadUserProfilePage(uid, nick){
+  if(!window._anonMode) registerProfileVisit(uid);
   // Reset
   const nameEl = document.getElementById('upName');
   if(nameEl) nameEl.textContent = nick || '...';
@@ -6205,6 +6238,7 @@ function renderMessengerList(){
 
 function openChatWith(uid, nick){
   if(!uid||!window.CU){ toast('Iniciá sesión primero','err'); return; }
+  tryApplyChatGold(uid);
   _chatUserId = uid;
   _chatUserNick = nick;
 
@@ -6273,7 +6307,7 @@ function openChatWith(uid, nick){
       const el = document.getElementById('chatMessages');
       if(!el) return;
       const msgs = snap.docs.map(d=>({id:d.id,...d.data()}));
-      const CHAT_RXNS = ['👍','❤️','😂','😮','😢','🔥','🎣'];
+      const CHAT_RXNS = window.CU?.verified ? ['👍','❤️','😂','😮','😢','🔥','🎣','🏅','🎖️','👑'] : ['👍','❤️','😂','😮','😢','🔥','🎣'];
       el.innerHTML = msgs.length
         ? msgs.map(m=>{
             const mine = m.uid === window.CU.id;
@@ -7319,6 +7353,8 @@ const _expose = {
   reportPost,submitReport,
   loadAdminData,deleteAdminPost,resolveReport,
   requestVerification, loadVerifRequests, adminApproveVerif, adminRejectVerif, adminRevokeVerif,
+  launchGoldConfetti, applyVerifStoryRings, tryApplyChatGold,
+  pinPost, unpinPost, toggleAnonMode, registerProfileVisit, loadProfileVisitors, setupBioLimit,
   _startVerifParticles, _stopVerifParticles,
   _svRegisterView, svToggleViewersList, _renderViewersList,
   swUpTab, _loadUserProfilePage, _startVerifParticlesEl,
@@ -7342,6 +7378,159 @@ const _expose = {
   loadXPLevels, saveXPLevels, addXPLevelRow, renderXPLevelsAdmin,
   listenTrofeosFeed, filterTrofeoFeed, renderTrofeosFeed, trofeoFeedCardHTML, renderTrofeoSidebar
 };
+
+// ╔══════════════════════════════════════════╗
+// ║   EXCLUSIVOS VERIFICADOS — RF4 LATAM     ║
+// ╚══════════════════════════════════════════╝
+window._anonMode = false;
+
+function launchGoldConfetti(){
+  const cols=['#ffd700','#ffec6e','#ffa500','#fff8dc','#fffacd','#ff8c00'];
+  for(let i=0;i<60;i++){
+    const el=document.createElement('div');
+    el.style.cssText='position:fixed;z-index:99999;pointer-events:none;border-radius:2px;'
+      +'left:'+Math.random()*100+'vw;top:-12px;'
+      +'width:'+(5+Math.random()*7)+'px;height:'+(5+Math.random()*7)+'px;'
+      +'background:'+cols[Math.floor(Math.random()*cols.length)]+';'
+      +(Math.random()>.5?'border-radius:50%;':'')
+      +'animation:goldFall '+(1.1+Math.random()*.9)+'s ease-in '+(Math.random()*.5)+'s forwards;';
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),2600);
+  }
+}
+
+function applyVerifStoryRings(){
+  const row=document.getElementById('storiesRow');
+  if(!row)return;
+  const cards=row.querySelectorAll('.story-card');
+  cards.forEach((card,i)=>{
+    const s=_stories[i];
+    if(s&&s.userVerified){card.classList.add('story-verif');}
+    else{card.classList.remove('story-verif');}
+  });
+}
+
+async function tryApplyChatGold(uid){
+  try{
+    const snap=await getDoc(doc(db,'users',uid));
+    const theyV=snap.exists()&&snap.data().verified;
+    const meV=!!window.CU?.verified;
+    let tries=0;
+    const go=()=>{
+      tries++;
+      const win=document.getElementById('chatWindow');
+      if(!win){if(tries<10)setTimeout(go,200);return;}
+      document.getElementById('chatVerifBanner')?.remove();
+      if(theyV&&meV){
+        win.classList.add('chat-gold-bg');
+        const hdr=win.querySelector('div');
+        if(hdr)hdr.classList.add('chat-gold-header');
+        const b=document.createElement('div');
+        b.id='chatVerifBanner';
+        b.style.cssText='text-align:center;padding:5px;font-size:.65rem;font-weight:800;letter-spacing:.08em;color:gold;background:linear-gradient(90deg,transparent,rgba(255,215,0,.1),transparent);border-bottom:1px solid rgba(255,215,0,.12);flex-shrink:0;';
+        b.textContent='✨  Chat entre cuentas verificadas  ✨';
+        const msgs=document.getElementById('chatMessages');
+        if(msgs)win.insertBefore(b,msgs);else win.appendChild(b);
+      } else {
+        win.classList.remove('chat-gold-bg');
+        const hdr=win.querySelector('div');
+        if(hdr)hdr.classList.remove('chat-gold-header');
+      }
+    };
+    setTimeout(go,300);
+  }catch(e){}
+}
+
+async function pinPost(postId){
+  if(!window.CU?.verified){toast('Solo cuentas verificadas pueden fijar posts ✅','inf');return;}
+  try{
+    await updateDoc(doc(db,'users',window.CU.id),{pinnedPostId:postId});
+    window.CU.pinnedPostId=postId;
+    toast('📌 Post fijado en tu perfil','ok');
+    if(typeof renderProfileFeed==='function')renderProfileFeed();
+  }catch(e){toast('Error al fijar','err');}
+}
+async function unpinPost(){
+  try{
+    await updateDoc(doc(db,'users',window.CU.id),{pinnedPostId:''});
+    window.CU.pinnedPostId='';
+    toast('Post desfijado','ok');
+    if(typeof renderProfileFeed==='function')renderProfileFeed();
+  }catch(e){}
+}
+
+function toggleAnonMode(){
+  if(!window.CU?.verified){toast('Solo cuentas verificadas pueden usar modo anónimo ✅','inf');return;}
+  window._anonMode=!window._anonMode;
+  const btn=document.getElementById('btnAnonMode');
+  if(btn){
+    btn.textContent=window._anonMode?'👻 Anónimo: ON':'👻 Modo anónimo';
+    btn.style.color=window._anonMode?'gold':'';
+    btn.style.borderColor=window._anonMode?'rgba(255,215,0,.4)':'';
+    btn.style.background=window._anonMode?'rgba(255,215,0,.08)':'';
+  }
+  toast(window._anonMode?'👻 Modo anónimo activado — nadie ve que visitás perfiles':'👻 Modo anónimo desactivado','ok');
+}
+
+async function registerProfileVisit(uid){
+  if(!window.CU||!uid||uid===window.CU.id||window._anonMode)return;
+  try{
+    await setDoc(doc(db,'profileVisits',uid+'__'+window.CU.id),{
+      visitedId:uid,visitorId:window.CU.id,
+      visitorNick:window.CU.nick,visitorAv:window.CU.av||'',
+      time:Date.now()
+    });
+  }catch(e){}
+}
+
+async function loadProfileVisitors(){
+  if(!window.CU?.verified)return;
+  const card=document.getElementById('profVisitorsCard');
+  const list=document.getElementById('profVisitorsList');
+  if(!card||!list)return;
+  card.style.display='block';
+  try{
+    const q=query(collection(db,'profileVisits'),where('visitedId','==',window.CU.id));
+    const snap=await getDocs(q);
+    const visitors=snap.docs.map(d=>d.data())
+      .filter(v=>v.visitorId!==window.CU.id)
+      .sort((a,b)=>(b.time||0)-(a.time||0)).slice(0,10);
+    if(!visitors.length){list.innerHTML='<span style="font-size:.75rem;color:var(--muted);">Nadie visitó tu perfil aún 👀</span>';return;}
+    list.innerHTML=visitors.map(v=>{
+      const av=v.visitorAv
+        ?`<img src="${v.visitorAv}" style="width:100%;height:100%;object-fit:cover;">`
+        :`<span style="font-size:.8rem;font-weight:700;color:var(--accent);">${(v.visitorNick||'?')[0].toUpperCase()}</span>`;
+      const fecha=v.time?new Date(v.time).toLocaleDateString('es-AR',{day:'2-digit',month:'short'}):'';
+      return `<div onclick="openUserProfile('${v.visitorId}','${(v.visitorNick||'').replace(/'/g,"&apos;")}')" style="display:flex;align-items:center;gap:9px;padding:6px 2px;border-bottom:1px solid var(--border);cursor:pointer;border-radius:4px;transition:background .15s;" onmouseover="this.style.background='rgba(255,215,0,.06)'" onmouseout="this.style.background=''">
+        <div style="width:30px;height:30px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid rgba(255,215,0,.3);flex-shrink:0;">${av}</div>
+        <div style="flex:1;min-width:0;font-size:.78rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${v.visitorNick||'?'}</div>
+        <div style="font-size:.62rem;color:var(--muted);flex-shrink:0;">${fecha}</div>
+      </div>`;
+    }).join('');
+  }catch(e){list.innerHTML='<span style="font-size:.72rem;color:var(--muted);">Error al cargar</span>';}
+}
+
+function setupBioLimit(){
+  const bio=document.getElementById('epBio');
+  if(!bio)return;
+  if(window.CU?.verified){
+    bio.removeAttribute('maxlength');
+    bio.placeholder='Tu bio sin límite ✅ (cuenta verificada)';
+    document.getElementById('_bioCounter')?.remove();
+  } else {
+    bio.maxLength=150;
+    bio.placeholder='Cuéntanos sobre tu experiencia... (máx 150)';
+    if(!document.getElementById('_bioCounter')){
+      const ctr=document.createElement('div');
+      ctr.id='_bioCounter';
+      ctr.style.cssText='font-size:.64rem;color:var(--muted);text-align:right;margin-top:2px;';
+      ctr.textContent=(bio.value.length)+'/150';
+      bio.parentNode.appendChild(ctr);
+      bio.addEventListener('input',()=>{ctr.textContent=bio.value.length+'/150';});
+    }
+  }
+}
+
 Object.entries(_expose).forEach(([k,v])=>{ window[k]=v; });
 // Replay any calls that happened before module loaded
 if(window._q) window._q.forEach(([name,args])=>{ if(window[name]) window[name](...args); });
