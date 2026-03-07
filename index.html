@@ -4933,7 +4933,25 @@ function renderProfile(){
   const shopTab = document.getElementById('ptShopTab');
   if(shopTab) shopTab.style.display = 'block'; // visible para todos
   // Cover
-  if(window.CU.cover){ document.getElementById('profCover').style.backgroundImage=`url(${window.CU.cover})`; document.getElementById('profCover').style.backgroundSize='cover'; document.getElementById('profCoverInner').style.display='none'; }
+  // Cover
+  if(window.CU.cover){
+    const coverEl = document.getElementById('profCover');
+    const coverInner = document.getElementById('profCoverInner');
+    // Use quoted URL to handle special chars (%2F, ?, & etc in Firebase Storage URLs)
+    coverEl.style.backgroundImage = `url("${window.CU.cover}")`;
+    coverEl.style.backgroundSize = 'cover';
+    coverEl.style.backgroundPosition = 'center';
+    if(coverInner) coverInner.style.display = 'none';
+    // Also inject an <img> as backup so the image always renders
+    let _coverImg = coverEl.querySelector('img.cover-bg-img');
+    if(!_coverImg){
+      _coverImg = document.createElement('img');
+      _coverImg.className = 'cover-bg-img';
+      _coverImg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:0;pointer-events:none;';
+      coverEl.insertBefore(_coverImg, coverEl.firstChild);
+    }
+    _coverImg.src = window.CU.cover;
+  }
   renderProfileFeed();
 }
 
@@ -5069,6 +5087,18 @@ async function changeCover(input){
       likes:0, comments:[], reactions:{}, reactionCounts:{}
     });
   } catch(e){ console.warn('cover post err',e); }
+  // Apply cover immediately with the fixed method (quoted URL + img fallback)
+  const coverEl = document.getElementById('profCover');
+  if(coverEl){
+    coverEl.style.backgroundImage = `url("${url}")`;
+    coverEl.style.backgroundSize = 'cover';
+    coverEl.style.backgroundPosition = 'center';
+    const coverInner = document.getElementById('profCoverInner');
+    if(coverInner) coverInner.style.display = 'none';
+    let _ci = coverEl.querySelector('img.cover-bg-img');
+    if(!_ci){ _ci = document.createElement('img'); _ci.className='cover-bg-img'; _ci.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:0;pointer-events:none;'; coverEl.insertBefore(_ci, coverEl.firstChild); }
+    _ci.src = url;
+  }
   renderProfile(); toast('Portada actualizada ✅','ok');
 }
 async function changeAvatar(input){
@@ -5966,94 +5996,10 @@ function doSearch(val){
 // ===== LIGHTBOX =====
 function openImgLightbox(src){
   const lb = document.createElement('div');
-  lb.style.cssText='position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;';
-
-  // Action buttons (only when logged in)
-  const actionsHTML = window.CU ? `
-    <div id="_lbActions" style="display:flex;gap:10px;padding:14px 16px;flex-wrap:wrap;justify-content:center;" onclick="event.stopPropagation()">
-      <button onclick="setImgAsAvatar('${src}')" style="
-        display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:100px;
-        background:rgba(46,196,182,.15);border:1px solid rgba(46,196,182,.4);
-        color:#2ec4b6;font-family:'Exo 2',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;
-        transition:all .18s;" onmouseover="this.style.background='rgba(46,196,182,.28)'" onmouseout="this.style.background='rgba(46,196,182,.15)'">
-        👤 Usar como foto de perfil
-      </button>
-      <button onclick="setImgAsCover('${src}')" style="
-        display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:100px;
-        background:rgba(232,196,106,.12);border:1px solid rgba(232,196,106,.35);
-        color:#e8c46a;font-family:'Exo 2',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;
-        transition:all .18s;" onmouseover="this.style.background='rgba(232,196,106,.25)'" onmouseout="this.style.background='rgba(232,196,106,.12)'">
-        🖼️ Usar como portada
-      </button>
-      <button onclick="this.closest('#_lbWrap').querySelector('a').click()" style="
-        display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:100px;
-        background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);
-        color:#aaa;font-family:'Exo 2',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;
-        transition:all .18s;" onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
-        ⬇️ Descargar
-      </button>
-    </div>` : '';
-
-  lb.innerHTML = `
-    <div id="_lbWrap" style="position:relative;display:flex;flex-direction:column;align-items:center;max-width:98vw;" onclick="event.stopPropagation()">
-      <button onclick="this.closest('[style*=fixed]').remove()" style="
-        position:absolute;top:-44px;right:0;background:rgba(255,255,255,.1);border:none;color:#fff;
-        width:36px;height:36px;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
-        transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">✕</button>
-      <img src="${src}" style="max-width:95vw;max-height:78vh;object-fit:contain;border-radius:10px;display:block;">
-      <a href="${src}" download style="display:none"></a>
-      ${actionsHTML}
-    </div>`;
-
-  lb.onclick = () => lb.remove();
+  lb.style.cssText='position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.95);display:flex;align-items:center;justify-content:center;cursor:zoom-out';
+  lb.innerHTML=`<img src="${src}" style="max-width:95vw;max-height:95vh;object-fit:contain;border-radius:8px">`;
+  lb.onclick=()=>lb.remove();
   document.body.appendChild(lb);
-}
-
-async function setImgAsAvatar(url){
-  if(!window.CU){ toast('Iniciá sesión primero','err'); return; }
-  // Close lightbox
-  document.querySelectorAll('div[style*="position:fixed"][style*="z-index:9000"]').forEach(el=>el.remove());
-  toast('Actualizando foto de perfil...','inf');
-  try{
-    window.CU.av = url;
-    await updateDoc(doc(db,'users',window.CU.id),{av:url});
-    const sp = document.getElementById('storyAddPhoto');
-    if(sp) sp.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;">`;
-    try{
-      await addDoc(collection(db,'posts'),{
-        userId:window.CU.id, userNick:window.CU.nick, userAv:url,
-        userXp:window.CU.xp||0, userVerified:window.CU.verified||false,
-        text:`🖼️ ${window.CU.nick} actualizó su foto de perfil.`,
-        images:[url], profileAction:'avatar',
-        fish:'', weight:0, map:'', tech:'', video:'', link:null,
-        time:serverTimestamp(), likes:0, comments:[], reactions:{}, reactionCounts:{}
-      });
-    }catch(e){}
-    updateNavUI(); renderProfile();
-    toast('✅ Foto de perfil actualizada','ok');
-  }catch(e){ toast('Error al actualizar','err'); }
-}
-
-async function setImgAsCover(url){
-  if(!window.CU){ toast('Iniciá sesión primero','err'); return; }
-  document.querySelectorAll('div[style*="position:fixed"][style*="z-index:9000"]').forEach(el=>el.remove());
-  toast('Actualizando portada...','inf');
-  try{
-    window.CU.cover = url;
-    await updateDoc(doc(db,'users',window.CU.id),{cover:url});
-    try{
-      await addDoc(collection(db,'posts'),{
-        userId:window.CU.id, userNick:window.CU.nick, userAv:window.CU.av||'',
-        userXp:window.CU.xp||0, userVerified:window.CU.verified||false,
-        text:`📸 ${window.CU.nick} actualizó su foto de portada.`,
-        images:[url], profileAction:'cover',
-        fish:'', weight:0, map:'', tech:'', video:'', link:null,
-        time:serverTimestamp(), likes:0, comments:[], reactions:{}, reactionCounts:{}
-      });
-    }catch(e){}
-    renderProfile();
-    toast('✅ Portada actualizada','ok');
-  }catch(e){ toast('Error al actualizar','err'); }
 }
 
 // ===== REPORT =====
@@ -10558,7 +10504,7 @@ const _expose = {
   insertEmoji,insertFishTag,openEmojiPicker,insertEmojiChar,
   toggleComments,sharePost,
   reactCmt,editCmt,delCmt,quickCmtRxn,replyCmt,toggleReplies,
-  openImgLightbox,setImgAsAvatar,setImgAsCover,swPTab,filterShopCat,toggleEquipItem,
+  openImgLightbox,swPTab,filterShopCat,toggleEquipItem,
   showRxnPop,schedHideRxnPop,cancelHideRxnPop,
   openSV,closeSV,svNav,reactStory,reportStory,submitStoryComment,deleteMyStory,
   doSearch,
