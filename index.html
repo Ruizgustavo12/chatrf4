@@ -672,13 +672,14 @@ select.fi option{background:#fff;}
       <!-- PEZ DE LA SEMANA -->
 
 
-      <!-- PUBLICACIONES SUGERIDAS -->
-      <div id="suggestedPostsWidget" style="margin-bottom:14px;background:#fff;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+      <!-- CONECTADOS -->
+      <div style="margin-bottom:14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);">
-          <span style="font-size:.8rem;font-weight:700;">📢 Publicaciones populares</span>
-          <span style="font-size:.7rem;color:var(--accent);cursor:pointer;font-weight:600;" onclick="renderSuggestedPosts()">↻</span>
+          <span style="font-size:.8rem;font-weight:700;">🟢 Conectados <span id="sidebarOnlineCount" style="background:var(--green);color:#fff;border-radius:100px;font-size:.6rem;font-weight:700;padding:1px 6px;margin-left:4px;">0</span></span>
         </div>
-        <div id="suggestedPostsList" style="padding:8px 10px;"><div style="font-size:.75rem;color:var(--muted);padding:4px;">Cargando...</div></div>
+        <div id="sidebarOnlineList" style="padding:6px;max-height:280px;overflow-y:auto;">
+          <div style="font-size:.75rem;color:var(--muted);padding:6px 4px;">Cargando...</div>
+        </div>
       </div>
       <div class="divider"></div>
       <!-- PERFILES SUGERIDOS ALEATORIOS EN SIDEBAR RIGHT -->
@@ -757,6 +758,7 @@ select.fi option{background:#fff;}
           <div id="upLevel" style="margin-top:5px;"></div>
           <div id="upBio" style="font-size:.82rem;color:var(--muted);margin-top:3px;"></div>
           <div id="upMeta" style="font-size:.75rem;color:var(--muted);margin-top:2px;"></div>
+          <div id="upLastSeen" style="margin-top:3px;"></div>
         </div>
         <div id="upActions" style="display:flex;gap:8px;flex-wrap:wrap;padding-bottom:8px;"></div>
       </div>
@@ -6283,6 +6285,28 @@ async function _loadUserProfilePage(uid, nick){
     document.getElementById('upBio').textContent = u.bio||'';
     const meta = [u.country, u.favFish?'🎣 '+u.favFish:'', u.favMap?'📍 '+u.favMap:''].filter(Boolean).join(' · ');
     document.getElementById('upMeta').textContent = meta;
+    // ── ÚLTIMA CONEXIÓN ──
+    const lastSeenEl = document.getElementById('upLastSeen');
+    if(lastSeenEl){
+      // Check presence collection for real-time last seen
+      try {
+        const presSnap = await getDoc(doc(db,'presence',uid));
+        if(presSnap.exists()){
+          const ts = presSnap.data().last?.toMillis?.() || 0;
+          const now = Date.now();
+          const isOnline = now - ts < 120000;
+          if(isOnline){
+            lastSeenEl.innerHTML = '<span style="color:var(--green);font-size:.72rem;">● En línea ahora</span>';
+          } else if(ts){
+            lastSeenEl.innerHTML = '<span style="color:var(--muted);font-size:.72rem;">🕐 '+fmtLastSeen(ts)+'</span>';
+          } else {
+            lastSeenEl.innerHTML = '<span style="color:var(--muted);font-size:.72rem;">🕐 Sin datos</span>';
+          }
+        } else {
+          lastSeenEl.innerHTML = '<span style="color:var(--muted);font-size:.72rem;">🕐 Sin datos</span>';
+        }
+      } catch(e){ lastSeenEl.innerHTML=''; }
+    }
 
     // ── STATS ──
     const userPosts = _posts.filter(p=>p.userId===uid);
@@ -6536,13 +6560,71 @@ async function startPresence(){
 function listenPresence(){
   onSnapshot(collection(db,'presence'), snap=>{
     const now = Date.now();
-    const online = snap.docs
-      .map(d=>({id:d.id,...d.data(),ts:d.data().last?.toMillis?.()||0}))
-      .filter(u=>now - u.ts < 120000); // online = active in last 2 min
+    const all = snap.docs.map(d=>({id:d.id,...d.data(),ts:d.data().last?.toMillis?.()||0}));
+    const online = all.filter(u=>now - u.ts < 120000);
+    const offline = all.filter(u=>now - u.ts >= 120000 && u.ts > 0)
+      .sort((a,b)=>b.ts-a.ts).slice(0,8); // últimos 8 desconectados recientes
     renderContacts(online);
-    const countEl = document.getElementById('onlineCount');
-    if(countEl) countEl.textContent = online.length;
+    // Update sidebar online count badges
+    document.querySelectorAll('#onlineCount,#sidebarOnlineCount').forEach(el=>{ if(el) el.textContent=online.length; });
+    renderSidebarOnline(online, offline);
   });
+}
+
+function fmtLastSeen(ts){
+  if(!ts) return 'Desconocido';
+  const diff = Date.now() - ts;
+  const min = Math.floor(diff/60000);
+  const h = Math.floor(diff/3600000);
+  const d = Math.floor(diff/86400000);
+  if(min < 2) return 'Hace un momento';
+  if(min < 60) return 'Hace '+min+' min';
+  if(h < 24) return 'Hace '+h+'h';
+  return 'Hace '+d+' día'+(d>1?'s':'');
+}
+
+function renderSidebarOnline(online, offline){
+  const el = document.getElementById('sidebarOnlineList');
+  if(!el) return;
+  const myId = window.CU?.id;
+  const onlineFiltered = online.filter(u=>u.id !== myId);
+  let html = '';
+  if(onlineFiltered.length){
+    html += onlineFiltered.map(u=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:5px 4px;border-radius:6px;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''" onclick="openUserProfile('${u.id}','${esc(u.nick||'')}')">
+        <div style="position:relative;flex-shrink:0;">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--accent);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#fff;">
+            ${u.av?`<img src="${u.av}" style="width:100%;height:100%;object-fit:cover;">`:(u.nick||'?')[0].toUpperCase()}
+          </div>
+          <div style="position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:var(--green);border:2px solid var(--bg2);"></div>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:.78rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(u.nick||'')}</div>
+          <div style="font-size:.65rem;color:var(--green);">● En línea</div>
+        </div>
+        <button onclick="event.stopPropagation();openChatWith('${u.id}','${esc(u.nick||'')}')" style="background:none;border:none;font-size:.85rem;cursor:pointer;color:var(--accent);padding:2px 4px;" title="Mensaje">💬</button>
+      </div>`).join('');
+  }
+  if(offline.length){
+    if(onlineFiltered.length) html += `<div style="font-size:.65rem;color:var(--muted);padding:6px 4px 2px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">Última conexión</div>`;
+    html += offline.map(u=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:5px 4px;border-radius:6px;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''" onclick="openUserProfile('${u.id}','${esc(u.nick||'')}')">
+        <div style="position:relative;flex-shrink:0;">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--bg4);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--muted);">
+            ${u.av?`<img src="${u.av}" style="width:100%;height:100%;object-fit:cover;filter:grayscale(.4);">`:(u.nick||'?')[0].toUpperCase()}
+          </div>
+          <div style="position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:#bcc0c4;border:2px solid var(--bg2);"></div>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:.78rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(u.nick||'')}</div>
+          <div style="font-size:.65rem;color:var(--muted);">${fmtLastSeen(u.ts)}</div>
+        </div>
+      </div>`).join('');
+  }
+  if(!onlineFiltered.length && !offline.length){
+    html = `<div style="text-align:center;padding:16px 8px;color:var(--muted);font-size:.75rem;">🎣 Nadie conectado</div>`;
+  }
+  el.innerHTML = html;
 }
 
 function renderContacts(onlineUsers){
