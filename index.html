@@ -2866,18 +2866,8 @@ function init(){
   onAuthStateChanged(auth, async user => {
     const splash = document.getElementById('splashScreen');
     if (user) {
-      // Timeout de seguridad: si Firestore tarda mas de 8s, igual dejamos entrar
-      const safeTimeout = setTimeout(() => {
-        if(splash) splash.style.display = 'none';
-        if(!window.CU) {
-          window.CU = {id: user.uid, email: user.email, nick: user.displayName || user.email.split('@')[0], av: user.photoURL || ''};
-          document.getElementById('mAuth').style.display = 'none';
-          onLogin();
-        }
-      }, 8000);
       try {
         const snap = await getDoc(doc(db, 'users', user.uid));
-        clearTimeout(safeTimeout);
         if (snap.exists()) {
           window.CU = {id: user.uid, ...snap.data()};
           document.getElementById('mAuth').style.display = 'none';
@@ -2888,8 +2878,6 @@ function init(){
           document.getElementById('mAuth').style.display = 'block';
         }
       } catch(e) {
-        clearTimeout(safeTimeout);
-        console.warn('Auth error:', e);
         if(splash) splash.style.display = 'none';
         document.getElementById('mAuth').style.display = 'block';
       }
@@ -3231,43 +3219,43 @@ const ROUTES = {
   '/chatrf4/': 'home',
   '/chatrf4': 'home',
   '/chatrf4/home': 'home',
-  '/amigos': 'amigos',
-  '/tienda': 'shop',
-  '/trofeos': 'trofeos-feed',
-  '/galeria': 'galeria',
-  '/videos': 'videos',
-  '/spots': 'spots',
-  '/torneos': 'torneos',
-  '/perfil': 'profile',
-  '/buscar-trofeo': 'buscar-trofeo',
-  '/publica-trofeo': 'publica-trofeo',
-  '/carretes': 'carretes',
-  '/parches': 'parches',
-  '/casitrofeo': 'casitrofeo',
-  '/mensajes': 'mensajes',
-  '/notificaciones': 'notificaciones',
-  '/pez-semanal': 'pez-semanal',
+  '/chatrf4/amigos': 'amigos',
+  '/chatrf4/tienda': 'shop',
+  '/chatrf4/trofeos': 'trofeos-feed',
+  '/chatrf4/galeria': 'galeria',
+  '/chatrf4/videos': 'videos',
+  '/chatrf4/spots': 'spots',
+  '/chatrf4/torneos': 'torneos',
+  '/chatrf4/perfil': 'profile',
+  '/chatrf4/buscar-trofeo': 'buscar-trofeo',
+  '/chatrf4/publica-trofeo': 'publica-trofeo',
+  '/chatrf4/carretes': 'carretes',
+  '/chatrf4/parches': 'parches',
+  '/chatrf4/casitrofeo': 'casitrofeo',
+  '/chatrf4/mensajes': 'mensajes',
+  '/chatrf4/notificaciones': 'notificaciones',
+  '/chatrf4/pez-semanal': 'pez-semanal',
 };
 
 // Map page IDs to clean URLs
 const PAGE_TO_URL = {
   'home': '/chatrf4/',
-  'amigos': '/amigos',
-  'shop': '/tienda',
-  'trofeos-feed': '/trofeos',
-  'galeria': '/galeria',
-  'videos': '/videos',
-  'spots': '/spots',
-  'torneos': '/torneos',
-  'profile': '/perfil',
-  'buscar-trofeo': '/buscar-trofeo',
-  'publica-trofeo': '/publica-trofeo',
-  'carretes': '/carretes',
-  'parches': '/parches',
-  'casitrofeo': '/casitrofeo',
-  'mensajes': '/mensajes',
-  'notificaciones': '/notificaciones',
-  'pez-semanal': '/pez-semanal',
+  'amigos': '/chatrf4/amigos',
+  'shop': '/chatrf4/tienda',
+  'trofeos-feed': '/chatrf4/trofeos',
+  'galeria': '/chatrf4/galeria',
+  'videos': '/chatrf4/videos',
+  'spots': '/chatrf4/spots',
+  'torneos': '/chatrf4/torneos',
+  'profile': '/chatrf4/perfil',
+  'buscar-trofeo': '/chatrf4/buscar-trofeo',
+  'publica-trofeo': '/chatrf4/publica-trofeo',
+  'carretes': '/chatrf4/carretes',
+  'parches': '/chatrf4/parches',
+  'casitrofeo': '/chatrf4/casitrofeo',
+  'mensajes': '/chatrf4/mensajes',
+  'notificaciones': '/chatrf4/notificaciones',
+  'pez-semanal': '/chatrf4/pez-semanal',
 };
 
 function navigateTo(id, pushState = true) {
@@ -3281,17 +3269,17 @@ function navigateTo(id, pushState = true) {
 window.addEventListener('popstate', (e) => {
   const path = window.location.pathname;
   // Close overlays if navigating away
-  if(path !== '/mensajes' && !path.startsWith('/mensajes/')) {
+  if(path !== '/chatrf4/mensajes' && !path.startsWith('/chatrf4/mensajes/')) {
     const msg = document.getElementById('mMessenger');
     if(msg && msg.classList.contains('open')) msg.classList.remove('open');
   }
-  if(path !== '/notificaciones') {
+  if(path !== '/chatrf4/notificaciones') {
     const nd = document.getElementById('mNotif');
     if(nd) nd.style.display = 'none';
   }
   // Handle user profile URLs
-  if(path.startsWith('/u/')) {
-    const nickSlug = path.slice(3);
+  if(path.startsWith('/chatrf4/u/')) {
+    const nickSlug = path.slice('/chatrf4/u/'.length);
     // Try to find user by nick slug
     if(window.CU) {
       window.gp('userprofile', false);
@@ -3302,18 +3290,18 @@ window.addEventListener('popstate', (e) => {
     }
     return;
   }
-  if(path.startsWith('/mensajes/')) {
+  if(path.startsWith('/chatrf4/mensajes/')) {
     const msgEl = document.getElementById('mMessenger');
     if(msgEl) { om('mMessenger'); renderMessengerList(); }
     if(e.state && e.state.chatUid) openChatWith(e.state.chatUid, e.state.chatNick||'');
     return;
   }
-  if(path === '/mensajes') {
+  if(path === '/chatrf4/mensajes') {
     const msgEl = document.getElementById('mMessenger');
     if(msgEl) { om('mMessenger'); renderMessengerList(); }
     return;
   }
-  if(path === '/notificaciones') {
+  if(path === '/chatrf4/notificaciones') {
     openNotifDropdown();
     return;
   }
@@ -5688,7 +5676,7 @@ async function renderProfileFriendsList(userId) {
       const addBtn = (!isMe && !alreadyFriend)
         ? `<button onclick="sendFriendRequest('${fid}','${(f.nick||'').replace(/'/g,"\'")}','profile')" style="margin-top:6px;width:100%;padding:5px;background:var(--accent);border:none;border-radius:var(--rs);color:#000;font-size:.72rem;font-weight:700;cursor:pointer;">+ Agregar</button>`
         : alreadyFriend && !isMe ? `<div style="margin-top:6px;font-size:.7rem;color:var(--green);text-align:center;font-weight:700;">✓ Amigos</div>` : '';
-      return `<div onclick="openUserProfile('${fid}','${(f.nick||'').replace(/'/g,"\'")}');event.stopPropagation();" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center;cursor:pointer;transition:border-color .2s;" >
+      return `<div onclick="openUserProfile('${fid}','${(f.nick||'').replace(/'/g,"\'")}');event.stopPropagation();" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center;cursor:pointer;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
         <div style="width:48px;height:48px;border-radius:50%;background:var(--bg4);border:2px solid var(--accent);margin:0 auto 8px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;">
           ${f.av?`<img src="${f.av}" style="width:100%;height:100%;object-fit:cover;">`:(f.nick||'?')[0].toUpperCase()}
         </div>
@@ -6595,7 +6583,7 @@ async function loadGroups(){
     const isMember = Array.isArray(g.members) && g.members.includes(uid);
     const isOwner = g.ownerId === uid;
     return `
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .2s;" >
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
       <div style="height:100px;background:linear-gradient(135deg,var(--bg3),var(--bg4));overflow:hidden;display:flex;align-items:center;justify-content:center;">
         ${g.img?`<img src="${g.img}" style="width:100%;height:100%;object-fit:cover">`:`<div style="font-size:2.5rem;">🎣</div>`}
       </div>
@@ -7894,7 +7882,7 @@ async function sendShopAnnouncementToAll(){
 // ===== USER PROFILE MODAL =====
 async function openUserProfile(uid, nick){
   // Si es el propio usuario, va al perfil propio
-  if(uid && uid === window.CU?.id){ gp('profile'); history.pushState({page:'profile'}, '', '/perfil'); return; }
+  if(uid && uid === window.CU?.id){ gp('profile'); history.pushState({page:'profile'}, '', '/chatrf4/perfil'); return; }
   // Si no hay uid, busca por nick
   if(!uid && nick){
     try {
@@ -7906,7 +7894,7 @@ async function openUserProfile(uid, nick){
   if(!uid){ toast('Usuario no encontrado','err'); return; }
   // Push URL /u/nick
   const safeNick = (nick||'usuario').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
-  history.pushState({page:'userprofile', uid, nick}, '', '/u/' + safeNick);
+  history.pushState({page:'userprofile', uid, nick}, '', '/chatrf4/u/' + safeNick);
   // Navega a la página de perfil
   gp('userprofile', false);
   _loadUserProfilePage(uid, nick||'');
@@ -8139,7 +8127,7 @@ async function _loadUserProfilePage(uid, nick){
         const isMe = window.CU?.id===fid;
         const alrFriend = myF.includes(fid);
         const addBtn = (!isMe && !alrFriend) ? `<button onclick="sendFriendRequest('${fid}','${(f.nick||'').replace(/'/g,"\'")}','page');event.stopPropagation();" style="margin-top:5px;width:100%;padding:4px;background:var(--accent);border:none;border-radius:var(--rs);color:#000;font-size:.65rem;font-weight:700;cursor:pointer;">+ Agregar</button>` : alrFriend&&!isMe?`<div style="margin-top:5px;font-size:.65rem;color:var(--green);text-align:center;font-weight:700;">✓ Amigos</div>`:'';
-        return `<div onclick="openUserProfile('${fid}','${(f.nick||'').replace(/'/g,"\'")}');" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center;cursor:pointer;transition:border-color .2s;" >
+        return `<div onclick="openUserProfile('${fid}','${(f.nick||'').replace(/'/g,"\'")}');" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center;cursor:pointer;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
           <div style="width:44px;height:44px;border-radius:50%;background:var(--bg4);margin:0 auto 6px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;${f.verified?'border:2px solid gold;':'border:1px solid var(--border);'}">
             ${f.av?`<img src="${f.av}" style="width:100%;height:100%;object-fit:cover;">`:(f.nick||'?')[0].toUpperCase()}
           </div>
@@ -8569,7 +8557,7 @@ function openMessenger(){
   _messengerOpen = true;
   om('mMessenger');
   renderMessengerList();
-  if(window.location.pathname !== '/mensajes') history.pushState({page:'mensajes'}, '', '/mensajes');
+  if(window.location.pathname !== '/chatrf4/mensajes') history.pushState({page:'mensajes'}, '', '/chatrf4/mensajes');
   // Marcar todas las notifs 💬 como leídas al abrir el messenger
   let changed = false;
   _notifs.forEach(n=>{ if(n.text?.startsWith('💬') && !n.read){ n.read=true; changed=true; } });
@@ -8586,7 +8574,7 @@ function closeMessenger(){
   const el = document.getElementById('mMessenger');
   if(el) el.classList.remove('open');
   document.getElementById('chatBubbleMin').style.display='none';
-  if(window.location.pathname.startsWith('/mensajes')) history.pushState({page:'home'}, '', '/');
+  if(window.location.pathname.startsWith('/chatrf4/mensajes')) history.pushState({page:'home'}, '', '/chatrf4/');
 }
 
 function minimizeMessenger(){
@@ -8885,7 +8873,7 @@ function openChatWith(uid, nick){
 
   // Update URL to /mensajes/nick
   const safeNickUrl = (nick||'usuario').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
-  history.pushState({page:'mensajes', chatUid:uid, chatNick:nick}, '', '/mensajes/' + safeNickUrl);
+  history.pushState({page:'mensajes', chatUid:uid, chatNick:nick}, '', '/chatrf4/mensajes/' + safeNickUrl);
 
   // Make sure messenger modal is open
   om('mMessenger');
@@ -9198,7 +9186,7 @@ function backToMessengerList(){
   if(!window.location.pathname.startsWith('/chatrf4/mensajes/') && window.location.pathname !== '/chatrf4/mensajes') {
     // already handled
   } else {
-    history.pushState({page:'mensajes'}, '', '/mensajes');
+    history.pushState({page:'mensajes'}, '', '/chatrf4/mensajes');
   }
   if(_unsubChat){ _unsubChat(); _unsubChat=null; }
   _chatUserId = null;
@@ -10318,20 +10306,6 @@ function filterTrofeoFeed(filter, btn){
 }
 
 // ==== TROFEOS POR MAPA (solo ruizgustavo12) ====
-const FISH_IMGS = {
-  "Asp": "fish/asp.webp", "Bleak": "fish/bleak.webp", "Blue Bream": "fish/blue_bream.webp",
-  "Bream": "fish/bream.webp", "Burbot": "fish/burbot.webp", "Catfish": "fish/catfish.webp",
-  "Chinese Sleeper": "fish/chinese_sleeper.webp", "Chub": "fish/chub.webp",
-  "Common Carp": "fish/common_carp.webp", "Common Roach": "fish/common_roach.webp",
-  "Crucian Carp": "fish/crucian_carp.webp", "Dace": "fish/dace.webp",
-  "Donets Ruffe": "fish/donets_ruffe.webp", "Freshwater Crayfish": "fish/crayfish.webp",
-  "Frog": "fish/frog.webp", "Gibel Carp": "fish/gibel_carp.webp",
-  "Gudgeon": "fish/gudgeon.webp", "Ide": "fish/ide.webp", "Nase": "fish/nase.webp",
-  "Perch": "fish/perch.webp", "Pike": "fish/pike.webp", "River Mussel": "fish/river_mussel.webp",
-  "Ruffe": "fish/ruffe.webp", "Tench": "fish/tench.webp", "Volga Zander": "fish/volga_zander.webp",
-  "White Bream": "fish/white_bream.webp", "White-eye Bream": "fish/whiteeye_bream.webp",
-  "Zander": "fish/zander.webp", "Zebra Mussel": "fish/zebra_mussel.webp"
-};
 const TROFEOS_MAPA_DATA = {
   bindweed: {
     peces: [
@@ -10383,28 +10357,25 @@ function renderTrofMapaContent(){
   if(!data){ el.innerHTML='<div style="color:var(--muted);text-align:center;padding:40px;">Sin datos aun</div>'; return; }
   const q = (document.getElementById('trofMapaBuscar')?.value||'').toLowerCase();
   const peces = q ? data.peces.filter(p=>p.n.toLowerCase().includes(q)) : data.peces;
-  const cards = peces.map(function(p){
-    const img = FISH_IMGS[p.n]||'';
-    const imgH = img ? '<img src="'+img+'" style="width:72px;height:72px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.6));">' : '<div style="width:72px;height:72px;background:var(--bg3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🐟</div>';
-    return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:border-color .2s;" >'
-      + imgH
-      + '<div style="font-size:.78rem;font-weight:700;text-align:center;color:var(--text);">'+p.n+'</div>'
-      + '<div style="width:100%;display:flex;flex-direction:column;gap:3px;">'
-        + '<div style="display:flex;justify-content:space-between;font-size:.7rem;"><span style="color:var(--muted);">🏆 Trophy</span><span style="color:var(--gold);font-weight:700;">'+p.t+'</span></div>'
-        + '<div style="display:flex;justify-content:space-between;font-size:.7rem;"><span style="color:var(--muted);">✨ Rare</span><span style="color:#c084fc;font-weight:700;">'+p.r+'</span></div>'
-      + '</div>'
-    + '</div>';
-  }).join('');
   el.innerHTML =
-    '<div style="margin-bottom:14px;">'
-      + '<input id="trofMapaBuscar" placeholder="Buscar pez..." oninput="renderTrofMapaContent()" value="'+q+'" '
-      + 'style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:8px 16px;color:var(--text);font-size:.82rem;font-family:&quot;Exo 2&quot;,sans-serif;outline:none;box-sizing:border-box;">'
-    + '</div>'
-    + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:16px;">'
-      + cards
-      + (peces.length===0 ? '<div style="text-align:center;padding:32px;color:var(--muted);font-size:.82rem;grid-column:1/-1;">Sin resultados</div>' : '')
-    + '</div>'
-    + '<div style="text-align:right;font-size:.68rem;color:var(--muted);">' + peces.length + ' peces &middot; Fuente: rf4h.ru</div>';
+    '<div style="margin-bottom:14px;">' +
+      '<input id="trofMapaBuscar" placeholder="Buscar pez..." oninput="renderTrofMapaContent()" value="'+q+'" ' +
+      'style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:8px 16px;color:var(--text);font-size:.82rem;font-family:\'Exo 2\',sans-serif;outline:none;box-sizing:border-box;">' +
+    '</div>' +
+    '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;">' +
+      '<div style="display:grid;grid-template-columns:1fr 120px 120px;background:var(--bg3);padding:10px 16px;font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">' +
+        '<div>Pez</div><div style="text-align:center;">Trofeo</div><div style="text-align:center;">Trofeo Raro</div>' +
+      '</div>' +
+      peces.map(function(p,i){
+        return '<div style="display:grid;grid-template-columns:1fr 120px 120px;padding:10px 16px;border-top:1px solid var(--border);align-items:center;' + (i%2===0?'':'background:rgba(255,255,255,.025)') + '">' +
+          '<div style="font-size:.85rem;font-weight:600;">'+p.n+'</div>' +
+          '<div style="text-align:center;font-size:.83rem;color:var(--gold);font-weight:700;">'+p.t+'</div>' +
+          '<div style="text-align:center;font-size:.83rem;color:#c084fc;font-weight:700;">'+p.r+'</div>' +
+        '</div>';
+      }).join('') +
+      (peces.length===0 ? '<div style="text-align:center;padding:32px;color:var(--muted);font-size:.82rem;">Sin resultados</div>' : '') +
+    '</div>' +
+    '<div style="text-align:right;margin-top:8px;font-size:.68rem;color:var(--muted);">' + peces.length + ' peces &middot; Fuente: rf4h.ru</div>';
 }
 window.switchTrofMapaTab = switchTrofMapaTab;
 window.renderTrofMapaContent = renderTrofMapaContent;
@@ -10867,10 +10838,10 @@ function openNotifDropdown(){
   const isMobile = window.innerWidth <= 768;
   // Push URL only when opening (not closing)
   const willOpen = dd.style.display !== 'flex';
-  if(willOpen && window.location.pathname !== '/notificaciones') {
-    history.pushState({page:'notificaciones'}, '', '/notificaciones');
-  } else if(!willOpen && window.location.pathname === '/notificaciones') {
-    history.pushState({page:'home'}, '', '/');
+  if(willOpen && window.location.pathname !== '/chatrf4/notificaciones') {
+    history.pushState({page:'notificaciones'}, '', '/chatrf4/notificaciones');
+  } else if(!willOpen && window.location.pathname === '/chatrf4/notificaciones') {
+    history.pushState({page:'home'}, '', '/chatrf4/');
   }
   if(isMobile){
     // Mobile: full screen panel from top
@@ -10930,7 +10901,7 @@ function closeNotifDropdown(){
   if(dd) dd.style.display = 'none';
   document.body.style.overflow = '';
   document.removeEventListener('click', _notifOutsideClick);
-  if(window.location.pathname === '/notificaciones') history.pushState({page:'home'}, '', '/');
+  if(window.location.pathname === '/chatrf4/notificaciones') history.pushState({page:'home'}, '', '/chatrf4/');
 }
 function toggleNotifDropdown(e){
   e.stopPropagation();
