@@ -654,6 +654,19 @@ select.fi option{background:#fff;}
 .chat-gold-header{border-bottom:1px solid rgba(255,215,0,.25)!important;background:linear-gradient(90deg,rgba(255,215,0,.06),transparent)!important;}
 .pinned-label{display:inline-flex;align-items:center;gap:5px;padding:2px 10px;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);border-radius:100px;font-size:.65rem;font-weight:800;color:gold;margin-bottom:4px;}
 .visitors-card{background:linear-gradient(135deg,rgba(255,215,0,.07),rgba(255,165,0,.03));border:1px solid rgba(255,215,0,.2);border-radius:var(--r);padding:14px;margin-bottom:12px;}
+/* ---- Buscar Trofeo ---- */
+.trof-chip{background:var(--bg3);border:1.5px solid var(--border);color:var(--muted);border-radius:100px;padding:4px 13px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;transition:.15s;}
+.trof-chip:hover{border-color:var(--gold);color:var(--gold);}
+.trof-chip.on{background:rgba(255,215,0,.12);border-color:var(--gold);color:var(--gold);}
+.trof-row{display:grid;grid-template-columns:44px 1fr 44px 130px 130px;gap:0;padding:9px 12px;align-items:center;border-bottom:1px solid rgba(255,255,255,.04);transition:background .12s;cursor:default;}
+.trof-row:last-child{border-bottom:none;}
+.trof-row:hover{background:rgba(255,215,0,.04);}
+.trof-fish-img{width:34px;height:34px;object-fit:contain;border-radius:6px;background:rgba(255,255,255,.04);}
+.trof-name{font-size:.82rem;font-weight:700;color:var(--text);line-height:1.2;}
+.trof-icon{width:28px;height:28px;object-fit:contain;}
+.trof-weight{font-size:.82rem;font-weight:800;color:var(--text);text-align:center;}
+.trof-weight.rare{color:var(--gold);}
+.trof-weight.na{color:var(--muted);font-weight:400;font-size:.72rem;}
 </style>
 </head>
 <body>
@@ -730,6 +743,7 @@ select.fi option{background:#fff;}
       <div class="sl-item" onclick="gp('casitrofeo')"><span class="sl-item-icon">🏅</span> Casi Trofeo</div>
       <div class="sl-item" onclick="gp('trofeos-feed');setNav(document.querySelector('.tb-nav-btn'))"><span class="sl-item-icon">🥇</span> Feed de Trofeos</div>
       <div class="sl-item" onclick="gp('publica-trofeo')"><span class="sl-item-icon">🏆</span> Publica tu Trofeo</div>
+      <div class="sl-item" onclick="gp('buscar-trofeo')"><span class="sl-item-icon">🔍</span> Buscar Trofeo</div>
       <div class="sl-item" onclick="gp('videos');loadVideos()"><span class="sl-item-icon">📹</span> Videos</div>
       <div class="sl-item" onclick="gp('carretes')"><span class="sl-item-icon">🎣</span> Buscar Carretes</div>
       <div class="sl-item"><span class="sl-item-icon">🔖</span> Guardados</div>
@@ -2339,6 +2353,62 @@ select.fi option{background:#fff;}
 
 </div>
 
+
+<!-- ===== BUSCAR TROFEO ===== -->
+<div class="page" id="page-buscar-trofeo" style="max-width:900px;margin:0 auto;padding:20px 12px 80px;">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+    <div>
+      <div style="font-family:'Orbitron',monospace;font-size:1.15rem;font-weight:900;color:var(--gold);">🔍 Buscar Trofeo</div>
+      <div style="font-size:.76rem;color:var(--muted);margin-top:3px;">Pesos mínimos para trofeo en RF4 · <span id="fishCount" style="color:var(--accent);font-weight:700;"></span> especies</div>
+    </div>
+    <button class="btn btn-s" style="font-size:.8rem;" onclick="gp('publica-trofeo')">🏆 Publicar mi Trofeo</button>
+  </div>
+
+  <!-- Search bar -->
+  <div style="position:relative;margin-bottom:14px;">
+    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:1rem;pointer-events:none;">🔍</span>
+    <input id="trofeoSearch" type="text" placeholder="Buscar pez... ej: carpa, siluro, trucha"
+      style="width:100%;box-sizing:border-box;padding:11px 14px 11px 38px;border-radius:var(--r);border:1.5px solid var(--border);background:var(--card);color:var(--text);font-size:.9rem;font-family:'Exo 2',sans-serif;outline:none;"
+      oninput="filterTrofeos(this.value)"
+      onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+    <button onclick="document.getElementById('trofeoSearch').value='';filterTrofeos('');"
+      style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:2px 6px;">✕</button>
+  </div>
+
+  <!-- Filter chips -->
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+    <button class="trof-chip on" onclick="setTrofChip(this,'')">Todos</button>
+    <button class="trof-chip" onclick="setTrofChip(this,'carpa')">🐟 Carpas</button>
+    <button class="trof-chip" onclick="setTrofChip(this,'salmon')">🐠 Salmón</button>
+    <button class="trof-chip" onclick="setTrofChip(this,'esturion')">🦈 Esturiones</button>
+    <button class="trof-chip" onclick="setTrofChip(this,'trucha')">🎣 Truchas</button>
+    <button class="trof-chip" onclick="setTrofChip(this,'tiburon')">🦈 Tiburones</button>
+  </div>
+
+  <!-- Table header -->
+  <div style="display:grid;grid-template-columns:44px 1fr 44px 130px 130px;gap:0;background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.22);border-radius:var(--r) var(--r) 0 0;padding:8px 12px;font-size:.7rem;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;">
+    <div></div>
+    <div>Especie</div>
+    <div></div>
+    <div style="text-align:center;">🥇 Trofeo</div>
+    <div style="text-align:center;">⭐ Trofeo Raro</div>
+  </div>
+
+  <!-- Fish list -->
+  <div id="trofeoList" style="border:1px solid rgba(255,215,0,.18);border-top:none;border-radius:0 0 var(--r) var(--r);overflow:hidden;"></div>
+
+  <!-- No results -->
+  <div id="trofeoNoResults" style="display:none;text-align:center;padding:40px 20px;color:var(--muted);">
+    <div style="font-size:2.5rem;margin-bottom:10px;">🐟</div>
+    <div style="font-weight:700;color:var(--text);">Sin resultados</div>
+    <div style="font-size:.82rem;margin-top:6px;">Intentá con otro nombre o limpiá el filtro</div>
+  </div>
+
+</div>
+<!-- ===== FIN BUSCAR TROFEO ===== -->
+
 <div class="page" id="page-casitrofeo" style="max-width:900px;margin:0 auto;padding:24px 16px 80px;">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
     <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--gold);">🏅 Casi Trofeo</div>
@@ -3073,6 +3143,7 @@ window.gp = id => {
   if(id==='spots'){ loadSpots(); loadFriendSpots(); }
   if(id==='casitrofeo') renderMapPosts();
   if(id==='trofeos-feed') { listenTrofeosFeed(); document.getElementById('trofeoFeedBadge').style.display='inline-flex'; }
+  if(id==='buscar-trofeo') { renderTrofeos(FISH_DB); }
   if(id==='publica-trofeo') {
     const frame = document.getElementById('wikiTrofeoFrame');
     if(frame && !frame.dataset.loaded) {
@@ -3091,6 +3162,300 @@ window.gp = id => {
 };
 function setNav(el){ document.querySelectorAll('.tb-nav-btn').forEach(b=>b.classList.remove('on')); el.classList.add('on'); }
 window.setNav = setNav;
+// ====== BUSCAR TROFEO ======
+const FISH_DB = [
+  {n:"Siluro Albino",img:"w_catfish_a",t:"100.000 kg",r:"200.000 kg"},
+  {n:"Barbo Albino",img:"alb_barbel",t:"8.000 kg",r:"12.000 kg"},
+  {n:"Solla Americana",img:"hippoglos_p",t:"4.000 kg",r:"5.000 kg"},
+  {n:"Silurus Amur",img:"a_catfish",t:"5.000 kg",r:"7.000 kg"},
+  {n:"Trucha Ártica",img:"a_char",t:"11.000 kg",r:"16.000 kg"},
+  {n:"Tímalo Siberiano",img:"zs_grayling",t:"2.000 kg",r:"2.500 kg"},
+  {n:"Omul Ártico",img:"a_omul",t:"3.000 kg",r:"4.000 kg"},
+  {n:"Artic Skate",img:"ambl_h",t:"8.000 kg",r:"10.000 kg"},
+  {n:"Eperlano Asiático",img:"a_smelt",t:"270 g",r:"320 g"},
+  {n:"Aspio",img:"asp",t:"8.000 kg",r:"13.000 kg"},
+  {n:"Salmón del Atlántico",img:"a_salmon",t:"30.000 kg",r:"40.000 kg"},
+  {n:"Atún Rojo",img:"thynnus_t",t:"250 kg",r:"400 kg"},
+  {n:"Bacalao del Atlántico",img:"atl_cod",t:"50 kg",r:"65 kg"},
+  {n:"Himantolophus Groelandicus",img:"himant_g",t:"7 kg",r:"10 kg"},
+  {n:"Fletán del Atlántico",img:"halibut_w",t:"150 kg",r:"220 kg"},
+  {n:"Arenque del Atlántico",img:"atl_herring",t:"800 g",r:"1 kg"},
+  {n:"Caballa Atlántica",img:"makrel",t:"2 kg",r:"2.800 kg"},
+  {n:"Chancharro",img:"sebastes_n",t:"9 kg",r:"11 kg"},
+  {n:"Saurio del Atlántico",img:"s_saurus",t:"600 g",r:"750 g"},
+  {n:"Pez Lobo del Atlántico",img:"p_zubatka",t:"14.500 kg",r:"19 kg"},
+  {n:"Atlantic Wreckfish",img:"polyprion",t:"60 kg",r:"75 kg"},
+  {n:"Omul Baikal",img:"b_omul",t:"6 kg",r:"7 kg"},
+  {n:"Esturión del Báltico",img:"osetr_balt",t:"200 kg",r:"300 kg"},
+  {n:"Tiburón Peregrino",img:"cetorhinus_m",t:"1.300 kg",r:"2.500 kg"},
+  {n:"Esturión Bastardo",img:"osetr_ship",t:"50 kg",r:"70 kg"},
+  {n:"Gallineta Nórdica",img:"sebastes_n",t:"5.500 kg",r:"7 kg"},
+  {n:"Salmón Blanco",img:"wfish",t:"15 kg",r:"25 kg"},
+  {n:"Beluga",img:"beluga",t:"500 kg",r:"1.000 kg"},
+  {n:"Carpa de Cabeza Grande",img:"bh_carp",t:"30 kg",r:"45 kg"},
+  {n:"Búfalo Negro",img:"bl_buffalo",t:"15 kg",r:"20 kg"},
+  {n:"Carpa Negra",img:"b_carp",t:"28 kg",r:"40 kg"},
+  {n:"Beluga del Mar Negro",img:"ch_beluga",t:"500 kg",r:"1.000 kg"},
+  {n:"Kutum del Mar Negro",img:"vyrezub",t:"5.500 kg",r:"7.500 kg"},
+  {n:"Shemaya del Mar Negro",img:"shemaya_cha",t:"500 g",r:"700 g"},
+  {n:"Rufo Negro",img:"centroloph_n",t:"24 kg",r:"29 kg"},
+  {n:"Coregono Negro",img:"sig_black",t:"3.500 kg",r:"5 kg"},
+  {n:"Alosa Caspia",img:"c_herring",t:"250 g",r:"340 g"},
+  {n:"Alburno",img:"c_bleak",t:"110 g",r:"160 g"},
+  {n:"Zope",img:"b_bream",t:"750 g",r:"1.100 kg"},
+  {n:"Maruca Azul",img:"molva",t:"25 kg",r:"35 kg"},
+  {n:"Bacaladilla",img:"poutassou",t:"900 g",r:"1.200 kg"},
+  {n:"Lenok de Hocico Romo",img:"lenok_t",t:"7.500 kg",r:"9 kg"},
+  {n:"Arenque Brazhnikov",img:"b_herring",t:"700 g",r:"1 kg"},
+  {n:"Brema",img:"bream",t:"4.400 kg",r:"7 kg"},
+  {n:"Coregonus Nasus",img:"chir",t:"7 kg",r:"10 kg"},
+  {n:"Trucha Marrón",img:"riv_brown_trout",t:"3 kg",r:"5 kg"},
+  {n:"Búfalo",img:"buffalo",t:"15 kg",r:"20 kg"},
+  {n:"Lota",img:"burbot",t:"9 kg",r:"14 kg"},
+  {n:"C2 SuperFreak",img:"s_freaks",t:"30 kg",r:"40 kg"},
+  {n:"Salmón de Mar Negro",img:"k_salmon",t:"30 kg",r:"50 kg"},
+  {n:"Kutum del Caspio",img:"kutum",t:"5 kg",r:"7 kg"},
+  {n:"Lamprea del Caspio",img:"c_lamprey",t:"150 g",r:"200 g"},
+  {n:"Rutilus Caspicus",img:"vobla",t:"500 g",r:"800 g"},
+  {n:"Siluro",img:"w_catfish",t:"100 kg",r:"200 kg"},
+  {n:"Salvelino de Arroyo",img:"salvel_l",t:"5 kg",r:"7.600 kg"},
+  {n:"Rotan",img:"a.sleeper",t:"400 g",r:"700 g"},
+  {n:"Salmón Real",img:"chavycha",t:"40 kg",r:"60 kg"},
+  {n:"Cachuelo",img:"e.chub",t:"4 kg",r:"7 kg"},
+  {n:"Salmón Keta",img:"keta",t:"8 kg",r:"10 kg"},
+  {n:"Clupeonella",img:"tiulka",t:"24 g",r:"28 g"},
+  {n:"Salmón Plateado",img:"kijuch",t:"5.500 kg",r:"7 kg"},
+  {n:"Barbo Común",img:"c_barbel",t:"8 kg",r:"12 kg"},
+  {n:"Carpa Común",img:"carp",t:"20 kg",r:"30 kg"},
+  {n:"Carpa Fantasma Común",img:"carp_ghost",t:"20 kg",r:"30 kg"},
+  {n:"Piscardo Común",img:"golyan",t:"100 g",r:"160 g"},
+  {n:"Rutilo",img:"c.roach",t:"1.200 kg",r:"2 kg"},
+  {n:"Carpa Común Albino",img:"carp_albino",t:"20 kg",r:"30 kg"},
+  {n:"Maruca Común",img:"m_molva",t:"30 kg",r:"40 kg"},
+  {n:"Congrio",img:"conger",t:"60 kg",r:"75 kg"},
+  {n:"Carpa Cruciana",img:"c.carp",t:"1.800 kg",r:"2.900 kg"},
+  {n:"Cusk",img:"menek",t:"18 kg",r:"24 kg"},
+  {n:"Alburno Shemaya",img:"dace",t:"250 g",r:"390 g"},
+  {n:"Carpa Cuero Dinks",img:"din_n_carp",t:"35 kg",r:"45 kg"},
+  {n:"Carpa Espejo Dinks",img:"din_l_carp",t:"35 kg",r:"45 kg"},
+  {n:"Trucha Dolly Varden",img:"malma",t:"7.500 kg",r:"10 kg"},
+  {n:"Acerina Donet",img:"ruffe_n",t:"250 g",r:"350 g"},
+  {n:"Salvelino Dryagin",img:"dr_char",t:"10 kg",r:"14 kg"},
+  {n:"Tímalo de Siberia Oriental",img:"os_grayling",t:"2 kg",r:"2.500 kg"},
+  {n:"Esturión de Siberia Oriental",img:"zs_sturgeon",t:"100 kg",r:"150 kg"},
+  {n:"Brema Oriental",img:"e_bream",t:"4.400 kg",r:"7 kg"},
+  {n:"Cangrejo de Mar",img:"ed_crab",t:"1.800 kg",r:"2.200 kg"},
+  {n:"Anguila",img:"eel",t:"4 kg",r:"7.500 kg"},
+  {n:"Lycodes Esmarkii",img:"lycodes_e",t:"2.500 kg",r:"3.300 kg"},
+  {n:"Pez Pescador",img:"lophius_p",t:"35 kg",r:"45 kg"},
+  {n:"Quimera Europea",img:"chimaera",t:"1.500 kg",r:"—"},
+  {n:"Merluza Europea",img:"merluza",t:"9 kg",r:"12 kg"},
+  {n:"Platija Europea",img:"sea_kambala",t:"4.500 kg",r:"5.500 kg"},
+  {n:"Calamar Común",img:"c_squid",t:"2 kg",r:"2.400 kg"},
+  {n:"F1",img:"karasekarp",t:"3 kg",r:"4 kg"},
+  {n:"Lamprea de Arroyo del Lejano Oriente",img:"fe_lamprey",t:"40 g",r:"—"},
+  {n:"Carpa Espejo Enmarcado Fantasma",img:"r_carp_ghost",t:"25 kg",r:"40 kg"},
+  {n:"Carpa Espejo Enmarcado Albino",img:"r_carp_albino",t:"25 kg",r:"40 kg"},
+  {n:"Carpa Espejo Enmarcado",img:"r_carp",t:"25 kg",r:"40 kg"},
+  {n:"Cangrejo de Río",img:"crawfish",t:"200 g",r:"330 g"},
+  {n:"Tiburón Serpiente",img:"c_anguineus",t:"50 kg",r:"70 kg"},
+  {n:"Rana",img:"frog",t:"190 g",r:"250 g"},
+  {n:"Carpa Gibel",img:"crucian",t:"1.900 kg",r:"3.200 kg"},
+  {n:"Tenca Oro",img:"g_tench",t:"4 kg",r:"6 kg"},
+  {n:"Carpa Herbívora",img:"g_carp",t:"28 kg",r:"40 kg"},
+  {n:"Salvelino Gris",img:"palia_kr",t:"3 kg",r:"4.500 kg"},
+  {n:"Tímalo",img:"a_grayling",t:"3.200 kg",r:"5.500 kg"},
+  {n:"Fletán Negro",img:"halibut_b",t:"25 kg",r:"32 kg"},
+  {n:"Tiburón de Groenlandia",img:"somniosus_m",t:"600 kg",r:"900 kg"},
+  {n:"Gobio",img:"gudgeon",t:"100 g",r:"160 g"},
+  {n:"Eglefino",img:"piksha",t:"11 kg",r:"13 kg"},
+  {n:"Hi Utsuri",img:"hi_utsri",t:"25 kg",r:"35 kg"},
+  {n:"Coregonus de Pidschian",img:"sig_p",t:"4.500 kg",r:"6 kg"},
+  {n:"Vieira Islandesa",img:"chlamys_isl",t:"350 g",r:"450 g"},
+  {n:"Ide",img:"s.orfe",t:"4 kg",r:"6.500 kg"},
+  {n:"Kaluga",img:"kaluga",t:"500 kg",r:"1.000 kg"},
+  {n:"Trucha Arcoíris de Kamchatka",img:"mikija",t:"8 kg",r:"10 kg"},
+  {n:"Arenque de Kessler",img:"k_herring",t:"1.200 kg",r:"1.700 kg"},
+  {n:"Kohaku",img:"kohaku",t:"25 kg",r:"35 kg"},
+  {n:"Salvelino Kuori",img:"chartus_kuoriius",t:"22 kg",r:"30 kg"},
+  {n:"Pescado Blanco Kuori",img:"sig_kuor",t:"3.500 kg",r:"5 kg"},
+  {n:"Tenca de Kvolsdorfsky",img:"kw_tench",t:"4 kg",r:"6 kg"},
+  {n:"Pescado Blanco del Lago Ladoga",img:"sig_o_l",t:"3 kg",r:"4 kg"},
+  {n:"Salmón Ladoga",img:"l_salmon",t:"14 kg",r:"20 kg"},
+  {n:"Esturión de Ladoga",img:"l_sturgeon",t:"60 kg",r:"—"},
+  {n:"Piscardo del Lago",img:"l_minnow",t:"100 g",r:"160 g"},
+  {n:"Reo",img:"gc_smelt",t:"10 kg",r:"15 kg"},
+  {n:"Carpa de Cuero",img:"n_carp",t:"30 kg",r:"45 kg"},
+  {n:"El Char de Levanidov",img:"golets_lev",t:"1.600 kg",r:"2.100 kg"},
+  {n:"Carpa Espejo Fantasma",img:"l_carp_ghost",t:"25 kg",r:"40 kg"},
+  {n:"Carpa Espejo Albino",img:"l_carp_albino",t:"25 kg",r:"40 kg"},
+  {n:"Carpa Linear",img:"l_carp",t:"25 kg",r:"40 kg"},
+  {n:"Musgurnus Fosilis",img:"vjun",t:"200 g",r:"250 g"},
+  {n:"Longear Eelpout",img:"lycodes_s",t:"1.200 kg",r:"1.500 kg"},
+  {n:"Longhead Dab",img:"lh_kambala",t:"3 kg",r:"4 kg"},
+  {n:"Costatumus",img:"chukuchan",t:"1.800 kg",r:"2.200 kg"},
+  {n:"Ludoga Whitefish",img:"sig_ludoga",t:"3 kg",r:"5 kg"},
+  {n:"Lumpo",img:"pinagor",t:"6 kg",r:"7.500 kg"},
+  {n:"Mameshibori Goshiki",img:"m_goshiki",t:"25 kg",r:"35 kg"},
+  {n:"Masu",img:"onkor_m",t:"6.500 kg",r:"8 kg"},
+  {n:"Masu Sedentario",img:"onkor_mg",t:"5 kg",r:"6.500 kg"},
+  {n:"Carpa Espejo Albino",img:"m_carp_albino",t:"25 kg",r:"40 kg"},
+  {n:"Carpa Espejo",img:"m_carp",t:"25 kg",r:"40 kg"},
+  {n:"Carpa Fantasma Espejo",img:"m_carp_ghost",t:"25 kg",r:"40 kg"},
+  {n:"Mongolia Redfin",img:"chan_m",t:"2.500 kg",r:"3.200 kg"},
+  {n:"Muksun",img:"w_muksun",t:"6 kg",r:"9 kg"},
+  {n:"Mejillón de Mar",img:"mytilus_ed",t:"130 g",r:"150 g"},
+  {n:"Narumi Asagi",img:"n_asagi",t:"25 kg",r:"35 kg"},
+  {n:"Pez Narizón",img:"c_nase",t:"800 g",r:"1.200 kg"},
+  {n:"Neiva",img:"neiva",t:"1.400 kg",r:"1.700 kg"},
+  {n:"Nelma",img:"nelma",t:"25 kg",r:"30 kg"},
+  {n:"Espinoso de Nueve Espinas",img:"stickleback_ninesp",t:"70 g",r:"90 g"},
+  {n:"Pez Lobo del Norte",img:"d_zubatka",t:"13 kg",r:"17 kg"},
+  {n:"Opa",img:"lampris_g",t:"140 kg",r:"200 kg"},
+  {n:"Orenji Ogon",img:"w_orenji_ogon",t:"25 kg",r:"35 kg"},
+  {n:"Ostra",img:"ostrea_ed",t:"300 g",r:"370 g"},
+  {n:"Peled",img:"peled",t:"3 kg",r:"4 kg"},
+  {n:"Perca de Río",img:"perch",t:"1.600 kg",r:"2.700 kg"},
+  {n:"Esturión Persa",img:"p_sturgeon",t:"100 kg",r:"150 kg"},
+  {n:"Lucio",img:"n.pike",t:"12 kg",r:"20 kg"},
+  {n:"Salmón Rosado",img:"gorbusha",t:"3 kg",r:"4 kg"},
+  {n:"Abadejo",img:"pollachius",t:"11 kg",r:"14 kg"},
+  {n:"Sábalo Póntico",img:"cha_herring",t:"650 g",r:"900 g"},
+  {n:"Majarro Sardinero",img:"lamna_n",t:"140 kg",r:"200 kg"},
+  {n:"Perca del Sol",img:"pumps_sunfish",t:"450 g",r:"600 g"},
+  {n:"Trucha Arcoíris",img:"riv_rb_trout",t:"10 kg",r:"13 kg"},
+  {n:"Salvelino Rojo",img:"palia_lud",t:"5 kg",r:"7.600 kg"},
+  {n:"Carpa Común Oro",img:"carp_red",t:"20 kg",r:"30 kg"},
+  {n:"Cangrejo Real Rojo",img:"rk_crab",t:"7.500 kg",r:"9 kg"},
+  {n:"Ripus",img:"ripus",t:"1.200 kg",r:"1.700 kg"},
+  {n:"Mejillón de Río",img:"freshwater_mussel",t:"190 g",r:"280 g"},
+  {n:"Granadero de Cabeza Dura",img:"macrourus_b",t:"3 kg",r:"—"},
+  {n:"Round Whitefish",img:"valyok",t:"1.200 kg",r:"1.600 kg"},
+  {n:"Gardi",img:"rudd",t:"1.500 kg",r:"2 kg"},
+  {n:"Acerina",img:"ruffe",t:"140 g",r:"220 g"},
+  {n:"Esturión Ruso",img:"r_sturgeon",t:"50 kg",r:"100 kg"},
+  {n:"Carbonero",img:"coalfish",t:"19 kg",r:"25 kg"},
+  {n:"Sardina",img:"sardina_p",t:"180 g",r:"240 g"},
+  {n:"Carpa de Cuero Albino",img:"n_carp_albino",t:"30 kg",r:"45 kg"},
+  {n:"Carpa de Cuero Fantasma",img:"n_carp_ghost",t:"30 kg",r:"45 kg"},
+  {n:"Trucha de Sevan",img:"sevan_trout",t:"9 kg",r:"15 kg"},
+  {n:"Lenok de Hocico Agudo",img:"w_sharp_snouted_lenok",t:"5.500 kg",r:"7 kg"},
+  {n:"Shemaya",img:"shemaya",t:"600 g",r:"900 g"},
+  {n:"Caspian Barbel",img:"sh_barbel",t:"13 kg",r:"18 kg"},
+  {n:"Myoxocephalus Scorpius",img:"m_scorpius",t:"3 kg",r:"4 kg"},
+  {n:"Barbula Toni",img:"barb_toni",t:"60 g",r:"80 g"},
+  {n:"Leusisco Siberiano",img:"syb_gudgeon",t:"250 g",r:"390 g"},
+  {n:"Gobio Siberiano",img:"syb_gudgeon",t:"150 g",r:"200 g"},
+  {n:"Lamprea Siberiana",img:"s_lamprey",t:"40 g",r:"—"},
+  {n:"Rutilo Siberiano",img:"syb_roach",t:"600 g",r:"700 g"},
+  {n:"Sardina Siberiana Cisco",img:"syb_vendace",t:"800 g",r:"1.100 kg"},
+  {n:"Cavilat Siberiano",img:"bullhead_syb",t:"45 g",r:"55 g"},
+  {n:"Esterlete Siberiano",img:"syb_sterlet",t:"9 kg",r:"14 kg"},
+  {n:"Pelecus",img:"sabrefish",t:"1.500 kg",r:"2 kg"},
+  {n:"Carpa Plateada",img:"s_carp",t:"25 kg",r:"40 kg"},
+  {n:"Espinoso Sureño de Nueve Espinas",img:"stickleback_ss",t:"70 g",r:"90 g"},
+  {n:"Galineta Pequeña",img:"red_fish",t:"3 kg",r:"4 kg"},
+  {n:"Eperlano",img:"e_smelt",t:"130 g",r:"200 g"},
+  {n:"Salmón Rojo",img:"nerka",t:"4.500 kg",r:"6 kg"},
+  {n:"Mielga",img:"katran",t:"7 kg",r:"10 kg"},
+  {n:"Pez Lobo Manchado",img:"m_zubatka",t:"17 kg",r:"22 kg"},
+  {n:"Carpa Espejo Oro",img:"m_carp_red",t:"25 kg",r:"40 kg"},
+  {n:"Esturión Estrellado",img:"st_sturgeon",t:"50 kg",r:"70 kg"},
+  {n:"Esterlete",img:"sterlet",t:"9 kg",r:"14 kg"},
+  {n:"Pescado Blanco Svir",img:"sv_sig",t:"3.500 kg",r:"5 kg"},
+  {n:"Pez Espada",img:"x_gladius",t:"300 kg",r:"450 kg"},
+  {n:"Taiman",img:"taimen",t:"50 kg",r:"80 kg"},
+  {n:"Rutilo Hackelli (Taran)",img:"taran",t:"1.300 kg",r:"1.800 kg"},
+  {n:"Tenca",img:"tench",t:"4 kg",r:"6 kg"},
+  {n:"Raya Espinosa",img:"ambl_r",t:"11 kg",r:"14 kg"},
+  {n:"Lamprea del Pacífico",img:"trid_lamprey",t:"—",r:"—"},
+  {n:"Espinoso de Tres Espinas",img:"stickleback_threesp",t:"70 g",r:"90 g"},
+  {n:"Tugun",img:"tugun",t:"60 g",r:"70 g"},
+  {n:"Rodaballo",img:"turbot",t:"14 kg",r:"18 kg"},
+  {n:"Ugui",img:"trib_h",t:"1.200 kg",r:"1.500 kg"},
+  {n:"Lamprea Ucraniana",img:"u_lamprey",t:"70 g",r:"—"},
+  {n:"Pescado Blanco de Valaam",img:"sig_valaam",t:"1.500 kg",r:"2.500 kg"},
+  {n:"Vendace",img:"vendace",t:"500 g",r:"800 g"},
+  {n:"Vimba o Zarte",img:"v_bream",t:"1.500 kg",r:"2.400 kg"},
+  {n:"Viviparous Eelpout",img:"zoarces_v",t:"900 g",r:"1.300 kg"},
+  {n:"Sander Volgensis",img:"barsch",t:"1.400 kg",r:"2.200 kg"},
+  {n:"Pescado Blanco de Volkhov",img:"sig",t:"4 kg",r:"7 kg"},
+  {n:"Pescado Blanco Vuoksa",img:"sig_vouksa",t:"3 kg",r:"5 kg"},
+  {n:"Brema Blanca",img:"s.bream",t:"800 g",r:"1.200 kg"},
+  {n:"Bellaurus Zapa",img:"wa_bream",t:"600 g",r:"900 g"},
+  {n:"Char Japonés",img:"kunja",t:"10 kg",r:"14 kg"},
+  {n:"Merlan",img:"merlang",t:"3 kg",r:"4 kg"},
+  {n:"Carpa Silvestre",img:"common_carp",t:"25 kg",r:"35 kg"},
+  {n:"Yotsushiro",img:"yotsushiro",t:"25 kg",r:"35 kg"},
+  {n:"Sander (Lucioperca)",img:"e.pikeperch",t:"8 kg",r:"12 kg"},
+  {n:"Mejillón Cebra",img:"dreissena",t:"150 g",r:"210 g"},
+  {n:"Lubina Negra",img:"fish",t:"6 kg",r:"7.500 kg"},
+  {n:"Sábalo de Molleja",img:"fish",t:"1.100 kg",r:"1.600 kg"},
+  {n:"Bagre de Cabeza Plana",img:"fish",t:"30 kg",r:"45 kg"},
+  {n:"Bagre de Canal",img:"fish",t:"14 kg",r:"20 kg"},
+  {n:"Pavón",img:"fish",t:"4 kg",r:"5.500 kg"},
+  {n:"Pez Agallas Azules",img:"fish",t:"1.200 kg",r:"1.700 kg"},
+  {n:"Black Crappie",img:"fish",t:"1.600 kg",r:"2.200 kg"},
+  {n:"Butterfly Peacock Bass",img:"fish",t:"4 kg",r:"5.500 kg"},
+  {n:"Freshwater Drum",img:"fish",t:"13.500 kg",r:"19 kg"},
+  {n:"Gizzard Shad",img:"fish",t:"1.100 kg",r:"1.600 kg"},
+  {n:"Hybrid Striped Bass",img:"fish",t:"8 kg",r:"10 kg"},
+  {n:"Largemouth Bass",img:"fish",t:"6 kg",r:"7.500 kg"},
+  {n:"Redear Sunfish",img:"fish",t:"1.700 kg",r:"2.300 kg"},
+  {n:"Smallmouth Bass",img:"fish",t:"3 kg",r:"4 kg"},
+  {n:"Spotted Gar",img:"fish",t:"3 kg",r:"—"},
+  {n:"Spotted Bass",img:"fish",t:"3 kg",r:"4.500 kg"},
+  {n:"Striped Bass (Striper)",img:"fish",t:"30 kg",r:"45 kg"},
+  {n:"Walleye",img:"fish",t:"7 kg",r:"9 kg"},
+  {n:"Warmouth",img:"fish",t:"650 g",r:"850 g"},
+  {n:"White Bass",img:"fish",t:"1.700 kg",r:"2.500 kg"},
+  {n:"White Crappie",img:"fish",t:"1.350 kg",r:"2 kg"},
+];
+
+let _trofChip = '';
+function renderTrofeos(data) {
+  const list = document.getElementById('trofeoList');
+  const noRes = document.getElementById('trofeoNoResults');
+  const cnt = document.getElementById('fishCount');
+  if(!list) return;
+  if(cnt) cnt.textContent = data.length;
+  if(!data.length) { list.innerHTML=''; if(noRes) noRes.style.display='block'; return; }
+  if(noRes) noRes.style.display='none';
+  const base = 'https://en.rf4-stat.ru/images/rf4game/';
+  const troff = 'https://en.rf4-stat.ru/images/troff.png';
+  const troffs = 'https://en.rf4-stat.ru/images/troff_super.png';
+  list.innerHTML = data.map((f,i) => {
+    const bg = i%2===0 ? 'background:var(--bg2);' : 'background:var(--card);';
+    const isNA = v => v==='—';
+    return `<div class="trof-row" style="${bg}">
+      <img class="trof-fish-img" src="${base}${f.img}.png" onerror="this.src='${base}fish.png'" alt="${f.n}" loading="lazy">
+      <div class="trof-name">${f.n}</div>
+      <img class="trof-icon" src="${troff}" alt="trofeo">
+      <div class="trof-weight${isNA(f.t)?' na':''}">${f.t}</div>
+      <div class="trof-weight rare${isNA(f.r)?' na':''}" style="display:flex;align-items:center;justify-content:center;gap:5px;">
+        ${!isNA(f.r)?`<img src="${troffs}" style="width:18px;height:18px;object-fit:contain;" alt="raro">`:''}
+        ${f.r}
+      </div>
+    </div>`;
+  }).join('');
+}
+function filterTrofeos(q) {
+  const kw = (q||'').toLowerCase().trim();
+  let data = FISH_DB;
+  if(_trofChip) data = data.filter(f => f.n.toLowerCase().includes(_trofChip));
+  if(kw) data = data.filter(f => f.n.toLowerCase().includes(kw));
+  renderTrofeos(data);
+}
+function setTrofChip(el, kw) {
+  document.querySelectorAll('.trof-chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  _trofChip = kw;
+  filterTrofeos(document.getElementById('trofeoSearch')?.value||'');
+}
+window.filterTrofeos = filterTrofeos;
+window.setTrofChip = setTrofChip;
+// ====== FIN BUSCAR TROFEO ======
+
 window.wikiFrameLoaded = function(frame) {
   if(!frame) return;
   if(frame._wikiTimer) { clearTimeout(frame._wikiTimer); frame._wikiTimer = null; }
