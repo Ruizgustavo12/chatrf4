@@ -7263,6 +7263,10 @@ function toggleVoiceBtn(){
 }
 
 async function toggleVoiceRecord(){
+  if(!window.CU?.verified){
+    toast('🎤 Mensajes de voz solo para usuarios ✅ Verificados','err');
+    return;
+  }
   if(_mediaRecorder && _mediaRecorder.state === 'recording'){
     stopAndSendVoice();
   } else {
