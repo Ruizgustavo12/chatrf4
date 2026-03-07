@@ -7225,43 +7225,140 @@ function renderSidebarOnline(online, offline){
   if(!el) return;
   const myId = window.CU?.id;
   const onlineFiltered = online.filter(u=>u.id !== myId);
+
+  // Banner builder for each user
+  function userBanner(u, isOnline){
+    const nick = esc(u.nick||'?');
+    const initials = (u.nick||'?')[0].toUpperCase();
+    const devIcon = u.device==='mobile' ? '📱' : '🖥️';
+    const statusText = isOnline
+      ? `<span style="color:#4ade80;font-size:.58rem;font-weight:700;letter-spacing:.3px;">● EN LÍNEA · ${devIcon}</span>`
+      : `<span style="color:#aaa;font-size:.58rem;font-weight:600;">${fmtLastSeen(u.ts)} · ${devIcon}</span>`;
+
+    // Color palette for banner: online = fire orange/red, offline = dark purple/grey
+    const bannerBg = isOnline
+      ? 'linear-gradient(90deg,#1a0800 0%,#2d0f00 60%,#1a0800 100%)'
+      : 'linear-gradient(90deg,#12102a 0%,#1e1b3a 60%,#12102a 100%)';
+    const emberColor = isOnline ? '#ff6a00' : '#5a4fcf';
+    const glowColor  = isOnline ? 'rgba(255,80,0,.55)' : 'rgba(90,79,207,.4)';
+    const rimColor   = isOnline ? '#ff4500' : '#7c6fff';
+
+    // Unique canvas ID
+    const cid = 'emb_'+u.id.replace(/[^a-z0-9]/gi,'_');
+
+    return `
+      <div style="position:relative;margin-bottom:5px;border-radius:7px;overflow:hidden;cursor:pointer;
+           background:${bannerBg};border:1px solid ${isOnline?'rgba(255,90,0,.35)':'rgba(100,80,255,.25)'};
+           box-shadow:0 2px 10px ${glowColor};transition:box-shadow .2s,transform .15s;height:38px;display:flex;align-items:center;"
+           onmouseover="this.style.transform='scale(1.02)';this.style.boxShadow='0 4px 16px ${glowColor}'"
+           onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 2px 10px ${glowColor}'"
+           onclick="openUserProfile('${u.id}','${nick}')">
+
+        <!-- Particle canvas background -->
+        <canvas id="${cid}" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.7;"></canvas>
+
+        <!-- Rim light left -->
+        <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,${rimColor},transparent,${rimColor});opacity:.8;border-radius:7px 0 0 7px;"></div>
+
+        <!-- Avatar -->
+        <div style="position:relative;flex-shrink:0;margin:0 7px;z-index:2;">
+          <div style="width:26px;height:26px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;
+               font-size:.72rem;font-weight:700;color:#fff;background:${isOnline?'#b83200':'#3a2e7a'};
+               border:1.5px solid ${rimColor};box-shadow:0 0 6px ${glowColor};">
+            ${u.av?`<img src="${u.av}" style="width:100%;height:100%;object-fit:cover;${isOnline?'':'filter:grayscale(.3);'}">`:`${initials}`}
+          </div>
+          ${isOnline?`<div style="position:absolute;bottom:-1px;right:-1px;width:8px;height:8px;border-radius:50%;background:#4ade80;border:1.5px solid #1a0800;"></div>`:''}
+        </div>
+
+        <!-- Text -->
+        <div style="flex:1;min-width:0;z-index:2;">
+          <div style="font-size:.76rem;font-weight:700;color:#fff;font-family:'Exo 2',sans-serif;
+               white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+               text-shadow:0 0 8px ${isOnline?'rgba(255,120,0,.7)':'rgba(140,120,255,.6)'};">${nick}</div>
+          ${statusText}
+        </div>
+
+        <!-- Chat button -->
+        ${isOnline?`<button onclick="event.stopPropagation();openChatWith('${u.id}','${nick}')"
+          style="background:rgba(255,100,0,.18);border:1px solid rgba(255,100,0,.3);border-radius:5px;
+                 color:#ffaa55;font-size:.75rem;cursor:pointer;padding:2px 6px;margin-right:6px;z-index:2;
+                 font-family:'Exo 2',sans-serif;transition:background .15s;"
+          onmouseover="this.style.background='rgba(255,100,0,.35)'" onmouseout="this.style.background='rgba(255,100,0,.18)'"
+          title="Mensaje">💬</button>`:''}
+      </div>`;
+  }
+
   let html = '';
   if(onlineFiltered.length){
-    html += onlineFiltered.map(u=>`
-      <div style="display:flex;align-items:center;gap:8px;padding:5px 4px;border-radius:6px;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''" onclick="openUserProfile('${u.id}','${esc(u.nick||'')}')">
-        <div style="position:relative;flex-shrink:0;">
-          <div style="width:32px;height:32px;border-radius:50%;background:var(--accent);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#fff;">
-            ${u.av?`<img src="${u.av}" style="width:100%;height:100%;object-fit:cover;">`:(u.nick||'?')[0].toUpperCase()}
-          </div>
-          <div style="position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:var(--green);border:2px solid var(--bg2);"></div>
-        </div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:.78rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(u.nick||'')}</div>
-          <div style="font-size:.65rem;color:var(--green);">● En línea · ${u.device==='mobile'?'📱 Celular':'🖥️ PC'}</div>
-        </div>
-        <button onclick="event.stopPropagation();openChatWith('${u.id}','${esc(u.nick||'')}')" style="background:none;border:none;font-size:.85rem;cursor:pointer;color:var(--accent);padding:2px 4px;" title="Mensaje">💬</button>
-      </div>`).join('');
+    html += onlineFiltered.map(u=>userBanner(u,true)).join('');
   }
   if(offline.length){
-    if(onlineFiltered.length) html += `<div style="font-size:.65rem;color:var(--muted);padding:6px 4px 2px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">Última conexión</div>`;
-    html += offline.map(u=>`
-      <div style="display:flex;align-items:center;gap:8px;padding:5px 4px;border-radius:6px;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''" onclick="openUserProfile('${u.id}','${esc(u.nick||'')}')">
-        <div style="position:relative;flex-shrink:0;">
-          <div style="width:32px;height:32px;border-radius:50%;background:var(--bg4);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--muted);">
-            ${u.av?`<img src="${u.av}" style="width:100%;height:100%;object-fit:cover;filter:grayscale(.4);">`:(u.nick||'?')[0].toUpperCase()}
-          </div>
-          <div style="position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:#bcc0c4;border:2px solid var(--bg2);"></div>
-        </div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:.78rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(u.nick||'')}</div>
-          <div style="font-size:.65rem;color:var(--muted);">${fmtLastSeen(u.ts)} · ${u.device==='mobile'?'📱':'🖥️'}</div>
-        </div>
-      </div>`).join('');
+    if(onlineFiltered.length) html += `<div style="font-size:.63rem;color:var(--muted);padding:6px 4px 3px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;">Última conexión</div>`;
+    html += offline.map(u=>userBanner(u,false)).join('');
   }
   if(!onlineFiltered.length && !offline.length){
     html = `<div style="text-align:center;padding:16px 8px;color:var(--muted);font-size:.75rem;">🎣 Nadie conectado</div>`;
   }
   el.innerHTML = html;
+
+  // Fire/sparkle particle animation on each banner canvas
+  el.querySelectorAll('canvas[id^="emb_"]').forEach(canvas=>{
+    const isFireCanvas = canvas.closest('div[style*="ff6a00"]') !== null
+      || (canvas.closest('div') && canvas.closest('div').style.background && canvas.closest('div').style.background.includes('2d0f00'));
+    const isOnlineCanvas = canvas.parentElement && canvas.parentElement.style.background && canvas.parentElement.style.background.includes('2d0f00');
+    const W = canvas.offsetWidth || 240;
+    const H = canvas.offsetHeight || 38;
+    canvas.width = W;
+    canvas.height = H;
+    const ctx2 = canvas.getContext('2d');
+    if(!ctx2) return;
+    const particles = [];
+    const COUNT = isOnlineCanvas ? 18 : 12;
+    for(let i=0;i<COUNT;i++){
+      particles.push({
+        x: Math.random()*W,
+        y: H + Math.random()*10,
+        vx:(Math.random()-.5)*.6,
+        vy: -(0.3 + Math.random()*0.7),
+        life:Math.random(),
+        maxLife:1,
+        size:1+Math.random()*2.5
+      });
+    }
+    function drawFrame(){
+      if(!canvas.isConnected){ return; }
+      ctx2.clearRect(0,0,W,H);
+      particles.forEach(p=>{
+        p.life += 0.018;
+        if(p.life >= p.maxLife){
+          p.x = Math.random()*W;
+          p.y = H + 2;
+          p.vx = (Math.random()-.5)*.6;
+          p.vy = -(0.3 + Math.random()*.7);
+          p.life = 0;
+          p.size = 1+Math.random()*2.5;
+        }
+        p.x += p.vx;
+        p.y += p.vy;
+        const prog = p.life/p.maxLife;
+        const alpha = prog < 0.2 ? prog/0.2 : 1 - (prog-0.2)/0.8;
+        if(isOnlineCanvas){
+          const r=255,g=Math.floor(80+prog*80),b=0;
+          ctx2.beginPath();
+          ctx2.arc(p.x,p.y,p.size*(1-prog*.4),0,Math.PI*2);
+          ctx2.fillStyle=`rgba(${r},${g},${b},${alpha*.8})`;
+          ctx2.fill();
+        } else {
+          ctx2.beginPath();
+          ctx2.arc(p.x,p.y,p.size*(1-prog*.4),0,Math.PI*2);
+          ctx2.fillStyle=`rgba(140,120,255,${alpha*.6})`;
+          ctx2.fill();
+        }
+      });
+      requestAnimationFrame(drawFrame);
+    }
+    drawFrame();
+  });
 }
 
 function renderContacts(onlineUsers){
