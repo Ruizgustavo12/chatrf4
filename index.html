@@ -2866,8 +2866,18 @@ function init(){
   onAuthStateChanged(auth, async user => {
     const splash = document.getElementById('splashScreen');
     if (user) {
+      // Timeout de seguridad: si Firestore tarda mas de 8s, igual dejamos entrar
+      const safeTimeout = setTimeout(() => {
+        if(splash) splash.style.display = 'none';
+        if(!window.CU) {
+          window.CU = {id: user.uid, email: user.email, nick: user.displayName || user.email.split('@')[0], av: user.photoURL || ''};
+          document.getElementById('mAuth').style.display = 'none';
+          onLogin();
+        }
+      }, 8000);
       try {
         const snap = await getDoc(doc(db, 'users', user.uid));
+        clearTimeout(safeTimeout);
         if (snap.exists()) {
           window.CU = {id: user.uid, ...snap.data()};
           document.getElementById('mAuth').style.display = 'none';
@@ -2878,6 +2888,8 @@ function init(){
           document.getElementById('mAuth').style.display = 'block';
         }
       } catch(e) {
+        clearTimeout(safeTimeout);
+        console.warn('Auth error:', e);
         if(splash) splash.style.display = 'none';
         document.getElementById('mAuth').style.display = 'block';
       }
@@ -3219,43 +3231,43 @@ const ROUTES = {
   '/chatrf4/': 'home',
   '/chatrf4': 'home',
   '/chatrf4/home': 'home',
-  '/chatrf4/amigos': 'amigos',
-  '/chatrf4/tienda': 'shop',
-  '/chatrf4/trofeos': 'trofeos-feed',
-  '/chatrf4/galeria': 'galeria',
-  '/chatrf4/videos': 'videos',
-  '/chatrf4/spots': 'spots',
-  '/chatrf4/torneos': 'torneos',
-  '/chatrf4/perfil': 'profile',
-  '/chatrf4/buscar-trofeo': 'buscar-trofeo',
-  '/chatrf4/publica-trofeo': 'publica-trofeo',
-  '/chatrf4/carretes': 'carretes',
-  '/chatrf4/parches': 'parches',
-  '/chatrf4/casitrofeo': 'casitrofeo',
-  '/chatrf4/mensajes': 'mensajes',
-  '/chatrf4/notificaciones': 'notificaciones',
-  '/chatrf4/pez-semanal': 'pez-semanal',
+  '/amigos': 'amigos',
+  '/tienda': 'shop',
+  '/trofeos': 'trofeos-feed',
+  '/galeria': 'galeria',
+  '/videos': 'videos',
+  '/spots': 'spots',
+  '/torneos': 'torneos',
+  '/perfil': 'profile',
+  '/buscar-trofeo': 'buscar-trofeo',
+  '/publica-trofeo': 'publica-trofeo',
+  '/carretes': 'carretes',
+  '/parches': 'parches',
+  '/casitrofeo': 'casitrofeo',
+  '/mensajes': 'mensajes',
+  '/notificaciones': 'notificaciones',
+  '/pez-semanal': 'pez-semanal',
 };
 
 // Map page IDs to clean URLs
 const PAGE_TO_URL = {
   'home': '/chatrf4/',
-  'amigos': '/chatrf4/amigos',
-  'shop': '/chatrf4/tienda',
-  'trofeos-feed': '/chatrf4/trofeos',
-  'galeria': '/chatrf4/galeria',
-  'videos': '/chatrf4/videos',
-  'spots': '/chatrf4/spots',
-  'torneos': '/chatrf4/torneos',
-  'profile': '/chatrf4/perfil',
-  'buscar-trofeo': '/chatrf4/buscar-trofeo',
-  'publica-trofeo': '/chatrf4/publica-trofeo',
-  'carretes': '/chatrf4/carretes',
-  'parches': '/chatrf4/parches',
-  'casitrofeo': '/chatrf4/casitrofeo',
-  'mensajes': '/chatrf4/mensajes',
-  'notificaciones': '/chatrf4/notificaciones',
-  'pez-semanal': '/chatrf4/pez-semanal',
+  'amigos': '/amigos',
+  'shop': '/tienda',
+  'trofeos-feed': '/trofeos',
+  'galeria': '/galeria',
+  'videos': '/videos',
+  'spots': '/spots',
+  'torneos': '/torneos',
+  'profile': '/perfil',
+  'buscar-trofeo': '/buscar-trofeo',
+  'publica-trofeo': '/publica-trofeo',
+  'carretes': '/carretes',
+  'parches': '/parches',
+  'casitrofeo': '/casitrofeo',
+  'mensajes': '/mensajes',
+  'notificaciones': '/notificaciones',
+  'pez-semanal': '/pez-semanal',
 };
 
 function navigateTo(id, pushState = true) {
@@ -3269,17 +3281,17 @@ function navigateTo(id, pushState = true) {
 window.addEventListener('popstate', (e) => {
   const path = window.location.pathname;
   // Close overlays if navigating away
-  if(path !== '/chatrf4/mensajes' && !path.startsWith('/chatrf4/mensajes/')) {
+  if(path !== '/mensajes' && !path.startsWith('/mensajes/')) {
     const msg = document.getElementById('mMessenger');
     if(msg && msg.classList.contains('open')) msg.classList.remove('open');
   }
-  if(path !== '/chatrf4/notificaciones') {
+  if(path !== '/notificaciones') {
     const nd = document.getElementById('mNotif');
     if(nd) nd.style.display = 'none';
   }
   // Handle user profile URLs
-  if(path.startsWith('/chatrf4/u/')) {
-    const nickSlug = path.slice('/chatrf4/u/'.length);
+  if(path.startsWith('/u/')) {
+    const nickSlug = path.slice(3);
     // Try to find user by nick slug
     if(window.CU) {
       window.gp('userprofile', false);
@@ -3290,18 +3302,18 @@ window.addEventListener('popstate', (e) => {
     }
     return;
   }
-  if(path.startsWith('/chatrf4/mensajes/')) {
+  if(path.startsWith('/mensajes/')) {
     const msgEl = document.getElementById('mMessenger');
     if(msgEl) { om('mMessenger'); renderMessengerList(); }
     if(e.state && e.state.chatUid) openChatWith(e.state.chatUid, e.state.chatNick||'');
     return;
   }
-  if(path === '/chatrf4/mensajes') {
+  if(path === '/mensajes') {
     const msgEl = document.getElementById('mMessenger');
     if(msgEl) { om('mMessenger'); renderMessengerList(); }
     return;
   }
-  if(path === '/chatrf4/notificaciones') {
+  if(path === '/notificaciones') {
     openNotifDropdown();
     return;
   }
@@ -7882,7 +7894,7 @@ async function sendShopAnnouncementToAll(){
 // ===== USER PROFILE MODAL =====
 async function openUserProfile(uid, nick){
   // Si es el propio usuario, va al perfil propio
-  if(uid && uid === window.CU?.id){ gp('profile'); history.pushState({page:'profile'}, '', '/chatrf4/perfil'); return; }
+  if(uid && uid === window.CU?.id){ gp('profile'); history.pushState({page:'profile'}, '', '/perfil'); return; }
   // Si no hay uid, busca por nick
   if(!uid && nick){
     try {
@@ -7894,7 +7906,7 @@ async function openUserProfile(uid, nick){
   if(!uid){ toast('Usuario no encontrado','err'); return; }
   // Push URL /u/nick
   const safeNick = (nick||'usuario').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
-  history.pushState({page:'userprofile', uid, nick}, '', '/chatrf4/u/' + safeNick);
+  history.pushState({page:'userprofile', uid, nick}, '', '/u/' + safeNick);
   // Navega a la página de perfil
   gp('userprofile', false);
   _loadUserProfilePage(uid, nick||'');
@@ -8557,7 +8569,7 @@ function openMessenger(){
   _messengerOpen = true;
   om('mMessenger');
   renderMessengerList();
-  if(window.location.pathname !== '/chatrf4/mensajes') history.pushState({page:'mensajes'}, '', '/chatrf4/mensajes');
+  if(window.location.pathname !== '/mensajes') history.pushState({page:'mensajes'}, '', '/mensajes');
   // Marcar todas las notifs 💬 como leídas al abrir el messenger
   let changed = false;
   _notifs.forEach(n=>{ if(n.text?.startsWith('💬') && !n.read){ n.read=true; changed=true; } });
@@ -8574,7 +8586,7 @@ function closeMessenger(){
   const el = document.getElementById('mMessenger');
   if(el) el.classList.remove('open');
   document.getElementById('chatBubbleMin').style.display='none';
-  if(window.location.pathname.startsWith('/chatrf4/mensajes')) history.pushState({page:'home'}, '', '/chatrf4/');
+  if(window.location.pathname.startsWith('/mensajes')) history.pushState({page:'home'}, '', '/');
 }
 
 function minimizeMessenger(){
@@ -8873,7 +8885,7 @@ function openChatWith(uid, nick){
 
   // Update URL to /mensajes/nick
   const safeNickUrl = (nick||'usuario').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
-  history.pushState({page:'mensajes', chatUid:uid, chatNick:nick}, '', '/chatrf4/mensajes/' + safeNickUrl);
+  history.pushState({page:'mensajes', chatUid:uid, chatNick:nick}, '', '/mensajes/' + safeNickUrl);
 
   // Make sure messenger modal is open
   om('mMessenger');
@@ -9186,7 +9198,7 @@ function backToMessengerList(){
   if(!window.location.pathname.startsWith('/chatrf4/mensajes/') && window.location.pathname !== '/chatrf4/mensajes') {
     // already handled
   } else {
-    history.pushState({page:'mensajes'}, '', '/chatrf4/mensajes');
+    history.pushState({page:'mensajes'}, '', '/mensajes');
   }
   if(_unsubChat){ _unsubChat(); _unsubChat=null; }
   _chatUserId = null;
@@ -10855,10 +10867,10 @@ function openNotifDropdown(){
   const isMobile = window.innerWidth <= 768;
   // Push URL only when opening (not closing)
   const willOpen = dd.style.display !== 'flex';
-  if(willOpen && window.location.pathname !== '/chatrf4/notificaciones') {
-    history.pushState({page:'notificaciones'}, '', '/chatrf4/notificaciones');
-  } else if(!willOpen && window.location.pathname === '/chatrf4/notificaciones') {
-    history.pushState({page:'home'}, '', '/chatrf4/');
+  if(willOpen && window.location.pathname !== '/notificaciones') {
+    history.pushState({page:'notificaciones'}, '', '/notificaciones');
+  } else if(!willOpen && window.location.pathname === '/notificaciones') {
+    history.pushState({page:'home'}, '', '/');
   }
   if(isMobile){
     // Mobile: full screen panel from top
@@ -10918,7 +10930,7 @@ function closeNotifDropdown(){
   if(dd) dd.style.display = 'none';
   document.body.style.overflow = '';
   document.removeEventListener('click', _notifOutsideClick);
-  if(window.location.pathname === '/chatrf4/notificaciones') history.pushState({page:'home'}, '', '/chatrf4/');
+  if(window.location.pathname === '/notificaciones') history.pushState({page:'home'}, '', '/');
 }
 function toggleNotifDropdown(e){
   e.stopPropagation();
