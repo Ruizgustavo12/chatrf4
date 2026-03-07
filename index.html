@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googleapis.com https://*.gstatic.com https://*.firebaseio.com https://*.firebaseapp.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://storage.googleapis.com wss://*.firebaseio.com https://api.imgbb.com https://i.ibb.co data: blob:; connect-src 'self' https://*.googleapis.com https://*.gstatic.com https://*.firebaseio.com https://*.firebaseapp.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://storage.googleapis.com wss://*.firebaseio.com https://api.imgbb.com https://i.ibb.co https://api.allorigins.win https://api.giphy.com https://api.cloudinary.com https://res.cloudinary.com data: blob:; frame-src https://www.youtube.com https://*.youtube.com https://*.firebaseapp.com https://open.spotify.com https://*.spotify.com https://www.tiktok.com https://*.tiktok.com; img-src 'self' data: blob: https: http: https://flagcdn.com; media-src 'self' blob: https://firebasestorage.googleapis.com https://*.firebasestorage.app;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googleapis.com https://*.gstatic.com https://*.firebaseio.com https://*.firebaseapp.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://storage.googleapis.com wss://*.firebaseio.com https://api.imgbb.com https://i.ibb.co data: blob:; connect-src 'self' https://*.googleapis.com https://*.gstatic.com https://*.firebaseio.com https://*.firebaseapp.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://storage.googleapis.com wss://*.firebaseio.com https://api.imgbb.com https://i.ibb.co https://api.allorigins.win https://api.giphy.com https://api.cloudinary.com https://res.cloudinary.com data: blob:; frame-src https://www.youtube.com https://*.youtube.com https://*.firebaseapp.com https://open.spotify.com https://*.spotify.com https://www.tiktok.com https://*.tiktok.com; img-src 'self' data: blob: https: http: https://flagcdn.com; media-src 'self' blob: data: https://firebasestorage.googleapis.com https://*.firebasestorage.app;">
 <title>RF4 Latam</title>
 
   <meta name="theme-color" content="#1877f2">
@@ -7310,7 +7310,7 @@ async function startVoiceRecord(){
   _voiceTimerInterval = setInterval(()=>{
     _voiceSeconds++;
     updateVoiceTimer();
-    if(_voiceSeconds >= 45){ stopAndSendVoice(); } // max 45s para no superar 1MB en Firestore
+    if(_voiceSeconds >= 20){ stopAndSendVoice(); } // max 20s para no superar 800KB en Firestore
   }, 1000);
 
   // Wave animation
@@ -7366,45 +7366,57 @@ async function stopAndSendVoice(){
   if(!_mediaRecorder || _mediaRecorder.state === 'inactive') return;
   clearInterval(_voiceTimerInterval);
 
+  // Detener grabación y esperar que termine
   await new Promise(resolve=>{
     _mediaRecorder.onstop = resolve;
-    _mediaRecorder.stop();
+    if(_mediaRecorder.state !== 'inactive') _mediaRecorder.stop();
+    else resolve();
   });
   _voiceStream?.getTracks().forEach(t=>t.stop());
-  if(_voiceAudioCtx) _voiceAudioCtx.close().catch(()=>{});
+  if(_voiceAudioCtx){ try{ await _voiceAudioCtx.close(); }catch(e){} }
 
   const mimeType = _mediaRecorder.mimeType || 'audio/webm';
-  const blob = new Blob(_audioChunks, { type: mimeType });
+  const chunks = [..._audioChunks]; // copia antes de limpiar
+  const duration = _voiceSeconds;
+  _mediaRecorder=null; _audioChunks=[]; _voiceStream=null; _voiceAudioCtx=null;
 
-  if(blob.size < 1000){ toast('Grabación muy corta','err'); resetVoiceUI(); return; }
+  const blob = new Blob(chunks, { type: mimeType });
+  console.log('[Voice] blob size:', blob.size, 'type:', mimeType, 'duration:', duration);
+
+  if(blob.size < 300){ toast('Grabación muy corta','err'); resetVoiceUI(); return; }
 
   resetVoiceUI();
   toast('Enviando audio...','inf');
 
   try {
-    // Convertir a base64 y guardar directo en Firestore
-    const base64Audio = await blobToBase64(blob);
-    const dataUrl = `data:${blob.type};base64,${base64Audio}`;
+    // Convertir a base64 data URL — guardamos directo en Firestore
+    const base64 = await blobToBase64(blob);
+    const dataUrl = 'data:' + mimeType + ';base64,' + base64;
+    console.log('[Voice] base64 length:', base64.length);
 
-    // Firestore tiene límite de 1MB por documento — avisamos si es muy largo
-    if(base64Audio.length > 900000){
-      toast('Audio muy largo, grabá menos de 1 minuto','err');
+    if(base64.length > 800000){
+      toast('Audio muy largo, grabá menos de 20 segundos','err');
       return;
+    }
+
+    if(!window.CU || !_chatUserId){
+      toast('Error: sesión no válida','err'); return;
     }
 
     const chatId = [window.CU.id, _chatUserId].sort().join('_');
     await addDoc(collection(db,'chats',chatId,'messages'),{
-      uid: window.CU.id, nick: window.CU.nick,
+      uid: window.CU.id,
+      nick: window.CU.nick,
       audioUrl: dataUrl,
-      audioDuration: _voiceSeconds,
-      text: '', time: serverTimestamp()
+      audioDuration: duration,
+      text: '',
+      time: serverTimestamp()
     });
     toast('Audio enviado 🎤','ok');
   } catch(e){
-    console.error('Voice send error:', e);
-    toast('Error al enviar el audio: ' + e.message,'err');
+    console.error('[Voice] Error:', e);
+    toast('Error: ' + e.message,'err');
   }
-  _mediaRecorder=null; _audioChunks=[]; _voiceStream=null;
 }
 
 function toggleVoicePlay(btn, url){
