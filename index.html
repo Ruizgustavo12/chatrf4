@@ -1163,6 +1163,11 @@ select.fi option{background:#fff;}
     </div>
     <div class="frow">
       <div class="fg"><label class="fl">Edad</label><input class="fi" type="number" id="epAge" placeholder="Ej: 25" min="10" max="99"></div>
+      <div class="fg">
+        <label class="fl">🎂 Fecha de nacimiento</label>
+        <input class="fi" type="date" id="epBirthdate" style="color-scheme:dark;">
+        <div style="font-size:.65rem;color:var(--muted);margin-top:3px;">Tus amigos serán notificados el día de tu cumpleaños 🎉</div>
+      </div>
       <div class="fg"><label class="fl">Género</label>
         <select class="fi" id="epGender">
           <option value="">Prefiero no decir</option>
@@ -2293,6 +2298,7 @@ function onLogin(){
       storyPhotoInner.style.fontWeight = '800';
     }
   }
+  checkFriendsBirthdays();
   loadRealFriends().then(()=>{
     renderProfile();
     renderSidebarFriends();
@@ -3662,6 +3668,11 @@ async function saveProfile(){
   window.CU.emailPublic = document.getElementById('epEmailPublic').value.trim();
   window.CU.city = document.getElementById('epCity').value.trim();
   window.CU.age = document.getElementById('epAge').value.trim();
+  window.CU.birthdate = document.getElementById('epBirthdate').value || '';
+  if(window.CU.birthdate){
+    const bd=new Date(window.CU.birthdate);
+    window.CU.birthdayMMDD = (bd.getMonth()+1).toString().padStart(2,'0')+'-'+bd.getDate().toString().padStart(2,'0');
+  }
   window.CU.gender = document.getElementById('epGender').value;
   window.CU.favTech = document.getElementById('epTech').value;
   window.CU.experience = document.getElementById('epExp').value;
@@ -3684,6 +3695,7 @@ function openEditProfile(){
   document.getElementById('epEmailPublic').value = window.CU.emailPublic||'';
   document.getElementById('epCity').value = window.CU.city||'';
   document.getElementById('epAge').value = window.CU.age||'';
+  document.getElementById('epBirthdate').value = window.CU.birthdate||'';
   document.getElementById('epGender').value = window.CU.gender||'';
   document.getElementById('epTech').value = window.CU.favTech||'';
   document.getElementById('epExp').value = window.CU.experience||'';
@@ -7353,6 +7365,7 @@ const _expose = {
   reportPost,submitReport,
   loadAdminData,deleteAdminPost,resolveReport,
   requestVerification, loadVerifRequests, adminApproveVerif, adminRejectVerif, adminRevokeVerif,
+  checkFriendsBirthdays, bdaySendWish,
   launchGoldConfetti, applyVerifStoryRings, tryApplyChatGold,
   pinPost, unpinPost, toggleAnonMode, registerProfileVisit, loadProfileVisitors, setupBioLimit,
   _startVerifParticles, _stopVerifParticles,
@@ -7529,6 +7542,125 @@ function setupBioLimit(){
       bio.addEventListener('input',()=>{ctr.textContent=bio.value.length+'/150';});
     }
   }
+}
+
+
+// ╔══════════════════════════════════════════╗
+// ║        SISTEMA DE CUMPLEAÑOS 🎂          ║
+// ╚══════════════════════════════════════════╝
+
+async function checkFriendsBirthdays(){
+  if(!window.CU||!db) return;
+  try {
+    const friends = window.CU.friends || [];
+    if(!friends.length) return;
+
+    const now = new Date();
+    const todayMMDD = (now.getMonth()+1).toString().padStart(2,'0')+'-'+now.getDate().toString().padStart(2,'0');
+
+    // Evitar notificar dos veces el mismo día
+    const lastBdayCheck = localStorage.getItem('_bdayCheck_'+window.CU.id);
+    if(lastBdayCheck === todayMMDD) return;
+
+    // Traer datos de los amigos
+    const snaps = await Promise.all(friends.slice(0,30).map(fid=>getDoc(doc(db,'users',fid))));
+    const cumpleaneros = snaps
+      .filter(s=>s.exists())
+      .map(s=>({id:s.id,...s.data()}))
+      .filter(u=>u.birthdayMMDD===todayMMDD);
+
+    if(!cumpleaneros.length) return;
+
+    // Marcar que ya se chequeó hoy
+    localStorage.setItem('_bdayCheck_'+window.CU.id, todayMMDD);
+
+    // Mostrar notificación interna para cada cumpleañero
+    for(const u of cumpleaneros){
+      const notifs = window.CU.notifs || [];
+      const yaNotif = notifs.some(n=>n.bdayUid===u.id && n.bdayDate===todayMMDD);
+      if(yaNotif) continue;
+
+      // Agregar notif a nuestro propio perfil
+      const newNotif = {
+        text:`🎂 ¡Hoy es el cumpleaños de ${u.nick}! Mandále un saludo 🎉`,
+        time:Date.now(), read:false,
+        bdayUid:u.id, bdayNick:u.nick, bdayDate:todayMMDD
+      };
+      const mySnap = await getDoc(doc(db,'users',window.CU.id));
+      const myNotifs = mySnap.exists() ? (mySnap.data().notifs||[]) : [];
+      myNotifs.unshift(newNotif);
+      await updateDoc(doc(db,'users',window.CU.id),{notifs:myNotifs.slice(0,40)});
+    }
+
+    // Mostrar card especial en el feed si hay cumpleañeros
+    showBirthdayCard(cumpleaneros);
+
+  } catch(e){ console.error('checkFriendsBirthdays',e); }
+}
+
+function showBirthdayCard(cumpleaneros){
+  // Quitar card anterior si existe
+  document.getElementById('bdayFeedCard')?.remove();
+
+  const names = cumpleaneros.map(u=>u.nick).join(', ');
+  const multi = cumpleaneros.length > 1;
+
+  const card = document.createElement('div');
+  card.id = 'bdayFeedCard';
+  card.style.cssText = 'background:linear-gradient(135deg,rgba(255,215,0,.12),rgba(255,100,100,.08));border:1px solid rgba(255,215,0,.35);border-radius:14px;padding:18px;margin-bottom:16px;position:relative;overflow:hidden;';
+
+  // Confetti de fondo decorativo
+  card.innerHTML = `
+    <div style="position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;font-size:1.4rem;display:flex;flex-wrap:wrap;gap:8px;padding:8px;opacity:.12;">
+      ${'🎂🎉🎈🎁'.repeat(8)}
+    </div>
+    <div style="position:relative;z-index:1;">
+      <div style="font-size:2.2rem;margin-bottom:6px;">🎂</div>
+      <div style="font-weight:800;font-size:.95rem;color:gold;margin-bottom:4px;">
+        ¡${multi?'Tus amigos cumplen':'Un amigo cumple'} años hoy!
+      </div>
+      <div style="font-size:.85rem;color:var(--text);margin-bottom:12px;">
+        🎉 <strong>${names}</strong> ${multi?'están de cumpleaños':'está de cumpleaños'}
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${cumpleaneros.map(u=>`
+          <button onclick="bdaySendWish('${u.id}','${(u.nick||'').replace(/'/g,"&apos;")}')"
+            style="background:linear-gradient(135deg,#b8860b,#ffd700);border:none;border-radius:100px;padding:7px 16px;font-size:.8rem;font-weight:800;cursor:pointer;color:#000;font-family:'Exo 2',sans-serif;display:flex;align-items:center;gap:5px;transition:transform .15s;"
+            onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            🎉 Felicitar a ${u.nick}
+          </button>`).join('')}
+        <button onclick="document.getElementById('bdayFeedCard').remove()"
+          style="background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:7px 14px;font-size:.78rem;font-weight:700;cursor:pointer;color:var(--muted);font-family:'Exo 2',sans-serif;">
+          ✕ Cerrar
+        </button>
+      </div>
+    </div>`;
+
+  // Insertar al inicio del feed
+  const feed = document.getElementById('feedPosts');
+  if(feed) feed.insertBefore(card, feed.firstChild);
+
+  // También insertar en el feed del home si existe
+  const homeFeed = document.querySelector('#page-home .feed-col');
+  if(homeFeed && !homeFeed.contains(card)) homeFeed.insertBefore(card.cloneNode(true), homeFeed.firstChild);
+}
+
+async function bdaySendWish(uid, nick){
+  if(!window.CU){ toast('Iniciá sesión primero','err'); return; }
+  // Abrir chat con esa persona
+  if(typeof openChatWith==='function'){
+    cm('mEditProfile'); // cerrar cualquier modal abierto
+    om('mMessenger');
+    openChatWith(uid, nick);
+    // Pre-llenar el mensaje
+    setTimeout(()=>{
+      const inp = document.getElementById('chatInput');
+      if(inp){ inp.value='🎂 ¡Feliz cumpleaños '+nick+'! 🎉🎈'; inp.focus(); }
+    }, 400);
+  }
+  // También notificar al cumpleañero que alguien lo felicitó
+  await sendNotifToUser(uid, `🎂 ¡${window.CU.nick} te deseó un feliz cumpleaños! 🎉`);
+  toast('¡Mensaje de cumpleaños listo para enviar! 🎉','ok');
 }
 
 Object.entries(_expose).forEach(([k,v])=>{ window[k]=v; });
