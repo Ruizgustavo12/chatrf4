@@ -78,13 +78,13 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
   display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:1000;box-shadow:0 2px 4px rgba(0,0,0,.1);}
 .tb-logo{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--accent);cursor:pointer;}
 .tb-logo span{color:var(--gold);}
-.tb-search{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:100px;
-  padding:5px 10px;width:160px;flex-shrink:0;}
-.tb-search input{background:none;border:none;outline:none;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.82rem;width:100%;}
+.tb-search{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:100px;
+  padding:6px 14px;width:220px;}
+.tb-search input{background:none;border:none;outline:none;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.85rem;width:100%;}
 .tb-search input::placeholder{color:var(--muted);}
-.tb-nav{display:flex;gap:2px;overflow:visible;}
-.tb-nav-btn{background:none;border:none;color:var(--text);padding:7px 10px;border-radius:var(--rs);font-size:.78rem;
-  transition:all .2s;position:relative;font-weight:700;white-space:nowrap;}
+.tb-nav{display:flex;gap:4px;}
+.tb-nav-btn{background:none;border:none;color:var(--text);padding:8px 18px;border-radius:var(--rs);font-size:1.1rem;
+  transition:all .2s;position:relative;font-weight:700;}
 .tb-nav-btn:hover,.tb-nav-btn.on{color:var(--accent);background:rgba(24,119,242,.07);border-bottom:2px solid var(--accent);}
 .tb-right{display:flex;align-items:center;gap:6px;}
 .tb-icon-btn{width:40px;height:40px;border-radius:50%;background:#1a2a3a;border:none;
@@ -502,7 +502,20 @@ select.fi option{background:var(--bg3);color:var(--text);}
 /* ===== PROFILE PAGE ===== */
 .profile-cover{height:300px;background:linear-gradient(135deg,#e7f3ff,#1877f222);background-size:cover;background-position:center;position:relative;overflow:hidden;}
 
-/* ── BANNERS ANIMADOS DE TIENDA ── */
+/* ── GALERÍA ESTILO INSTAGRAM ── */
+@keyframes fadeIn { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:scale(1)} }
+#_igModal img#_igImg { transition: opacity .12s ease; }
+._igDot { transition: background .2s, transform .15s; }
+._igDot:hover { transform: scale(1.3); }
+._igRxnBtn:hover { background: var(--bg3) !important; transform: scale(1.15); }
+#_igComments::-webkit-scrollbar { width:4px; }
+#_igComments::-webkit-scrollbar-track { background:transparent; }
+#_igComments::-webkit-scrollbar-thumb { background:var(--border);border-radius:4px; }
+@media(max-width:680px){
+  #_igBox { flex-direction:column; max-height:98vh; }
+  #_igBox > div:last-child { width:100% !important; border-left:none !important; border-top:1px solid var(--border); max-height:55vh; }
+  #_igImgCol { min-height:220px !important; }
+}
 /* Capa de partículas que se pone DENTRO del cover */
 #profileBannerCanvas { position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2; }
 
@@ -4021,7 +4034,7 @@ function postHTML(p){
   const topRxn = Object.entries(p.reactionCounts||{}).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([e])=>e).join('');
   const rxnBtns = REACTIONS.map(r=>`<button class="rxn-btn" onclick="doReact('${p.id}','${r.emoji}')" title="${r.label}" style="position:relative;">${r.emoji}<span style="position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;font-size:.58rem;white-space:nowrap;padding:2px 6px;border-radius:4px;pointer-events:none;opacity:0;transition:opacity .15s;" class="rxn-tooltip">${r.label}</span></button>`).join('');
   const fishTag = p.fish ? `<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,198,255,.08);border:1px solid rgba(0,198,255,.2);border-radius:100px;padding:4px 12px;font-size:.78rem;margin-bottom:10px;margin-left:14px"><span>🎣</span><strong>${p.fish}</strong>${p.weight?` · ${p.weight}kg`:''} ${p.map?`· ${p.map}`:''} ${p.tech?`· ${p.tech}`:''}</div>` : '';
-  const imgHTML = (p.images&&p.images.length) ? `<div style="display:grid;grid-template-columns:${p.images.length===1?'1fr':p.images.length===2?'1fr 1fr':'1fr 1fr 1fr'};gap:3px;margin-bottom:10px;border-radius:var(--rs);overflow:hidden;">${p.images.slice(0,5).map(img=>`<img src="${img}" style="width:100%;max-height:300px;object-fit:contain;background:var(--bg3);cursor:pointer;" onclick="openImgLightbox('${img}')" loading="lazy">`).join('')}</div>` : '';
+  const imgHTML = (p.images&&p.images.length) ? `<div style="display:grid;grid-template-columns:${p.images.length===1?'1fr':p.images.length===2?'1fr 1fr':'1fr 1fr 1fr'};gap:3px;margin-bottom:10px;border-radius:var(--rs);overflow:hidden;">${p.images.slice(0,5).map(img=>`<img src="${img}" style="width:100%;max-height:300px;object-fit:contain;background:var(--bg3);cursor:pointer;" onclick="openImgLightbox('${img}',${JSON.stringify(p.images||[])},'${p.id}')" loading="lazy">`).join('')}</div>` : '';
   let videoHTML = '';
   if(p.video){
     const ytId = extractYtId(p.video);
@@ -4912,7 +4925,8 @@ function renderProfile(){
   document.getElementById('profBadges').innerHTML = badges.join(' ');
   // Photo grid
   const allImgs = mine.flatMap(p=>p.images||[]).filter(Boolean);
-  document.getElementById('profPhotoGrid').innerHTML = allImgs.slice(0,9).map(img=>`<img src="${img}" style="width:100%;aspect-ratio:1;object-fit:cover;cursor:pointer" onclick="openImgLightbox('${img}')">`).join('') || '<div style="color:var(--muted);font-size:.8rem;grid-column:1/-1;padding:8px">Sin fotos aún</div>';
+  const _allImgsStr = JSON.stringify(allImgs.slice(0,9));
+  document.getElementById('profPhotoGrid').innerHTML = allImgs.slice(0,9).map(img=>`<img src="${img}" style="width:100%;aspect-ratio:1;object-fit:cover;cursor:pointer" onclick="openImgLightbox('${img}',${_allImgsStr})">`).join('') || '<div style="color:var(--muted);font-size:.8rem;grid-column:1/-1;padding:8px">Sin fotos aún</div>';
   // Friends grid - real friends
   const friends = getDemoFriends();
   document.getElementById('profFriendCount').textContent = friends.length;
@@ -5964,13 +5978,228 @@ function doSearch(val){
 // ===== SHARE =====
 
 // ===== LIGHTBOX =====
-function openImgLightbox(src){
-  const lb = document.createElement('div');
-  lb.style.cssText='position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.95);display:flex;align-items:center;justify-content:center;cursor:zoom-out';
-  lb.innerHTML=`<img src="${src}" style="max-width:95vw;max-height:95vh;object-fit:contain;border-radius:8px">`;
-  lb.onclick=()=>lb.remove();
-  document.body.appendChild(lb);
+// ===== GALERÍA ESTILO INSTAGRAM =====
+let _galImages = [];   // array de URLs del contexto actual
+let _galIdx = 0;       // índice activo
+let _galPostId = null; // post asociado (para comentarios/reacciones)
+let _galUnsub = null;
+
+function openImgLightbox(src, allImgs, postId){
+  // Si vienen múltiples imágenes las usamos, si no armamos array con solo esa
+  _galImages = Array.isArray(allImgs) && allImgs.length ? allImgs : [src];
+  _galIdx = _galImages.indexOf(src);
+  if(_galIdx < 0) _galIdx = 0;
+  _galPostId = postId || null;
+
+  // Buscar el post en caché para tener comentarios/reacciones
+  const post = _galPostId ? (_posts||[]).find(p=>p.id===_galPostId) : null;
+
+  const old = document.getElementById('_igModal');
+  if(old){ old.remove(); if(_galUnsub){ _galUnsub(); _galUnsub=null; } }
+
+  const modal = document.createElement('div');
+  modal.id = '_igModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:99000;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;animation:fadeIn .18s ease;';
+
+  modal.innerHTML = `
+  <div id="_igBox" style="background:var(--bg2);border-radius:12px;display:flex;max-width:980px;width:98vw;max-height:94vh;overflow:hidden;position:relative;box-shadow:0 20px 80px rgba(0,0,0,.7);">
+    <!-- IMAGEN -->
+    <div id="_igImgCol" style="flex:1;min-width:0;background:#000;display:flex;align-items:center;justify-content:center;position:relative;min-height:400px;">
+      <img id="_igImg" src="${_galImages[_galIdx]}" style="max-width:100%;max-height:92vh;object-fit:contain;display:block;user-select:none;">
+      <!-- Flechas -->
+      <button id="_igPrev" onclick="igNav(-1)" style="display:${_galImages.length>1?'flex':'none'};position:absolute;left:10px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.55);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:1.2rem;cursor:pointer;align-items:center;justify-content:center;z-index:2;transition:background .15s;" onmouseover="this.style.background='rgba(0,0,0,.85)'" onmouseout="this.style.background='rgba(0,0,0,.55)'">‹</button>
+      <button id="_igNext" onclick="igNav(1)" style="display:${_galImages.length>1?'flex':'none'};position:absolute;right:10px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.55);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:1.2rem;cursor:pointer;align-items:center;justify-content:center;z-index:2;transition:background .15s;" onmouseover="this.style.background='rgba(0,0,0,.85)'" onmouseout="this.style.background='rgba(0,0,0,.55)'">›</button>
+      <!-- Dots -->
+      <div id="_igDots" style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:5px;">
+        ${_galImages.map((_,i)=>`<div class="_igDot" data-i="${i}" onclick="igNavTo(${i})" style="width:7px;height:7px;border-radius:50%;background:${i===_galIdx?'#fff':'rgba(255,255,255,.35)'};cursor:pointer;transition:background .2s;"></div>`).join('')}
+      </div>
+    </div>
+    <!-- SIDEBAR -->
+    <div style="width:340px;flex-shrink:0;display:flex;flex-direction:column;border-left:1px solid var(--border);max-height:94vh;">
+      <!-- Header usuario -->
+      <div style="padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0;">
+        <div id="_igUav" style="width:36px;height:36px;border-radius:50%;background:var(--bg3);border:2px solid var(--accent);overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;color:var(--accent);flex-shrink:0;">
+          ${post&&post.userAv?`<img src="${post.userAv}" style="width:100%;height:100%;object-fit:cover;">`:(post?(post.userNick||'?')[0].toUpperCase():'📷')}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:.88rem;">${post?esc(post.userNick||''):'Foto'}</div>
+          ${post&&post.text?`<div style="font-size:.75rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(post.text.slice(0,60))}</div>`:''}
+        </div>
+        <button onclick="document.getElementById('_igModal').remove();if(window._galUnsub){window._galUnsub();window._galUnsub=null;}" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;padding:4px;border-radius:50%;line-height:1;">✕</button>
+      </div>
+      <!-- Comentarios -->
+      <div id="_igComments" style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px;">
+        <div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem;">Cargando...</div>
+      </div>
+      <!-- Acciones -->
+      <div style="border-top:1px solid var(--border);flex-shrink:0;">
+        <!-- Reacciones -->
+        <div style="padding:10px 16px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          ${REACTIONS.map(r=>`
+            <button class="_igRxnBtn" data-e="${r.emoji}" onclick="igReact('${r.emoji}')" title="${r.label}"
+              style="background:none;border:1px solid transparent;border-radius:100px;padding:5px 10px;cursor:pointer;font-size:.95rem;display:flex;align-items:center;gap:3px;transition:all .15s;">
+              ${r.emoji}<span id="_igRxnCnt_${r.emoji.codePointAt(0)}" style="font-size:.7rem;color:var(--muted);font-weight:700;"></span>
+            </button>`).join('')}
+          <div id="_igRxnTotal" style="margin-left:auto;font-size:.75rem;color:var(--muted);font-weight:600;"></div>
+        </div>
+        <!-- Compartir -->
+        ${_galPostId?`<div style="padding:2px 16px 10px;display:flex;gap:8px;">
+          <button onclick="igShare()" style="flex:1;background:rgba(0,198,255,.1);border:1px solid rgba(0,198,255,.3);color:var(--accent);border-radius:100px;padding:7px 0;font-size:.8rem;font-weight:700;cursor:pointer;">🔁 Compartir</button>
+          <button onclick="igDownload()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:100px;padding:7px 14px;font-size:.8rem;cursor:pointer;" title="Descargar">⬇️</button>
+        </div>`:`<div style="padding:2px 16px 10px;">
+          <button onclick="igDownload()" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:100px;padding:7px 0;font-size:.8rem;cursor:pointer;">⬇️ Descargar</button>
+        </div>`}
+        <!-- Input comentario -->
+        ${_galPostId?`<div style="padding:0 16px 14px;display:flex;gap:8px;align-items:center;">
+          <div style="width:30px;height:30px;border-radius:50%;background:var(--bg3);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--accent);flex-shrink:0;">
+            ${window.CU&&window.CU.av?`<img src="${window.CU.av}" style="width:100%;height:100%;object-fit:cover;">`:(window.CU?(window.CU.nick||'?')[0].toUpperCase():'👤')}
+          </div>
+          <input id="_igCmtInp" placeholder="Agregá un comentario..." style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:7px 14px;color:var(--text);font-size:.82rem;font-family:'Exo 2',sans-serif;outline:none;" onkeypress="if(event.key==='Enter')igSubmitComment()">
+          <button onclick="igSubmitComment()" style="background:none;border:none;color:var(--accent);font-size:1rem;cursor:pointer;font-weight:700;padding:4px;">➤</button>
+        </div>`:''}
+      </div>
+    </div>
+  </div>`;
+
+  // Cerrar al hacer click fuera del box
+  modal.addEventListener('click', e => {
+    if(!e.target.closest('#_igBox')) { modal.remove(); if(_galUnsub){_galUnsub();_galUnsub=null;} }
+  });
+
+  // Teclado: flechas y Escape
+  modal._keyHandler = e => {
+    if(e.key==='Escape'){ modal.remove(); if(_galUnsub){_galUnsub();_galUnsub=null;} }
+    if(e.key==='ArrowRight') igNav(1);
+    if(e.key==='ArrowLeft') igNav(-1);
+  };
+  document.addEventListener('keydown', modal._keyHandler);
+  modal.addEventListener('remove', ()=>document.removeEventListener('keydown', modal._keyHandler));
+
+  // Swipe táctil
+  let _tsX = null;
+  modal.addEventListener('touchstart', e=>{ _tsX=e.touches[0].clientX; }, {passive:true});
+  modal.addEventListener('touchend', e=>{
+    if(_tsX===null) return;
+    const dx = e.changedTouches[0].clientX - _tsX;
+    if(Math.abs(dx)>40){ igNav(dx<0?1:-1); }
+    _tsX=null;
+  });
+
+  document.body.appendChild(modal);
+
+  // Cargar datos del post (reacciones + comentarios) en tiempo real
+  if(_galPostId){
+    igLoadPostData(_galPostId);
+  } else {
+    document.getElementById('_igComments').innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);font-size:.8rem;">Sin comentarios</div>';
+  }
 }
+
+function igNav(dir){
+  _galIdx = (_galIdx + dir + _galImages.length) % _galImages.length;
+  igNavTo(_galIdx);
+}
+function igNavTo(i){
+  _galIdx = i;
+  const img = document.getElementById('_igImg');
+  if(img){ img.style.opacity='0'; setTimeout(()=>{ img.src=_galImages[i]; img.style.opacity='1'; },120); img.style.transition='opacity .12s'; }
+  document.querySelectorAll('._igDot').forEach((d,j)=>{ d.style.background = j===i?'#fff':'rgba(255,255,255,.35)'; });
+}
+
+async function igLoadPostData(pid){
+  // Escuchar el post en tiempo real para comentarios y reacciones
+  if(_galUnsub){ _galUnsub(); _galUnsub=null; }
+  const pRef = doc(db,'posts',pid);
+  _galUnsub = onSnapshot(pRef, snap=>{
+    if(!snap.exists()) return;
+    const p = {id:snap.id,...snap.data()};
+    igRenderComments(p.comments||[]);
+    igRenderReactions(p.reactions||{}, p.reactionCounts||{});
+  });
+}
+
+function igRenderReactions(reactions, counts){
+  const myRxn = window.CU ? (reactions[window.CU.id]||'') : '';
+  const total = Object.values(reactions).filter(Boolean).length;
+  REACTIONS.forEach(r=>{
+    const btn = document.querySelector(`._igRxnBtn[data-e="${r.emoji}"]`);
+    const cntEl = document.getElementById('_igRxnCnt_'+r.emoji.codePointAt(0));
+    const active = myRxn===r.emoji;
+    if(btn){
+      btn.style.background = active?'rgba(24,119,242,.18)':'none';
+      btn.style.border = active?'1px solid var(--accent)':'1px solid transparent';
+    }
+    if(cntEl) cntEl.textContent = (counts[r.emoji]||0)>0?(counts[r.emoji]||0):'';
+  });
+  const tot = document.getElementById('_igRxnTotal');
+  if(tot) tot.textContent = total>0?`${total} reacci${total===1?'ón':'ones'}`:'';
+}
+
+function igRenderComments(comments){
+  const el = document.getElementById('_igComments');
+  if(!el) return;
+  if(!comments.length){
+    el.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);font-size:.8rem;">Sin comentarios aún. ¡Sé el primero!</div>';
+    return;
+  }
+  el.innerHTML = comments.map(c=>{
+    const av = c.av?`<img src="${c.av}" style="width:100%;height:100%;object-fit:cover;">`:(c.nick||'?')[0].toUpperCase();
+    const t = c.time ? fmtT(c.time) : '';
+    return `<div style="display:flex;gap:9px;align-items:flex-start;">
+      <div style="width:30px;height:30px;border-radius:50%;background:var(--bg3);border:1.5px solid var(--accent);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:var(--accent);flex-shrink:0;">${av}</div>
+      <div style="flex:1;min-width:0;">
+        <span style="font-weight:700;font-size:.82rem;color:var(--accent);">${esc(c.nick||'')}</span>
+        <span style="font-size:.82rem;color:var(--text);margin-left:6px;">${esc(c.text||'')}</span>
+        <div style="font-size:.68rem;color:var(--muted);margin-top:2px;">${t}</div>
+      </div>
+    </div>`;
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+async function igReact(emoji){
+  if(!_galPostId){ toast('No hay post asociado','inf'); return; }
+  await doReact(_galPostId, emoji);
+}
+
+async function igSubmitComment(){
+  if(!_galPostId) return;
+  if(!window.CU){ toast('Iniciá sesión para comentar','err'); return; }
+  const inp = document.getElementById('_igCmtInp');
+  const txt = inp ? inp.value.trim() : '';
+  if(!txt) return;
+  // Reusar submitComment del sistema existente — inyectamos en cinp_ temporalmente
+  let p = (_posts||[]).find(p=>p.id===_galPostId);
+  if(!p){
+    try{
+      const snap = await getDoc(doc(db,'posts',_galPostId));
+      if(snap.exists()) p={id:snap.id,...snap.data()};
+    }catch(e){}
+  }
+  if(p){
+    const newComments = [...(p.comments||[]), {userId:window.CU.id,nick:window.CU.nick,av:window.CU.av||'',text:txt,time:Date.now()}];
+    await updateDoc(doc(db,'posts',_galPostId), {comments:newComments});
+    if(p.userId && p.userId !== window.CU.id) sendNotifToUserWithPost(p.userId,`💬 ${window.CU.nick} comentó tu foto: "${txt.slice(0,40)}"`,_galPostId);
+  }
+  if(inp) inp.value='';
+}
+
+async function igShare(){
+  if(!_galPostId){ toast('Sin post para compartir','inf'); return; }
+  await sharePost(_galPostId);
+}
+
+function igDownload(){
+  const src = _galImages[_galIdx];
+  const a = document.createElement('a');
+  a.href = src; a.download = 'foto_rf4latam.jpg'; a.target='_blank';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+// Exponer helpers al scope global para inline handlers
+window.igNav=igNav; window.igNavTo=igNavTo; window.igReact=igReact;
+window.igSubmitComment=igSubmitComment; window.igShare=igShare; window.igDownload=igDownload;
+window.openImgLightbox=openImgLightbox;
 
 // ===== REPORT =====
 function reportPost(pid, userNick){
@@ -6931,8 +7160,8 @@ function spotCardHTML(s){
       </div>
     </div>
     ${s.text?`<div style="padding:0 14px 10px;font-size:.9rem;line-height:1.6;">${esc(s.text)}</div>`:''}
-    ${imgs.length===1?`<img src="${imgs[0]}" style="width:100%;max-height:420px;object-fit:cover;display:block;cursor:pointer;" onclick="openImgLightbox('${imgs[0]}')">`:
-      imgs.length>1?`<div class="post-img-grid ${gridClass}" style="gap:2px;">${imgs.slice(0,4).map(img=>`<img src="${img}" style="width:100%;height:200px;object-fit:cover;cursor:pointer;" onclick="openImgLightbox('${img}')">`).join('')}</div>`:''}
+    ${imgs.length===1?`<img src="${imgs[0]}" style="width:100%;max-height:420px;object-fit:cover;display:block;cursor:pointer;" onclick="openImgLightbox('${imgs[0]}',${JSON.stringify(imgs)})">`:
+      imgs.length>1?`<div class="post-img-grid ${gridClass}" style="gap:2px;">${imgs.slice(0,4).map(img=>`<img src="${img}" style="width:100%;height:200px;object-fit:cover;cursor:pointer;" onclick="openImgLightbox('${img}',${JSON.stringify(imgs)})">`).join('')}</div>`:''}
     ${s.fish||s.setup?`<div style="padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px;border-top:1px solid var(--border);">
       ${s.fish?`<span style="background:rgba(0,198,255,.1);color:var(--accent);padding:3px 10px;border-radius:100px;font-size:.75rem;">🐟 ${esc(s.fish)}${s.weight?' · '+s.weight+'kg':''}</span>`:''}
       ${s.setup?`<span style="background:rgba(255,215,0,.08);color:var(--gold);padding:3px 10px;border-radius:100px;font-size:.75rem;">🎣 ${esc(s.setup)}</span>`:''}
@@ -8140,7 +8369,7 @@ async function _loadUserProfilePage(uid, nick){
     // ── TAB FOTOS ──
     const allImgs = userPosts.flatMap(p=>p.images||[]).filter(Boolean);
     document.getElementById('upTabFotos').innerHTML = allImgs.length
-      ? `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">${allImgs.map(img=>`<div style="aspect-ratio:1;overflow:hidden;cursor:pointer;" onclick="openImgLightbox('${img}')"><img src="${img}" style="width:100%;height:100%;object-fit:cover;transition:transform .2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"></div>`).join('')}</div>`
+      ? `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">${allImgs.map(img=>`<div style="aspect-ratio:1;overflow:hidden;cursor:pointer;" onclick="openImgLightbox('${img}',${JSON.stringify(allImgs)})"><img src="${img}" style="width:100%;height:100%;object-fit:cover;transition:transform .2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"></div>`).join('')}</div>`
       : '<div style="color:var(--muted);text-align:center;padding:30px;">Sin fotos aún</div>';
 
     // ── TAB AMIGOS ──
