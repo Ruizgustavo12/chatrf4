@@ -2599,7 +2599,8 @@ function listenVerifiedUsers(){
       snap.docs.forEach(d => {
         const data = d.data();
         if(data.verified === true) window._verifUsers[d.id] = true;
-        if(data.shopEquipped) window._usersShop[d.id] = data.shopEquipped;
+        // Siempre guardar shopEquipped aunque sea {} vacío (undefined = nunca tuvo tienda)
+        window._usersShop[d.id] = data.shopEquipped || {};
       });
       if(!resolved){ resolved=true; resolve(); }
       else { renderFeed(); renderProfileFeed(); }
@@ -4741,6 +4742,8 @@ async function toggleEquipItem(itemId){
     }
     await updateDoc(doc(db,'users',window.CU.id), firestoreUpdate);
     window.CU.shopEquipped = { ..._equippedItems };
+    // Sincronizar cache _usersShop con el estado actual
+    if(window._usersShop) window._usersShop[window.CU.id] = { ..._equippedItems };
   } catch(e){ console.warn('shop save error',e); }
 
   renderShopGrid();
@@ -4848,14 +4851,22 @@ async function loadShopEquipped(){
   try {
     const snap = await getDoc(doc(db,'users',window.CU.id));
     if(snap.exists()){
-      // Siempre usar el valor de Firestore, aunque sea {} vacío
-      _equippedItems = snap.data().shopEquipped || {};
+      const data = snap.data();
+      // Usar shopEquipped de Firestore — si el campo no existe o es undefined, usar {}
+      // Nunca usar valor local anterior para evitar que ítems desequipados reaparezcan
+      _equippedItems = (data.shopEquipped !== undefined) ? data.shopEquipped : {};
       window.CU.shopEquipped = { ..._equippedItems };
+      // Sincronizar cache global
+      if(window._usersShop) window._usersShop[window.CU.id] = { ..._equippedItems };
     } else {
       _equippedItems = {};
       window.CU.shopEquipped = {};
+      if(window._usersShop) window._usersShop[window.CU.id] = {};
     }
-  } catch(e){ _equippedItems = window.CU?.shopEquipped || {}; }
+  } catch(e){
+    console.warn('loadShopEquipped error', e);
+    _equippedItems = {};
+  }
   applyShopEffects();
 }
 
