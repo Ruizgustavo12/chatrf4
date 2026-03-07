@@ -2168,6 +2168,19 @@ async function uploadImage(fileOrBase64, folder) {
 }
 
 // ===== REALTIME LISTENERS =====
+
+// Caché de usuarios verificados — se actualiza en tiempo real
+window._verifUsers = {};
+function listenVerifiedUsers(){
+  onSnapshot(query(collection(db,'users'), where('verified','==',true)), snap => {
+    const ids = new Set(snap.docs.map(d=>d.id));
+    window._verifUsers = {};
+    ids.forEach(id=>{ window._verifUsers[id]=true; });
+    renderFeed();
+    renderProfileFeed();
+  });
+}
+
 function listenPosts() {
   if (_unsubPosts) _unsubPosts();
   _unsubPosts = onSnapshot(query(collection(db, 'posts'), orderBy('time', 'desc')), snap => {
@@ -2400,6 +2413,7 @@ function onLogin(){
   updateNavUI();
   listenPosts();
   listenStories();
+  listenVerifiedUsers();
   startPresence();
   listenNotifs();
   listenTrofeosSidebar();
@@ -3072,15 +3086,17 @@ function postHTML(p){
       })()
 
     }).join('');
-  return `<div class="post${p.userVerified?' post-verified':''}" id="post_${p.id}">
-    ${p.userVerified?`<div class="verif-post-tag">⭐ VERIFICADO</div>`:''}
+  // Verificar estado en tiempo real desde el caché de usuarios verificados
+  const isVerif = !!(p.userVerified || (window._verifUsers && window._verifUsers[p.userId]));
+  return `<div class="post${isVerif?' post-verified':''}" id="post_${p.id}">
+    ${isVerif?`<div class="verif-post-tag">⭐ VERIFICADO</div>`:''}
     <div class="post-header" style="position:relative;">
-      <div class="${p.userVerified?'post-av-wrap':''}">
+      <div class="${isVerif?'post-av-wrap':''}">
         <div class="post-av" style="cursor:pointer;" onclick="openUserProfile('${p.userId}','${esc(p.userNick)}')">${p.userAv?`<img src="${p.userAv}">`:(p.userNick||'U')[0]}</div>
       </div>
       <div class="post-meta" style="cursor:pointer" onclick="openUserProfile('${p.userId}','${esc(p.userNick)}')">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          <div class="post-author">${esc(p.userNick)}${p.userVerified?' <span title="Verificado" style="font-size:.75rem;line-height:1;">✅</span>':''}</div>
+          <div class="post-author">${esc(p.userNick)}${isVerif?' <span title="Verificado" style="font-size:.75rem;line-height:1;">✅</span>':''}</div>
           ${(()=>{ const plvl=getLevel(p.userXp||0); return `<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:100px;border:1px solid;color:${plvl.color};border-color:${plvl.border};background:${plvl.border.replace(/[\d.]+\)$/,'.08)')};">${plvl.name}</span>`; })()}
         </div>
         <div class="post-time">🌐 ${fmtT(p.time)}</div>
