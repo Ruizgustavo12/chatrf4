@@ -749,8 +749,6 @@ select.fi option{background:#fff;}
       <div class="sl-item"><span class="sl-item-icon">🔖</span> Guardados</div>
       <div class="sl-item" onclick="gp('parches')"><span class="sl-item-icon">🔧</span> Parches y Actualizaciones</div>
       <div class="divider"></div>
-      <div class="sl-section-title">Amigos</div>
-      <div id="friendsListSidebar"></div>
       <!-- Streak mini widget -->
       <div id="sidebarStreakWidget" style="display:none;margin:8px 8px 4px;background:linear-gradient(135deg,rgba(255,100,0,.1),rgba(255,60,0,.05));border:1px solid rgba(255,100,0,.25);border-radius:var(--r);padding:10px 12px;">
         <div style="display:flex;align-items:center;justify-content:space-between;">
@@ -7252,10 +7250,11 @@ async function renderAmigosPage(){
     suggList.innerHTML = '<div style="font-size:.8rem;color:var(--muted);padding:8px;">Cargando...</div>';
     const snap = await getDocs(collection(db,'users'));
     const allUsers = snap.docs.map(d=>({id:d.id,...d.data()}));
+    const myId = window.CU?.id || window.CU?.uid || '';
     const myFriends = window.CU?.friends || [];
     const notifs2 = window.CU.notifs || [];
     const pendingIds = notifs2.filter(n=>n.type==='friendRequest').map(n=>n.fromId);
-    const candidates = allUsers.filter(u => u.id !== window.CU?.id && !myFriends.includes(u.id) && !pendingIds.includes(u.id));
+    const candidates = allUsers.filter(u => u.id !== myId && u.uid !== myId && !myFriends.includes(u.id) && !pendingIds.includes(u.id));
     const shuffled = candidates.sort(()=>Math.random()-0.5).slice(0,12);
     if(!shuffled.length){ suggList.innerHTML='<div style="font-size:.8rem;color:var(--muted);padding:8px;">No hay sugerencias por ahora</div>'; return; }
     suggList.innerHTML = shuffled.map(u=>`
@@ -7281,9 +7280,10 @@ async function renderSuggestedUsers(){
   try {
     const snap = await getDocs(collection(db,'users'));
     const allUsers = snap.docs.map(d=>({id:d.id,...d.data()}));
+    const myId = window.CU?.id || window.CU?.uid || '';
     const myFriends = window.CU?.friends || [];
     // Filter out self and existing friends, pick random ones
-    const candidates = allUsers.filter(u=>u.id!==window.CU?.id && !myFriends.includes(u.id));
+    const candidates = allUsers.filter(u => u.id !== myId && u.uid !== myId && !myFriends.includes(u.id));
     // Shuffle and pick up to 5
     const shuffled = candidates.sort(()=>Math.random()-0.5).slice(0,5);
     el.innerHTML = shuffled.length
