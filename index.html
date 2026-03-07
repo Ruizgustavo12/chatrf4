@@ -1538,46 +1538,87 @@ select.fi option{background:#fff;}
   </div>
 </div>
 
-<!-- Messenger Modal - se abre desde ícono 💬 de la barra superior -->
-<div class="mo" id="mMessenger">
-  <div class="modal" style="width:340px;max-width:96vw;height:560px;display:flex;flex-direction:column;padding:0;overflow:hidden;">
-    <!-- Header with tabs -->
-    <div style="background:var(--bg3);flex-shrink:0;">
-      <div style="padding:10px 14px 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-        <div style="font-family:'Orbitron',monospace;font-size:.82rem;font-weight:700;color:var(--accent);">💬 Chats</div>
-        <button onclick="cm('mMessenger');backToMessengerList();" style="background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='var(--bg4)'" onmouseout="this.style.background='none'">✕</button>
-      </div>
-      <!-- Tabs -->
-      <div style="display:flex;border-top:1px solid var(--border);" id="chatTabsRow">
-        <button id="chatTab-all" onclick="switchChatTab('all')" style="flex:1;background:none;border:none;border-bottom:2px solid var(--accent);color:var(--accent);font-family:'Exo 2',sans-serif;font-size:.8rem;font-weight:700;padding:8px 4px;cursor:pointer;">Todos</button>
-        <button id="chatTab-unread" onclick="switchChatTab('unread')" style="flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'Exo 2',sans-serif;font-size:.8rem;font-weight:600;padding:8px 4px;cursor:pointer;position:relative;">No leídos<span id="unreadChatBadge" style="display:none;position:absolute;top:5px;right:6px;background:var(--accent);color:#fff;border-radius:100px;font-size:.58rem;font-weight:700;padding:1px 5px;min-width:16px;text-align:center;"></span></button>
+<!-- Messenger — Burbuja flotante arrastrable estilo Facebook -->
+<style>
+#mMessenger{
+  display:none;
+  position:fixed;
+  bottom:24px;
+  right:24px;
+  width:340px;
+  height:520px;
+  background:var(--bg2);
+  border-radius:12px;
+  box-shadow:0 8px 40px rgba(0,0,0,.35);
+  border:1px solid var(--border);
+  z-index:3000;
+  flex-direction:column;
+  overflow:hidden;
+  animation:mIn .2s ease;
+  /* NO backdrop, NO overlay */
+}
+#mMessenger.open{ display:flex; }
+#chatDragHandle{
+  cursor:grab;
+  user-select:none;
+}
+#chatDragHandle:active{ cursor:grabbing; }
+/* Fix message bubble min-width so short msgs don't wrap weirdly */
+.chat-bubble-text{
+  display:inline-block;
+  max-width:220px;
+  min-width:0;
+  padding:8px 12px;
+  word-break:break-word;
+  white-space:pre-wrap;
+}
+</style>
 
-              <button id="chatTab-archived" onclick="switchChatTab('archived')" style="flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'Exo 2',sans-serif;font-size:.8rem;font-weight:600;padding:8px 4px;cursor:pointer;">📦 Archiv.</button>
+<div id="mMessenger">
+  <!-- Header draggable -->
+  <div id="chatDragHandle" style="background:var(--bg3);flex-shrink:0;border-bottom:1px solid var(--border);">
+    <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-family:'Orbitron',monospace;font-size:.8rem;font-weight:700;color:var(--accent);">💬 Chats</div>
+      <div style="display:flex;gap:4px;align-items:center;">
+        <button onclick="minimizeMessenger()" title="Minimizar" style="background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='var(--bg4)'" onmouseout="this.style.background='none'">－</button>
+        <button onclick="closeMessenger()" title="Cerrar" style="background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='var(--bg4)'" onmouseout="this.style.background='none'">✕</button>
       </div>
     </div>
-    <!-- Content (list or chat) -->
-    <div style="flex:1;overflow-y:auto;min-height:0;">
-      <div id="messengerList" style="padding:6px;"></div>
-      <div id="chatWindow" style="display:none;flex-direction:column;height:100%;"></div>
-    </div>
-    <!-- Input row -->
-    <div id="chatInputRow" style="display:none;padding:8px;border-top:1px solid var(--border);flex-shrink:0;gap:6px;align-items:center;">
-      <button onclick="openEmojiPicker(event,'chatInput')" style="background:none;border:none;font-size:1.2rem;cursor:pointer;padding:4px 6px;color:var(--muted);flex-shrink:0;" title="Emoji">😊</button>
-      <div style="position:relative;flex-shrink:0;">
-        <button onclick="toggleGifPicker('chatGifPicker','chatInput')" style="background:none;border:none;font-size:.7rem;font-weight:900;cursor:pointer;padding:4px 6px;color:var(--accent);border:1px solid var(--accent);border-radius:4px;line-height:1;" title="GIF">GIF</button>
-        <div class="gif-picker" id="chatGifPicker">
-          <div class="gif-search">
-            <input type="text" placeholder="Buscar GIF..." oninput="searchGifs(this.value,'chatGifPicker','chatInput')" id="chatGifSearch">
-            <button onclick="closeGifPicker('chatGifPicker')" style="background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;">✕</button>
-          </div>
-          <div class="gif-grid" id="chatGifGrid"></div>
-          <div class="gif-powered">Powered by GIPHY</div>
-        </div>
-      </div>
-      <input id="chatInput" class="fi" placeholder="Escribe un mensaje..." style="flex:1;font-size:.82rem;" onkeypress="if(event.key==='Enter')sendChatMsg()" oninput="setChatTyping()">
-      <button onclick="sendChatMsg()" style="background:var(--accent);border:none;color:#000;width:34px;height:34px;border-radius:50%;font-size:.9rem;cursor:pointer;flex-shrink:0;">➤</button>
+    <!-- Tabs -->
+    <div style="display:flex;border-top:1px solid var(--border);" id="chatTabsRow">
+      <button id="chatTab-all" onclick="switchChatTab('all')" style="flex:1;background:none;border:none;border-bottom:2px solid var(--accent);color:var(--accent);font-family:'Exo 2',sans-serif;font-size:.78rem;font-weight:700;padding:7px 4px;cursor:pointer;">Todos</button>
+      <button id="chatTab-unread" onclick="switchChatTab('unread')" style="flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'Exo 2',sans-serif;font-size:.78rem;font-weight:600;padding:7px 4px;cursor:pointer;position:relative;">No leídos<span id="unreadChatBadge" style="display:none;position:absolute;top:5px;right:6px;background:var(--accent);color:#fff;border-radius:100px;font-size:.58rem;font-weight:700;padding:1px 5px;min-width:16px;text-align:center;"></span></button>
+      <button id="chatTab-archived" onclick="switchChatTab('archived')" style="flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'Exo 2',sans-serif;font-size:.78rem;font-weight:600;padding:7px 4px;cursor:pointer;">📦 Archiv.</button>
     </div>
   </div>
+  <!-- Content -->
+  <div style="flex:1;overflow-y:auto;min-height:0;">
+    <div id="messengerList" style="padding:6px;"></div>
+    <div id="chatWindow" style="display:none;flex-direction:column;height:100%;"></div>
+  </div>
+  <!-- Input row -->
+  <div id="chatInputRow" style="display:none;padding:8px;border-top:1px solid var(--border);flex-shrink:0;gap:6px;align-items:center;">
+    <button onclick="openEmojiPicker(event,'chatInput')" style="background:none;border:none;font-size:1.2rem;cursor:pointer;padding:4px 6px;color:var(--muted);flex-shrink:0;" title="Emoji">😊</button>
+    <div style="position:relative;flex-shrink:0;">
+      <button onclick="toggleGifPicker('chatGifPicker','chatInput')" style="background:none;border:none;font-size:.7rem;font-weight:900;cursor:pointer;padding:4px 6px;color:var(--accent);border:1px solid var(--accent);border-radius:4px;line-height:1;" title="GIF">GIF</button>
+      <div class="gif-picker" id="chatGifPicker" style="bottom:calc(100% + 8px);top:auto;">
+        <div class="gif-search">
+          <input type="text" placeholder="Buscar GIF..." oninput="searchGifs(this.value,'chatGifPicker','chatInput')" id="chatGifSearch">
+          <button onclick="closeGifPicker('chatGifPicker')" style="background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;">✕</button>
+        </div>
+        <div class="gif-grid" id="chatGifGrid"></div>
+        <div class="gif-powered">Powered by GIPHY</div>
+      </div>
+    </div>
+    <input id="chatInput" class="fi" placeholder="Escribe un mensaje..." style="flex:1;font-size:.82rem;" onkeypress="if(event.key==='Enter')sendChatMsg()" oninput="setChatTyping()">
+    <button onclick="sendChatMsg()" style="background:var(--accent);border:none;color:#000;width:34px;height:34px;border-radius:50%;font-size:.9rem;cursor:pointer;flex-shrink:0;">➤</button>
+  </div>
+</div>
+
+<!-- Burbuja minimizada -->
+<div id="chatBubbleMin" style="display:none;position:fixed;bottom:24px;right:24px;z-index:3000;cursor:pointer;" onclick="maximizeMessenger()">
+  <div style="width:56px;height:56px;border-radius:50%;background:var(--accent);box-shadow:0 4px 20px rgba(24,119,242,.5);display:flex;align-items:center;justify-content:center;font-size:1.4rem;transition:transform .15s;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">💬</div>
+  <span id="chatBubbleMinBadge" style="display:none;position:absolute;top:0;right:0;background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #fff;"></span>
 </div>
 
 <!-- User Profile Modal -->
@@ -2684,7 +2725,9 @@ window.setNav = setNav;
 window.om = id => {
   const el = document.getElementById(id);
   if(!el) return;
-  if(id === 'mAuth'){ el.style.display='block'; } else { el.classList.add('open'); }
+  if(id === 'mAuth'){ el.style.display='block'; }
+  else if(id === 'mMessenger'){ el.classList.add('open'); document.getElementById('chatBubbleMin').style.display='none'; }
+  else { el.classList.add('open'); }
   if(false && id==='mNotif_disabled' && _notifs.some(n=>!n.read)){
     _notifs.forEach(n=>n.read=true);
     if(window.CU) updateDoc(doc(db,'users',window.CU.id),{notifs:_notifs.slice(0,30)}).catch(()=>{});
@@ -2693,7 +2736,10 @@ window.om = id => {
 };
 window.cm = id => {
   const el = document.getElementById(id);
-  if(id === 'mAuth'){ el.style.display='none'; } else { el.classList.remove('open'); }
+  if(!el) return;
+  if(id === 'mAuth'){ el.style.display='none'; }
+  else if(id === 'mMessenger'){ el.classList.remove('open'); }
+  else { el.classList.remove('open'); }
 };
 document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); }));
 
@@ -6544,6 +6590,84 @@ function openMessenger(){
 // Keep toggleMessenger as alias for backward compat
 function toggleMessenger(){ openMessenger(); }
 
+function closeMessenger(){
+  const el = document.getElementById('mMessenger');
+  if(el) el.classList.remove('open');
+  document.getElementById('chatBubbleMin').style.display='none';
+}
+
+function minimizeMessenger(){
+  const el = document.getElementById('mMessenger');
+  if(el) el.classList.remove('open');
+  const bubble = document.getElementById('chatBubbleMin');
+  bubble.style.display='block';
+  // Copy position from messenger
+  if(el){
+    bubble.style.bottom = el.style.bottom || '24px';
+    bubble.style.right = el.style.right || '24px';
+    bubble.style.left = el.style.left || '';
+    bubble.style.top = el.style.top || '';
+  }
+}
+
+function maximizeMessenger(){
+  document.getElementById('chatBubbleMin').style.display='none';
+  const el = document.getElementById('mMessenger');
+  if(el) el.classList.add('open');
+}
+
+// ===== DRAG logic for floating chat =====
+(function initChatDrag(){
+  let dragging=false, startX, startY, startRight, startBottom;
+  function getEl(){ return document.getElementById('mMessenger'); }
+  function onDown(e){
+    const el = getEl(); if(!el) return;
+    dragging=true;
+    const touch = e.touches ? e.touches[0] : e;
+    startX = touch.clientX;
+    startY = touch.clientY;
+    const rect = el.getBoundingClientRect();
+    startRight = window.innerWidth - rect.right;
+    startBottom = window.innerHeight - rect.bottom;
+    el.style.transition='none';
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchmove', onMove, {passive:false});
+    document.addEventListener('touchend', onUp);
+  }
+  function onMove(e){
+    if(!dragging) return;
+    e.preventDefault();
+    const el = getEl(); if(!el) return;
+    const touch = e.touches ? e.touches[0] : e;
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
+    let newRight = startRight - dx;
+    let newBottom = startBottom - dy;
+    // Clamp to viewport
+    newRight = Math.max(0, Math.min(window.innerWidth - 60, newRight));
+    newBottom = Math.max(0, Math.min(window.innerHeight - 60, newBottom));
+    el.style.right = newRight + 'px';
+    el.style.bottom = newBottom + 'px';
+    el.style.left = 'auto';
+    el.style.top = 'auto';
+  }
+  function onUp(){
+    dragging=false;
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onUp);
+  }
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const handle = document.getElementById('chatDragHandle');
+    if(handle){
+      handle.addEventListener('mousedown', onDown);
+      handle.addEventListener('touchstart', onDown, {passive:false});
+    }
+  });
+})();
+
 let _presenceUnsub = null;
 
 // Chat tab state
@@ -6799,7 +6923,7 @@ function openChatWith(uid, nick){
               </div>` : '';
             const msgContent = m.gif
               ? `<img src="${m.gif}" style="max-width:200px;border-radius:10px;display:block;" loading="lazy">`
-              : `<div style="max-width:75%;padding:8px 12px;border-radius:${mine?'16px 16px 4px 16px':'16px 16px 16px 4px'};background:${mine?'var(--accent)':'var(--bg3)'};color:${mine?'#fff':'var(--text)'};font-size:.84rem;line-height:1.5;word-break:break-word;">${esc(m.text)}</div>`;
+              : `<div style="max-width:220px;min-width:0;padding:8px 12px;border-radius:${mine?'16px 16px 4px 16px':'16px 16px 16px 4px'};background:${mine?'var(--accent)':'var(--bg3)'};color:${mine?'#fff':'var(--text)'};font-size:.84rem;line-height:1.5;word-break:break-word;display:inline-block;">${esc(m.text)}</div>`;
             const normalBubble = !isStoryComment ? `
               <div style="position:relative;" onmouseenter="showMsgRxnBar('${m.id}')" onmouseleave="hideMsgRxnBar('${m.id}')">
                 <div id="mrxnbar_${m.id}" style="display:none;position:absolute;${mine?'right:0':'left:0'};bottom:calc(100% + 4px);background:rgba(12,22,34,.98);border:1px solid rgba(255,255,255,.13);border-radius:100px;padding:4px 8px;align-items:center;gap:2px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.8);white-space:nowrap;" onmouseenter="keepMsgRxnBar('${m.id}')" onmouseleave="hideMsgRxnBar('${m.id}')">${rxnBtns}</div>
@@ -7951,7 +8075,7 @@ const _expose = {
   submitPatch, submitTorneo, submitAdminGroup, submitAd, toggleAd,
   banUser, deleteAdminContent, deleteAdminPost, resolveReport,
   openUserProfile, sendFriendRequest, togglePostMenu, renderProfileFriendsList, openEditPost, saveEditPost, deleteMyPost,
-  toggleMessenger, sendChatMsg, openChatWith, backToMessengerList, openPostWithYt, reactChatMsg, showMsgRxnBar, hideMsgRxnBar, keepMsgRxnBar, showCmtMenu, hideCmtMenu, setChatTyping, toggleGifPicker, closeGifPicker, searchGifs, sendGif, toggleMsgTime,
+  toggleMessenger, sendChatMsg, openChatWith, backToMessengerList, closeMessenger, minimizeMessenger, maximizeMessenger, openPostWithYt, reactChatMsg, showMsgRxnBar, hideMsgRxnBar, keepMsgRxnBar, showCmtMenu, hideCmtMenu, setChatTyping, toggleGifPicker, closeGifPicker, searchGifs, sendGif, toggleMsgTime,
   joinGroup, leaveGroup, openGroupPost, showGroupWelcome, previewGroupPostImg, removeGroupPostImg, submitGroupPost,
   acceptFriendRequest, rejectFriendRequest, dismissFriendRequest, sendFriendRequestFromProfile, loadRealFriends, updateNotifBadge, updateMsgBadge,
   previewSpotImg, removeSpotImg, submitSpot, loadSpots, loadFriendSpots, renderFriendSpotsInHome, openEditSpot, saveEditSpot, deleteSpot, scrollToPost, loadVideos, filterVideos,
