@@ -481,12 +481,12 @@ img[title="Verificado"]:hover{
 /* FORM */
 .fg{margin-bottom:14px;}
 .fl{display:block;font-size:.72rem;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px;}
-.fi{width:100%;background:#f0f2f5;border:1px solid var(--border);color:var(--text);font-family:'Exo 2',sans-serif;
+.fi{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'Exo 2',sans-serif;
   font-size:.87rem;padding:9px 13px;border-radius:var(--rs);outline:none;transition:all .2s;}
 .fi:focus{border-color:var(--accent);}
 .fi::placeholder{color:var(--muted);}
 textarea.fi{resize:vertical;min-height:80px;}
-select.fi option{background:#fff;}
+select.fi option{background:var(--bg3);color:var(--text);}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .btn{padding:10px 22px;border-radius:var(--rs);font-family:'Exo 2',sans-serif;font-size:.87rem;font-weight:700;cursor:pointer;border:none;transition:all .2s;letter-spacing:.4px;}
 .btn-p{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;}
@@ -2058,7 +2058,7 @@ select.fi option{background:#fff;}
       <div style="font-family:'Orbitron',monospace;font-size:.85rem;font-weight:700;color:gold;margin-bottom:6px;">🛒 Descuento 100% Tienda</div>
       <div style="font-size:.75rem;color:var(--muted);margin-bottom:12px;">Fecha y hora en que termina el 100% de descuento. Deja vacío para ocultar el contador.</div>
       <div class="frow">
-        <div class="fg"><label class="fl">Fecha de vencimiento</label><input type="datetime-local" class="fi" id="cfgShopDiscountEnd"></div>
+        <div class="fg"><label class="fl">Fecha de vencimiento</label><input type="datetime-local" class="fi" id="cfgShopDiscountEnd" style="color-scheme:dark;color:var(--text);background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:8px 12px;width:100%;box-sizing:border-box;"></div>
       </div>
       <button class="btn btn-p" style="font-size:.82rem;margin-top:8px;" onclick="saveSiteConfig()">💾 Guardar fecha</button>
     </div>
