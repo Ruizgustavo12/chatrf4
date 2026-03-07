@@ -871,7 +871,7 @@ select.fi option{background:#fff;}
 <!-- PAGE: USER PROFILE (perfil de otros usuarios) -->
 <div class="page" id="page-userprofile">
   <!-- Cover -->
-  <div id="upCover" style="height:220px;background:linear-gradient(135deg,#0a1628,#1a2a3a);background-size:cover;background-position:center;position:relative;overflow:hidden;">
+  <div id="upCover" style="height:220px;background:linear-gradient(135deg,#0a1628,#1a2a3a);background-size:cover;background-position:center;position:relative;overflow:hidden;cursor:pointer;" onclick="openPhotoModalUser('cover')">
     <div id="upCoverInner" style="width:100%;height:100%;"></div>
     <button onclick="window.location.href='https://ruizgustavo12.github.io/chatrf4/'" style="position:absolute;top:14px;left:14px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:100px;padding:6px 14px;font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'Exo 2',sans-serif;backdrop-filter:blur(4px);">← Volver</button>
     <canvas id="upVerifParticles" style="display:none;position:absolute;inset:0;pointer-events:none;"></canvas>
@@ -885,7 +885,7 @@ select.fi option{background:#fff;}
       <!-- Avatar + nombre -->
       <div style="display:flex;align-items:flex-end;gap:16px;padding-bottom:14px;flex-wrap:wrap;">
         <div id="upAvWrap" style="margin-top:-44px;position:relative;flex-shrink:0;">
-          <div id="upAv" style="width:100px;height:100px;border-radius:50%;border:4px solid var(--bg2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:800;color:var(--accent);background:var(--bg3);">👤</div>
+          <div id="upAv" style="width:100px;height:100px;border-radius:50%;border:4px solid var(--bg2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:800;color:var(--accent);background:var(--bg3);cursor:pointer;" onclick="openPhotoModalUser('avatar')">👤</div>
         </div>
         <div style="flex:1;min-width:0;padding-top:8px;">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -6977,6 +6977,7 @@ async function openUserProfile(uid, nick){
 }
 
 async function _loadUserProfilePage(uid, nick){
+  window._viewingUserId = uid; // track which profile we're viewing for photo modal
   if(!window._anonMode) registerProfileVisit(uid);
   // Reset
   const nameEl = document.getElementById('upName');
@@ -8060,6 +8061,46 @@ let _photoModalType = null;
 let _photoModalUserId = null;
 let _photoModalUnsub = null;
 const PHOTO_REACTIONS = ['👍','❤️','😍','😮','😢','🔥','🎣'];
+
+
+function openPhotoModalUser(type){
+  // Determinar si estamos en perfil propio o ajeno
+  const isOwnProfile = document.getElementById('profCover') && document.getElementById('profCover').offsetParent !== null;
+  
+  if(isOwnProfile){
+    // Perfil propio — usar la función original
+    openPhotoModal(type);
+    return;
+  }
+
+  // Perfil ajeno — buscar imagen en upCover o upAv
+  let imgSrc = '';
+  if(type === 'avatar'){
+    const img = document.querySelector('#upAv img');
+    if(!img){ toast('Este usuario no tiene foto de perfil','inf'); return; }
+    imgSrc = img.src;
+  } else {
+    const img = document.querySelector('#upCoverInner img');
+    if(!img){ toast('Este usuario no tiene foto de portada','inf'); return; }
+    imgSrc = img.src;
+  }
+
+  // Obtener userId del perfil que estamos viendo
+  const viewedUid = window._viewingUserId || (window.CU && window.CU.id);
+
+  _photoModalType = type;
+  _photoModalUserId = viewedUid;
+  document.getElementById('photoModalImg').src = imgSrc;
+  document.getElementById('photoModalTitle').textContent = type==='avatar' ? '📷 Foto de perfil' : '🖼️ Foto de portada';
+
+  // Avatar del usuario visto en el comentario
+  const uavEl = document.getElementById('photoModalUserAv');
+  if(window.CU && window.CU.av) uavEl.innerHTML = `<img src="${window.CU.av}" style="width:100%;height:100%;object-fit:cover;">`;
+  else if(window.CU) uavEl.textContent = (window.CU.nick||'?')[0].toUpperCase();
+
+  om('mPhotoModal');
+  if(viewedUid) loadPhotoModalData(type, viewedUid);
+}
 
 function openPhotoModal(type){
   if(!window.CU){ toast('Iniciá sesión primero','err'); return; }
