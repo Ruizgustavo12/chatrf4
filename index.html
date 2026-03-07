@@ -908,7 +908,7 @@ select.fi option{background:#fff;}
   <!-- Cover -->
   <div id="upCover" style="height:220px;background:linear-gradient(135deg,#0a1628,#1a2a3a);background-size:cover;background-position:center;position:relative;overflow:hidden;cursor:pointer;">
     <div id="upCoverInner" style="width:100%;height:100%;pointer-events:none;"></div>
-    <button onclick="event.stopPropagation();window.location.href='https://ruizgustavo12.github.io/chatrf4/'" style="position:absolute;top:14px;left:14px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:100px;padding:6px 14px;font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'Exo 2',sans-serif;backdrop-filter:blur(4px);z-index:10;">← Volver</button>
+    <button onclick="event.stopPropagation();window.location.href='https://rf4social.netlify.app/'" style="position:absolute;top:14px;left:14px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:100px;padding:6px 14px;font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'Exo 2',sans-serif;backdrop-filter:blur(4px);z-index:10;">← Volver</button>
     <canvas id="upVerifParticles" style="display:none;position:absolute;inset:0;pointer-events:none;"></canvas>
     <div id="upVerifSeal" style="display:none;position:absolute;top:0;right:0;width:110px;height:110px;overflow:hidden;z-index:5;">
       <div class="verif-seal"><img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAAVABcDASIAAhEBAxEB/8QAGQABAAIDAAAAAAAAAAAAAAAAAAEIBAUH/8QAKRAAAQMDBAEBCQAAAAAAAAAAAQIDBAAFEQYHEiExCBMUFRYiQUJhgf/EABUBAQEAAAAAAAAAAAAAAAAAAAAG/8QAIxEAAQMDAgcAAAAAAAAAAAAAEQABAgQFURLwAxMUITFBYf/aAAwDAQACEQMRAD8As9uTuBYtCQmnbqXnZMgKMaMynKneJSFd+E45A9kZwcZNY22+5unddPSItsEqPMZCnDHkN4UWgQAvKcp8qAxnP87rmHqW06v5xg6kuFumS7IuJ7vJchJIcjlKjhaiQU/n0DgHBHRwa1WwVput53Ni36PZ/hlltLTzSAW1BI+kp9nzwObuXOSir99ABKRb8KxUErN1TyfWHclgfURvJ8Mpydyqo3DkhtJZgO4yd4+qzVKUqIVGoUlKk8VAKB+xFSAB4AFKURKUpRF//9k=" style="width:14px;height:14px;vertical-align:middle;display:inline-block;margin-left:1px;" title="Verificado"> VERIFICADO</div>
@@ -5875,13 +5875,14 @@ function listenNotifs(){
       }
     }
     renderNotifs(); updateNotifBadge(); updateMsgBadge();
-    // Re-renderizar lista del messenger si está abierto
-    if(_messengerOpen && document.getElementById('messengerList')?.style.display !== 'none'){
-      renderMessengerList();
+    // ✅ Re-render inmediato de la lista (sin destruir el snapshot de presencia)
+    if(_messengerOpen){
+      const _ln_list = document.getElementById('messengerList');
+      if(_ln_list && _ln_list.style.display !== 'none') _ln_list.innerHTML = _buildMessengerHTML();
     }
   });
 
-  // Listener en tiempo real para badge de mensajes no leídos
+  // Listener en tiempo real para badge de mensajes
   listenUnreadMsgsBadge();
 }
 
@@ -5913,9 +5914,10 @@ function listenUnreadMsgsBadge(){
       const lm = _chatLastMsgs[f.id] || {};
       _chatLastMsgs[f.id] = { ...lm, unread: unreadCount > 0, unreadCount };
       updateMsgBadge();
-      // Si el messenger está abierto y muestra la lista, actualizar en tiempo real
-      if(_messengerOpen && document.getElementById('messengerList')?.style.display !== 'none'){
-        renderMessengerList();
+      // ✅ Re-render inmediato sin destruir snapshot de presencia
+      if(_messengerOpen){
+        const _ub_list = document.getElementById('messengerList');
+        if(_ub_list && _ub_list.style.display !== 'none') _ub_list.innerHTML = _buildMessengerHTML();
       }
     });
     _unsubMsgBadgeListeners.push(unsub);
@@ -7849,22 +7851,26 @@ async function _loadUserProfilePage(uid, nick){
     const upCanvas = document.getElementById('upVerifParticles');
     const upSeal = document.getElementById('upVerifSeal');
     if(u.cover){
+      // Tiene foto de portada propia: mostrarla limpia, sin sello ni efectos de verificado
       coverInner.innerHTML = `<img src="${u.cover}" style="width:100%;height:100%;object-fit:cover;pointer-events:none;">`;
+      cover.style.background = '';
+      cover.classList.remove('verif-cover-active');
+      if(upCanvas) upCanvas.style.display = 'none';
+      if(upSeal)   upSeal.style.display   = 'none';
     } else if(isVerified){
+      // Verificado sin foto propia: fondo dorado animado + sello
       coverInner.innerHTML = '';
       cover.style.background = 'linear-gradient(135deg,#0a1628,#1a0a2e,#0d1f3c)';
-    } else {
-      coverInner.innerHTML = '';
-      cover.style.background = 'linear-gradient(135deg,#0a1628,#1a2a3a)';
-    }
-    if(isVerified){
       cover.classList.add('verif-cover-active');
       if(upCanvas){ upCanvas.style.display='block'; _startVerifParticlesEl(upCanvas, cover); }
-      if(upSeal) upSeal.style.display='block';
+      if(upSeal) upSeal.style.display = 'block';
     } else {
+      // Sin foto ni verificado: fondo por defecto
+      coverInner.innerHTML = '';
+      cover.style.background = 'linear-gradient(135deg,#0a1628,#1a2a3a)';
       cover.classList.remove('verif-cover-active');
-      if(upCanvas) upCanvas.style.display='none';
-      if(upSeal) upSeal.style.display='none';
+      if(upCanvas) upCanvas.style.display = 'none';
+      if(upSeal)   upSeal.style.display   = 'none';
     }
 
     // ── AVATAR ──
@@ -8473,6 +8479,7 @@ function playMsgSound(){
 }
 
 function openMessenger(){
+  _messengerOpen = true;
   om('mMessenger');
   renderMessengerList();
   if(window.location.pathname !== '/mensajes') history.pushState({page:'mensajes'}, '', '/mensajes');
@@ -8488,6 +8495,7 @@ function openMessenger(){
 function toggleMessenger(){ openMessenger(); }
 
 function closeMessenger(){
+  _messengerOpen = false;
   const el = document.getElementById('mMessenger');
   if(el) el.classList.remove('open');
   document.getElementById('chatBubbleMin').style.display='none';
@@ -8642,93 +8650,63 @@ function switchChatTab(tab){
   renderMessengerList();
 }
 
-function renderMessengerList(){
-  const list = document.getElementById('messengerList');
-  if(!list) return;
-  if(_presenceUnsub){ _presenceUnsub(); _presenceUnsub=null; }
+// Cache de IDs online para renderizar sin esperar evento de presencia
+let _messengerOnlineIds = new Set();
 
-  _presenceUnsub = onSnapshot(collection(db,'presence'), async snap=>{
-    // Leer siempre frescos desde window.CU para reflejar cambios de archivado/no leídos
-    const friends = window.CU?.friendsList || [];
-    const archived = window.CU?.archivedChats || [];
-    const now = Date.now();
-    const onlineIds = new Set(
-      snap.docs
-        .map(d=>({id:d.id, ts:d.data().last?.toMillis?.()||0}))
-        .filter(u=>u.id!==window.CU?.id && now-u.ts<120000)
-        .map(u=>u.id)
-    );
+// Renderiza la lista del messenger con los datos actuales (sin esperar presencia)
+function _buildMessengerHTML(){
+  const friends    = window.CU?.friendsList  || [];
+  const archived   = window.CU?.archivedChats || [];
+  const deletedChats = window.CU?.deletedChats || [];
+  const onlineIds  = _messengerOnlineIds;
 
-    await Promise.all(friends.map(async f=>{
-      try {
-        const chatId = [window.CU.id, f.id].sort().join('_');
-        const q = query(collection(db,'chats',chatId,'messages'), orderBy('time','desc'), limit(20));
-        const s = await getDocs(q);
-        const myId = window.CU?.id;
-        // Buscar el primer mensaje no borrado para mí
-        const visible = s.docs.find(d=>!(d.data().deletedFor||{})[myId]);
-        if(visible){
-          const d = visible.data();
-          _chatLastMsgs[f.id] = {
-            text: d.text||'',
-            time: d.time?.toMillis?.()||0,
-            mine: d.uid===myId,
-            unread: d.uid!==myId && !d.read
-          };
-        } else {
-          delete _chatLastMsgs[f.id]; // todos borrados
-        }
-      } catch(e){}
-    }));
+  // Badge "No leídos"
+  const unreadCount = friends.filter(f=>!archived.includes(f.id) && _chatLastMsgs[f.id]?.unread).length;
+  const badge = document.getElementById('unreadChatBadge');
+  if(badge){
+    badge.style.display = unreadCount>0 ? 'inline-block' : 'none';
+    badge.textContent = unreadCount;
+  }
 
-    const unreadCount = friends.filter(f=>!archived.includes(f.id) && _chatLastMsgs[f.id]?.unread).length;
-    const badge = document.getElementById('unreadChatBadge');
-    if(badge){
-      badge.style.display = unreadCount>0 ? 'inline-block' : 'none';
-      badge.textContent = unreadCount;
-    }
-
-    const deletedChats = window.CU?.deletedChats || [];
-    let showFriends;
-    if(_currentChatTab === 'archived'){
-      showFriends = friends.filter(f=>archived.includes(f.id) && !deletedChats.includes(f.id));
-    } else if(_currentChatTab === 'unread'){
-      showFriends = friends.filter(f=>!archived.includes(f.id) && !deletedChats.includes(f.id) && _chatLastMsgs[f.id]?.unread);
-    } else {
-      showFriends = friends.filter(f=>{
-        if(archived.includes(f.id)) return false;
-        // Chat borrado: mostrar solo si llegó un mensaje nuevo después del borrado
-        if(deletedChats.includes(f.id)) return !!_chatLastMsgs[f.id];
-        return true;
-      });
-    }
-
-    showFriends = [...showFriends].sort((a,b)=>{
-      const ta = _chatLastMsgs[a.id]?.time||0;
-      const tb = _chatLastMsgs[b.id]?.time||0;
-      return tb - ta;
+  let showFriends;
+  if(_currentChatTab === 'archived'){
+    showFriends = friends.filter(f=>archived.includes(f.id) && !deletedChats.includes(f.id));
+  } else if(_currentChatTab === 'unread'){
+    showFriends = friends.filter(f=>!archived.includes(f.id) && !deletedChats.includes(f.id) && _chatLastMsgs[f.id]?.unread);
+  } else {
+    showFriends = friends.filter(f=>{
+      if(archived.includes(f.id)) return false;
+      if(deletedChats.includes(f.id)) return !!_chatLastMsgs[f.id];
+      return true;
     });
+  }
 
-    let html = '';
-    html += `<div style="padding:8px 10px 6px;"><div style="background:var(--bg4);border-radius:20px;display:flex;align-items:center;gap:6px;padding:7px 12px;"><span style="color:var(--muted);font-size:.85rem;">🔍</span><input id="chatSearchInput" placeholder="Buscar chat" style="background:none;border:none;outline:none;color:var(--text);font-size:.82rem;flex:1;font-family:'Exo 2',sans-serif;" oninput="filterChatSearch(this.value)"></div></div>`;
+  showFriends = [...showFriends].sort((a,b)=>{
+    const ta = _chatLastMsgs[a.id]?.time||0;
+    const tb = _chatLastMsgs[b.id]?.time||0;
+    return tb - ta;
+  });
 
-    if(showFriends.length === 0){
-      const msgs = {archived:'📦 Sin chats archivados', unread:'✓ Sin mensajes sin leer', all:'Sin contactos aún'};
-      html += `<div style="text-align:center;padding:32px 16px;color:var(--muted);font-size:.82rem;">${msgs[_currentChatTab]||msgs.all}</div>`;
-    } else {
-      html += showFriends.map(f=>{
-        const isOnline = onlineIds.has(f.id);
-        const safeNick = (f.nick||'').replace(/['"<>&]/g,'');
-        const lm = _chatLastMsgs[f.id];
-        const lastTxt = lm ? (lm.mine ? 'Tú: '+lm.text : lm.text) : (isOnline ? '● En línea' : '');
-        const lastTime = lm?.time ? fmtT(lm.time) : '';
-        const hasUnread = !!lm?.unread;
-        const unreadCount = lm?.unreadCount || 0;
-        const isArch = archived.includes(f.id);
-        const avInner = f.av
-          ? `<img src="${f.av}" style="width:100%;height:100%;object-fit:cover;">`
-          : `<span style="font-size:1.1rem;font-weight:800;color:var(--accent);">${(f.nick||'?')[0].toUpperCase()}</span>`;
-        return `<div data-chatuid="${f.id}" data-chatnick="${safeNick}" data-searchname="${(f.nick||'').toLowerCase()}" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:10px;margin:1px 4px;transition:background .15s;position:relative;${hasUnread?'background:rgba(0,198,255,.07);':''}" onmouseover="this.style.background='var(--bg3)';this.querySelector('.cgear').style.opacity='1'" onmouseout="this.style.background='${hasUnread?'rgba(0,198,255,.07)':'transparent'}';this.querySelector('.cgear').style.opacity='0'">
+  let html = '';
+  html += `<div style="padding:8px 10px 6px;"><div style="background:var(--bg4);border-radius:20px;display:flex;align-items:center;gap:6px;padding:7px 12px;"><span style="color:var(--muted);font-size:.85rem;">🔍</span><input id="chatSearchInput" placeholder="Buscar chat" style="background:none;border:none;outline:none;color:var(--text);font-size:.82rem;flex:1;font-family:'Exo 2',sans-serif;" oninput="filterChatSearch(this.value)"></div></div>`;
+
+  if(showFriends.length === 0){
+    const msgs = {archived:'📦 Sin chats archivados', unread:'✓ Sin mensajes sin leer', all:'Sin contactos aún'};
+    html += `<div style="text-align:center;padding:32px 16px;color:var(--muted);font-size:.82rem;">${msgs[_currentChatTab]||msgs.all}</div>`;
+  } else {
+    html += showFriends.map(f=>{
+      const isOnline  = onlineIds.has(f.id);
+      const safeNick  = (f.nick||'').replace(/['"<>&]/g,'');
+      const lm        = _chatLastMsgs[f.id];
+      const lastTxt   = lm ? (lm.mine ? 'Tú: '+lm.text : lm.text) : (isOnline ? '● En línea' : '');
+      const lastTime  = lm?.time ? fmtT(lm.time) : '';
+      const hasUnread = !!lm?.unread;
+      const uCount    = lm?.unreadCount || 0;
+      const isArch    = archived.includes(f.id);
+      const avInner   = f.av
+        ? `<img src="${f.av}" style="width:100%;height:100%;object-fit:cover;">`
+        : `<span style="font-size:1.1rem;font-weight:800;color:var(--accent);">${(f.nick||'?')[0].toUpperCase()}</span>`;
+      return `<div data-chatuid="${f.id}" data-chatnick="${safeNick}" data-searchname="${(f.nick||'').toLowerCase()}" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:10px;margin:1px 4px;transition:background .15s;position:relative;${hasUnread?'background:rgba(0,198,255,.07);':''}" onmouseover="this.style.background='var(--bg3)';this.querySelector('.cgear').style.opacity='1'" onmouseout="this.style.background='${hasUnread?'rgba(0,198,255,.07)':'transparent'}';this.querySelector('.cgear').style.opacity='0'">
           <div style="position:relative;flex-shrink:0;cursor:pointer;" onclick="openChatWith('${f.id}','${safeNick}');event.stopPropagation();">
             <div style="width:46px;height:46px;border-radius:50%;background:var(--bg3);overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:700;">${avInner}</div>
             ${isOnline?'<div style="position:absolute;bottom:0;right:0;width:12px;height:12px;background:#31a24c;border-radius:50%;border:2px solid var(--bg2);"></div>':''}
@@ -8740,18 +8718,65 @@ function renderMessengerList(){
             </div>
             <div style="display:flex;align-items:center;gap:4px;">
               <div style="font-size:.74rem;color:${hasUnread?'var(--text)':'var(--muted)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;font-weight:${hasUnread?'600':'400'};">${esc(lastTxt)}${isArch?' 📦':''}</div>
-              ${hasUnread?`<div style="min-width:16px;height:16px;background:var(--accent);border-radius:100px;display:flex;align-items:center;justify-content:center;font-size:.58rem;font-weight:800;color:#000;padding:0 3px;flex-shrink:0;">${unreadCount > 9 ? '9+' : (unreadCount || '')}</div>`:''}
+              ${hasUnread?`<div style="min-width:16px;height:16px;background:var(--accent);border-radius:100px;display:flex;align-items:center;justify-content:center;font-size:.58rem;font-weight:800;color:#000;padding:0 3px;flex-shrink:0;">${uCount > 9 ? '9+' : (uCount || '')}</div>`:''}
             </div>
           </div>
           <button class="cgear" onclick="openChatMenu(event,'${f.id}','${safeNick}',${hasUnread},${isArch})" style="opacity:0;transition:opacity .15s;background:var(--bg3);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:.82rem;" onmouseover="this.style.background='var(--bg4)'" onmouseout="this.style.background='var(--bg3)'" title="Opciones">⚙️</button>
         </div>`;
-      }).join('');
+    }).join('');
+  }
+  return html;
+}
+
+function renderMessengerList(){
+  const list = document.getElementById('messengerList');
+  if(!list) return;
+
+  // ✅ Render inmediato con datos actuales (sin esperar snapshot de presencia)
+  list.innerHTML = _buildMessengerHTML();
+  if(!window._chatUserAvCache) window._chatUserAvCache = {};
+  (window.CU?.friendsList||[]).forEach(f=>{ if(f.av) window._chatUserAvCache[f.id]=f.av; });
+
+  // Actualizar también snapshot de presencia para el indicador online
+  if(_presenceUnsub){ _presenceUnsub(); _presenceUnsub=null; }
+  _presenceUnsub = onSnapshot(collection(db,'presence'), async snap=>{
+    const now = Date.now();
+    _messengerOnlineIds = new Set(
+      snap.docs
+        .map(d=>({id:d.id, ts:d.data().last?.toMillis?.()||0}))
+        .filter(u=>u.id!==window.CU?.id && now-u.ts<120000)
+        .map(u=>u.id)
+    );
+    // También actualizar _chatLastMsgs con el último mensaje de cada amigo
+    const friends = window.CU?.friendsList || [];
+    const myId = window.CU?.id;
+    await Promise.all(friends.map(async f=>{
+      try {
+        const chatId = [myId, f.id].sort().join('_');
+        const q = query(collection(db,'chats',chatId,'messages'), orderBy('time','desc'), limit(20));
+        const s = await getDocs(q);
+        const visible = s.docs.find(d=>!(d.data().deletedFor||{})[myId]);
+        if(visible){
+          const d = visible.data();
+          const unreadCount = s.docs.filter(d2=>{ const m=d2.data(); return m.uid!==myId && !m.read && !(m.deletedFor||{})[myId]; }).length;
+          _chatLastMsgs[f.id] = {
+            text: d.text||'',
+            time: d.time?.toMillis?.()||0,
+            mine: d.uid===myId,
+            unread: unreadCount > 0,
+            unreadCount
+          };
+        } else {
+          delete _chatLastMsgs[f.id];
+        }
+      } catch(e){}
+    }));
+    // Re-render con datos frescos incluyendo presencia
+    const list2 = document.getElementById('messengerList');
+    if(list2 && list2.style.display !== 'none'){
+      list2.innerHTML = _buildMessengerHTML();
+      (window.CU?.friendsList||[]).forEach(f=>{ if(f.av && window._chatUserAvCache) window._chatUserAvCache[f.id]=f.av; });
     }
-
-    list.innerHTML = html;
-
-    if(!window._chatUserAvCache) window._chatUserAvCache = {};
-    friends.forEach(f=>{ if(f.av) window._chatUserAvCache[f.id]=f.av; });
   });
 }
 
@@ -10764,7 +10789,9 @@ async function archiveChat(uid, nick){
     await updateDoc(doc(db,'users',window.CU.id),{archivedChats:arch});
   }
   toast(`💬 Chat con ${nick} archivado 📦`,'ok');
-  renderMessengerList();
+  // Re-render inmediato de la lista (sin esperar presencia)
+  const _archList = document.getElementById('messengerList');
+  if(_archList && _archList.style.display !== 'none') _archList.innerHTML = _buildMessengerHTML();
 }
 
 async function unarchiveChat(uid){
@@ -10772,7 +10799,8 @@ async function unarchiveChat(uid){
   window.CU.archivedChats = (window.CU.archivedChats||[]).filter(id=>id!==uid);
   await updateDoc(doc(db,'users',window.CU.id),{archivedChats:window.CU.archivedChats});
   toast('Chat desarchivado','ok');
-  renderMessengerList();
+  const _uarchList = document.getElementById('messengerList');
+  if(_uarchList && _uarchList.style.display !== 'none') _uarchList.innerHTML = _buildMessengerHTML();
 }
 
 async function markChatRead(uid){
