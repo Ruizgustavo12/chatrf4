@@ -2234,121 +2234,83 @@ select.fi option{background:#fff;}
 </div>
 
 <!-- PUBLICA TU TROFEO PAGE -->
-<div class="page" id="page-publica-trofeo" style="max-width:860px;margin:0 auto;padding:20px 12px 80px;">
+<div class="page" id="page-publica-trofeo" style="max-width:620px;margin:0 auto;padding:24px 16px 80px;">
 
-  <!-- Header -->
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
-    <div>
-      <div style="font-family:'Orbitron',monospace;font-size:1.15rem;font-weight:900;color:var(--gold);">🏆 Publica tu Trofeo</div>
-      <div style="font-size:.76rem;color:var(--muted);margin-top:3px;">Enviá tu trofeo a <a href="https://rf4wikipedia.netlify.app" target="_blank" style="color:var(--accent);">rf4wikipedia.netlify.app</a> para que quede en los récords oficiales</div>
+  <!-- Hero card -->
+  <div style="background:linear-gradient(135deg,rgba(255,215,0,.13) 0%,rgba(255,140,0,.07) 60%,rgba(0,0,0,0) 100%);border:1.5px solid rgba(255,215,0,.35);border-radius:var(--r);padding:32px 24px 28px;text-align:center;margin-bottom:18px;position:relative;overflow:hidden;">
+    <!-- decorative glow -->
+    <div style="position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:220px;height:220px;background:radial-gradient(circle,rgba(255,215,0,.12),transparent 70%);pointer-events:none;"></div>
+    <div style="font-size:3.5rem;margin-bottom:10px;position:relative;">🏆</div>
+    <div style="font-family:'Orbitron',monospace;font-size:1.25rem;font-weight:900;color:var(--gold);margin-bottom:8px;position:relative;">Publica tu Trofeo</div>
+    <div style="font-size:.84rem;color:var(--muted);line-height:1.7;margin-bottom:24px;position:relative;">
+      Registrá tu captura en la <strong style="color:var(--text);">Wiki Oficial RF4 Latam</strong><br>y que quede en los récords para siempre.
     </div>
-    <a href="https://rf4wikipedia.netlify.app" target="_blank" class="btn btn-s" style="font-size:.8rem;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">↗ Abrir en pestaña</a>
-  </div>
 
-  <!-- Steps / info bar -->
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">
-    <div style="flex:1;min-width:130px;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.25);border-radius:var(--r);padding:10px 12px;text-align:center;">
-      <div style="font-size:1.3rem;">📸</div>
-      <div style="font-size:.72rem;font-weight:700;color:var(--gold);margin-top:4px;">1. Iniciá sesión</div>
-      <div style="font-size:.68rem;color:var(--muted);margin-top:2px;">Con tu cuenta de la wiki</div>
-    </div>
-    <div style="flex:1;min-width:130px;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.25);border-radius:var(--r);padding:10px 12px;text-align:center;">
-      <div style="font-size:1.3rem;">🐟</div>
-      <div style="font-size:.72rem;font-weight:700;color:var(--gold);margin-top:4px;">2. Cargá tu pesca</div>
-      <div style="font-size:.68rem;color:var(--muted);margin-top:2px;">Foto, especie, peso y mapa</div>
-    </div>
-    <div style="flex:1;min-width:130px;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.25);border-radius:var(--r);padding:10px 12px;text-align:center;">
-      <div style="font-size:1.3rem;">✅</div>
-      <div style="font-size:.72rem;font-weight:700;color:var(--gold);margin-top:4px;">3. Esperá aprobación</div>
-      <div style="font-size:.68rem;color:var(--muted);margin-top:2px;">El equipo lo revisa</div>
-    </div>
-    <div style="flex:1;min-width:130px;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.25);border-radius:var(--r);padding:10px 12px;text-align:center;">
-      <div style="font-size:1.3rem;">🥇</div>
-      <div style="font-size:.72rem;font-weight:700;color:var(--gold);margin-top:4px;">4. ¡Récord publicado!</div>
-      <div style="font-size:.68rem;color:var(--muted);margin-top:2px;">Aparece en el Feed de Trofeos</div>
+    <!-- Botón principal -->
+    <a href="https://rf4wikipedia.netlify.app" target="_blank"
+       style="text-decoration:none;display:inline-flex;align-items:center;gap:9px;background:linear-gradient(135deg,#ffd700,#e6a800);color:#000;font-weight:900;font-size:1rem;padding:14px 36px;border-radius:var(--r);box-shadow:0 6px 24px rgba(255,215,0,.4);transition:.2s;position:relative;letter-spacing:.3px;"
+       onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 10px 32px rgba(255,215,0,.55)'"
+       onmouseout="this.style.transform='';this.style.boxShadow='0 6px 24px rgba(255,215,0,.4)'">
+      🌐 Abrir Wiki RF4 y publicar
+    </a>
+
+    <div style="margin-top:14px;position:relative;">
+      <a href="https://rf4wikipedia.netlify.app/login" target="_blank"
+         style="text-decoration:none;display:inline-flex;align-items:center;gap:7px;color:var(--accent);border:1.5px solid rgba(0,120,255,.4);background:rgba(0,120,255,.06);font-weight:700;font-size:.88rem;padding:10px 26px;border-radius:var(--r);transition:.2s;"
+         onmouseover="this.style.background='rgba(0,120,255,.14)';this.style.borderColor='var(--accent)'"
+         onmouseout="this.style.background='rgba(0,120,255,.06)';this.style.borderColor='rgba(0,120,255,.4)'">
+        🔑 Ir directo al Login
+      </a>
     </div>
   </div>
 
-  <!-- Wiki embed wrapper -->
-  <div id="wikiTrofeoWrapper" style="border-radius:var(--r);overflow:hidden;border:1.5px solid rgba(255,215,0,.3);background:var(--card);box-shadow:0 4px 24px rgba(0,0,0,.25);">
-
-    <!-- Toolbar -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:rgba(255,215,0,.07);border-bottom:1px solid rgba(255,215,0,.18);">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:1rem;">🏆</span>
-        <span style="font-size:.78rem;font-weight:700;color:var(--gold);font-family:'Orbitron',monospace;">rf4wikipedia.netlify.app</span>
-      </div>
-      <div style="display:flex;gap:6px;">
-        <button class="btn btn-s" style="font-size:.72rem;padding:3px 10px;" onclick="(function(){var f=document.getElementById('wikiTrofeoFrame');if(f){f.style.display='block';document.getElementById('wikiTrofeoFallback').style.display='none';f.src=f.src;}})()">↺ Recargar</button>
-        <a href="https://rf4wikipedia.netlify.app" target="_blank" class="btn btn-s" style="font-size:.72rem;padding:3px 10px;text-decoration:none;">↗ Nueva pestaña</a>
+  <!-- Pasos -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;align-items:flex-start;gap:12px;">
+      <div style="font-size:1.6rem;flex-shrink:0;margin-top:2px;">🔑</div>
+      <div>
+        <div style="font-size:.78rem;font-weight:800;color:var(--text);margin-bottom:3px;">1. Iniciá sesión</div>
+        <div style="font-size:.71rem;color:var(--muted);line-height:1.5;">Creá tu cuenta o ingresá en rf4wikipedia.netlify.app</div>
       </div>
     </div>
-
-    <!-- iframe (intento de embed) -->
-    <iframe
-      id="wikiTrofeoFrame"
-      src="https://rf4wikipedia.netlify.app"
-      style="width:100%;height:680px;border:none;display:block;background:#fff;"
-      allow="forms scripts"
-      title="Wiki Trofeos RF4"
-      loading="lazy"
-      onload="wikiFrameLoaded(this)"
-      onerror="wikiFrameError()"
-    ></iframe>
-
-    <!-- Fallback: se muestra si el iframe es bloqueado -->
-    <div id="wikiTrofeoFallback" style="display:none;padding:40px 24px 48px;text-align:center;">
-      <div style="font-size:3.2rem;margin-bottom:10px;">🏆</div>
-      <div style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:900;color:var(--gold);margin-bottom:8px;">Wiki Trofeos RF4</div>
-      <div style="font-size:.82rem;color:var(--muted);margin-bottom:24px;line-height:1.7;max-width:420px;margin-left:auto;margin-right:auto;">
-        Tu navegador bloquea la vista integrada por seguridad. Hacé clic abajo para abrir la wiki, <strong style="color:var(--text);">iniciá sesión</strong> y publicá tu trofeo — ¡queda en los récords oficiales!
-      </div>
-      <!-- Botones principales -->
-      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:28px;">
-        <a href="https://rf4wikipedia.netlify.app" target="_blank"
-           style="text-decoration:none;display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--gold),#e6a800);color:#000;font-weight:800;font-size:.95rem;padding:13px 32px;border-radius:var(--r);box-shadow:0 4px 18px rgba(255,215,0,.35);transition:.2s;"
-           onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-          🌐 Abrir Wiki y publicar trofeo ↗
-        </a>
-        <a href="https://rf4wikipedia.netlify.app/login" target="_blank"
-           style="text-decoration:none;display:inline-flex;align-items:center;gap:7px;background:transparent;color:var(--accent);border:1.5px solid var(--accent);font-weight:700;font-size:.85rem;padding:9px 24px;border-radius:var(--r);transition:.2s;"
-           onmouseover="this.style.background='rgba(0,120,255,.1)'" onmouseout="this.style.background='transparent'">
-          🔑 Ir directo al Login ↗
-        </a>
-      </div>
-      <!-- Pasos resumidos -->
-      <div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap;max-width:500px;margin:0 auto;">
-        <div style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.2);border-radius:var(--rs);padding:8px 12px;font-size:.7rem;color:var(--muted);text-align:center;min-width:100px;">
-          <div style="font-size:1.2rem;margin-bottom:4px;">🔑</div><strong style="color:var(--text);">1. Iniciá sesión</strong><br>en la wiki
-        </div>
-        <div style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.2);border-radius:var(--rs);padding:8px 12px;font-size:.7rem;color:var(--muted);text-align:center;min-width:100px;">
-          <div style="font-size:1.2rem;margin-bottom:4px;">📸</div><strong style="color:var(--text);">2. Subí foto</strong><br>y datos del pez
-        </div>
-        <div style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.2);border-radius:var(--rs);padding:8px 12px;font-size:.7rem;color:var(--muted);text-align:center;min-width:100px;">
-          <div style="font-size:1.2rem;margin-bottom:4px;">✅</div><strong style="color:var(--text);">3. Esperá</strong><br>aprobación
-        </div>
-        <div style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.2);border-radius:var(--rs);padding:8px 12px;font-size:.7rem;color:var(--muted);text-align:center;min-width:100px;">
-          <div style="font-size:1.2rem;margin-bottom:4px;">🥇</div><strong style="color:var(--text);">4. ¡Récord</strong><br>publicado!
-        </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;align-items:flex-start;gap:12px;">
+      <div style="font-size:1.6rem;flex-shrink:0;margin-top:2px;">📸</div>
+      <div>
+        <div style="font-size:.78rem;font-weight:800;color:var(--text);margin-bottom:3px;">2. Cargá tu pesca</div>
+        <div style="font-size:.71rem;color:var(--muted);line-height:1.5;">Foto clara, especie, peso exacto y mapa</div>
       </div>
     </div>
-
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;align-items:flex-start;gap:12px;">
+      <div style="font-size:1.6rem;flex-shrink:0;margin-top:2px;">✅</div>
+      <div>
+        <div style="font-size:.78rem;font-weight:800;color:var(--text);margin-bottom:3px;">3. Esperá aprobación</div>
+        <div style="font-size:.71rem;color:var(--muted);line-height:1.5;">El equipo revisa que cumpla los requisitos</div>
+      </div>
+    </div>
+    <div style="background:var(--card);border:1px solid rgba(255,215,0,.25);border-radius:var(--r);padding:14px 16px;display:flex;align-items:flex-start;gap:12px;background:rgba(255,215,0,.05);">
+      <div style="font-size:1.6rem;flex-shrink:0;margin-top:2px;">🥇</div>
+      <div>
+        <div style="font-size:.78rem;font-weight:800;color:var(--gold);margin-bottom:3px;">4. ¡Récord publicado!</div>
+        <div style="font-size:.71rem;color:var(--muted);line-height:1.5;">Aparece en el feed y en los récords oficiales</div>
+      </div>
+    </div>
   </div>
 
   <!-- Tips -->
-  <div style="margin-top:16px;background:rgba(0,120,255,.06);border:1px solid rgba(0,120,255,.2);border-radius:var(--r);padding:12px 16px;">
-    <div style="font-size:.75rem;font-weight:700;color:var(--accent);margin-bottom:6px;">💡 Consejos para que tu trofeo sea aprobado</div>
-    <div style="font-size:.73rem;color:var(--muted);line-height:1.7;">
-      📷 La foto debe mostrar claramente el pez y la captura en pantalla con el peso. &nbsp;·&nbsp;
-      🐟 Indicá la especie exacta y el mapa correcto. &nbsp;·&nbsp;
-      ⚖️ El peso debe superar el mínimo de trofeo de la especie. &nbsp;·&nbsp;
-      🚫 No se admiten ediciones ni trucajes.
+  <div style="background:rgba(0,120,255,.06);border:1px solid rgba(0,120,255,.2);border-radius:var(--r);padding:14px 16px;margin-bottom:14px;">
+    <div style="font-size:.75rem;font-weight:800;color:var(--accent);margin-bottom:8px;">💡 Consejos para que tu trofeo sea aprobado</div>
+    <div style="display:flex;flex-direction:column;gap:5px;">
+      <div style="font-size:.73rem;color:var(--muted);display:flex;align-items:flex-start;gap:7px;"><span>📷</span><span>La foto debe mostrar claramente el pez <strong style="color:var(--text);">y</strong> la captura de pantalla con el peso.</span></div>
+      <div style="font-size:.73rem;color:var(--muted);display:flex;align-items:flex-start;gap:7px;"><span>🐟</span><span>Indicá la especie exacta y el mapa correcto. Usá el <strong style="color:var(--text);">Buscador de Trofeo</strong> para verificar el peso mínimo.</span></div>
+      <div style="font-size:.73rem;color:var(--muted);display:flex;align-items:flex-start;gap:7px;"><span>⚖️</span><span>El peso debe superar el mínimo de trofeo de la especie.</span></div>
+      <div style="font-size:.73rem;color:var(--muted);display:flex;align-items:flex-start;gap:7px;"><span>🚫</span><span>No se admiten ediciones ni trucajes. Tolerancia cero.</span></div>
     </div>
   </div>
 
-  <!-- Link to feed -->
-  <div style="margin-top:14px;text-align:center;">
-    <button class="btn btn-s" style="font-size:.8rem;" onclick="gp('trofeos-feed')">🥇 Ver Feed de Trofeos Aprobados</button>
+  <!-- Accesos rápidos -->
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button class="btn btn-s" style="font-size:.8rem;flex:1;" onclick="gp('buscar-trofeo')">🔍 Ver pesos mínimos</button>
+    <button class="btn btn-s" style="font-size:.8rem;flex:1;" onclick="gp('trofeos-feed')">🥇 Feed de Trofeos</button>
   </div>
 
 </div>
