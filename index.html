@@ -589,7 +589,7 @@ select.fi option{background:#fff;}
   <div class="tb-nav">
     <button class="tb-nav-btn on" onclick="gp('home');setNav(this)" title="Inicio">🏠</button>
     <button class="tb-nav-btn" onclick="gp('amigos');setNav(this);renderAmigosPage();" title="Amigos">👥</button>
-    <button class="tb-nav-btn" onclick="gp('spots');setNav(this)" title="Spots">📍</button>
+    <button class="tb-nav-btn" id="shopNavBtn" onclick="gp('shop');setNav(this);renderShopPage();" title="Tienda" style="display:none;color:gold;font-size:.75rem;font-weight:700;">🛒 Tienda</button>
     <button class="tb-nav-btn" onclick="gp('trofeos-feed');setNav(this)" title="Feed de Trofeos Aprobados" style="color:var(--gold);font-size:.75rem;font-weight:700;">🥇 Trofeos</button>
     <button class="tb-nav-btn" id="pezSemanalNavBtn" onclick="openPezSemanalModal();setNav(this)" title="Pez de la Semana" style="color:var(--green);font-size:.75rem;font-weight:700;">🐟 Pez Semanal</button>
     <button class="tb-nav-btn" onclick="gp('carretes');setNav(this);renderCarretesTable();" title="Buscar Carretes" style="color:var(--accent);font-size:.75rem;font-weight:700;">🎣 Carretes</button>
@@ -986,7 +986,7 @@ select.fi option{background:#fff;}
           </div>
 
           <!-- Grid de ítems -->
-          <div id="shopItemsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;"></div>
+          <div id="shopItemsGridProfile" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;"></div>
         </div>
       </div>
       <div id="profilePostBox" class="post-box" style="margin-bottom:14px">
@@ -2073,6 +2073,28 @@ select.fi option{background:#fff;}
 </div>
 
 <!-- SPOTS PAGE -->
+<!-- ── PÁGINA TIENDA (solo admin) ── -->
+<div class="page" id="page-shop" style="max-width:860px;margin:0 auto;padding:24px 16px 80px;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+    <span style="font-size:1.6rem;">🛒</span>
+    <div>
+      <div style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:900;color:gold;">Tienda RF4 Latam</div>
+      <div style="font-size:.72rem;color:var(--muted);">Personaliza tu perfil y publicaciones</div>
+    </div>
+  </div>
+  <!-- Categorías -->
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+    <button class="shop-cat-btn active" onclick="filterShopCat(this,'all')">✨ Todos</button>
+    <button class="shop-cat-btn" onclick="filterShopCat(this,'marco')">🖼 Marcos</button>
+    <button class="shop-cat-btn" onclick="filterShopCat(this,'badge')">🏅 Badges</button>
+    <button class="shop-cat-btn" onclick="filterShopCat(this,'efecto')">✨ Efectos</button>
+    <button class="shop-cat-btn" onclick="filterShopCat(this,'titulo')">📛 Títulos</button>
+    <button class="shop-cat-btn" onclick="filterShopCat(this,'postcolor')" style="background:linear-gradient(135deg,rgba(0,150,255,.15),rgba(150,0,255,.1));border-color:rgba(100,100,255,.3);">🎨 Colores de Post</button>
+  </div>
+  <!-- Grid de ítems -->
+  <div id="shopItemsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;"></div>
+</div>
+
 <div class="page" id="page-spots" style="max-width:680px;margin:0 auto;padding:24px 16px 80px;">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
     <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--accent);">📍 Spots de Pesca</div>
@@ -2781,8 +2803,15 @@ function updateNavUI(){
   const isAdmin = window.CU.nick === 'ruizgustavo12';
   const adminNavBtn = document.getElementById('adminNavBtn');
   const userMenuAdmin = document.getElementById('userMenuAdmin');
+  const shopNavBtn = document.getElementById('shopNavBtn');
   if(adminNavBtn) adminNavBtn.style.display = isAdmin ? 'inline-flex' : 'none';
   if(userMenuAdmin) userMenuAdmin.style.display = isAdmin ? 'flex' : 'none';
+  if(shopNavBtn) shopNavBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+}
+
+function renderShopPage(){
+  // Re-render the shop grid into the standalone page
+  renderShopGrid();
 }
 
 function showReg(){ document.getElementById('authForm').style.display='none'; document.getElementById('regForm').style.display='block'; }
@@ -4292,10 +4321,11 @@ function filterShopCat(btn, cat){
 
 function renderShopGrid(){
   const grid = document.getElementById('shopItemsGrid');
-  if(!grid) return;
+  const gridProfile = document.getElementById('shopItemsGridProfile');
+  if(!grid && !gridProfile) return;
   const items = _shopFilter === 'all' ? SHOP_ITEMS : SHOP_ITEMS.filter(i=>i.cat===_shopFilter);
   const CAT_LABEL = {marco:'🖼 Marco',badge:'🏅 Badge',efecto:'✨ Efecto',titulo:'📛 Título',postcolor:'🎨 Color de Post'};
-  grid.innerHTML = items.map(item => {
+  const _shopHTML = items.map(item => {
     const isEquipped = _equippedItems[item.cat] === item.id;
     const postPreview = item.cat==='postcolor' ? `<div class="${item.theme}" style="border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:.63rem;color:#ddd;line-height:1.5;text-align:left;"><div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;"><div style="width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.2);flex-shrink:0;"></div><span style="font-weight:700;">ruizgustavo12</span></div><div>🎣 ¡Gran pesca hoy!</div></div>` : '';
     return `
@@ -4313,6 +4343,8 @@ function renderShopGrid(){
       </button>
     </div>`;
   }).join('');
+  if(grid) grid.innerHTML = _shopHTML;
+  if(gridProfile) gridProfile.innerHTML = _shopHTML;
 }
 
 async function toggleEquipItem(itemId){
@@ -8633,6 +8665,10 @@ function filterTrofeoFeed(filter, btn){
   renderTrofeosFeed();
 }
 window.filterTrofeoFeed = filterTrofeoFeed;
+window.renderShopPage = renderShopPage;
+window.renderShopGrid = renderShopGrid;
+window.filterShopCat = filterShopCat;
+window.toggleEquipItem = toggleEquipItem;
 
 function renderTrofeosFeed(){
   const el = document.getElementById('trofeosFeed');
