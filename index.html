@@ -3042,6 +3042,17 @@ function onLogin(){
     checkDailyStreak();
   });
   loadSavedAccounts();
+  // Navigate to initial URL route after login
+  if (window._initialRoute) {
+    const route = window._initialRoute;
+    window._initialRoute = null;
+    setTimeout(() => window.gp(route, false), 500);
+  } else {
+    // Sync URL if user lands on root but URL says something else
+    const path = window.location.pathname;
+    const ROUTES_LOCAL = {'/amigos':'amigos','/tienda':'shop','/trofeos':'trofeos-feed','/galeria':'galeria','/videos':'videos','/spots':'spots','/torneos':'torneos','/perfil':'profile','/buscar-trofeo':'buscar-trofeo','/publica-trofeo':'publica-trofeo','/carretes':'carretes','/parches':'parches','/casitrofeo':'casitrofeo'};
+    if (ROUTES_LOCAL[path]) setTimeout(() => window.gp(ROUTES_LOCAL[path], false), 500);
+  }
 }
 
 async function loadRealFriends(){
@@ -3105,7 +3116,71 @@ function acceptTermsAndRegister(){
 }
 
 // ===== PAGES =====
-window.gp = id => {
+
+// ===== URL ROUTER =====
+const ROUTES = {
+  '/': 'home',
+  '/home': 'home',
+  '/amigos': 'amigos',
+  '/tienda': 'shop',
+  '/trofeos': 'trofeos-feed',
+  '/galeria': 'galeria',
+  '/videos': 'videos',
+  '/spots': 'spots',
+  '/torneos': 'torneos',
+  '/perfil': 'profile',
+  '/buscar-trofeo': 'buscar-trofeo',
+  '/publica-trofeo': 'publica-trofeo',
+  '/carretes': 'carretes',
+  '/parches': 'parches',
+  '/casitrofeo': 'casitrofeo',
+};
+
+// Map page IDs to clean URLs
+const PAGE_TO_URL = {
+  'home': '/',
+  'amigos': '/amigos',
+  'shop': '/tienda',
+  'trofeos-feed': '/trofeos',
+  'galeria': '/galeria',
+  'videos': '/videos',
+  'spots': '/spots',
+  'torneos': '/torneos',
+  'profile': '/perfil',
+  'buscar-trofeo': '/buscar-trofeo',
+  'publica-trofeo': '/publica-trofeo',
+  'carretes': '/carretes',
+  'parches': '/parches',
+  'casitrofeo': '/casitrofeo',
+};
+
+function navigateTo(id, pushState = true) {
+  const url = PAGE_TO_URL[id];
+  if (url && pushState && window.location.pathname !== url) {
+    history.pushState({ page: id }, '', url);
+  }
+}
+
+// Handle browser back/forward
+window.addEventListener('popstate', (e) => {
+  const path = window.location.pathname;
+  const pageId = ROUTES[path] || 'home';
+  window.gp(pageId, false);
+});
+
+// On page load, navigate to the correct page based on URL
+window.addEventListener('DOMContentLoaded', () => {
+  const path = window.location.pathname;
+  const pageId = ROUTES[path];
+  if (pageId && pageId !== 'home') {
+    // Will be called after auth loads
+    window._initialRoute = pageId;
+  }
+});
+window.navigateTo = navigateTo;
+// ===== END URL ROUTER =====
+
+window.gp = (id, pushState = true) => {
   // Al salir del perfil ajeno: detener sus partículas y restaurar las del usuario propio
   const currentPage = document.querySelector('.page.active');
   if(currentPage && currentPage.id === 'page-userprofile' && id !== 'userprofile'){
@@ -3117,6 +3192,7 @@ window.gp = id => {
   if(!pg) return;
   pg.classList.add('active');
   window.scrollTo(0,0);
+  navigateTo(id, pushState);
   if(id==='profile') renderProfile();
   if(id==='admin') { loadAdminData(); loadPezSemana(); }
   if(id==='spots'){ loadSpots(); loadFriendSpots(); }
