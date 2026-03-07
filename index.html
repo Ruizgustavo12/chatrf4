@@ -860,19 +860,18 @@ select.fi option{background:#fff;}
 </div>
 
 <!-- PAGE: AMIGOS -->
-<div class="page" id="page-amigos" style="max-width:680px;margin:0 auto;padding:16px 16px 16px;">
+<div class="page" id="page-amigos" style="max-width:680px;margin:0 auto;padding:16px 16px 80px;">
 
   <!-- TUS AMIGOS (primero) -->
-  <div id="misAmigosSection" style="margin-bottom:20px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <span style="font-size:1rem;font-weight:800;color:var(--text);">👥 Tus Amigos</span>
-      <span id="misAmigosCount" style="font-size:.75rem;color:var(--accent);font-weight:700;"></span>
+  <div id="misAmigosSection" style="margin-bottom:24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid rgba(255,255,255,.07);">
+      <span style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:900;color:var(--text);">👥 Amigos</span>
+      <span id="misAmigosCount" style="font-size:.75rem;color:var(--accent);font-weight:700;background:rgba(0,120,255,.1);padding:3px 10px;border-radius:100px;"></span>
     </div>
-    <div id="misAmigosList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;">
+    <div id="misAmigosList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;">
       <div style="font-size:.8rem;color:var(--muted);padding:8px;">Cargando...</div>
     </div>
   </div>
-  <div style="border-top:1px solid var(--border);margin-bottom:20px;"></div>
 
   <!-- Solicitudes de amistad -->
   <div id="friendReqSection" style="margin-bottom:20px;">
@@ -7208,13 +7207,13 @@ async function renderMisAmigos(){
   }
   el.innerHTML = friends.map(f=>`
     <div onclick="openUserProfile('${f.id}','${(f.nick||'').replace(/'/g,"\\'")}');gp('userprofile')"
-         style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:.15s;"
+         style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px 10px 14px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;transition:.15s;"
          onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--bg3)'"
          onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--card)'">
-      <div style="width:54px;height:54px;border-radius:50%;border:2px solid var(--accent);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:800;color:var(--accent);background:var(--bg3);flex-shrink:0;">
+      <div style="width:62px;height:62px;border-radius:50%;border:2.5px solid var(--accent);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:800;color:var(--accent);background:var(--bg3);flex-shrink:0;">
         ${f.av?`<img src="${f.av}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.textContent='${(f.nick||'?')[0].toUpperCase()}'">`:((f.nick||'?')[0].toUpperCase())}
       </div>
-      <div style="font-size:.8rem;font-weight:700;color:var(--text);text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(f.nick||'')}</div>
+      <div style="font-size:.82rem;font-weight:700;color:var(--text);text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;padding:0 4px;">${esc(f.nick||'')}</div>
     </div>`).join('');
 }
 async function renderAmigosPage(){
