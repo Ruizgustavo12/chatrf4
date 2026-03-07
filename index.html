@@ -114,6 +114,130 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
     pointer-events:none;
   }
   #mobileSearchBtn{display:flex !important;}
+}
+/* ===== MOBILE FIXES ===== */
+@media(max-width:768px){
+  /* FIX: Notificaciones fullscreen en mobile */
+  #mNotif{
+    top:0 !important;
+    left:0 !important;
+    right:0 !important;
+    bottom:0 !important;
+    width:100vw !important;
+    max-width:100vw !important;
+    max-height:100vh !important;
+    height:100vh !important;
+    border-radius:0 !important;
+    padding-bottom:60px;
+  }
+
+  /* FIX: Perfil - todo visible, sin corte */
+  .profile-cover{height:180px !important;}
+  .profile-info-bar{padding:0 !important;}
+  .profile-name-row{
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    padding:0 12px 12px;
+  }
+  .profile-av-wrap{margin-top:-50px;}
+  .profile-av-big{width:90px !important;height:90px !important;font-size:2rem !important;}
+  .profile-name{font-size:1.1rem !important;}
+  .profile-bio{font-size:.8rem;}
+  .profile-tabs{overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:2px;}
+  .ptab{display:inline-block;white-space:nowrap;}
+  .profile-layout{grid-template-columns:1fr !important;}
+
+  /* Barra de búsqueda bajo el topbar en mobile */
+  .mobile-searchbar{
+    display:flex !important;
+    position:fixed;
+    top:52px;
+    left:0;right:0;
+    background:var(--bg2);
+    border-bottom:1px solid var(--border);
+    padding:7px 12px;
+    z-index:999;
+    align-items:center;
+    gap:8px;
+  }
+  .mobile-searchbar input{
+    flex:1;
+    background:var(--bg3);
+    border:1px solid var(--border);
+    border-radius:100px;
+    padding:8px 16px;
+    color:var(--text);
+    font-family:'Exo 2',sans-serif;
+    font-size:.88rem;
+    outline:none;
+  }
+  /* Layout push down para barra de búsqueda */
+  .layout{padding-top:100px;}
+
+  /* Menú hamburguesa derecha */
+  .mobile-hamburger{display:flex !important;}
+
+  /* Menú lateral derecho (drawer) */
+  #mobileDrawer{
+    display:none;
+    position:fixed;
+    top:0;right:0;bottom:0;
+    width:80vw;max-width:300px;
+    background:var(--bg2);
+    z-index:4000;
+    flex-direction:column;
+    box-shadow:-4px 0 24px rgba(0,0,0,.5);
+    overflow-y:auto;
+    transform:translateX(100%);
+    transition:transform .25s ease;
+  }
+  #mobileDrawer.open{
+    display:flex !important;
+    transform:translateX(0);
+  }
+  #mobileDrawerOverlay{
+    display:none;
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.5);
+    z-index:3999;
+  }
+  #mobileDrawerOverlay.open{display:block;}
+}
+
+/* Siempre oculto en desktop */
+.mobile-searchbar{display:none;}
+.mobile-hamburger{display:none;}
+.mobile-only-btn{display:none !important;}
+@media(max-width:768px){.mobile-only-btn{display:flex !important;}}
+
+/* Drawer items */
+.drawer-item{
+  padding:13px 18px;
+  font-size:.9rem;
+  font-weight:600;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  transition:background .15s;
+  color:var(--text);
+}
+.drawer-item:hover{background:var(--bg3);}
+.mobile-hamburger{
+  width:38px;height:38px;
+  border-radius:50%;
+  background:var(--bg3);
+  border:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  flex-shrink:0;
+}
+.mobile-hamburger svg{width:20px;height:20px;fill:var(--text);}
+
+@media(max-width:768px){
 
   /* Layout: full width, padding bottom para bottom nav */
   .layout{
@@ -826,6 +950,7 @@ select.fi option{background:#fff;}
       <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
       <div id="msgBadge" style="display:none;position:absolute;top:2px;right:2px;min-width:16px;height:16px;background:var(--red);border-radius:100px;border:2px solid var(--bg2);font-size:.55rem;font-weight:800;color:#fff;align-items:center;justify-content:center;padding:0 3px;">0</div>
     </div>
+    <!-- Avatar + menú usuario (desktop) -->
     <div style="position:relative;">
       <div class="tb-avatar" id="navAv" onclick="toggleUserMenu()">👤</div>
       <div id="userMenu" style="display:none;position:absolute;right:0;top:44px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:999;overflow:hidden;">
@@ -840,8 +965,56 @@ select.fi option{background:#fff;}
         <div onclick="doLogout()" style="padding:10px 14px;cursor:pointer;font-size:.83rem;display:flex;align-items:center;gap:8px;color:var(--red);transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">🚪 Cerrar sesión</div>
       </div>
     </div>
+    <!-- Hamburguesa (solo mobile) -->
+    <button class="mobile-hamburger" onclick="openMobileDrawer()" title="Menú">
+      <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+    </button>
   </div>
 </nav>
+
+<!-- MOBILE SEARCHBAR (fixed under topbar, mobile only) -->
+<div class="mobile-searchbar" id="mobileSearchbarFixed">
+  <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:var(--muted);flex-shrink:0;"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+  <input type="text" placeholder="Buscar en CharlasRF4..." oninput="doSearch(this.value)" id="mobileSearchFixed">
+</div>
+
+<!-- MOBILE DRAWER OVERLAY -->
+<div id="mobileDrawerOverlay" onclick="closeMobileDrawer()"></div>
+
+<!-- MOBILE DRAWER (menú lateral derecho) -->
+<div id="mobileDrawer">
+  <!-- Header con avatar y nick -->
+  <div style="padding:20px 16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--bg3);">
+    <div id="drawerAvatar" style="width:48px;height:48px;border-radius:50%;background:var(--bg4);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;color:var(--accent);overflow:hidden;flex-shrink:0;">👤</div>
+    <div>
+      <div style="font-weight:800;font-size:.95rem;" id="drawerNick">—</div>
+      <div style="font-size:.72rem;color:var(--muted);" id="drawerEmail">—</div>
+    </div>
+    <button onclick="closeMobileDrawer()" style="margin-left:auto;background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;padding:4px;">✕</button>
+  </div>
+  <!-- Secciones -->
+  <div style="padding:8px 0;">
+    <div class="drawer-item" onclick="gp('home');closeMobileDrawer();setBnActive('bnHome')">🏠 Inicio</div>
+    <div class="drawer-item" onclick="gp('profile');closeMobileDrawer()">👤 Mi perfil</div>
+    <div class="drawer-item" onclick="gp('amigos');renderAmigosPage();closeMobileDrawer();setBnActive('bnAmigos')">👥 Amigos</div>
+    <div class="drawer-item" onclick="openMessenger();closeMobileDrawer()">💬 Mensajes</div>
+    <div class="drawer-item" onclick="openEditProfile();closeMobileDrawer()">✏️ Editar perfil</div>
+    <div style="height:1px;background:var(--border);margin:6px 0;"></div>
+    <div class="drawer-item" onclick="gp('trofeos-feed');closeMobileDrawer()">🥇 Feed de Trofeos</div>
+    <div class="drawer-item" onclick="gp('shop');renderShopPage();closeMobileDrawer()">🛒 Tienda</div>
+    <div class="drawer-item" onclick="openPezSemanalModal();closeMobileDrawer()">🐟 Pez de la Semana</div>
+    <div class="drawer-item" onclick="gp('carretes');renderCarretesTable();closeMobileDrawer()">🎣 Carretes</div>
+    <div class="drawer-item" onclick="gp('videos');loadVideos();closeMobileDrawer()">🎬 Videos</div>
+    <div class="drawer-item" onclick="gp('spots');closeMobileDrawer()">📍 Spots</div>
+    <div class="drawer-item" onclick="gp('torneos');closeMobileDrawer()">🏆 Torneos</div>
+    <div class="drawer-item" onclick="gp('galeria');closeMobileDrawer()">🖼️ Galería</div>
+    <div class="drawer-item" onclick="gp('publica-trofeo');closeMobileDrawer()">📸 Publicar Trofeo</div>
+    <div class="drawer-item" onclick="gp('buscar-trofeo');closeMobileDrawer()">🔍 Buscar Trofeo</div>
+    <div id="drawerAdminItem" style="display:none;" class="drawer-item" onclick="gp('admin');closeMobileDrawer()">🛡️ Panel Admin</div>
+    <div style="height:1px;background:var(--border);margin:6px 0;"></div>
+    <div class="drawer-item" style="color:var(--red);" onclick="doLogout()">🚪 Cerrar sesión</div>
+  </div>
+</div>
 
 <!-- BOTTOM NAV (mobile only) -->
 <nav class="bottom-nav" id="bottomNav">
@@ -1853,7 +2026,11 @@ select.fi option{background:#fff;}
   <!-- Header -->
   <div style="padding:16px 18px 0;background:var(--bg2);flex-shrink:0;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-      <span style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:900;color:var(--text);">Notificaciones</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <!-- Botón atrás solo en mobile -->
+        <button onclick="closeNotifDropdown()" style="background:none;border:none;color:var(--text);font-size:1.3rem;cursor:pointer;padding:0 4px;display:none;" class="mobile-only-btn" id="notifBackBtn">‹</button>
+        <span style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:900;color:var(--text);">Notificaciones</span>
+      </div>
       <div style="display:flex;gap:6px;align-items:center;">
         <button onclick="markAllNotifsRead()" title="Marcar todas como leídas" style="background:none;border:none;color:var(--muted);font-size:.82rem;cursor:pointer;padding:4px 10px;border-radius:20px;font-family:'Exo 2',sans-serif;font-weight:600;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">···</button>
         <button onclick="closeNotifDropdown()" style="background:var(--bg3);border:none;color:var(--text);font-size:1rem;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='var(--bg4)'" onmouseout="this.style.background='var(--bg3)'">✕</button>
@@ -3464,6 +3641,37 @@ function setBnActive(id){
   if(el) el.classList.add('on');
 }
 window.setBnActive = setBnActive;
+
+// ===== MOBILE DRAWER =====
+function openMobileDrawer(){
+  const drawer = document.getElementById('mobileDrawer');
+  const overlay = document.getElementById('mobileDrawerOverlay');
+  if(!drawer) return;
+  // Sync user data
+  if(window.CU){
+    const nick = document.getElementById('drawerNick');
+    const email = document.getElementById('drawerEmail');
+    const av = document.getElementById('drawerAvatar');
+    const navAv = document.getElementById('navAv');
+    if(nick) nick.textContent = window.CU.nick || '—';
+    if(email) email.textContent = window.CU.email || '—';
+    if(av && navAv) av.innerHTML = navAv.innerHTML;
+    const adminItem = document.getElementById('drawerAdminItem');
+    if(adminItem) adminItem.style.display = window.CU.admin ? 'flex' : 'none';
+  }
+  drawer.classList.add('open');
+  if(overlay) overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeMobileDrawer(){
+  const drawer = document.getElementById('mobileDrawer');
+  const overlay = document.getElementById('mobileDrawerOverlay');
+  if(drawer) drawer.classList.remove('open');
+  if(overlay) overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+window.openMobileDrawer = openMobileDrawer;
+window.closeMobileDrawer = closeMobileDrawer;
 
 // Show/hide mobile search icon based on screen size
 function updateMobileUI(){
@@ -10793,6 +11001,7 @@ function filterChatSearch(val){
 function openNotifDropdown(){
   const dd = document.getElementById('mNotif');
   if(!dd) return;
+  const isMobile = window.innerWidth <= 768;
   // Push URL only when opening (not closing)
   const willOpen = dd.style.display !== 'flex';
   if(willOpen && window.location.pathname !== '/notificaciones') {
@@ -10800,17 +11009,37 @@ function openNotifDropdown(){
   } else if(!willOpen && window.location.pathname === '/notificaciones') {
     history.pushState({page:'home'}, '', '/');
   }
-  // Posicionar bajo el ícono campana
-  const bell = document.getElementById('notifBellBtn');
-  if(bell){
-    const rect = bell.getBoundingClientRect();
-    dd.style.top = (rect.bottom + 8) + 'px';
-    dd.style.right = Math.max(8, window.innerWidth - rect.right - 10) + 'px';
-    dd.style.left = 'auto';
+  if(isMobile){
+    // Mobile: full screen panel from top
+    dd.style.top = '0';
+    dd.style.left = '0';
+    dd.style.right = '0';
+    dd.style.bottom = '0';
+    dd.style.width = '100vw';
+    dd.style.maxWidth = '100vw';
+    dd.style.height = '100vh';
+    dd.style.maxHeight = '100vh';
+    dd.style.borderRadius = '0';
+  } else {
+    // Desktop: posicionar bajo el ícono campana
+    const bell = document.getElementById('notifBellBtn');
+    if(bell){
+      const rect = bell.getBoundingClientRect();
+      dd.style.top = (rect.bottom + 8) + 'px';
+      dd.style.right = Math.max(8, window.innerWidth - rect.right - 10) + 'px';
+      dd.style.left = 'auto';
+      dd.style.bottom = 'auto';
+      dd.style.width = '380px';
+      dd.style.maxWidth = 'calc(100vw - 16px)';
+      dd.style.height = 'auto';
+      dd.style.maxHeight = '80vh';
+      dd.style.borderRadius = '14px';
+    }
   }
   const isOpen = dd.style.display === 'flex';
-  if(isOpen){ dd.style.display='none'; return; }
+  if(isOpen){ dd.style.display='none'; if(isMobile) document.body.style.overflow=''; return; }
   dd.style.display = 'flex';
+  if(isMobile) document.body.style.overflow = 'hidden';
   // Marcar leídas al abrir
   if(_notifs.some(n=>!n.read)){
     setTimeout(async ()=>{
@@ -10820,10 +11049,10 @@ function openNotifDropdown(){
     }, 1500);
   }
   renderNotifs();
-  // Cerrar al click fuera
-  setTimeout(()=>{
-    document.addEventListener('click', _notifOutsideClick);
-  }, 10);
+  // Cerrar al click fuera (solo desktop)
+  if(!isMobile){
+    setTimeout(()=>{ document.addEventListener('click', _notifOutsideClick); }, 10);
+  }
 }
 function _notifOutsideClick(e){
   const dd = document.getElementById('mNotif');
@@ -10836,6 +11065,7 @@ function _notifOutsideClick(e){
 function closeNotifDropdown(){
   const dd = document.getElementById('mNotif');
   if(dd) dd.style.display = 'none';
+  document.body.style.overflow = '';
   document.removeEventListener('click', _notifOutsideClick);
   if(window.location.pathname === '/notificaciones') history.pushState({page:'home'}, '', '/');
 }
