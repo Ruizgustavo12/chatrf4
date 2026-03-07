@@ -5676,7 +5676,7 @@ async function renderProfileFriendsList(userId) {
       const addBtn = (!isMe && !alreadyFriend)
         ? `<button onclick="sendFriendRequest('${fid}','${(f.nick||'').replace(/'/g,"\'")}','profile')" style="margin-top:6px;width:100%;padding:5px;background:var(--accent);border:none;border-radius:var(--rs);color:#000;font-size:.72rem;font-weight:700;cursor:pointer;">+ Agregar</button>`
         : alreadyFriend && !isMe ? `<div style="margin-top:6px;font-size:.7rem;color:var(--green);text-align:center;font-weight:700;">✓ Amigos</div>` : '';
-      return `<div onclick="openUserProfile('${fid}','${(f.nick||'').replace(/'/g,"\'")}');event.stopPropagation();" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center;cursor:pointer;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      return `<div onclick="openUserProfile('${fid}','${(f.nick||'').replace(/'/g,"\'")}');event.stopPropagation();" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center;cursor:pointer;transition:border-color .2s;" >
         <div style="width:48px;height:48px;border-radius:50%;background:var(--bg4);border:2px solid var(--accent);margin:0 auto 8px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;">
           ${f.av?`<img src="${f.av}" style="width:100%;height:100%;object-fit:cover;">`:(f.nick||'?')[0].toUpperCase()}
         </div>
@@ -6583,7 +6583,7 @@ async function loadGroups(){
     const isMember = Array.isArray(g.members) && g.members.includes(uid);
     const isOwner = g.ownerId === uid;
     return `
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .2s;" >
       <div style="height:100px;background:linear-gradient(135deg,var(--bg3),var(--bg4));overflow:hidden;display:flex;align-items:center;justify-content:center;">
         ${g.img?`<img src="${g.img}" style="width:100%;height:100%;object-fit:cover">`:`<div style="font-size:2.5rem;">🎣</div>`}
       </div>
@@ -8127,7 +8127,7 @@ async function _loadUserProfilePage(uid, nick){
         const isMe = window.CU?.id===fid;
         const alrFriend = myF.includes(fid);
         const addBtn = (!isMe && !alrFriend) ? `<button onclick="sendFriendRequest('${fid}','${(f.nick||'').replace(/'/g,"\'")}','page');event.stopPropagation();" style="margin-top:5px;width:100%;padding:4px;background:var(--accent);border:none;border-radius:var(--rs);color:#000;font-size:.65rem;font-weight:700;cursor:pointer;">+ Agregar</button>` : alrFriend&&!isMe?`<div style="margin-top:5px;font-size:.65rem;color:var(--green);text-align:center;font-weight:700;">✓ Amigos</div>`:'';
-        return `<div onclick="openUserProfile('${fid}','${(f.nick||'').replace(/'/g,"\'")}');" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center;cursor:pointer;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        return `<div onclick="openUserProfile('${fid}','${(f.nick||'').replace(/'/g,"\'")}');" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center;cursor:pointer;transition:border-color .2s;" >
           <div style="width:44px;height:44px;border-radius:50%;background:var(--bg4);margin:0 auto 6px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;${f.verified?'border:2px solid gold;':'border:1px solid var(--border);'}">
             ${f.av?`<img src="${f.av}" style="width:100%;height:100%;object-fit:cover;">`:(f.nick||'?')[0].toUpperCase()}
           </div>
@@ -10374,7 +10374,7 @@ function renderTrofMapaContent(){
   const cards = peces.map(function(p){
     const img = FISH_IMGS[p.n]||'';
     const imgH = img ? '<img src="'+img+'" style="width:72px;height:72px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.6));">' : '<div style="width:72px;height:72px;background:var(--bg3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🐟</div>';
-    return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">'
+    return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:border-color .2s;" >'
       + imgH
       + '<div style="font-size:.78rem;font-weight:700;text-align:center;color:var(--text);">'+p.n+'</div>'
       + '<div style="width:100%;display:flex;flex-direction:column;gap:3px;">'
@@ -10386,7 +10386,7 @@ function renderTrofMapaContent(){
   el.innerHTML =
     '<div style="margin-bottom:14px;">'
       + '<input id="trofMapaBuscar" placeholder="Buscar pez..." oninput="renderTrofMapaContent()" value="'+q+'" '
-      + 'style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:8px 16px;color:var(--text);font-size:.82rem;font-family:'Exo 2',sans-serif;outline:none;box-sizing:border-box;">'
+      + 'style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:8px 16px;color:var(--text);font-size:.82rem;font-family:&quot;Exo 2&quot;,sans-serif;outline:none;box-sizing:border-box;">'
     + '</div>'
     + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:16px;">'
       + cards
