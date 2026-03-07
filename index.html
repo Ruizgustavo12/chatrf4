@@ -7013,7 +7013,7 @@ async function _loadUserProfilePage(uid, nick){
     const upCanvas = document.getElementById('upVerifParticles');
     const upSeal = document.getElementById('upVerifSeal');
     if(u.cover){
-      coverInner.innerHTML = `<img src="${u.cover}" style="width:100%;height:100%;object-fit:cover;">`;
+      coverInner.innerHTML = `<img src="${u.cover}" style="width:100%;height:100%;object-fit:cover;pointer-events:none;">`;
     } else if(isVerified){
       coverInner.innerHTML = '';
       cover.style.background = 'linear-gradient(135deg,#0a1628,#1a0a2e,#0d1f3c)';
@@ -7033,7 +7033,7 @@ async function _loadUserProfilePage(uid, nick){
 
     // ── AVATAR ──
     const avEl = document.getElementById('upAv');
-    avEl.innerHTML = u.av ? `<img src="${u.av}" style="width:100%;height:100%;object-fit:cover;">` : uNick[0].toUpperCase();
+    avEl.innerHTML = u.av ? `<img src="${u.av}" style="width:100%;height:100%;object-fit:cover;pointer-events:none;">` : uNick[0].toUpperCase();
     const avWrap = document.getElementById('upAvWrap');
     if(isVerified){
       avEl.style.cssText += ';border:3px solid gold;box-shadow:0 0 20px rgba(255,215,0,.5);animation:avatarPulse 3s ease-in-out infinite;';
@@ -8075,16 +8075,31 @@ const PHOTO_REACTIONS = ['👍','❤️','😍','😮','😢','🔥','🎣'];
 
 
 function openPhotoModalUser(type){
+  // Obtener imagen según tipo
   let imgSrc = '';
+
   if(type === 'avatar'){
+    // Buscar img dentro de upAv
     const img = document.querySelector('#upAv img');
-    if(!img){ toast('Este usuario no tiene foto de perfil','inf'); return; }
-    imgSrc = img.src;
+    if(img){
+      imgSrc = img.src;
+    } else {
+      // No tiene foto — mostrar la inicial como placeholder
+      toast('Este usuario no tiene foto de perfil','inf');
+      return;
+    }
   } else {
+    // Portada — puede ser img o canvas (banner animado)
     const img = document.querySelector('#upCoverInner img');
-    if(!img){ toast('Este usuario no tiene foto de portada','inf'); return; }
-    imgSrc = img.src;
+    if(img){
+      imgSrc = img.src;
+    } else {
+      toast('Este usuario no tiene foto de portada','inf');
+      return;
+    }
   }
+
+  if(!imgSrc){ toast('Sin imagen para mostrar','inf'); return; }
 
   const viewedUid = window._viewingUserId || (window.CU && window.CU.id);
 
@@ -8094,14 +8109,18 @@ function openPhotoModalUser(type){
   const modalImg = document.getElementById('photoModalImg');
   const modalTitle = document.getElementById('photoModalTitle');
   const uavEl = document.getElementById('photoModalUserAv');
-  if(!modalImg || !modalTitle){ console.error('photoModal elements missing'); return; }
+
+  if(!modalImg){ console.error('photoModalImg no encontrado'); return; }
 
   modalImg.src = imgSrc;
-  modalTitle.textContent = type==='avatar' ? '📷 Foto de perfil' : '🖼️ Foto de portada';
+  if(modalTitle) modalTitle.textContent = type==='avatar' ? '📷 Foto de perfil' : '🖼️ Foto de portada';
 
   if(uavEl){
-    if(window.CU && window.CU.av) uavEl.innerHTML = `<img src="${window.CU.av}" style="width:100%;height:100%;object-fit:cover;">`;
-    else if(window.CU) uavEl.textContent = (window.CU.nick||'?')[0].toUpperCase();
+    if(window.CU && window.CU.av){
+      uavEl.innerHTML = `<img src="${window.CU.av}" style="width:100%;height:100%;object-fit:cover;">`;
+    } else if(window.CU){
+      uavEl.textContent = (window.CU.nick||'?')[0].toUpperCase();
+    }
   }
 
   om('mPhotoModal');
