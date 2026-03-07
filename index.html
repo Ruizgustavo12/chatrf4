@@ -861,6 +861,19 @@ select.fi option{background:#fff;}
 
 <!-- PAGE: AMIGOS -->
 <div class="page" id="page-amigos" style="max-width:680px;margin:0 auto;padding:16px 16px 16px;">
+
+  <!-- TUS AMIGOS (primero) -->
+  <div id="misAmigosSection" style="margin-bottom:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <span style="font-size:1rem;font-weight:800;color:var(--text);">👥 Tus Amigos</span>
+      <span id="misAmigosCount" style="font-size:.75rem;color:var(--accent);font-weight:700;"></span>
+    </div>
+    <div id="misAmigosList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;">
+      <div style="font-size:.8rem;color:var(--muted);padding:8px;">Cargando...</div>
+    </div>
+  </div>
+  <div style="border-top:1px solid var(--border);margin-bottom:20px;"></div>
+
   <!-- Solicitudes de amistad -->
   <div id="friendReqSection" style="margin-bottom:20px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -7183,8 +7196,30 @@ function resetFiltrosCarretes(){
   renderCarretesTable();
 }
 
+async function renderMisAmigos(){
+  const el = document.getElementById('misAmigosList');
+  const cnt = document.getElementById('misAmigosCount');
+  if(!el) return;
+  const friends = window.CU?.friendsList || [];
+  if(cnt) cnt.textContent = friends.length ? `${friends.length} amigo${friends.length!==1?'s':''}` : '';
+  if(!friends.length){
+    el.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:24px;color:var(--muted);font-size:.85rem;">Todavía no tenés amigos. ¡Conectate con otros pescadores!</div>';
+    return;
+  }
+  el.innerHTML = friends.map(f=>`
+    <div onclick="openUserProfile('${f.id}','${(f.nick||'').replace(/'/g,"\\'")}');gp('userprofile')"
+         style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:.15s;"
+         onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--bg3)'"
+         onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--card)'">
+      <div style="width:54px;height:54px;border-radius:50%;border:2px solid var(--accent);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:800;color:var(--accent);background:var(--bg3);flex-shrink:0;">
+        ${f.av?`<img src="${f.av}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.textContent='${(f.nick||'?')[0].toUpperCase()}'">`:((f.nick||'?')[0].toUpperCase())}
+      </div>
+      <div style="font-size:.8rem;font-weight:700;color:var(--text);text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(f.nick||'')}</div>
+    </div>`).join('');
+}
 async function renderAmigosPage(){
   if(!window.CU) return;
+  renderMisAmigos();
   const reqList = document.getElementById('friendReqList');
   const suggList = document.getElementById('amigosSuggList');
   const reqCount = document.getElementById('friendReqCount');
@@ -9960,7 +9995,7 @@ const _expose = {
   joinGroup, leaveGroup, openGroupPost, showGroupWelcome, previewGroupPostImg, removeGroupPostImg, submitGroupPost,
   acceptFriendRequest, rejectFriendRequest, dismissFriendRequest, sendFriendRequestFromProfile, loadRealFriends, updateNotifBadge, updateMsgBadge,
   previewSpotImg, removeSpotImg, submitSpot, loadSpots, loadFriendSpots, renderFriendSpotsInHome, openEditSpot, saveEditSpot, deleteSpot, scrollToPost, loadVideos, filterVideos,
-  renderSidebarFriends, renderSuggestedUsers, renderAmigosPage, renderSuggestedPosts, playNotifSound, showNotifToast, sendNotifToUserWithPost, openMessenger,
+  renderSidebarFriends, renderSuggestedUsers, renderAmigosPage, renderMisAmigos, renderSuggestedPosts, playNotifSound, showNotifToast, sendNotifToUserWithPost, openMessenger,
   filtrarCarretes, filtrarPorCap, sortCarretes, resetFiltrosCarretes,
   previewPezSemanaImg, submitPezSemana, deletePezSemana, loadPezSemana, buildPezSemanaCard, openPezSemanalModal, openReactionsModal, buildRxnLabel,
   addXP, renderXPUI, checkDailyStreak, getLevel, getXpProgress,
