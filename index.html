@@ -2055,6 +2055,14 @@ select.fi option{background:#fff;}
       </div>
       <button class="btn btn-p" style="font-size:.82rem;margin-top:8px;" onclick="saveSiteConfig()">💾 Guardar aviso</button>
     </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-top:14px;">
+      <div style="font-family:'Orbitron',monospace;font-size:.85rem;font-weight:700;color:gold;margin-bottom:6px;">🛒 Descuento 100% Tienda</div>
+      <div style="font-size:.75rem;color:var(--muted);margin-bottom:12px;">Fecha y hora en que termina el 100% de descuento. Deja vacío para ocultar el contador.</div>
+      <div class="frow">
+        <div class="fg"><label class="fl">Fecha de vencimiento</label><input type="datetime-local" class="fi" id="cfgShopDiscountEnd"></div>
+      </div>
+      <button class="btn btn-p" style="font-size:.82rem;margin-top:8px;" onclick="saveSiteConfig()">💾 Guardar fecha</button>
+    </div>
   </div>
 
   <!-- TAB: Parches -->
@@ -2327,6 +2335,12 @@ select.fi option{background:#fff;}
       <div style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:900;color:gold;">Tienda RF4 Latam</div>
       <div style="font-size:.72rem;color:var(--muted);">Personaliza tu perfil y publicaciones</div>
     </div>
+  </div>
+  <!-- Banner countdown descuento -->
+  <div id="shopDiscountBanner" style="display:none;background:linear-gradient(135deg,rgba(255,215,0,.12),rgba(255,100,0,.08));border:1.5px solid rgba(255,215,0,.4);border-radius:var(--r);padding:14px 18px;margin-bottom:16px;text-align:center;">
+    <div style="font-size:.75rem;color:gold;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">⏳ El descuento del 100% termina en</div>
+    <div id="shopCountdown" style="font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;color:#fff;letter-spacing:2px;">--d --h --m --s</div>
+    <div style="font-size:.7rem;color:var(--muted);margin-top:4px;" id="shopDiscountEndLabel"></div>
   </div>
   <!-- Categorías -->
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
@@ -3295,6 +3309,7 @@ window.gp = (id, pushState = true) => {
   if(id==='casitrofeo') renderMapPosts();
   if(id==='trofeos-feed') { listenTrofeosFeed(); document.getElementById('trofeoFeedBadge').style.display='inline-flex'; }
   if(id==='buscar-trofeo') { renderTrofeos(FISH_DB); }
+  if(id==='shop') { loadShopDiscount(); }
   if(id==='publica-trofeo') {
     const frame = document.getElementById('wikiTrofeoFrame');
     if(frame && !frame.dataset.loaded) {
@@ -5204,7 +5219,7 @@ function swPTab(el, tabId){
   if(leftCol) leftCol.style.display = (tabId==='ptAbout' || tabId==='ptFriends') ? 'none' : 'block';
   if(tabId==='ptGallery') renderGallery();
   if(tabId==='ptFriends') renderProfileFriendsList();
-  if(tabId==='ptShop'){ loadShopEquipped().then(()=>renderShopGrid()); }
+  if(tabId==='ptShop'){ loadShopEquipped().then(()=>renderShopGrid()); loadShopDiscount(); }
 }
 
 // ===== TIENDA DE ÍTEMS DE PERFIL (admin only) =====
@@ -6231,21 +6246,78 @@ async function loadSiteConfig(){
       if(d.slogan) document.getElementById('cfgSlogan').value = d.slogan;
       if(d.announcement) document.getElementById('cfgAnnouncement').value = d.announcement;
       if(d.announcementType) document.getElementById('cfgAnnouncementType').value = d.announcementType;
+      if(d.shopDiscountEnd){
+        // Convert stored ISO string to datetime-local format
+        const dt = new Date(d.shopDiscountEnd);
+        const pad = n=>String(n).padStart(2,'0');
+        const local = `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+        document.getElementById('cfgShopDiscountEnd').value = local;
+      }
     }
   } catch(e){}
 }
 
 async function saveSiteConfig(){
+  const shopDiscountRaw = document.getElementById('cfgShopDiscountEnd')?.value;
   const cfg = {
     siteName: document.getElementById('cfgSiteName').value.trim(),
     slogan: document.getElementById('cfgSlogan').value.trim(),
     announcement: document.getElementById('cfgAnnouncement').value.trim(),
     announcementType: document.getElementById('cfgAnnouncementType').value,
+    shopDiscountEnd: shopDiscountRaw ? new Date(shopDiscountRaw).toISOString() : '',
   };
   await setDoc(doc(db,'config','site'), cfg, {merge:true});
   toast('Configuración guardada ✅','ok');
   if(cfg.announcement) showAnnouncement(cfg);
 }
+
+// ===== SHOP DISCOUNT COUNTDOWN =====
+let _shopCountdownTimer = null;
+function startShopCountdown(isoEnd){
+  const banner = document.getElementById('shopDiscountBanner');
+  const cdEl = document.getElementById('shopCountdown');
+  const labelEl = document.getElementById('shopDiscountEndLabel');
+  if(!banner||!cdEl) return;
+  if(_shopCountdownTimer) clearInterval(_shopCountdownTimer);
+  if(!isoEnd){ banner.style.display='none'; return; }
+  const end = new Date(isoEnd);
+  if(isNaN(end.getTime())){ banner.style.display='none'; return; }
+  // Format end date label
+  if(labelEl){
+    const opts={day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'};
+    labelEl.textContent = 'Vence: ' + end.toLocaleString('es-AR', opts);
+  }
+  function tick(){
+    const now = new Date();
+    const diff = end - now;
+    if(diff <= 0){
+      cdEl.textContent = '¡Terminó!';
+      cdEl.style.color = 'var(--muted)';
+      clearInterval(_shopCountdownTimer);
+      return;
+    }
+    const d = Math.floor(diff/86400000);
+    const h = Math.floor((diff%86400000)/3600000);
+    const m = Math.floor((diff%3600000)/60000);
+    const s = Math.floor((diff%60000)/1000);
+    const pad = n=>String(n).padStart(2,'0');
+    cdEl.textContent = `${d}d ${pad(h)}h ${pad(m)}m ${pad(s)}s`;
+  }
+  banner.style.display='block';
+  tick();
+  _shopCountdownTimer = setInterval(tick, 1000);
+}
+window.startShopCountdown = startShopCountdown;
+
+// Load shop discount on shop page open
+function loadShopDiscount(){
+  getDoc(doc(db,'config','site')).then(snap=>{
+    if(snap.exists() && snap.data().shopDiscountEnd){
+      startShopCountdown(snap.data().shopDiscountEnd);
+    }
+  }).catch(()=>{});
+}
+window.loadShopDiscount = loadShopDiscount;
 
 function showAnnouncement(cfg){
   let ann = document.getElementById('globalAnnouncement');
