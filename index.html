@@ -871,8 +871,8 @@ select.fi option{background:#fff;}
 <!-- PAGE: USER PROFILE (perfil de otros usuarios) -->
 <div class="page" id="page-userprofile">
   <!-- Cover -->
-  <div id="upCover" style="height:220px;background:linear-gradient(135deg,#0a1628,#1a2a3a);background-size:cover;background-position:center;position:relative;overflow:hidden;cursor:pointer;" onclick="openPhotoModalUser('cover')">
-    <div id="upCoverInner" style="width:100%;height:100%;"></div>
+  <div id="upCover" style="height:220px;background:linear-gradient(135deg,#0a1628,#1a2a3a);background-size:cover;background-position:center;position:relative;overflow:hidden;cursor:pointer;">
+    <div id="upCoverInner" style="width:100%;height:100%;pointer-events:none;"></div>
     <button onclick="event.stopPropagation();window.location.href='https://ruizgustavo12.github.io/chatrf4/'" style="position:absolute;top:14px;left:14px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:100px;padding:6px 14px;font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'Exo 2',sans-serif;backdrop-filter:blur(4px);z-index:10;">← Volver</button>
     <canvas id="upVerifParticles" style="display:none;position:absolute;inset:0;pointer-events:none;"></canvas>
     <div id="upVerifSeal" style="display:none;position:absolute;top:0;right:0;width:110px;height:110px;overflow:hidden;z-index:5;">
@@ -885,7 +885,7 @@ select.fi option{background:#fff;}
       <!-- Avatar + nombre -->
       <div style="display:flex;align-items:flex-end;gap:16px;padding-bottom:14px;flex-wrap:wrap;">
         <div id="upAvWrap" style="margin-top:-44px;position:relative;flex-shrink:0;">
-          <div id="upAv" style="width:100px;height:100px;border-radius:50%;border:4px solid var(--bg2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:800;color:var(--accent);background:var(--bg3);cursor:pointer;" onclick="openPhotoModalUser('avatar')">👤</div>
+          <div id="upAv" style="width:100px;height:100px;border-radius:50%;border:4px solid var(--bg2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:800;color:var(--accent);background:var(--bg3);cursor:pointer;">👤</div>
         </div>
         <div style="flex:1;min-width:0;padding-top:8px;">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -7034,6 +7034,11 @@ async function _loadUserProfilePage(uid, nick){
     // ── AVATAR ──
     const avEl = document.getElementById('upAv');
     avEl.innerHTML = u.av ? `<img src="${u.av}" style="width:100%;height:100%;object-fit:cover;pointer-events:none;">` : uNick[0].toUpperCase();
+    // Foto click listeners — usar onclick directo para evitar duplicados
+    const _avClickEl = document.getElementById('upAv');
+    const _covClickEl = document.getElementById('upCover');
+    if(_avClickEl) _avClickEl.onclick = (e) => { e.stopPropagation(); openPhotoModalUser('avatar'); };
+    if(_covClickEl) _covClickEl.onclick = () => openPhotoModalUser('cover');
     const avWrap = document.getElementById('upAvWrap');
     if(isVerified){
       avEl.style.cssText += ';border:3px solid gold;box-shadow:0 0 20px rgba(255,215,0,.5);animation:avatarPulse 3s ease-in-out infinite;';
