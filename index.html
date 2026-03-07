@@ -7263,11 +7263,7 @@ function toggleVoiceBtn(){
 }
 
 async function toggleVoiceRecord(){
-  if(_mediaRecorder && _mediaRecorder.state === 'recording'){
-    stopAndSendVoice();
-  } else {
-    await startVoiceRecord();
-  }
+  toast('🎤 Mensajes de voz — ¡Muy pronto!','inf');
 }
 
 async function startVoiceRecord(){
