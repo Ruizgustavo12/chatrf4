@@ -3257,6 +3257,8 @@ async function loadRealFriends(){
   renderSidebarFriends();
   renderSuggestedUsers();
   renderSuggestedPosts();
+  // ✅ Relanzar listeners de badge de mensajes con la lista actualizada de amigos
+  if(typeof listenUnreadMsgsBadge === 'function') listenUnreadMsgsBadge();
 }
 
 function updateNavUI(){
@@ -6025,7 +6027,6 @@ function listenNotifs(){
     if(!snap.exists()) return;
     const d = snap.data();
     const newNotifs = d.notifs || [];
-    const prevCount = _notifs.length;
     const prevUnread = _notifs.filter(n=>!n.read).length;
     _notifs = newNotifs;
     const newUnread = _notifs.filter(n=>!n.read).length;
@@ -6040,6 +6041,44 @@ function listenNotifs(){
       }
     }
     renderNotifs(); updateNotifBadge(); updateMsgBadge();
+  });
+
+  // ✅ Listener en tiempo real para badge de mensajes no leídos
+  listenUnreadMsgsBadge();
+}
+
+// Escucha mensajes no leídos en tiempo real de todos los amigos
+let _unsubMsgBadgeListeners = [];
+function listenUnreadMsgsBadge(){
+  // Limpiar listeners anteriores
+  _unsubMsgBadgeListeners.forEach(u=>u());
+  _unsubMsgBadgeListeners = [];
+  const friends = window.CU?.friendsList || [];
+  const myId = window.CU?.id;
+  if(!myId || !friends.length) return;
+  friends.forEach(f=>{
+    const chatId = [myId, f.id].sort().join('_');
+    const q = query(
+      collection(db,'chats',chatId,'messages'),
+      orderBy('time','desc'),
+      limit(5)
+    );
+    const unsub = onSnapshot(q, snap=>{
+      const myData = window.CU || {};
+      const archived = myData.archivedChats || [];
+      const deleted  = myData.deletedChats  || [];
+      const hasUnread = snap.docs.some(d=>{
+        const m = d.data();
+        return m.uid !== myId && !m.read && !(m.deletedFor||{})[myId];
+      });
+      if(hasUnread){
+        _chatLastMsgs[f.id] = { ..._chatLastMsgs[f.id], unread: true };
+      } else {
+        if(_chatLastMsgs[f.id]) _chatLastMsgs[f.id].unread = false;
+      }
+      updateMsgBadge();
+    });
+    _unsubMsgBadgeListeners.push(unsub);
   });
 }
 
@@ -9228,7 +9267,7 @@ function hideMsgRxnBar(msgId){
 function keepMsgRxnBar(msgId){
   clearTimeout(_msgRxnHide[msgId]);
 }
-async function reactChatMsg(chatId, msgId, emoji){
+async function reactChatMsg(chatId, msgId, emoji){\
   if(!window.CU){ toast('Iniciá sesión','err'); return; }
   const msgRef = doc(db,'chats',chatId,'messages',msgId);
   try {
@@ -9238,7 +9277,13 @@ async function reactChatMsg(chatId, msgId, emoji){
     const rxns = Object.assign({}, data.reactions||{});
     const prev = rxns[window.CU.id]||'';
     if(!emoji || prev===emoji){ delete rxns[window.CU.id]; }
-    else { rxns[window.CU.id] = emoji; }
+    else {
+      rxns[window.CU.id] = emoji;
+      // ✅ Notificar al autor del mensaje si no soy yo
+      if(data.uid && data.uid !== window.CU.id){
+        await sendNotifToUser(data.uid, `${emoji} ${window.CU.nick} reaccionó a tu mensaje: "${(data.text||'').slice(0,40)}"`);
+      }
+    }
     await updateDoc(msgRef, {reactions: rxns});
     const bar = document.getElementById('mrxnbar_'+msgId);
     if(bar) bar.style.display='none';
@@ -9268,6 +9313,10 @@ async function sendChatMsg(gifUrl){
   else { msgData.text = text; }
   try {
     await addDoc(collection(db,'chats',chatId,'messages'), msgData);
+    // ✅ Enviar notificación al destinatario (solo si no está ya en este chat)
+    // Nota: el destinatario marcará como leído si está en el chat, así que la notif llegará pero el badge no sumará
+    const previewText = gifUrl ? '🖼️ GIF' : text.slice(0,60);
+    await sendNotifToUser(_chatUserId, `💬 ${window.CU.nick}: ${previewText}`);
   } catch(e){ toast('Error al enviar mensaje','err'); inp.value=text; }
 }
 
