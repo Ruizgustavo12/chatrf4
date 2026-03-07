@@ -6296,9 +6296,13 @@ async function _loadUserProfilePage(uid, nick){
           const now = Date.now();
           const isOnline = now - ts < 120000;
           if(isOnline){
-            lastSeenEl.innerHTML = '<span style="color:var(--green);font-size:.72rem;">● En línea ahora</span>';
+            const dev = presSnap.data().device;
+            const devIcon = dev==='mobile' ? '📱 Celular' : '🖥️ PC';
+            lastSeenEl.innerHTML = '<span style="color:var(--green);font-size:.72rem;">● En línea ahora · '+devIcon+'</span>';
           } else if(ts){
-            lastSeenEl.innerHTML = '<span style="color:var(--muted);font-size:.72rem;">🕐 '+fmtLastSeen(ts)+'</span>';
+            const dev2 = presSnap.data().device;
+            const devIcon2 = dev2==='mobile' ? ' · 📱' : ' · 🖥️';
+            lastSeenEl.innerHTML = '<span style="color:var(--muted);font-size:.72rem;">🕐 '+fmtLastSeen(ts)+devIcon2+'</span>';
           } else {
             lastSeenEl.innerHTML = '<span style="color:var(--muted);font-size:.72rem;">🕐 Sin datos</span>';
           }
@@ -6550,9 +6554,11 @@ let _presenceInterval = null;
 async function startPresence(){
   if(!window.CU) return;
   const presRef = doc(db,'presence',window.CU.id);
-  await setDoc(presRef, {nick:window.CU.nick, av:window.CU.av||'', last:serverTimestamp()}, {merge:true});
+  const _isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  const _device = _isMobile ? 'mobile' : 'desktop';
+  await setDoc(presRef, {nick:window.CU.nick, av:window.CU.av||'', last:serverTimestamp(), device:_device}, {merge:true});
   _presenceInterval = setInterval(async()=>{
-    if(window.CU) await setDoc(presRef,{nick:window.CU.nick,av:window.CU.av||'',last:serverTimestamp()},{merge:true});
+    if(window.CU) await setDoc(presRef,{nick:window.CU.nick,av:window.CU.av||'',last:serverTimestamp(),device:_device},{merge:true});
   }, 30000);
   listenPresence();
 }
@@ -6600,7 +6606,7 @@ function renderSidebarOnline(online, offline){
         </div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:.78rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(u.nick||'')}</div>
-          <div style="font-size:.65rem;color:var(--green);">● En línea</div>
+          <div style="font-size:.65rem;color:var(--green);">● En línea · ${u.device==='mobile'?'📱 Celular':'🖥️ PC'}</div>
         </div>
         <button onclick="event.stopPropagation();openChatWith('${u.id}','${esc(u.nick||'')}')" style="background:none;border:none;font-size:.85rem;cursor:pointer;color:var(--accent);padding:2px 4px;" title="Mensaje">💬</button>
       </div>`).join('');
@@ -6617,7 +6623,7 @@ function renderSidebarOnline(online, offline){
         </div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:.78rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(u.nick||'')}</div>
-          <div style="font-size:.65rem;color:var(--muted);">${fmtLastSeen(u.ts)}</div>
+          <div style="font-size:.65rem;color:var(--muted);">${fmtLastSeen(u.ts)} · ${u.device==='mobile'?'📱':'🖥️'}</div>
         </div>
       </div>`).join('');
   }
