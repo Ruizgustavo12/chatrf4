@@ -7936,7 +7936,7 @@ async function _loadUserProfilePage(uid, nick){
     const upSeal = document.getElementById('upVerifSeal');
     if(u.cover){
       // Tiene foto de portada propia: mostrarla limpia, sin sello ni efectos de verificado
-      coverInner.innerHTML = `<img src="${u.cover}" style="width:100%;height:100%;object-fit:cover;pointer-events:none;">`;
+      coverInner.innerHTML = `<img src="${u.cover}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;pointer-events:none;">`;
       cover.style.background = '';
       cover.classList.remove('verif-cover-active');
       if(upCanvas) upCanvas.style.display = 'none';
@@ -8073,7 +8073,11 @@ async function _loadUserProfilePage(uid, nick){
       upCoverInner.innerHTML = '';
       // Limpiar fondo anterior
       if(upCoverEl) upCoverEl.style.background='linear-gradient(135deg,#0a1628,#1a2a3a)';
-      if(viewedEquipped.banner){
+      // Foto de portada propia — tiene prioridad sobre banner de tienda
+      if(u.cover){
+        upCoverInner.innerHTML = `<img src="${u.cover}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;pointer-events:none;">`;
+        if(upCoverEl) upCoverEl.style.background = '';
+      } else if(viewedEquipped.banner){
         const bItem = SHOP_ITEMS.find(i=>i.id===viewedEquipped.banner);
         if(bItem?.bannerFn && typeof window[bItem.bannerFn]==='function'){
           const cvs = document.createElement('canvas');
@@ -8092,6 +8096,20 @@ async function _loadUserProfilePage(uid, nick){
           }, 80);
         }
       }
+    }
+
+    // Sello verificado en perfil ajeno
+    const _ajSeal = document.getElementById('upVerifSeal');
+    const _ajCanvas = document.getElementById('upVerifParticles');
+    if(u.cover){
+      if(_ajSeal) _ajSeal.style.display='none';
+      if(_ajCanvas) _ajCanvas.style.display='none';
+    } else if(u.verified){
+      if(_ajSeal) _ajSeal.style.display='block';
+      if(_ajCanvas){ _ajCanvas.style.display='block'; _startVerifParticlesEl(_ajCanvas, upCoverEl); }
+    } else {
+      if(_ajSeal) _ajSeal.style.display='none';
+      if(_ajCanvas) _ajCanvas.style.display='none';
     }
 
     // ── ACCIONES ──
