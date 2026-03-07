@@ -2837,8 +2837,6 @@ function init(){
   // Persistence is set via top-level IIFE below
 
   // Escuchar estado de auth
-  loadFishDB(); // Load fish DB from Firestore on startup
-
   onAuthStateChanged(auth, async user => {
     const splash = document.getElementById('splashScreen');
     if (user) {
@@ -3044,6 +3042,7 @@ async function doReg(){
 
 function onLogin(){
   updateNavUI();
+  loadFishDB(); // Load fish DB now that auth + db are ready
   listenVerifiedUsers().then(()=>{
     listenPosts();
     listenStories();
@@ -10150,6 +10149,8 @@ function renderAdminPeces(){
   if(!_fishDBReady){
     list.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);">🎣 Cargando peces...</div>';
     if(countEl) countEl.textContent = '';
+    // Retry automatically when ready
+    setTimeout(renderAdminPeces, 800);
     return;
   }
   const q = (document.getElementById('adminPecesSearch')?.value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
