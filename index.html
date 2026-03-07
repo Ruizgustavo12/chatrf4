@@ -299,6 +299,26 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
 
 /* ===== POST CARD ===== */
 .post{background:#fff;border:1px solid var(--border);border-radius:var(--r);margin-bottom:16px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.1);}
+/* ── TEMAS DE PUBLICACIÓN (tienda) ── */
+.post-theme-ocean    { background:linear-gradient(160deg,#0a1628,#0d2347) !important; border-color:rgba(0,150,255,.3) !important; box-shadow:0 0 20px rgba(0,100,255,.15) !important; }
+.post-theme-fuego    { background:linear-gradient(160deg,#1a0800,#2d0f00) !important; border-color:rgba(255,80,0,.35) !important; box-shadow:0 0 20px rgba(255,60,0,.2) !important; }
+.post-theme-galaxia  { background:linear-gradient(160deg,#0c0820,#150d30) !important; border-color:rgba(140,80,255,.35) !important; box-shadow:0 0 20px rgba(120,60,255,.2) !important; }
+.post-theme-bosque   { background:linear-gradient(160deg,#071510,#0d2318) !important; border-color:rgba(0,200,80,.3) !important; box-shadow:0 0 16px rgba(0,180,60,.15) !important; }
+.post-theme-oro      { background:linear-gradient(160deg,#1a1400,#261e00) !important; border-color:rgba(255,200,0,.4) !important; box-shadow:0 0 20px rgba(255,190,0,.2) !important; }
+.post-theme-neon     { background:linear-gradient(160deg,#0d001a,#180030) !important; border-color:rgba(200,0,255,.4) !important; box-shadow:0 0 20px rgba(180,0,255,.25) !important; }
+.post-theme-hielo    { background:linear-gradient(160deg,#071828,#0d2535) !important; border-color:rgba(0,220,255,.35) !important; box-shadow:0 0 18px rgba(0,200,255,.2) !important; }
+.post-theme-rosa     { background:linear-gradient(160deg,#1a0615,#280a20) !important; border-color:rgba(255,80,180,.35) !important; box-shadow:0 0 18px rgba(255,60,160,.2) !important; }
+.post-theme-carbon   { background:linear-gradient(160deg,#111,#1a1a1a) !important; border-color:rgba(255,255,255,.15) !important; box-shadow:0 0 12px rgba(0,0,0,.6) !important; }
+.post-theme-sunset   { background:linear-gradient(160deg,#1a0a00,#2a1200) !important; border-color:rgba(255,140,0,.4) !important; box-shadow:0 0 20px rgba(255,120,0,.2) !important; }
+/* texto adaptado al tema */
+.post-theme-ocean .post-text,.post-theme-fuego .post-text,.post-theme-galaxia .post-text,
+.post-theme-bosque .post-text,.post-theme-oro .post-text,.post-theme-neon .post-text,
+.post-theme-hielo .post-text,.post-theme-rosa .post-text,.post-theme-carbon .post-text,
+.post-theme-sunset .post-text { color:#e8eaf0; }
+.post-theme-ocean .post-author,.post-theme-fuego .post-author,.post-theme-galaxia .post-author,
+.post-theme-bosque .post-author,.post-theme-oro .post-author,.post-theme-neon .post-author,
+.post-theme-hielo .post-author,.post-theme-rosa .post-author,.post-theme-carbon .post-author,
+.post-theme-sunset .post-author { color:#fff; }
 .post-header{display:flex;align-items:center;gap:10px;padding:12px 14px;}
 .post-av{width:42px;height:42px;border-radius:50%;border:2px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);background:var(--bg4);flex-shrink:0;font-size:1rem;}
 .post-av img{width:100%;height:100%;object-fit:cover;}
@@ -962,6 +982,7 @@ select.fi option{background:#fff;}
             <button class="shop-cat-btn" onclick="filterShopCat(this,'badge')">🏅 Badges</button>
             <button class="shop-cat-btn" onclick="filterShopCat(this,'efecto')">✨ Efectos</button>
             <button class="shop-cat-btn" onclick="filterShopCat(this,'titulo')">📛 Títulos</button>
+            <button class="shop-cat-btn" onclick="filterShopCat(this,'postcolor')" style="background:linear-gradient(135deg,rgba(0,150,255,.15),rgba(150,0,255,.1));border-color:rgba(100,100,255,.3);">🎨 Colores de Post</button>
           </div>
 
           <!-- Grid de ítems -->
@@ -3383,7 +3404,10 @@ function postHTML(p){
     }).join('');
   // Verificar estado en tiempo real desde el caché de usuarios verificados
   const isVerif = !!(p.userVerified || (window._verifUsers && window._verifUsers[p.userId]));
-  return `<div class="post${isVerif?' post-verified':''}" id="post_${p.id}">
+  const _isMyPost = window.CU && p.userId === window.CU.id;
+  const _postTheme = _isMyPost && window.CU?.shopEquipped?.postcolor
+    ? (SHOP_ITEMS.find(i=>i.id===window.CU.shopEquipped.postcolor)?.theme || '') : '';
+  return `<div class="post${isVerif?' post-verified':''}${_postTheme?' '+_postTheme:''}" id="post_${p.id}">
     ${isVerif?`<div class="verif-post-tag">⭐ VERIFICADO</div>`:''}
     <div class="post-header" style="position:relative;">
       <div class="${isVerif?'post-av-wrap':''}">
@@ -4241,6 +4265,17 @@ const SHOP_ITEMS = [
   { id:'titulo_bestia',   cat:'titulo', name:'La Bestia',         preview:'🦁', emoji:'🦁', price:900,  desc:'Domina las aguas', exclusive:true },
   { id:'titulo_rookie',   cat:'titulo', name:'Rookie Imparable',  preview:'🚀', emoji:'🚀', price:300,  desc:'Nuevo pero letal' },
   { id:'titulo_ghost',    cat:'titulo', name:'El Fantasma',       preview:'👻', emoji:'👻', price:500,  desc:'Aparece, pesca y desaparece' },
+  // ── COLORES DE PUBLICACIÓN ──
+  { id:'post_ocean',    cat:'postcolor', name:'Océano Profundo',   preview:'🌊', emoji:'🌊', price:600,  desc:'Fondo azul oscuro marino en tus posts',   theme:'post-theme-ocean' },
+  { id:'post_fuego',    cat:'postcolor', name:'Fuego Ardiente',    preview:'🔥', emoji:'🔥', price:700,  desc:'Fondo rojo/naranja llameante',             theme:'post-theme-fuego' },
+  { id:'post_galaxia',  cat:'postcolor', name:'Galaxia',           preview:'🌌', emoji:'🌌', price:900,  desc:'Fondo púrpura espacial', exclusive:true,  theme:'post-theme-galaxia' },
+  { id:'post_bosque',   cat:'postcolor', name:'Bosque Oscuro',     preview:'🌲', emoji:'🌲', price:500,  desc:'Fondo verde selva profunda',              theme:'post-theme-bosque' },
+  { id:'post_oro',      cat:'postcolor', name:'Oro Negro',         preview:'👑', emoji:'💛', price:1000, desc:'Fondo negro con borde dorado', exclusive:true, theme:'post-theme-oro' },
+  { id:'post_neon',     cat:'postcolor', name:'Neón Violeta',      preview:'💜', emoji:'💜', price:800,  desc:'Fondo oscuro con brillo neón',            theme:'post-theme-neon' },
+  { id:'post_hielo',    cat:'postcolor', name:'Hielo Ártico',      preview:'❄️', emoji:'💎', price:650,  desc:'Fondo azul hielo translúcido',            theme:'post-theme-hielo' },
+  { id:'post_rosa',     cat:'postcolor', name:'Rosa Oscuro',       preview:'🌸', emoji:'🌸', price:550,  desc:'Fondo rosa profundo',                     theme:'post-theme-rosa' },
+  { id:'post_carbon',   cat:'postcolor', name:'Carbono',           preview:'⚫', emoji:'⚫', price:400,  desc:'Gris oscuro premium minimalista',         theme:'post-theme-carbon' },
+  { id:'post_sunset',   cat:'postcolor', name:'Atardecer',         preview:'🌅', emoji:'🌅', price:700,  desc:'Fondo sunset naranja cálido',             theme:'post-theme-sunset' },
 ]
 
 // Efectos de partículas activos
@@ -4259,19 +4294,22 @@ function renderShopGrid(){
   const grid = document.getElementById('shopItemsGrid');
   if(!grid) return;
   const items = _shopFilter === 'all' ? SHOP_ITEMS : SHOP_ITEMS.filter(i=>i.cat===_shopFilter);
+  const CAT_LABEL = {marco:'🖼 Marco',badge:'🏅 Badge',efecto:'✨ Efecto',titulo:'📛 Título',postcolor:'🎨 Color de Post'};
   grid.innerHTML = items.map(item => {
     const isEquipped = _equippedItems[item.cat] === item.id;
+    const postPreview = item.cat==='postcolor' ? `<div class="${item.theme}" style="border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:.63rem;color:#ddd;line-height:1.5;text-align:left;"><div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;"><div style="width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.2);flex-shrink:0;"></div><span style="font-weight:700;">ruizgustavo12</span></div><div>🎣 ¡Gran pesca hoy!</div></div>` : '';
     return `
     <div class="shop-item${isEquipped?' equipped':''}" id="sitem_${item.id}">
       ${isEquipped ? '<div class="shop-item-equipped-badge">✓ ACTIVO</div>' : ''}
-      ${item.exclusive ? '<div style="position:absolute;top:6px;left:6px;background:linear-gradient(135deg,gold,#ff8c00);color:#000;font-size:.5rem;font-weight:900;border-radius:100px;padding:2px 6px;">EXCLUSIVO</div>' : ''}
-      <span class="shop-item-preview">${item.preview}</span>
+      ${item.exclusive ? '<div style="position:absolute;top:6px;left:6px;background:linear-gradient(135deg,gold,#ff8c00);color:#000;font-size:.5rem;font-weight:900;border-radius:100px;padding:2px 6px;">✦ EXCL.</div>' : ''}
+      ${postPreview}
+      ${!item.theme ? `<span style="font-size:2.2rem;display:block;margin-bottom:6px;">${item.preview}</span>` : ''}
       <div class="shop-item-name">${item.name}</div>
-      <div class="shop-item-type">${{marco:'🖼 Marco',badge:'🏅 Badge',efecto:'✨ Efecto',titulo:'📛 Título'}[item.cat]}</div>
-      <div style="font-size:.65rem;color:var(--muted);margin-bottom:6px;line-height:1.3;">${item.desc}</div>
-      <div class="shop-item-price">🪙 ${item.price.toLocaleString()} RF4 coins</div>
+      <div class="shop-item-type">${CAT_LABEL[item.cat]||item.cat}</div>
+      <div style="font-size:.62rem;color:var(--muted);margin-bottom:8px;line-height:1.35;">${item.desc}</div>
+      <div class="shop-item-price">🪙 ${item.price.toLocaleString()} coins</div>
       <button class="shop-item-btn ${isEquipped?'unequip':'equip'}" onclick="toggleEquipItem('${item.id}')">
-        ${isEquipped ? '⬇ Desequipar' : '⬆ Equipar (GRATIS demo)'}
+        ${isEquipped ? '✕ Desequipar' : '▶ Equipar'}
       </button>
     </div>`;
   }).join('');
