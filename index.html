@@ -3981,8 +3981,14 @@ function updateNotifBadge(){
 function updateMsgBadge(){
   const el = document.getElementById('msgBadge');
   if(!el) return;
-  // Count unread messages (notifs starting with 💬)
-  const unread = _notifs.filter(n=>n.text && n.text.startsWith('💬') && !n.read).length;
+  const archived = window.CU?.archivedChats || [];
+  const deleted  = window.CU?.deletedChats  || [];
+  // Contar solo chats con mensaje no leído, no archivados ni borrados
+  const unread = Object.entries(_chatLastMsgs).filter(([uid, lm])=>{
+    if(archived.includes(uid)) return false;
+    if(deleted.includes(uid))  return false;
+    return !!lm.unread;
+  }).length;
   if(unread > 0){
     el.style.display='flex';
     el.textContent = unread > 9 ? '9+' : String(unread);
@@ -6243,16 +6249,21 @@ function renderMessengerList(){
     await Promise.all(friends.map(async f=>{
       try {
         const chatId = [window.CU.id, f.id].sort().join('_');
-        const q = query(collection(db,'chats',chatId,'messages'), orderBy('time','desc'), limit(1));
+        const q = query(collection(db,'chats',chatId,'messages'), orderBy('time','desc'), limit(20));
         const s = await getDocs(q);
-        if(!s.empty){
-          const d = s.docs[0].data();
+        const myId = window.CU?.id;
+        // Buscar el primer mensaje no borrado para mí
+        const visible = s.docs.find(d=>!(d.data().deletedFor||{})[myId]);
+        if(visible){
+          const d = visible.data();
           _chatLastMsgs[f.id] = {
             text: d.text||'',
             time: d.time?.toMillis?.()||0,
-            mine: d.uid===window.CU?.id,
-            unread: d.uid!==window.CU?.id && !d.read
+            mine: d.uid===myId,
+            unread: d.uid!==myId && !d.read
           };
+        } else {
+          delete _chatLastMsgs[f.id]; // todos borrados
         }
       } catch(e){}
     }));
@@ -6264,13 +6275,19 @@ function renderMessengerList(){
       badge.textContent = unreadCount;
     }
 
+    const deletedChats = window.CU?.deletedChats || [];
     let showFriends;
     if(_currentChatTab === 'archived'){
-      showFriends = friends.filter(f=>archived.includes(f.id));
+      showFriends = friends.filter(f=>archived.includes(f.id) && !deletedChats.includes(f.id));
     } else if(_currentChatTab === 'unread'){
-      showFriends = friends.filter(f=>!archived.includes(f.id) && _chatLastMsgs[f.id]?.unread);
+      showFriends = friends.filter(f=>!archived.includes(f.id) && !deletedChats.includes(f.id) && _chatLastMsgs[f.id]?.unread);
     } else {
-      showFriends = friends.filter(f=>!archived.includes(f.id));
+      showFriends = friends.filter(f=>{
+        if(archived.includes(f.id)) return false;
+        // Chat borrado: mostrar solo si llegó un mensaje nuevo después del borrado
+        if(deletedChats.includes(f.id)) return !!_chatLastMsgs[f.id];
+        return true;
+      });
     }
 
     showFriends = [...showFriends].sort((a,b)=>{
@@ -7872,13 +7889,16 @@ async function markChatRead(uid){
   if(!window.CU) return;
   try{
     const chatId = [window.CU.id, uid].sort().join('_');
-    const q = query(collection(db,'chats',chatId,'messages'),where('read','==',false),where('uid','!=',window.CU.id));
+    const q = query(collection(db,'chats',chatId,'messages'), orderBy('time','desc'), limit(50));
     const snap = await getDocs(q);
-    await Promise.all(snap.docs.map(d=>updateDoc(d.ref,{read:true})));
+    const myId = window.CU.id;
+    const toMark = snap.docs.filter(d=>d.data().uid!==myId && !d.data().read);
+    await Promise.all(toMark.map(d=>updateDoc(d.ref,{read:true})));
     if(_chatLastMsgs[uid]) _chatLastMsgs[uid].unread = false;
+    updateMsgBadge();
     renderMessengerList();
     toast('Chat marcado como leído ✓','ok');
-  }catch(e){}
+  }catch(e){ console.error(e); }
 }
 
 async function markChatUnread(uid, nick){
@@ -7888,23 +7908,34 @@ async function markChatUnread(uid, nick){
 }
 
 async function deleteChatConfirm(uid, nick){
-  if(!confirm(`¿Eliminar el chat con ${nick}? Esto borra todos los mensajes solo de tu lado.`)) return;
+  if(!confirm(`¿Eliminar el chat con ${nick}? Esto borra el historial solo de tu lado.`)) return;
   try{
     const chatId = [window.CU.id, uid].sort().join('_');
-    const q = query(collection(db,'chats',chatId,'messages'),orderBy('time','desc'));
+    const q = query(collection(db,'chats',chatId,'messages'), orderBy('time','desc'));
     const snap = await getDocs(q);
-    // Marcamos los mensajes míos como deleted para mi
+    // Marcar TODOS (propios y recibidos) como borrados para mí + marcar leídos
     await Promise.all(snap.docs.map(d=>{
-      const data = d.data();
-      if(data.uid===window.CU.id){
-        return updateDoc(d.ref,{deletedFor:{...(data.deletedFor||{}),[window.CU.id]:true}});
-      }
-      return Promise.resolve();
+      const df = d.data().deletedFor || {};
+      df[window.CU.id] = true;
+      return updateDoc(d.ref, {deletedFor: df, read: true});
     }));
+    // Guardar en Firestore el ID del amigo como chat borrado
+    const deleted = window.CU.deletedChats || [];
+    if(!deleted.includes(uid)) deleted.push(uid);
+    window.CU.deletedChats = deleted;
+    await updateDoc(doc(db,'users',window.CU.id), {deletedChats: deleted});
+    // Limpiar estado local
     delete _chatLastMsgs[uid];
+    // Limpiar notifs de mensajes de este usuario en _notifs
+    const prevLen = _notifs.length;
+    _notifs = _notifs.filter(n=>!(n.fromId===uid || (n.text&&n.text.startsWith('💬')&&n.text.includes(nick))));
+    if(_notifs.length !== prevLen){
+      await updateDoc(doc(db,'users',window.CU.id),{notifs:_notifs}).catch(()=>{});
+    }
+    updateNotifBadge(); updateMsgBadge();
     renderMessengerList();
-    toast('Chat eliminado','ok');
-  }catch(e){ toast('Error al eliminar','err'); }
+    toast('✓ Chat eliminado','ok');
+  }catch(e){ console.error(e); toast('Error al eliminar','err'); }
 }
 
 
