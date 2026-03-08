@@ -1448,7 +1448,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
 
 <!-- SPLASH SCREEN: shown while Firebase checks session -->
 <!-- MAINTENANCE SCREEN -->
-<div id="maintenanceScreen" style="display:flex;position:fixed;inset:0;z-index:10001;background:#0a0d12;align-items:center;justify-content:center;overflow:hidden;">
+<div id="maintenanceScreen" style="display:none;position:fixed;inset:0;z-index:10001;background:#0a0d12;align-items:center;justify-content:center;overflow:hidden;">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap');
     #maintenanceScreen * { box-sizing: border-box; }
@@ -1610,24 +1610,18 @@ select.fi option{background:var(--bg3);color:var(--text);}
     window._maintenanceBypass = false;
     function _mAdminLogin(){
       window._maintenanceBypass = true;
+      // Ocultar mantenimiento inmediatamente
       document.getElementById('maintenanceScreen').style.display = 'none';
-      var s = document.getElementById('splashScreen');
-      if(s){ s.style.display = 'flex'; }
-      // In incognito Firebase auth may be slow — show login directly after short wait
-      setTimeout(function(){
-        var sp = document.getElementById('splashScreen');
-        if(sp && sp.style.display === 'flex'){
-          // still on splash — try to hide it and show login
-          sp.style.display = 'none';
-          var lg = document.getElementById('loginScreen');
-          if(lg) lg.style.display = 'flex';
-        }
-      }, 2500);
+      // Ocultar splash y mostrar login directamente — sin esperar Firebase
+      var sp = document.getElementById('splashScreen');
+      if(sp) sp.style.display = 'none';
+      var auth = document.getElementById('mAuth');
+      if(auth) auth.style.display = 'block';
     }
   </script>
 </div>
 
-<div id="splashScreen" style="display:none;position:fixed;inset:0;z-index:10000;background:#f0f2f5;align-items:center;justify-content:center;flex-direction:column;gap:18px;">
+<div id="splashScreen" style="display:flex;position:fixed;inset:0;z-index:10000;background:#f0f2f5;align-items:center;justify-content:center;flex-direction:column;gap:18px;">
   <img src="icon-512.png" onerror="this.style.display='none'" style="width:80px;height:80px;border-radius:16px;object-fit:contain;">
   <div style="font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:900;color:#1a73e8;">Wikipedia<span style="color:#f5a623;">RF4</span></div>
   <div style="width:40px;height:40px;border:4px solid #e0e0e0;border-top-color:#1877f2;border-radius:50%;animation:splashSpin 0.8s linear infinite;"></div>
@@ -3614,9 +3608,13 @@ function init(){
     const splash = document.getElementById('splashScreen');
     if(splash && splash.style.display !== 'none'){
       splash.style.display = 'none';
-      document.getElementById('mAuth').style.display = 'block';
+      if(window._maintenanceBypass){
+        document.getElementById('mAuth').style.display = 'block';
+      } else {
+        document.getElementById('maintenanceScreen').style.display = 'flex';
+      }
     }
-  }, 3000);
+  }, 4000);
 
   // Escuchar estado de auth
   onAuthStateChanged(auth, async user => {
@@ -3629,9 +3627,11 @@ function init(){
         if (snap.exists()) {
           window.CU = {id: user.uid, ...snap.data()};
           // MAINTENANCE MODE: solo admins pueden acceder
-          const _isAdmin = window._maintenanceBypass || window.CU.nick === 'ruizgustavo12' || window.CU.email === 'synxyes@gmail.com';
+          const _isAdmin = window._maintenanceBypass
+            || window.CU.nick === 'ruizgustavo12'
+            || window.CU.email === 'synxyes@gmail.com'
+            || window.CU.admin === true;
           if(!_isAdmin){
-            // No admin: mostrar cartel de mantenimiento, cerrar sesión
             setTimeout(async()=>{ 
               try{ await signOut(auth); }catch(e){}
               window.CU = null;
@@ -3641,9 +3641,11 @@ function init(){
             }, 500);
             return;
           }
+          // Admin — ocultar todo y entrar
           document.getElementById('maintenanceScreen').style.display = 'none';
           document.getElementById('mAuth').style.display = 'none';
           hideSplash();
+          window._maintenanceBypass = true; // mantener el flag activo
           onLogin();
         } else {
           hideSplash();
@@ -3657,7 +3659,13 @@ function init(){
     } else {
       window.CU = null;
       hideSplash();
-      document.getElementById('mAuth').style.display = 'block';
+      // Si no hay sesión y el bypass está activo → ir al login
+      if(window._maintenanceBypass){
+        document.getElementById('mAuth').style.display = 'block';
+      } else {
+        // Sin sesión y sin bypass → mostrar mantenimiento
+        document.getElementById('maintenanceScreen').style.display = 'flex';
+      }
     }
   });
 }
@@ -14896,7 +14904,7 @@ window.setUserRole         = setUserRole;
 // CHANGELOG — Solo visible para ruizgustavo12
 // Actualizar VERSION y CHANGES cada vez que se sube un index nuevo
 // ═══════════════════════════════════════════════════════
-const _CL_VERSION = '2026-03-08-v45';
+const _CL_VERSION = '2026-03-08-v47';
 const _CL_CHANGES = [
   { emoji:'💬', text:'En qué estás pensando — el post box ahora dice tu nombre: ¿En qué estás pensando, ruizgustavo12?' },
   { emoji:'📤', text:'Compartir post por mensaje — ahora muestra vista previa con imagen, nick y texto. Click para ir directo al post' },
