@@ -56,9 +56,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0a0a0a;--bg2:#111111;--bg3:#141414;--bg4:#1a1a1a;
+  --bg:#0d1117;--bg2:#161b22;--bg3:#1c2128;--bg4:#21262d;
   --accent:#2ec4b6;--accent2:#25a99d;--gold:#e8c46a;
-  --text:#d4e8f0;--muted:#7aa8c0;--border:#1e3a4a;
+  --text:#e6edf3;--muted:#7d8590;--border:#30363d;
   --green:#42b72a;--red:#fa3e3e;--warn:#e8c46a;
   --r:8px;--rs:6px;
 }
@@ -74,7 +74,7 @@ a{text-decoration:none;color:inherit;}
 button{font-family:'Exo 2',sans-serif;cursor:pointer;}
 
 /* ===== TOPBAR ===== */
-.topbar{position:fixed;top:0;left:0;right:0;height:56px;background:#0f0f0f;border-bottom:1px solid var(--border);
+.topbar{position:fixed;top:0;left:0;right:0;height:56px;background:#161b22;border-bottom:1px solid var(--border);
   display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:1000;box-shadow:0 2px 4px rgba(0,0,0,.1);}
 .tb-logo{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--accent);cursor:pointer;}
 .tb-logo span{color:var(--gold);}
@@ -1392,10 +1392,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
         <div id="savedAccountsList" style="margin-bottom:8px;"></div>
         <div id="lErr" style="color:#fa3e3e;font-size:.82rem;margin-bottom:10px;text-align:center;display:none;padding:8px;background:#fff0f0;border-radius:6px;border:1px solid #ffd0d0;"></div>
         <input class="fb-input" type="text" id="lEmail" placeholder="Correo electrónico o nick" autocomplete="username">
-        <div style="position:relative;margin-bottom:8px;">
-          <input class="fb-input" type="password" id="lPass" placeholder="Contraseña" onkeypress="if(event.key==='Enter')doLogin()" style="margin-bottom:0;padding-right:44px;width:100%;box-sizing:border-box;">
-          <button type="button" onclick="const i=document.getElementById('lPass');const b=this;i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁️':'🙈';" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1rem;padding:0;line-height:1;">👁️</button>
-        </div>
+        <input class="fb-input" type="password" id="lPass" placeholder="Contraseña" onkeypress="if(event.key==='Enter')doLogin()" style="margin-bottom:8px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
           <input type="checkbox" id="rememberMe" style="width:15px;height:15px;accent-color:#1877f2;cursor:pointer;">
           <label for="rememberMe" style="font-size:.83rem;color:#65676b;cursor:pointer;">Mantener sesión iniciada</label>
@@ -1423,10 +1420,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
         </div>
         <div style="height:12px;"></div>
         <input class="fb-input" type="email" id="rEmail" placeholder="Correo electrónico">
-        <div style="position:relative;">
-          <input class="fb-input" type="password" id="rPass" placeholder="Contraseña nueva (mín. 6)" onkeypress="if(event.key==='Enter')doReg()" style="padding-right:44px;width:100%;box-sizing:border-box;">
-          <button type="button" onclick="const i=document.getElementById('rPass');const b=this;i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁️':'🙈';" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1rem;padding:0;line-height:1;">👁️</button>
-        </div>
+        <input class="fb-input" type="password" id="rPass" placeholder="Contraseña nueva (mín. 6)" onkeypress="if(event.key==='Enter')doReg()">
         <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:14px;">
           <input type="checkbox" id="acceptTerms" style="width:15px;height:15px;accent-color:#1877f2;cursor:pointer;margin-top:3px;flex-shrink:0;">
           <label for="acceptTerms" style="font-size:.78rem;color:#65676b;cursor:pointer;line-height:1.5;">
