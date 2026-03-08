@@ -8196,7 +8196,13 @@ function renderNotifs(){
 }
 
 function updateNotifBadge(){
-  const unread = _notifs.filter(n=>!n.read && !(n.text&&n.text.startsWith('💬'))).length;
+  // Campana: solo likes, comentarios, amigos, reacciones, trofeos, etc — NO mensajes 💬
+  const unread = _notifs.filter(n=>{
+    if(n.read) return false;
+    const t = n.text||'';
+    if(t.startsWith('💬')) return false; // mensajes van al badge de chat
+    return true;
+  }).length;
   const el = document.getElementById('notifDot');
   if(!el) return;
   if(unread > 0){
@@ -8205,6 +8211,8 @@ function updateNotifBadge(){
   } else {
     el.style.display='none';
   }
+  // Badge de mensajes también se actualiza acá para sincronizar
+  updateMsgBadge();
 }
 function updateMsgBadge(){
   const el = document.getElementById('msgBadge');
@@ -8212,24 +8220,12 @@ function updateMsgBadge(){
   const archived = window.CU?.archivedChats || [];
   const deleted  = window.CU?.deletedChats  || [];
 
-  // Fuente 1: _chatLastMsgs (listeners en tiempo real por chat)
-  const unreadFromChats = Object.entries(_chatLastMsgs).filter(([uid, lm])=>{
+  // Contar chats con mensajes no leídos (de los listeners en tiempo real)
+  const unread = Object.entries(_chatLastMsgs).filter(([uid, lm])=>{
     if(archived.includes(uid)) return false;
     if(deleted.includes(uid))  return false;
     return !!lm.unread;
   }).length;
-
-  // Fuente 2: _notifs con 💬 no leídas (siempre disponible inmediatamente)
-  // Contar cuántos remitentes distintos tienen mensajes no leídos
-  const unreadSenders = new Set(
-    _notifs
-      .filter(n=>!n.read && n.text && n.text.startsWith('💬'))
-      .map(n=>{ const m=n.text.match(/^💬\s*([^:]+):/); return m?m[1].trim():null; })
-      .filter(Boolean)
-  ).size;
-
-  // Usar el mayor de los dos para no subestimar
-  const unread = Math.max(unreadFromChats, unreadSenders);
 
   if(unread > 0){
     el.style.display='flex';
@@ -8289,18 +8285,21 @@ function listenNotifs(){
   listenUnreadMsgsBadge();
 }
 
-// Escucha mensajes no leídos - optimizado con polling en vez de onSnapshot por amigo
+// Escucha mensajes no leídos — onSnapshot en tiempo real por cada amigo
 let _unsubMsgBadgeListeners = [];
-let _msgBadgeInterval = null;
-async function _fetchUnreadMsgs(){
+function listenUnreadMsgsBadge(){
+  // Limpiar listeners anteriores
+  _unsubMsgBadgeListeners.forEach(u=>{ if(typeof u==='function') u(); });
+  _unsubMsgBadgeListeners = [];
+
   const friends = window.CU?.friendsList || [];
   const myId = window.CU?.id;
   if(!myId || !friends.length) return;
-  await Promise.all(friends.map(async f=>{
-    try {
-      const chatId = [myId, f.id].sort().join('_');
-      const q = query(collection(db,'chats',chatId,'messages'), orderBy('time','desc'), limit(5)); // OPTIMIZADO: limit 5 en vez de 15
-      const snap = await getDocs(q);
+
+  friends.forEach(f=>{
+    const chatId = [myId, f.id].sort().join('_');
+    const q = query(collection(db,'chats',chatId,'messages'), orderBy('time','desc'), limit(15));
+    const unsub = onSnapshot(q, snap=>{
       const unreadCount = snap.docs.filter(d=>{
         const m = d.data();
         return m.uid !== myId && !m.read && !(m.deletedFor||{})[myId];
@@ -8311,7 +8310,7 @@ async function _fetchUnreadMsgs(){
         const md = visibleDoc.data();
         _chatLastMsgs[f.id] = {
           ...lm,
-          text: md.gif ? '🖼️ GIF' : (md.text||''),
+          text: md.sharedPostId ? '📤 Publicación compartida' : md.gif ? '🖼️ GIF' : md.audioUrl ? '🎤 Audio' : (md.text||''),
           time: md.time?.toMillis?.()||0,
           mine: md.uid === myId,
           unread: unreadCount > 0,
@@ -8320,21 +8319,14 @@ async function _fetchUnreadMsgs(){
       } else {
         _chatLastMsgs[f.id] = { ...lm, unread: false, unreadCount: 0 };
       }
-    } catch(e){}
-  }));
-  updateMsgBadge();
-  if(_messengerOpen){
-    const _ub_list = document.getElementById('messengerList');
-    if(_ub_list && _ub_list.style.display !== 'none') _ub_list.innerHTML = _buildMessengerHTML();
-  }
-}
-function listenUnreadMsgsBadge(){
-  _unsubMsgBadgeListeners.forEach(u=>{ if(typeof u==='function') u(); });
-  _unsubMsgBadgeListeners = [];
-  if(_msgBadgeInterval) clearInterval(_msgBadgeInterval);
-  _fetchUnreadMsgs();
-  // Polling cada 90 segundos en vez de onSnapshot por cada amigo
-  _msgBadgeInterval = setInterval(_fetchUnreadMsgs, 180000); // OPTIMIZADO: cada 3 min en vez de 90s
+      updateMsgBadge();
+      if(_messengerOpen){
+        const _ub_list = document.getElementById('messengerList');
+        if(_ub_list && _ub_list.style.display !== 'none') _ub_list.innerHTML = _buildMessengerHTML();
+      }
+    }, ()=>{});
+    _unsubMsgBadgeListeners.push(unsub);
+  });
 }
 
 // ===== MESSENGER =====
@@ -11943,6 +11935,8 @@ function switchChatTab(tab){
     btn.style.color = active ? 'var(--accent)' : 'var(--muted)';
     btn.style.fontWeight = active ? '700' : '600';
   });
+  // Si no hay listeners activos todavía, iniciarlos
+  if(_unsubMsgBadgeListeners.length === 0) listenUnreadMsgsBadge();
   renderMessengerList();
 }
 
