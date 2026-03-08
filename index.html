@@ -5731,8 +5731,10 @@ function renderFeed(){
   window._postImgsMap = window._postImgsMap || {};
   _posts.forEach(p=>{ if(p.images&&p.images.length) window._postImgsMap[p.id]=p.images; });
 
-  // Primera vez: render completo
-  if(!el.children.length){
+  // Verificar si ya hay posts reales en el DOM (no el placeholder de carga)
+  const hasRealPosts = _posts.some(p=>document.getElementById('post_'+p.id));
+  if(!hasRealPosts){
+    // Render completo — primera vez o después de limpiar
     el.innerHTML = _posts.map(p=>postHTML(p)).join('');
     return;
   }
@@ -5743,7 +5745,8 @@ function renderFeed(){
       // Post nuevo — insertar al principio
       const tmp = document.createElement('div');
       tmp.innerHTML = postHTML(p);
-      el.insertBefore(tmp.firstElementChild, el.firstChild);
+      const newEl = tmp.firstElementChild;
+      if(newEl) el.insertBefore(newEl, el.firstChild);
       return;
     }
     // Solo actualizar stats y actions (reacciones, contador comentarios)
