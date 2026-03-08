@@ -869,7 +869,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
     <div class="feed">
       <!-- Stories -->
       <div class="stories-row" id="storiesRow">
-        <div onclick="om('mAddStory');_loadPopularStoryMusic();" style="border:none;border-radius:12px;overflow:hidden;cursor:pointer;position:relative;width:80px;height:140px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='scale(1.03)';this.style.boxShadow='0 4px 14px rgba(0,0,0,.22)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 2px 8px rgba(0,0,0,.15)'">
+        <div onclick="openStoryChooser()" style="border:none;border-radius:12px;overflow:hidden;cursor:pointer;position:relative;width:80px;height:140px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='scale(1.03)';this.style.boxShadow='0 4px 14px rgba(0,0,0,.22)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 2px 8px rgba(0,0,0,.15)'">
           <!-- Top ~65%: user photo background -->
           <div id="storyAddPhoto" style="position:absolute;top:0;left:0;right:0;height:65%;background:var(--bg3);overflow:hidden;display:flex;align-items:center;justify-content:center;">
             <span id="storyAddPhotoInner" style="font-size:2.2rem;opacity:.3;">👤</span>
@@ -1696,113 +1696,186 @@ select.fi option{background:var(--bg3);color:var(--text);}
   </div>
 </div>
 
-<!-- Add Story -->
-<div class="mo" id="mAddStory">
-  <div class="modal modal-sm" style="overflow-y:auto;max-height:92vh;">
-    <button class="mcx" onclick="cm('mAddStory')">✕</button>
-    <div class="mt">📖 Crear Historia</div>
+<!-- Add Story — Facebook style fullscreen -->
+<div class="mo" id="mAddStory" style="background:rgba(0,0,0,.85);align-items:stretch;">
+  <div style="display:flex;width:100%;height:100%;max-height:100vh;overflow:hidden;" id="_storyCreatorWrap">
 
-    <!-- TEXTO + emoji + gif -->
-    <div class="fg">
-      <label class="fl">Texto de la historia</label>
-      <div style="position:relative;">
-        <textarea class="fi" id="storyText" placeholder="¿Qué pasó en tu pesca hoy?..." style="padding-bottom:36px;min-height:90px;"></textarea>
-        <div style="position:absolute;bottom:8px;left:8px;display:flex;gap:4px;">
-          <button onclick="openEmojiPicker(event,'storyText')" title="Emoji"
-            style="background:var(--bg3);border:none;font-size:1rem;cursor:pointer;padding:4px 7px;border-radius:8px;line-height:1;"
-            onmouseover="this.style.background='var(--bg4)'" onmouseout="this.style.background='var(--bg3)'">😊</button>
-          <button onclick="_storyGifPicker()" title="GIF"
-            style="background:var(--bg3);border:none;font-size:.65rem;font-weight:900;color:var(--accent);cursor:pointer;padding:4px 7px;border-radius:8px;line-height:1;"
-            onmouseover="this.style.background='var(--bg4)'" onmouseout="this.style.background='var(--bg3)'">GIF</button>
+    <!-- LEFT PANEL -->
+    <div style="width:360px;min-width:280px;max-width:360px;background:var(--bg2);display:flex;flex-direction:column;height:100%;overflow-y:auto;flex-shrink:0;">
+      <!-- Header -->
+      <div style="padding:16px 16px 0;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <button onclick="cm('mAddStory')" style="background:var(--bg3);border:none;color:var(--text);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.1rem;flex-shrink:0;">✕</button>
+        <span style="font-family:'Orbitron',monospace;font-size:.95rem;font-weight:900;color:var(--text);">📖 Tu Historia</span>
+      </div>
+
+      <!-- User -->
+      <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;flex-shrink:0;">
+        <div style="width:40px;height:40px;border-radius:50%;overflow:hidden;background:var(--bg3);flex-shrink:0;" id="_scUserAv"></div>
+        <div>
+          <div id="_scUserNick" style="font-size:.88rem;font-weight:700;color:var(--text);"></div>
+          <div style="font-size:.7rem;color:var(--muted);">Tu historia · 🌐 Público</div>
         </div>
       </div>
-      <!-- GIF picker historia -->
-      <div id="storyGifPicker" style="display:none;margin-top:6px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:8px;">
-        <div style="display:flex;gap:6px;margin-bottom:6px;">
-          <input id="storyGifSearch" placeholder="Buscar GIF..."
-            style="flex:1;padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;color:var(--text);font-size:.8rem;outline:none;"
-            oninput="searchStoryGif()" onkeypress="if(event.key==='Enter')searchStoryGif()">
-          <button onclick="document.getElementById('storyGifPicker').style.display='none'"
-            style="background:var(--bg3);border:none;color:var(--muted);border-radius:50%;width:28px;height:28px;cursor:pointer;">✕</button>
+
+      <div style="height:1px;background:var(--border);flex-shrink:0;"></div>
+
+      <!-- MODE: chooser / photo / text -->
+      <div id="_scModeChooser" style="padding:20px 16px;display:flex;gap:12px;">
+        <div onclick="_scSetMode('photo')" style="flex:1;border-radius:14px;overflow:hidden;cursor:pointer;height:160px;background:linear-gradient(135deg,#6a82fb,#fc5c7d);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:transform .15s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+          <div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:1.3rem;">🖼</div>
+          <span style="font-size:.78rem;font-weight:700;color:#fff;text-align:center;">Historia con<br>foto</span>
         </div>
-        <div id="storyGifResults" style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;max-height:160px;overflow-y:auto;">
-          <div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--muted);font-size:.78rem;">Escribí para buscar GIFs 🎬</div>
-        </div>
-        <div id="storyGifSelected" style="display:none;margin-top:6px;">
-          <img id="storyGifImg" src="" style="max-width:100%;border-radius:8px;display:block;">
-          <button onclick="document.getElementById('storyGifSelected').style.display='none';window._storyGif=null;"
-            style="margin-top:4px;background:var(--bg3);border:none;color:var(--muted);font-size:.75rem;padding:3px 8px;border-radius:6px;cursor:pointer;">✕ Quitar GIF</button>
+        <div onclick="_scSetMode('text')" style="flex:1;border-radius:14px;overflow:hidden;cursor:pointer;height:160px;background:linear-gradient(135deg,#a18cd1,#fbc2eb);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:transform .15s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+          <div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:900;">Aa</div>
+          <span style="font-size:.78rem;font-weight:700;color:#fff;text-align:center;">Historia de<br>texto</span>
         </div>
       </div>
-    </div>
 
-    <!-- COLOR DE FONDO -->
-    <div class="fg">
-      <label class="fl">🎨 Color de fondo (historia escrita)</label>
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px;" id="storyBgGrid">
-        <div onclick="pickStoryBg('none')" title="Sin fondo"
-          style="height:40px;border-radius:10px;background:var(--bg3);border:2px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--muted);">Ninguno</div>
-        <div onclick="pickStoryBg('linear-gradient(135deg,#1877f2,#0a3d7c)')" style="height:40px;border-radius:10px;background:linear-gradient(135deg,#1877f2,#0a3d7c);cursor:pointer;border:2px solid transparent;"></div>
-        <div onclick="pickStoryBg('linear-gradient(135deg,#2ec4b6,#0a7c6e)')" style="height:40px;border-radius:10px;background:linear-gradient(135deg,#2ec4b6,#0a7c6e);cursor:pointer;border:2px solid transparent;"></div>
-        <div onclick="pickStoryBg('linear-gradient(135deg,#e41e3f,#7c0a1e)')" style="height:40px;border-radius:10px;background:linear-gradient(135deg,#e41e3f,#7c0a1e);cursor:pointer;border:2px solid transparent;"></div>
-        <div onclick="pickStoryBg('linear-gradient(135deg,#f5a623,#7c4a00)')" style="height:40px;border-radius:10px;background:linear-gradient(135deg,#f5a623,#7c4a00);cursor:pointer;border:2px solid transparent;"></div>
-        <div onclick="pickStoryBg('linear-gradient(135deg,#9b59b6,#4a0080)')" style="height:40px;border-radius:10px;background:linear-gradient(135deg,#9b59b6,#4a0080);cursor:pointer;border:2px solid transparent;"></div>
-        <div onclick="pickStoryBg('linear-gradient(135deg,#2ecc71,#0a4a1e)')" style="height:40px;border-radius:10px;background:linear-gradient(135deg,#2ecc71,#0a4a1e);cursor:pointer;border:2px solid transparent;"></div>
-        <div onclick="pickStoryBg('linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)')" style="height:40px;border-radius:10px;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);cursor:pointer;border:2px solid transparent;"></div>
-        <div onclick="pickStoryBg('linear-gradient(135deg,#ff6b6b,#feca57)')" style="height:40px;border-radius:10px;background:linear-gradient(135deg,#ff6b6b,#feca57);cursor:pointer;border:2px solid transparent;"></div>
-        <div onclick="pickStoryBg('linear-gradient(135deg,#2c3e50,#4ca1af)')" style="height:40px;border-radius:10px;background:linear-gradient(135deg,#2c3e50,#4ca1af);cursor:pointer;border:2px solid transparent;"></div>
-      </div>
-      <!-- Preview del fondo con texto -->
-      <div id="storyBgPreview" style="display:none;border-radius:12px;padding:20px;text-align:center;min-height:80px;display:flex;align-items:center;justify-content:center;margin-top:4px;">
-        <span id="storyBgPreviewTxt" style="color:#fff;font-weight:700;font-size:.95rem;text-shadow:0 2px 8px rgba(0,0,0,.5);word-break:break-word;"></span>
-      </div>
-    </div>
-
-    <!-- IMAGEN -->
-    <div class="fg">
-      <label class="fl">Imagen (opcional)</label>
-      <label style="display:flex;align-items:center;gap:8px;padding:10px;border:2px dashed var(--border);border-radius:var(--rs);cursor:pointer;color:var(--muted);font-size:.85rem">
-        📸 Subir imagen
-        <input type="file" accept="image/*" id="storyImgInput" style="display:none" onchange="previewStoryImg(this)">
-      </label>
-      <div id="storyImgPrev" style="margin-top:8px"></div>
-    </div>
-
-    <!-- MÚSICA -->
-    <div class="fg">
-      <label class="fl">🎵 Música (opcional)</label>
-      <div style="position:relative;">
-        <input class="fi" id="storyMusicSearch" placeholder="🔍 Buscar canción o artista..." style="flex:1;width:100%;padding-right:36px;" oninput="debounceStoryMusic()" onfocus="_showStoryMusicSuggestions()" onkeydown="if(event.key==='Enter')searchStoryMusic();if(event.key==='Escape')clearStoryMusic()">
-        <span id="storyMusicSpinner" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:.8rem;animation:spin 1s linear infinite;">⏳</span>
-      </div>
-      <div id="storyMusicResults" style="margin-top:6px;max-height:240px;overflow-y:auto;display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);box-shadow:0 8px 24px rgba(0,0,0,.3);"></div>
-      <div id="storyMusicSelected" style="display:none;margin-top:8px;background:rgba(46,196,182,.08);border:1px solid rgba(46,196,182,.3);border-radius:var(--rs);padding:10px;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <img id="storyMusicCover" src="" style="width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.3);">
-          <div style="flex:1;min-width:0;">
-            <div id="storyMusicTitle" style="font-size:.82rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
-            <div id="storyMusicArtist" style="font-size:.72rem;color:var(--muted);margin-top:2px;"></div>
-            <div style="font-size:.65rem;color:var(--accent);margin-top:2px;">✅ Seleccionada — se reproducirá en la historia</div>
+      <!-- MODE: photo options -->
+      <div id="_scModePhoto" style="display:none;padding:0 16px 16px;flex-direction:column;gap:12px;">
+        <label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px dashed var(--border);border-radius:12px;cursor:pointer;color:var(--muted);font-size:.85rem;background:var(--bg3);">
+          📸 Subir foto
+          <input type="file" accept="image/*" id="storyImgInput" style="display:none" onchange="previewStoryImg(this);_scUpdatePreview()">
+        </label>
+        <div id="storyImgPrev" style="margin-top:4px;"></div>
+        <div>
+          <label style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block;">Texto encima</label>
+          <div style="position:relative;">
+            <textarea id="storyText" placeholder="Escribe algo..." oninput="_scUpdatePreview()"
+              style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 10px 32px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.88rem;resize:none;outline:none;box-sizing:border-box;min-height:70px;"></textarea>
+            <div style="position:absolute;bottom:8px;left:8px;display:flex;gap:4px;">
+              <button onclick="openEmojiPicker(event,'storyText')" style="background:none;border:none;font-size:1rem;cursor:pointer;padding:2px;">😊</button>
+            </div>
           </div>
-          <button onclick="clearStoryMusic()" style="background:rgba(255,255,255,.08);border:none;color:var(--muted);cursor:pointer;font-size:.8rem;padding:6px 8px;border-radius:6px;">✕ Quitar</button>
         </div>
-        <audio id="storyMusicPreview" controls style="width:100%;margin-top:8px;height:32px;border-radius:100px;" src=""></audio>
+        <!-- Music -->
+        <div>
+          <label style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block;">🎵 Música</label>
+          <input class="fi" id="storyMusicSearch" placeholder="🔍 Buscar canción..." style="width:100%;box-sizing:border-box;" oninput="debounceStoryMusic()" onfocus="_showStoryMusicSuggestions()" onkeydown="if(event.key==='Enter')searchStoryMusic()">
+          <span id="storyMusicSpinner" style="display:none;font-size:.8rem;">⏳</span>
+          <div id="storyMusicResults" style="max-height:200px;overflow-y:auto;display:none;background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-top:4px;"></div>
+          <div id="storyMusicSelected" style="display:none;margin-top:6px;background:rgba(46,196,182,.08);border:1px solid rgba(46,196,182,.3);border-radius:10px;padding:8px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <img id="storyMusicCover" src="" style="width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0;">
+              <div style="flex:1;min-width:0;">
+                <div id="storyMusicTitle" style="font-size:.78rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+                <div id="storyMusicArtist" style="font-size:.68rem;color:var(--muted);"></div>
+              </div>
+              <button onclick="clearStoryMusic()" style="background:none;border:none;color:var(--muted);cursor:pointer;">✕</button>
+            </div>
+            <audio id="storyMusicPreview" controls style="width:100%;margin-top:6px;height:28px;" src=""></audio>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODE: text options -->
+      <div id="_scModeText" style="display:none;padding:0 16px 16px;flex-direction:column;gap:14px;">
+        <!-- Text input -->
+        <div>
+          <label style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block;">Texto</label>
+          <div style="position:relative;">
+            <textarea id="storyTextText" placeholder="Empieza a escribir..." oninput="_scUpdatePreview()"
+              style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 10px 36px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.88rem;resize:none;outline:none;box-sizing:border-box;min-height:80px;"></textarea>
+            <div style="position:absolute;bottom:8px;left:8px;display:flex;gap:4px;">
+              <button onclick="openEmojiPicker(event,'storyTextText')" style="background:none;border:none;font-size:1rem;cursor:pointer;padding:2px;">😊</button>
+              <button onclick="_storyGifPicker()" style="background:none;border:none;font-size:.65rem;font-weight:900;color:var(--accent);cursor:pointer;padding:2px 5px;border-radius:4px;">GIF</button>
+            </div>
+          </div>
+          <div id="storyGifPicker" style="display:none;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:8px;margin-top:4px;">
+            <div style="display:flex;gap:6px;margin-bottom:6px;">
+              <input id="storyGifSearch" placeholder="Buscar GIF..." style="flex:1;padding:6px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:20px;color:var(--text);font-size:.78rem;outline:none;" oninput="searchStoryGif()">
+              <button onclick="document.getElementById('storyGifPicker').style.display='none'" style="background:var(--bg2);border:none;color:var(--muted);border-radius:50%;width:26px;height:26px;cursor:pointer;">✕</button>
+            </div>
+            <div id="storyGifResults" style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;max-height:140px;overflow-y:auto;"><div style="grid-column:1/-1;text-align:center;padding:10px;color:var(--muted);font-size:.75rem;">Escribí para buscar GIFs</div></div>
+            <div id="storyGifSelected" style="display:none;margin-top:6px;"><img id="storyGifImg" src="" style="max-width:100%;border-radius:8px;"><button onclick="document.getElementById('storyGifSelected').style.display='none';window._storyGif=null;" style="margin-top:4px;background:var(--bg2);border:none;color:var(--muted);font-size:.72rem;padding:3px 8px;border-radius:6px;cursor:pointer;">✕ Quitar GIF</button></div>
+          </div>
+        </div>
+
+        <!-- Fondos -->
+        <div>
+          <label style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:block;">Fondos</label>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;" id="storyBgGrid">
+            <div onclick="pickStoryBg('none',this)" style="height:36px;border-radius:8px;background:var(--bg3);border:2px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--muted);">Sin fondo</div>
+            <div onclick="pickStoryBg('linear-gradient(160deg,#1877f2,#0a3d7c)',this)" style="height:36px;border-radius:8px;background:linear-gradient(160deg,#1877f2,#0a3d7c);cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="pickStoryBg('linear-gradient(160deg,#2ec4b6,#0a5c54)',this)" style="height:36px;border-radius:8px;background:linear-gradient(160deg,#2ec4b6,#0a5c54);cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="pickStoryBg('linear-gradient(160deg,#e41e3f,#7c0a1e)',this)" style="height:36px;border-radius:8px;background:linear-gradient(160deg,#e41e3f,#7c0a1e);cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="pickStoryBg('linear-gradient(160deg,#f5a623,#c47a00)',this)" style="height:36px;border-radius:8px;background:linear-gradient(160deg,#f5a623,#c47a00);cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="pickStoryBg('linear-gradient(160deg,#9b59b6,#4a0080)',this)" style="height:36px;border-radius:8px;background:linear-gradient(160deg,#9b59b6,#4a0080);cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="pickStoryBg('linear-gradient(160deg,#2ecc71,#0a4a1e)',this)" style="height:36px;border-radius:8px;background:linear-gradient(160deg,#2ecc71,#0a4a1e);cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="pickStoryBg('linear-gradient(160deg,#1a1a2e,#0f3460)',this)" style="height:36px;border-radius:8px;background:linear-gradient(160deg,#1a1a2e,#0f3460);cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="pickStoryBg('linear-gradient(160deg,#ff6b6b,#feca57)',this)" style="height:36px;border-radius:8px;background:linear-gradient(160deg,#ff6b6b,#feca57);cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="pickStoryBg('linear-gradient(160deg,#f953c6,#b91d73)',this)" style="height:36px;border-radius:8px;background:linear-gradient(160deg,#f953c6,#b91d73);cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="pickStoryBg('linear-gradient(160deg,#f7971e,#ffd200)',this)" style="height:36px;border-radius:8px;background:linear-gradient(160deg,#f7971e,#ffd200);cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="pickStoryBg('linear-gradient(160deg,#2c3e50,#4ca1af)',this)" style="height:36px;border-radius:8px;background:linear-gradient(160deg,#2c3e50,#4ca1af);cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="pickStoryBg('linear-gradient(160deg,#11998e,#38ef7d)',this)" style="height:36px;border-radius:8px;background:linear-gradient(160deg,#11998e,#38ef7d);cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="pickStoryBg('linear-gradient(160deg,#e96c19,#f7971e)',this)" style="height:36px;border-radius:8px;background:linear-gradient(160deg,#e96c19,#f7971e);cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="pickStoryBg('linear-gradient(160deg,#232526,#414345)',this)" style="height:36px;border-radius:8px;background:linear-gradient(160deg,#232526,#414345);cursor:pointer;border:2px solid transparent;"></div>
+          </div>
+        </div>
+
+        <!-- Music -->
+        <div>
+          <label style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block;">🎵 Agregar música</label>
+          <button onclick="_scToggleMusic()" style="display:flex;align-items:center;gap:10px;width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;color:var(--text);">
+            <span style="font-size:1.1rem;">🎵</span>
+            <span style="font-size:.85rem;font-weight:600;">Agregar música</span>
+          </button>
+          <div id="_scMusicPanel" style="display:none;margin-top:8px;">
+            <input class="fi" id="storyMusicSearch" placeholder="🔍 Buscar canción..." style="width:100%;box-sizing:border-box;" oninput="debounceStoryMusic()" onfocus="_showStoryMusicSuggestions()" onkeydown="if(event.key==='Enter')searchStoryMusic()">
+            <span id="storyMusicSpinner" style="display:none;font-size:.8rem;">⏳</span>
+            <div id="storyMusicResults" style="max-height:200px;overflow-y:auto;display:none;background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-top:4px;"></div>
+            <div id="storyMusicSelected" style="display:none;margin-top:6px;background:rgba(46,196,182,.08);border:1px solid rgba(46,196,182,.3);border-radius:10px;padding:8px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <img id="storyMusicCover" src="" style="width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0;">
+                <div style="flex:1;min-width:0;">
+                  <div id="storyMusicTitle" style="font-size:.78rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+                  <div id="storyMusicArtist" style="font-size:.68rem;color:var(--muted);"></div>
+                </div>
+                <button onclick="clearStoryMusic()" style="background:none;border:none;color:var(--muted);cursor:pointer;">✕</button>
+              </div>
+              <audio id="storyMusicPreview" controls style="width:100%;margin-top:6px;height:28px;" src=""></audio>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom buttons (shown in photo/text mode) -->
+      <div id="_scBottomBtns" style="display:none;padding:16px;margin-top:auto;display:flex;gap:10px;flex-shrink:0;border-top:1px solid var(--border);">
+        <button onclick="_scSetMode('chooser')" style="flex:1;background:var(--bg3);border:none;color:var(--text);padding:10px;border-radius:10px;cursor:pointer;font-family:'Exo 2',sans-serif;font-weight:700;">Descartar</button>
+        <button onclick="_scSubmit()" style="flex:2;background:var(--accent);border:none;color:#000;padding:10px;border-radius:10px;cursor:pointer;font-family:'Exo 2',sans-serif;font-weight:900;">Compartir historia</button>
       </div>
     </div>
 
-    <!-- EMOJI / STICKER -->
-    <div class="fg"><label class="fl">Emoji / Sticker</label>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <span style="font-size:1.6rem;cursor:pointer" onclick="pickStoryEmoji('🐟')">🐟</span>
-        <span style="font-size:1.6rem;cursor:pointer" onclick="pickStoryEmoji('🎣')">🎣</span>
-        <span style="font-size:1.6rem;cursor:pointer" onclick="pickStoryEmoji('🏆')">🏆</span>
-        <span style="font-size:1.6rem;cursor:pointer" onclick="pickStoryEmoji('❄️')">❄️</span>
-        <span style="font-size:1.6rem;cursor:pointer" onclick="pickStoryEmoji('🌊')">🌊</span>
-        <span style="font-size:1.6rem;cursor:pointer" onclick="pickStoryEmoji('🦈')">🦈</span>
+    <!-- RIGHT PANEL: preview -->
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:14px;overflow:hidden;">
+      <div style="font-size:.75rem;color:rgba(255,255,255,.5);font-weight:700;text-transform:uppercase;letter-spacing:.8px;">Vista previa</div>
+      <!-- Story card preview -->
+      <div id="_scPreviewCard" style="width:220px;height:390px;border-radius:16px;overflow:hidden;position:relative;box-shadow:0 8px 40px rgba(0,0,0,.6);background:#111;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <!-- bg -->
+        <div id="_scPreviewBg" style="position:absolute;inset:0;background:linear-gradient(160deg,#1877f2,#0a3d7c);"></div>
+        <!-- image -->
+        <img id="_scPreviewImg" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;">
+        <!-- text -->
+        <div id="_scPreviewText" style="position:relative;z-index:2;padding:20px;text-align:center;color:#fff;font-weight:700;font-size:1rem;text-shadow:0 2px 8px rgba(0,0,0,.5);word-break:break-word;max-width:100%;"></div>
+        <!-- gif -->
+        <img id="_scPreviewGif" src="" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);max-width:90%;border-radius:8px;display:none;z-index:3;">
+        <!-- user info overlay -->
+        <div style="position:absolute;top:12px;left:12px;right:12px;z-index:4;display:flex;align-items:center;gap:8px;">
+          <div id="_scPreviewAv" style="width:32px;height:32px;border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,.8);background:#444;flex-shrink:0;"></div>
+          <span id="_scPreviewNick" style="font-size:.72rem;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.5);"></span>
+        </div>
+        <!-- music bar -->
+        <div id="_scPreviewMusic" style="display:none;position:absolute;bottom:12px;left:12px;right:12px;z-index:4;background:rgba(0,0,0,.5);border-radius:20px;padding:6px 10px;display:flex;align-items:center;gap:6px;">
+          <span style="font-size:.7rem;">🎵</span>
+          <span id="_scPreviewMusicName" style="font-size:.68rem;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;"></span>
+        </div>
+        <!-- chooser placeholder -->
+        <div id="_scPreviewPlaceholder" style="position:relative;z-index:2;text-align:center;color:rgba(255,255,255,.5);">
+          <div style="font-size:2rem;margin-bottom:8px;">📖</div>
+          <div style="font-size:.75rem;">Elegí un tipo de historia</div>
+        </div>
       </div>
     </div>
-
-    <button class="btn btn-p btn-full" onclick="submitStory()">Publicar Historia</button>
   </div>
 </div>
 
@@ -4548,32 +4621,87 @@ function _getSuggestions(q){
   return _ALL_ARTISTS.filter(a => a.toLowerCase().startsWith(ql) || a.toLowerCase().includes(ql)).slice(0,5);
 }
 
-// ===== STORY COLOR BG =====
+// ===== STORY CREATOR (Facebook style) =====
 window._storyBg = null;
 window._storyGif = null;
+window._scMode = 'chooser'; // chooser | photo | text
 
-function pickStoryBg(bg){
-  window._storyBg = bg === 'none' ? null : bg;
-  // Highlight selected
-  document.querySelectorAll('#storyBgGrid > div').forEach(d=>d.style.border='2px solid transparent');
-  event.currentTarget.style.border = '2px solid var(--accent)';
-  // Preview
-  const preview = document.getElementById('storyBgPreview');
-  const previewTxt = document.getElementById('storyBgPreviewTxt');
-  if(window._storyBg){
-    preview.style.display = 'flex';
-    preview.style.background = window._storyBg;
-    const txt = document.getElementById('storyText').value.trim();
-    previewTxt.textContent = txt || 'Vista previa del texto aquí...';
-  } else {
-    preview.style.display = 'none';
+function openStoryChooser(){
+  _loadPopularStoryMusic();
+  // Reset state
+  window._storyBg = 'linear-gradient(160deg,#1877f2,#0a3d7c)';
+  window._storyGif = null;
+  window._scMode = 'chooser';
+  // Set user info
+  if(window.CU){
+    const av = document.getElementById('_scUserAv');
+    const nick = document.getElementById('_scUserNick');
+    if(av) av.innerHTML = window.CU.av ? `<img src="${window.CU.av}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="width:100%;height:100%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-weight:700;">${(window.CU.nick||'?')[0]}</div>`;
+    if(nick) nick.textContent = window.CU.nick || '';
+    const pav = document.getElementById('_scPreviewAv');
+    const pnick = document.getElementById('_scPreviewNick');
+    if(pav) pav.innerHTML = av ? av.innerHTML : '';
+    if(pnick) pnick.textContent = window.CU.nick || '';
   }
-  // Update preview when text changes
-  document.getElementById('storyText').oninput = function(){
-    if(window._storyBg && previewTxt){
-      previewTxt.textContent = this.value.trim() || 'Vista previa del texto aquí...';
+  _scSetMode('chooser');
+  om('mAddStory');
+}
+
+function _scSetMode(mode){
+  window._scMode = mode;
+  document.getElementById('_scModeChooser').style.display = mode==='chooser' ? 'flex' : 'none';
+  document.getElementById('_scModePhoto').style.display = mode==='photo' ? 'flex' : 'none';
+  document.getElementById('_scModeText').style.display = mode==='text' ? 'flex' : 'none';
+  document.getElementById('_scBottomBtns').style.display = mode==='chooser' ? 'none' : 'flex';
+  // Preview
+  const placeholder = document.getElementById('_scPreviewPlaceholder');
+  const previewText = document.getElementById('_scPreviewText');
+  if(mode === 'chooser'){
+    if(placeholder) placeholder.style.display = 'block';
+    if(previewText) previewText.textContent = '';
+    document.getElementById('_scPreviewBg').style.background = '#111';
+  } else if(mode === 'text'){
+    if(placeholder) placeholder.style.display = 'none';
+    document.getElementById('_scPreviewBg').style.background = window._storyBg || 'linear-gradient(160deg,#1877f2,#0a3d7c)';
+    // Set first bg selected by default
+    if(!window._storyBg){
+      const firstBg = document.querySelector('#storyBgGrid > div:nth-child(2)');
+      if(firstBg) firstBg.click();
     }
-  };
+    setTimeout(()=>document.getElementById('storyTextText')?.focus(), 200);
+  } else if(mode === 'photo'){
+    if(placeholder) placeholder.style.display = 'none';
+    document.getElementById('_scPreviewBg').style.background = '#111';
+  }
+}
+
+function _scToggleMusic(){
+  const panel = document.getElementById('_scMusicPanel');
+  if(panel) panel.style.display = panel.style.display==='none' ? 'block' : 'none';
+}
+
+function _scUpdatePreview(){
+  const mode = window._scMode;
+  if(mode === 'text'){
+    const txt = document.getElementById('storyTextText')?.value || '';
+    const el = document.getElementById('_scPreviewText');
+    if(el) el.textContent = txt || '';
+    const bg = window._storyBg || 'linear-gradient(160deg,#1877f2,#0a3d7c)';
+    document.getElementById('_scPreviewBg').style.background = bg;
+  } else if(mode === 'photo'){
+    const txt = document.getElementById('storyText')?.value || '';
+    const el = document.getElementById('_scPreviewText');
+    if(el) el.textContent = txt || '';
+  }
+}
+
+function pickStoryBg(bg, el){
+  window._storyBg = bg === 'none' ? null : bg;
+  document.querySelectorAll('#storyBgGrid > div').forEach(d=>d.style.border='2px solid transparent');
+  if(el) el.style.border = '2px solid white';
+  const bgEl = document.getElementById('_scPreviewBg');
+  if(bgEl) bgEl.style.background = window._storyBg || '#111';
+  _scUpdatePreview();
 }
 
 function _storyGifPicker(){
@@ -4849,10 +4977,18 @@ window.pickStoryBg = pickStoryBg;
 window._storyGifPicker = _storyGifPicker;
 window.searchStoryGif = searchStoryGif;
 window.selectStoryGif = selectStoryGif;
+window.openStoryChooser = openStoryChooser;
+window._scSetMode = _scSetMode;
+window._scToggleMusic = _scToggleMusic;
+window._scUpdatePreview = _scUpdatePreview;
+window._scSubmit = _scSubmit;
 
+async function _scSubmit(){ return submitStory(); }
 async function submitStory(){
   if(!window.CU){ toast('Inicia sesión primero','err'); return; }
-  const text = document.getElementById('storyText').value.trim();
+  const mode = window._scMode || 'photo';
+  const textEl = mode==='text' ? document.getElementById('storyTextText') : document.getElementById('storyText');
+  const text = textEl?.value.trim() || '';
   if(!text && !_storyImgData && !window._storyGif){ toast('Escribe algo o sube una imagen','err'); return; }
   toast('Publicando historia...','inf');
   let imgUrl = '';
@@ -4866,11 +5002,11 @@ async function submitStory(){
     gif: window._storyGif || null
   });
   _storyImgData = null; _storyEmojiPick = ''; _storyMusic = null;
-  window._storyBg = null; window._storyGif = null;
-  document.getElementById('storyText').value='';
-  document.getElementById('storyImgPrev').innerHTML='';
-  document.getElementById('storyBgPreview').style.display='none';
-  document.getElementById('storyGifSelected').style.display='none';
+  window._storyBg = null; window._storyGif = null; window._scMode = 'chooser';
+  const t1 = document.getElementById('storyText'); if(t1) t1.value='';
+  const t2 = document.getElementById('storyTextText'); if(t2) t2.value='';
+  const ip = document.getElementById('storyImgPrev'); if(ip) ip.innerHTML='';
+  const gs = document.getElementById('storyGifSelected'); if(gs) gs.style.display='none';
   clearStoryMusic();
   cm('mAddStory');
   toast('Historia publicada 📖','ok');
@@ -13661,7 +13797,7 @@ window.setUserRole         = setUserRole;
 // CHANGELOG — Solo visible para ruizgustavo12
 // Actualizar VERSION y CHANGES cada vez que se sube un index nuevo
 // ═══════════════════════════════════════════════════════
-const _CL_VERSION = '2026-03-08-v15';
+const _CL_VERSION = '2026-03-08-v16';
 const _CL_CHANGES = [
   { emoji:'🎨', text:'Historias: elegí color de fondo con 10 gradientes — preview en tiempo real mientras escribís' },
   { emoji:'😊', text:'Historias: botón emoji y GIF en el texto de la historia' },
