@@ -902,7 +902,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
       <div id="friendSpotsHome"></div>
       <!-- Botón refrescar -->
       <div style="text-align:center;margin-bottom:8px;">
-        <button onclick="_fetchPosts();_fetchStories();toast('Feed actualizado 🎣','ok');" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:5px 18px;font-size:.75rem;cursor:pointer;font-family:'Exo 2',sans-serif;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">↻ Actualizar feed</button>
+        <button onclick="listenPosts();listenStories();toast('Feed actualizado 🎣','ok');" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:5px 18px;font-size:.75rem;cursor:pointer;font-family:'Exo 2',sans-serif;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">↻ Actualizar feed</button>
       </div>
       <!-- Posts -->
       <div id="feedPosts"><div style="text-align:center;padding:40px;color:var(--muted);font-size:.85rem;">🎣 Cargando feed...</div></div>
@@ -3545,7 +3545,6 @@ async function listenVerifiedUsers(){
   } catch(e){ console.warn('listenVerifiedUsers error:', e); }
 }
 
-let _postsPollingInterval = null;
 let _postsUnsub = null;
 function listenPosts() {
   if(_postsUnsub){ _postsUnsub(); _postsUnsub = null; }
@@ -10831,7 +10830,7 @@ async function _doSharePost(pid, realPid, privacy, preloadedTxt){
     if(p.userId && p.userId !== window.CU.id) sendNotifToUserWithPost(p.userId, `🔁 ${window.CU.nick} compartió tu publicación`, p.id);
     const privMsg = priv==='friends' ? 'compartida con tus amigos 👥' : 'compartida! 🔁';
     toast('¡Publicación '+privMsg,'ok');
-    _fetchPosts();
+    listenPosts();
   } catch(e){ console.error(e); toast('Error al compartir','err'); }
 }
 
@@ -14134,7 +14133,6 @@ const _expose = {
   doReact,quickReact,
   togglePassVis, maskEmail, startEmailChange, cancelEmailChange, sendVerifEmailForChange, confirmEmailChange,
   setMusicType, quickGenreSearch, searchSpotify, searchDeezer, playDeezer, playSpotify, closeMusicPlayer,
-  _fetchPosts, _fetchStories,
   saveProfile,openEditProfile,calcAgeFromBirthdate,
   changeCover,changeAvatar,
   previewPostImg,removePostImg,previewPostMedia,removePostMedia,
