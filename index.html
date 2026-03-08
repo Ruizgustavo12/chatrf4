@@ -888,7 +888,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
       <div class="post-box">
         <div class="post-box-top">
           <div class="sl-av" id="pbAv" style="width:40px;height:40px">👤</div>
-          <div class="post-input" onclick="om('mCreatePost')">¿Qué estás pensando?</div>
+          <div class="post-input" onclick="om('mCreatePost')" id="postBoxPlaceholder">¿Qué estás pensando?</div>
         </div>
         <div class="post-box-actions">
           <button class="pba" onclick="om('mCreatePost');setTimeout(()=>{document.getElementById('postImgInput')?.click()},200)">📸 Foto</button>
@@ -1226,7 +1226,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
       <div id="profilePostBox" class="post-box" style="margin-bottom:14px">
         <div class="post-box-top">
           <div class="sl-av" id="pbAv2" style="width:40px;height:40px">👤</div>
-          <div class="post-input" onclick="om('mCreatePost')">¿Qué estás pensando?</div>
+          <div class="post-input" onclick="om('mCreatePost')" id="postBoxPlaceholder">¿Qué estás pensando?</div>
         </div>
       </div>
       <div id="profileFeed"></div>
@@ -3916,6 +3916,7 @@ function onLogin(){
   }
   checkFriendsBirthdays();
   if(typeof window._checkChangelog === 'function') window._checkChangelog();
+  if(typeof _updatePostBoxPlaceholder === 'function') _updatePostBoxPlaceholder();
   loadRealFriends().then(()=>{
     renderProfile();
     renderSidebarFriends();
@@ -9415,6 +9416,9 @@ function clearYtInput(){
 // ===== NAVIGATE TO POST =====
 function scrollToPost(postId){
   if(!postId) return;
+  // Cerrar messenger si está abierto
+  const messengerModal = document.getElementById('mMessenger');
+  if(messengerModal && messengerModal.classList.contains('open')) cm('mMessenger');
   // Go to home page first
   gp('home');
   // Wait for render then scroll
@@ -9422,12 +9426,11 @@ function scrollToPost(postId){
     const el = document.getElementById('post_'+postId);
     if(el){
       el.scrollIntoView({behavior:'smooth', block:'center'});
-      // Highlight briefly
       el.style.transition='box-shadow .3s';
-      el.style.boxShadow='0 0 0 2px var(--accent)';
-      setTimeout(()=>{ el.style.boxShadow=''; },2000);
+      el.style.boxShadow='0 0 0 3px var(--accent)';
+      setTimeout(()=>{ el.style.boxShadow=''; },2500);
     }
-  }, 300);
+  }, 350);
 }
 
 // ===== SPOTS =====
@@ -10631,14 +10634,28 @@ async function sharePost(pid){
       fnEl.style.cssText='font-size:.6rem;color:#050505;font-weight:600;text-align:center;word-break:break-word;line-height:1.2;';
       fnEl.textContent=(fr.nick||'').slice(0,10);
       fb.appendChild(avDiv); fb.appendChild(fnEl);
-      fb.addEventListener('click',()=>{
-        const msgTxt = (ta.value.trim()?ta.value.trim()+'\n':'')+'🔁 '+location.href+'#post_'+pid;
-        openChatWith(fr.id, fr.nick);
-        setTimeout(()=>{
-          const ci = document.getElementById('chatInput');
-          if(ci){ ci.value=msgTxt; ci.dispatchEvent(new Event('input',{bubbles:true})); ci.focus(); }
-        },600);
+      fb.addEventListener('click', async ()=>{
         overlay.remove();
+        const msgTxt = ta.value.trim() || '';
+        // Enviar directamente con postId para mostrar vista previa
+        if(!window.CU) return;
+        const chatId = [window.CU.id, fr.id].sort().join('_');
+        const msgData = {
+          uid: window.CU.id, nick: window.CU.nick,
+          time: serverTimestamp(),
+          text: msgTxt,
+          sharedPostId: pid,
+          sharedPostNick: p.userNick || '',
+          sharedPostText: (p.text||'').slice(0,120),
+          sharedPostImg: (p.images&&p.images[0]) || ''
+        };
+        try {
+          await addDoc(collection(db,'chats',chatId,'messages'), msgData);
+          const previewText = '📤 Compartió una publicación';
+          await sendNotifToUser(fr.id, `💬 ${window.CU.nick}: ${previewText}`);
+          toast(`Enviado a ${fr.nick} ✓`, 'ok');
+        } catch(e){ toast('Error al enviar','err'); }
+        openChatWith(fr.id, fr.nick);
       });
       frRow.appendChild(fb);
     });
@@ -12093,7 +12110,20 @@ function openChatWith(uid, nick){
                   <div style="font-size:.84rem;color:var(--text);line-height:1.5;word-break:break-word;">${esc(m.text)}</div>
                 </div>
               </div>` : '';
-            const msgContent = m.gif
+            // Vista previa de post compartido
+            const sharedPostCard = m.sharedPostId ? `
+              <div onclick="scrollToPost('${m.sharedPostId}')" style="max-width:260px;border:1px solid rgba(0,198,255,.3);border-radius:14px;overflow:hidden;background:${mine?'rgba(0,100,200,.25)':'rgba(0,198,255,.07)'};cursor:pointer;margin-bottom:2px;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+                ${m.sharedPostImg ? `<img src="${m.sharedPostImg}" style="width:100%;max-height:120px;object-fit:cover;display:block;">` : ''}
+                <div style="padding:8px 10px;">
+                  <div style="font-size:.68rem;color:var(--accent);font-weight:700;margin-bottom:3px;">📤 Publicación compartida</div>
+                  <div style="font-size:.78rem;font-weight:700;color:${mine?'#fff':'var(--text)'};margin-bottom:2px;">${esc(m.sharedPostNick||'')}</div>
+                  ${m.sharedPostText ? `<div style="font-size:.73rem;color:${mine?'rgba(255,255,255,.75)':'var(--muted)'};line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${esc(m.sharedPostText)}</div>` : ''}
+                  <div style="font-size:.65rem;color:var(--accent);margin-top:4px;">Toca para ver →</div>
+                </div>
+              </div>
+              ${m.text ? `<div style="max-width:220px;padding:6px 12px;border-radius:${mine?'16px 16px 4px 16px':'16px 16px 16px 4px'};background:${mine?'#0084ff':'#f0f0f0'};color:${mine?'#fff':'#050505'};font-size:.84rem;line-height:1.5;word-break:break-word;display:inline-block;margin-top:2px;">${esc(m.text)}</div>` : ''}
+            ` : '';
+            const msgContent = m.sharedPostId ? '' : m.gif
               ? `<img src="${m.gif}" style="max-width:200px;border-radius:10px;display:block;" loading="lazy">`
               : m.audioUrl
               ? `<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:${mine?'16px 16px 4px 16px':'16px 16px 16px 4px'};background:${mine?'#0084ff':'#f0f0f0'};max-width:220px;">
@@ -12109,6 +12139,7 @@ function openChatWith(uid, nick){
             const normalBubble = !isStoryComment ? `
               <div style="position:relative;" onmouseenter="showMsgRxnBar('${m.id}')" onmouseleave="hideMsgRxnBar('${m.id}')">
                 <div id="mrxnbar_${m.id}" style="display:none;position:absolute;${mine?'right:0':'left:0'};bottom:calc(100% + 4px);background:rgba(12,22,34,.98);border:1px solid rgba(255,255,255,.13);border-radius:100px;padding:4px 8px;align-items:center;gap:2px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.8);white-space:nowrap;" onmouseenter="keepMsgRxnBar('${m.id}')" onmouseleave="hideMsgRxnBar('${m.id}')">${rxnBtns}</div>
+                ${sharedPostCard}
                 ${msgContent}
                 ${msgRxnTotal>0?`<div onclick="reactChatMsg('${chatId}','${m.id}','')" style="position:absolute;${mine?'left:-8px':'right:-8px'};bottom:-12px;background:#fff;border:1px solid #ced0d4;border-radius:100px;padding:1px 7px;font-size:.75rem;cursor:pointer;white-space:nowrap;">${msgTopRxns} ${msgRxnTotal}</div>`:''}
               </div>` : '';
@@ -14779,9 +14810,11 @@ window.setUserRole         = setUserRole;
 // CHANGELOG — Solo visible para ruizgustavo12
 // Actualizar VERSION y CHANGES cada vez que se sube un index nuevo
 // ═══════════════════════════════════════════════════════
-const _CL_VERSION = '2026-03-08-v41';
+const _CL_VERSION = '2026-03-08-v42';
 const _CL_CHANGES = [
-  { emoji:'🎵', text:'Fix: Historias con música — al pasar a la siguiente historia el audio anterior se corta al instante, sin superposición' },
+  { emoji:'💬', text:'En qué estás pensando — el post box ahora dice tu nombre: ¿En qué estás pensando, ruizgustavo12?' },
+  { emoji:'📤', text:'Compartir post por mensaje — ahora muestra vista previa con imagen, nick y texto. Click para ir directo al post' },
+  { emoji:'🎵', text:'Fix: Historias con música — al pasar a la siguiente historia el audio anterior se corta al instante' },
   { emoji:'⚡', text:'Feed instantáneo — se eliminó el smart patch de Firebase, el feed ahora re-renderiza directo y sin lag' },
   { emoji:'🎵', text:'Fix: Música en historias — si la URL de Deezer falla, se re-busca automáticamente y sigue sonando' },
   { emoji:'💬', text:'Fix: Comentarios — funcionan siempre incluso en posts de otros perfiles, con feedback visual' },
@@ -14857,6 +14890,15 @@ function _showChangelogModal(){
 }
 
 // Hook en onAuthStateChanged — mostrar solo si es ruizgustavo12
+// Actualiza el placeholder del post box con el nick del usuario
+function _updatePostBoxPlaceholder(){
+  const nick = window.CU?.nick;
+  document.querySelectorAll('#postBoxPlaceholder').forEach(el=>{
+    el.textContent = nick ? `¿En qué estás pensando, ${nick}?` : '¿Qué estás pensando?';
+  });
+}
+window._updatePostBoxPlaceholder = _updatePostBoxPlaceholder;
+
 window._checkChangelog = function(){
   const nick = window.CU?.nick;
   const email = window.CU?.email;
