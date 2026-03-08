@@ -1291,24 +1291,17 @@ select.fi option{background:var(--bg3);color:var(--text);}
 
     <!-- BOTTOM BAR mejorado -->
     <div style="position:absolute;bottom:0;left:0;right:0;z-index:20;background:linear-gradient(transparent,rgba(0,0,0,.7) 40%);padding:20px 12px 14px;">
-      <!-- Reacciones flotantes animadas estilo Facebook -->
-      <div id="svReactWrap" style="margin-bottom:10px;position:relative;">
-        <!-- Botón principal de reaccionar -->
-        <div style="display:flex;align-items:center;gap:8px;">
-          <button id="svReactBtn"
-            onmouseenter="document.getElementById('svReactPop').style.display='flex'"
-            ontouchstart="(function(){var p=document.getElementById('svReactPop');p.style.display=p.style.display==='flex'?'none':'flex';event.stopPropagation();})();"
-            style="background:rgba(255,255,255,.15);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.25);border-radius:100px;padding:7px 14px;color:#fff;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s;"
-            onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">
-            ❤️ Me gusta
-          </button>
-        </div>
-        <!-- Popup reacciones flotante — hardcoded, animadas estilo Facebook -->
-        <div id="svReactPop"
-          style="display:none;position:absolute;bottom:calc(100% + 10px);left:0;background:rgba(24,24,24,.95);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:7px 12px;flex-direction:row;gap:2px;align-items:center;box-shadow:0 6px 28px rgba(0,0,0,.6);z-index:30;"
-          onmouseleave="this.style.display='none'">
-          <button onclick="reactStory('❤️');document.getElementById('svReactPop').style.display='none';" style="background:none;border:none;font-size:1.7rem;cursor:pointer;padding:4px 5px;border-radius:50%;transition:transform .18s,background .15s;line-height:1;" onmouseover="this.style.transform='scale(1.5) translateY(-5px)';this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.transform='scale(1)';this.style.background='none'">❤️</button><button onclick="reactStory('😂');document.getElementById('svReactPop').style.display='none';" style="background:none;border:none;font-size:1.7rem;cursor:pointer;padding:4px 5px;border-radius:50%;transition:transform .18s,background .15s;line-height:1;" onmouseover="this.style.transform='scale(1.5) translateY(-5px)';this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.transform='scale(1)';this.style.background='none'">😂</button><button onclick="reactStory('😮');document.getElementById('svReactPop').style.display='none';" style="background:none;border:none;font-size:1.7rem;cursor:pointer;padding:4px 5px;border-radius:50%;transition:transform .18s,background .15s;line-height:1;" onmouseover="this.style.transform='scale(1.5) translateY(-5px)';this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.transform='scale(1)';this.style.background='none'">😮</button><button onclick="reactStory('😢');document.getElementById('svReactPop').style.display='none';" style="background:none;border:none;font-size:1.7rem;cursor:pointer;padding:4px 5px;border-radius:50%;transition:transform .18s,background .15s;line-height:1;" onmouseover="this.style.transform='scale(1.5) translateY(-5px)';this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.transform='scale(1)';this.style.background='none'">😢</button><button onclick="reactStory('😡');document.getElementById('svReactPop').style.display='none';" style="background:none;border:none;font-size:1.7rem;cursor:pointer;padding:4px 5px;border-radius:50%;transition:transform .18s,background .15s;line-height:1;" onmouseover="this.style.transform='scale(1.5) translateY(-5px)';this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.transform='scale(1)';this.style.background='none'">😡</button><button onclick="reactStory('👍');document.getElementById('svReactPop').style.display='none';" style="background:none;border:none;font-size:1.7rem;cursor:pointer;padding:4px 5px;border-radius:50%;transition:transform .18s,background .15s;line-height:1;" onmouseover="this.style.transform='scale(1.5) translateY(-5px)';this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.transform='scale(1)';this.style.background='none'">👍</button><button onclick="reactStory('🔥');document.getElementById('svReactPop').style.display='none';" style="background:none;border:none;font-size:1.7rem;cursor:pointer;padding:4px 5px;border-radius:50%;transition:transform .18s,background .15s;line-height:1;" onmouseover="this.style.transform='scale(1.5) translateY(-5px)';this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.transform='scale(1)';this.style.background='none'">🔥</button><button onclick="reactStory('🎣');document.getElementById('svReactPop').style.display='none';" style="background:none;border:none;font-size:1.7rem;cursor:pointer;padding:4px 5px;border-radius:50%;transition:transform .18s,background .15s;line-height:1;" onmouseover="this.style.transform='scale(1.5) translateY(-5px)';this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.transform='scale(1)';this.style.background='none'">🎣</button><button onclick="reactStory('🏆');document.getElementById('svReactPop').style.display='none';" style="background:none;border:none;font-size:1.7rem;cursor:pointer;padding:4px 5px;border-radius:50%;transition:transform .18s,background .15s;line-height:1;" onmouseover="this.style.transform='scale(1.5) translateY(-5px)';this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.transform='scale(1)';this.style.background='none'">🏆</button><button onclick="reactStory('👏');document.getElementById('svReactPop').style.display='none';" style="background:none;border:none;font-size:1.7rem;cursor:pointer;padding:4px 5px;border-radius:50%;transition:transform .18s,background .15s;line-height:1;" onmouseover="this.style.transform='scale(1.5) translateY(-5px)';this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.transform='scale(1)';this.style.background='none'">👏</button>
-        </div>
+      <!-- Reacciones: popup fixed al body para no quedar cortado -->
+      <div id="svReactWrap" style="margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+        <!-- Botón principal -->
+        <button id="svReactBtn"
+          onclick="_svToggleRxnPop()"
+          style="background:rgba(255,255,255,.18);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.3);border-radius:100px;padding:8px 18px;color:#fff;font-size:.88rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all .15s;box-shadow:0 2px 10px rgba(0,0,0,.3);"
+          onmouseover="this.style.background='rgba(255,255,255,.28)'" onmouseout="this.style.background='rgba(255,255,255,.18)'">
+          <span id="svReactIcon">❤️</span> <span id="svReactLabel">Me gusta</span>
+        </button>
+        <!-- Contador de reacciones existentes -->
+        <div id="svRxnCountBar" style="display:none;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);border-radius:100px;padding:4px 10px;font-size:.8rem;color:#fff;"></div>
       </div>
       <!-- Caja de comentario -->
       <div style="display:flex;gap:7px;align-items:center;">
@@ -1317,6 +1310,11 @@ select.fi option{background:var(--bg3);color:var(--text);}
       </div>
     </div>
   </div>
+</div>
+
+<!-- Story reactions popup — fixed to body so it's never clipped -->
+<div id="svReactPopFixed"
+  style="display:none;position:fixed;bottom:160px;left:16px;background:rgba(18,18,18,.96);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.18);border-radius:100px;padding:8px 14px;flex-direction:row;gap:4px;align-items:center;box-shadow:0 8px 32px rgba(0,0,0,.7);z-index:10005;">
 </div>
 
 <!-- MODALS -->
@@ -3431,7 +3429,7 @@ function _stub(name){ return function(){ _q.push([name, arguments]); }; }
  'previewSpotImg','removeSpotImg','submitSpot','loadSpots','toggleYtInput','previewYtEmbed','clearYtInput','extractYtId','openPostWithYt','loadFriendSpots','renderFriendSpotsInHome','openEditSpot','saveEditSpot','deleteSpot','scrollToPost',
  'renderSidebarFriends','renderSuggestedUsers','playNotifSound','showNotifToast','sendNotifToUserWithPost','openMessenger','loadVideos','filterVideos',
  'previewPezSemanaImg','submitPezSemana','deletePezSemana','loadPezSemana','openPezSemanalModal','openReactionsModal','buildRxnLabel',
- 'filterTrofeoFeed','listenTrofeosFeed','swSkillTab','searchStoryMusic','selectStoryMusic','clearStoryMusic','searchDeezer','playDeezer','closeTrophyBanner','debounceStoryMusic','_hoverStoryPreview','_leaveStoryPreview','debounceMusicSearch','_doSharePost','_cmtOpenGif','searchCmtGifs','sendCmtGif','_toggleSharePrivacy','_setSharePrivacy','_txtMusicInput','_txtMusicFocus','_txtMusicSearch','_txtSelectTrack','_txtClearMusic','_txtSelectPopular','_txtSetSearch','_fotoMusicInput','_fotoMusicFocus','_fotoMusicSearch','_fotoSelectTrack','_fotoClearMusic','_fotoSelectPopular','_fotoSetSearch'
+ 'filterTrofeoFeed','listenTrofeosFeed','swSkillTab','searchStoryMusic','selectStoryMusic','clearStoryMusic','searchDeezer','playDeezer','closeTrophyBanner','debounceStoryMusic','_hoverStoryPreview','_leaveStoryPreview','debounceMusicSearch','_doSharePost','_cmtOpenGif','searchCmtGifs','sendCmtGif','_toggleSharePrivacy','_setSharePrivacy','_txtMusicInput','_txtMusicFocus','_txtMusicSearch','_txtSelectTrack','_txtClearMusic','_txtSelectPopular','_txtSetSearch','_fotoMusicInput','_fotoMusicFocus','_fotoMusicSearch','_fotoSelectTrack','_fotoClearMusic','_fotoSelectPopular','_fotoSetSearch','_svToggleRxnPop','_svCloseRxnPop'
 ].forEach(fn => { window[fn] = _stub(fn); });
 </script>
 <script type="module">
@@ -4768,6 +4766,32 @@ function renderSV(){
   prog.innerHTML = _stories.map((_,i)=>`<div class="sv-prog-bar"><div class="sv-prog-fill" id="svFill${i}" style="width:${i<_svIdx?100:0}%;transition:${i===_svIdx?'width '+SV_DURATION/1000+'s linear':'none'}"></div></div>`).join('');
   requestAnimationFrame(()=>requestAnimationFrame(()=>{ const f=document.getElementById('svFill'+_svIdx); if(f)f.style.width='100%'; }));
 }
+function _svToggleRxnPop(){
+  var pop = document.getElementById('svReactPopFixed');
+  if(!pop) return;
+  if(pop.style.display==='flex'){
+    _svCloseRxnPop(); return;
+  }
+  // Position above the button
+  var btn = document.getElementById('svReactBtn');
+  if(btn){
+    var r = btn.getBoundingClientRect();
+    pop.style.bottom = (window.innerHeight - r.top + 10)+'px';
+    pop.style.left = r.left+'px';
+    pop.style.top = 'auto';
+  }
+  pop.style.display='flex';
+  setTimeout(function(){
+    function _cls(e){ if(!pop.contains(e.target) && e.target!==btn){ _svCloseRxnPop(); document.removeEventListener('click',_cls); document.removeEventListener('touchstart',_cls); } }
+    document.addEventListener('click',_cls);
+    document.addEventListener('touchstart',_cls);
+  },50);
+}
+function _svCloseRxnPop(){
+  var pop = document.getElementById('svReactPopFixed');
+  if(pop) pop.style.display='none';
+}
+
 function _floatStoryEmoji(em){
   const sv = document.getElementById('storyViewer');
   if(!sv) return;
@@ -4805,15 +4829,15 @@ function reportStory(){
 async function reactStory(em){
   const s = _stories[_svIdx];
   if(!s || !window.CU) return;
-  // Update reaction button
-  const btn = document.getElementById('svReactBtn');
-  if(btn) btn.innerHTML = em + ' Me gusta';
+  // Update button icon+label
+  const icon = document.getElementById('svReactIcon');
+  const lbl = document.getElementById('svReactLabel');
+  if(icon) icon.textContent = em;
+  if(lbl) lbl.textContent = 'Me gusta';
   // Hide popup
-  const pop = document.getElementById('svReactPop');
-  if(pop) pop.style.display = 'none';
-  // Floating emoji animation like Facebook
+  _svCloseRxnPop();
+  // Floating emoji animation
   _floatStoryEmoji(em);
-  toast('Reaccionaste con ' + em, 'inf');
   // Send reaction as private message if not own story
   if(s.userId && s.userId !== window.CU.id){
     try {
@@ -13993,7 +14017,7 @@ const _expose = {
   reactCmt,editCmt,delCmt,quickCmtRxn,replyCmt,toggleReplies,
   openImgLightbox,openImgLightboxById,toggleStickerPicker,closeStickerPicker,loadStickerCat,searchStickers,sendSticker,resetStickerCats,swPTab,filterShopCat,toggleEquipItem,
   showRxnPop,schedHideRxnPop,cancelHideRxnPop,
-  openSV,closeSV,svNav,reactStory,reportStory,submitStoryComment,deleteMyStory,
+  openSV,closeSV,svNav,reactStory,reportStory,submitStoryComment,deleteMyStory,_svToggleRxnPop,_svCloseRxnPop,
   doSearch,
   reportPost,submitReport,
   loadAdminData,deleteAdminPost,resolveReport,
@@ -14713,16 +14737,16 @@ window.setUserRole         = setUserRole;
 </div>
 <script>
 (function svEmojiInit_done(){
-  // Story reactions — directamente visibles, sin popup
-  var pop = document.getElementById('svReactPop');
+  // Story reactions popup — fixed al body, nunca cortado
+  var pop = document.getElementById('svReactPopFixed');
   if(pop){
-    ['❤️','😮','😂','🎣','👏','🔥','😍','🐟','🏆','💀'].forEach(function(em){
+    ['❤️','😍','😂','😮','😢','🔥','🎣','🐟','👏','🏆'].forEach(function(em){
       var b=document.createElement('button');
       b.textContent=em; b.title=em;
-      b.style.cssText='background:rgba(255,255,255,.15);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.2);font-size:1.4rem;cursor:pointer;transition:transform .15s,background .15s;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;padding:0;';
-      b.onmouseover=function(){this.style.transform='scale(1.3) translateY(-4px)';this.style.background='rgba(255,255,255,.28)';};
-      b.onmouseout =function(){this.style.transform='scale(1) translateY(0)';this.style.background='rgba(255,255,255,.15)';};
-      b.onclick    =function(){ if(typeof reactStory==='function') reactStory(em); };
+      b.style.cssText='background:none;border:none;font-size:1.8rem;cursor:pointer;transition:transform .18s;line-height:1;padding:4px 6px;border-radius:50%;';
+      b.onmouseover=function(){this.style.transform='scale(1.5) translateY(-6px)';};
+      b.onmouseout =function(){this.style.transform='scale(1) translateY(0)';};
+      b.onclick    =function(){ if(typeof reactStory==='function'){ reactStory(em); _svCloseRxnPop(); } };
       pop.appendChild(b);
     });
   }
@@ -14753,7 +14777,7 @@ window.setUserRole         = setUserRole;
 // CHANGELOG — Solo visible para ruizgustavo12
 // Actualizar VERSION y CHANGES cada vez que se sube un index nuevo
 // ═══════════════════════════════════════════════════════
-const _CL_VERSION = '2026-03-08-v37';
+const _CL_VERSION = '2026-03-08-v38';
 const _CL_CHANGES = [
   { emoji:'🎨', text:'Historias: elegí color de fondo con 10 gradientes — preview en tiempo real mientras escribís' },
   { emoji:'😊', text:'Historias: botón emoji y GIF en el texto de la historia' },
