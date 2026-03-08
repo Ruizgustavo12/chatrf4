@@ -3403,7 +3403,7 @@ function updateNavUI(){
   document.getElementById('userMenuNick').textContent = window.CU.nick;
   document.getElementById('userMenuEmail').textContent = window.CU.email||'';
   // Admin button — visible solo para ruizgustavo12
-  const isAdmin = window.CU.nick === 'ruizgustavo12';
+  const isAdmin = window.CU.nick === 'ruizgustavo12' || window.CU.email === 'synxyes@gmail.com';
   const adminNavBtn = document.getElementById('adminNavBtn');
   const userMenuAdmin = document.getElementById('userMenuAdmin');
   const shopNavBtn = document.getElementById('shopNavBtn');
@@ -6900,7 +6900,7 @@ function swAdminTab(el, tabId){
 }
 
 async function loadAdminData(){
-  if(!window.CU || window.CU.nick !== 'ruizgustavo12') return;
+  if(!window.CU || (window.CU.nick !== 'ruizgustavo12' && window.CU.email !== 'synxyes@gmail.com')) return;
   const [postsSnap, usersSnap, reportsSnap, storiesSnap, groupsSnap] = await Promise.all([
     getDocs(collection(db,'posts')),
     getDocs(collection(db,'users')),
@@ -7469,7 +7469,7 @@ async function loadGroups(){
   // Show "Crear grupo" button only for admin
   const headerEl = document.getElementById('gruposHeader');
   if(headerEl){
-    if(window.CU?.nick === 'ruizgustavo12'){
+    if(window.CU?.nick === 'ruizgustavo12' || window.CU?.email === 'synxyes@gmail.com'){
       headerEl.innerHTML = `<div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--accent);">🎣 Grupos de Pesca</div>
         <button class="btn btn-p" style="font-size:.85rem;" onclick="om('mCreateGroup')">+ Crear grupo</button>`;
     } else {
@@ -7805,7 +7805,7 @@ async function submitSpot(){
 function spotCardHTML(s){
   const imgs = s.images||[];
   const gridClass = imgs.length>=2 ? 'g2' : '';
-  const isAdmin = window.CU?.nick === 'ruizgustavo12';
+  const isAdmin = window.CU?.nick === 'ruizgustavo12' || window.CU?.email === 'synxyes@gmail.com';
   const isOwner = window.CU?.id === s.userId;
   const canEdit = isAdmin || isOwner;
   const adminBtns = canEdit ? `
@@ -11038,7 +11038,7 @@ async function submitPezSemana(){
 }
 
 async function deletePezSemana(){
-  if(!window.CU || window.CU.nick !== 'ruizgustavo12') return;
+  if(!window.CU || (window.CU.nick !== 'ruizgustavo12' && window.CU.email !== 'synxyes@gmail.com')) return;
   if(!confirm('¿Quitar el Pez de la Semana?')) return;
   try {
     await setDoc(doc(db,'config','pezSemana'),{active:false});
@@ -11189,7 +11189,7 @@ async function loadXPLevels(){
 }
 
 async function saveXPLevels(){
-  if(!window.CU || window.CU.nick !== 'ruizgustavo12') return;
+  if(!window.CU || (window.CU.nick !== 'ruizgustavo12' && window.CU.email !== 'synxyes@gmail.com')) return;
   try {
     const rows = document.querySelectorAll('.xp-level-row');
     const levels = Array.from(rows).map(row => ({
