@@ -349,7 +349,8 @@ img[title="Verificado"]:hover{
 .pba:hover{background:var(--bg3);color:var(--text);}
 
 /* ===== POST CARD ===== */
-.post{background:#ffffff;border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.1);}
+.post{background:#ffffff;border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px;overflow:visible;box-shadow:0 1px 2px rgba(0,0,0,.1);}
+.post .post-img-grid{overflow:hidden;}
 /* ── TEMAS DE PUBLICACIÓN (tienda) ── */
 .post-theme-ocean    { background:linear-gradient(160deg,#0a1628,#0d2347) !important; border-color:rgba(0,150,255,.3) !important; box-shadow:0 0 20px rgba(0,100,255,.15) !important; }
 .post-theme-fuego    { background:linear-gradient(160deg,#1a0800,#2d0f00) !important; border-color:rgba(255,80,0,.35) !important; box-shadow:0 0 20px rgba(255,60,0,.2) !important; }
@@ -401,7 +402,7 @@ img[title="Verificado"]:hover{
 /* El wrap cubre botón + popup sin gaps */
 .rxn-popup{display:none;position:absolute;bottom:0;left:0;
   background:#fff;border:1px solid var(--border);border-radius:100px;
-  padding:6px 10px;gap:4px;align-items:center;z-index:600;
+  padding:6px 10px;gap:4px;align-items:center;z-index:9500;
   box-shadow:0 2px 12px rgba(0,0,0,.2);white-space:nowrap;
   transform:translateY(calc(-100% - 6px));}
 .rxn-popup.show{display:flex;animation:rxnPop .16s ease;}
@@ -3302,12 +3303,12 @@ select.fi option{background:var(--bg3);color:var(--text);}
 
     <!-- Fotos máx 5 -->
     <div class="fg">
-      <label class="fl">Fotos del spot (máx 5)</label>
-      <label style="display:flex;align-items:center;gap:8px;padding:10px;border:2px dashed var(--border);border-radius:var(--rs);cursor:pointer;color:var(--muted);font-size:.85rem;">
-        📸 Subir fotos <input type="file" accept="image/*" multiple id="spotImgInput" style="display:none" onchange="previewSpotImg(this)">
+      <label class="fl">Fotos del spot <span id="spotImgCount" style="color:var(--accent);font-weight:700;">(0/5)</span></label>
+      <label id="spotImgLabel" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border:2px dashed var(--border);border-radius:var(--rs);cursor:pointer;color:var(--muted);font-size:.85rem;transition:border-color .2s;">
+        📸 Agregar fotos
+        <input type="file" accept="image/*" multiple id="spotImgInput" style="display:none" onchange="previewSpotImg(this)">
       </label>
-      <div id="spotImgPrev" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div>
-      <div id="spotImgCount" style="font-size:.72rem;color:var(--muted);margin-top:4px;"></div>
+      <div id="spotImgPrev" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;"></div>
     </div>
 
     <!-- Info de captura -->
@@ -3553,7 +3554,9 @@ function listenPosts() {
       _posts = snap.docs.map(d => ({ id: d.id, ...d.data(), time: d.data().time?.toMillis?.() || Date.now() }));
       const activePage = document.querySelector('.page.active');
       const pageId = activePage ? activePage.id : '';
-      if(pageId === 'page-profile'){ renderProfileFeed(); } else { renderFeed(); }
+      if(pageId === 'page-profile'){ renderProfileFeed(); }
+      else if(pageId === 'page-casitrofeo'){ renderMapPosts(); }
+      else { renderFeed(); }
     },
     err => { console.warn('listenPosts error:', err); }
   );
