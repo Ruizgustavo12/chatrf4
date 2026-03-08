@@ -4542,7 +4542,12 @@ function renderStories(){
 let _svAutoTimer=null; const SV_DURATION=10000;
 function _svStartTimer(){
   if(_svAutoTimer) clearTimeout(_svAutoTimer);
-  _svAutoTimer=setTimeout(()=>{ if(_svIdx<_stories.length-1){_svIdx++;renderSV();_svStartTimer();}else{closeSV();} },SV_DURATION);
+  _svAutoTimer=setTimeout(()=>{
+    if(_svIdx<_stories.length-1){
+      if(window._svAudio){ window._svAudio.pause(); window._svAudio.src=''; window._svAudio=null; }
+      _svIdx++;renderSV();_svStartTimer();
+    }else{closeSV();}
+  },SV_DURATION);
 }
 function openSV(idx){
   _svIdx=idx; renderSV();
@@ -4665,6 +4670,12 @@ document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){ const sv=document.getElementById('storyViewer'); if(sv&&sv.classList.contains('open')) closeSV(); }
 });
 function svNav(dir){
+  // Matar audio INMEDIATAMENTE antes de cambiar historia
+  if(window._svAudio){
+    window._svAudio.pause();
+    window._svAudio.src='';
+    window._svAudio=null;
+  }
   _svIdx=Math.max(0,Math.min(_stories.length-1,_svIdx+dir));
   renderSV(); _svStartTimer(); _svRegisterView();
 }
@@ -14768,8 +14779,9 @@ window.setUserRole         = setUserRole;
 // CHANGELOG — Solo visible para ruizgustavo12
 // Actualizar VERSION y CHANGES cada vez que se sube un index nuevo
 // ═══════════════════════════════════════════════════════
-const _CL_VERSION = '2026-03-08-v40';
+const _CL_VERSION = '2026-03-08-v41';
 const _CL_CHANGES = [
+  { emoji:'🎵', text:'Fix: Historias con música — al pasar a la siguiente historia el audio anterior se corta al instante, sin superposición' },
   { emoji:'⚡', text:'Feed instantáneo — se eliminó el smart patch de Firebase, el feed ahora re-renderiza directo y sin lag' },
   { emoji:'🎵', text:'Fix: Música en historias — si la URL de Deezer falla, se re-busca automáticamente y sigue sonando' },
   { emoji:'💬', text:'Fix: Comentarios — funcionan siempre incluso en posts de otros perfiles, con feedback visual' },
