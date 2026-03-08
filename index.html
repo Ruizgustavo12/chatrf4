@@ -398,9 +398,10 @@ img[title="Verificado"]:hover{
 
 /* REACTION POPUP */
 .rxn-wrap{position:relative;}
-.rxn-popup{display:none;position:absolute;bottom:calc(100% + 6px);left:0;
+.rxn-popup{display:none;position:absolute;bottom:100%;left:0;
   background:#fff;border:1px solid var(--border);border-radius:100px;
-  padding:6px 10px;gap:4px;align-items:center;z-index:600;box-shadow:0 2px 12px rgba(0,0,0,.2);white-space:nowrap;}
+  padding:6px 10px;gap:4px;align-items:center;z-index:600;box-shadow:0 2px 12px rgba(0,0,0,.2);white-space:nowrap;
+  padding-bottom:12px;margin-bottom:-6px;}
 .rxn-popup.show{display:flex;animation:rxnPop .16s ease;}
 @keyframes rxnPop{from{opacity:0;transform:scale(.6) translateY(6px)}to{opacity:1;transform:scale(1) translateY(0)}}
 .rxn-btn{background:none;border:none;font-size:1.4rem;cursor:pointer;padding:2px 4px;border-radius:50%;transition:transform .13s;line-height:1;position:relative;}
@@ -5719,9 +5720,57 @@ function renderFeed(){
   if(!el) return;
   window._postImgsMap = window._postImgsMap || {};
   _posts.forEach(p=>{ if(p.images&&p.images.length) window._postImgsMap[p.id]=p.images; });
-  const scrollY = window.scrollY;
-  el.innerHTML = _posts.map(p=>postHTML(p)).join('');
-  window.scrollTo(0, scrollY);
+
+  // Primera vez: render completo
+  if(!el.children.length){
+    el.innerHTML = _posts.map(p=>postHTML(p)).join('');
+    return;
+  }
+
+  _posts.forEach(p=>{
+    const existing = document.getElementById('post_'+p.id);
+    if(!existing){
+      // Post nuevo — insertar al principio
+      const tmp = document.createElement('div');
+      tmp.innerHTML = postHTML(p);
+      el.insertBefore(tmp.firstElementChild, el.firstChild);
+      return;
+    }
+    // Solo actualizar stats y actions (reacciones, contador comentarios)
+    const tmp = document.createElement('div');
+    tmp.innerHTML = postHTML(p);
+    const newPost = tmp.firstElementChild;
+
+    const oldStats = existing.querySelector('.post-stats');
+    const newStats = newPost.querySelector('.post-stats');
+    if(oldStats && newStats && oldStats.outerHTML !== newStats.outerHTML)
+      oldStats.replaceWith(newStats.cloneNode(true));
+
+    const oldAct = existing.querySelector('.post-actions');
+    const newAct = newPost.querySelector('.post-actions');
+    if(oldAct && newAct && oldAct.outerHTML !== newAct.outerHTML)
+      oldAct.replaceWith(newAct.cloneNode(true));
+
+    // Actualizar comentarios SOLO si no hay modal abierto y no hay input activo
+    const modalOpen = !!document.getElementById('_cmtModal_'+p.id);
+    const inputFocused = document.activeElement && document.activeElement.id === 'cinp_'+p.id;
+    if(!modalOpen && !inputFocused){
+      const oldCmts = existing.querySelector('.comments-section');
+      const newCmts = newPost.querySelector('.comments-section');
+      if(oldCmts && newCmts && oldCmts.innerHTML !== newCmts.innerHTML){
+        const wasOpen = oldCmts.classList.contains('open');
+        const newCmtsClone = newCmts.cloneNode(true);
+        if(wasOpen) newCmtsClone.classList.add('open');
+        oldCmts.replaceWith(newCmtsClone);
+      }
+    }
+  });
+
+  // Eliminar posts que ya no existen
+  Array.from(el.children).forEach(child=>{
+    const pid = child.id?.replace('post_','');
+    if(pid && !_posts.find(p=>p.id===pid)) child.remove();
+  });
 }
 
 function renderProfileFeed(){
@@ -5749,8 +5798,37 @@ function _renderProfileFeedHTML(el, mine){
     if(pp) pinnedH=`<div style='margin-bottom:6px;'><span class='pinned-label'>📌 Post fijado</span>${postHTML(pp)}</div>`;
   }
   const rest=mine.filter(p=>p.id!==window.CU?.pinnedPostId);
-  el.innerHTML = pinnedH+(rest.length?rest.map(p=>postHTML(p)).join(''):(!pinnedH?`<div style="text-align:center;padding:40px;color:var(--muted)">Sin publicaciones aún. ¡Comparte tu primera pesca!</div>`:''));
-  window.scrollTo(0, scrollY);
+  const newHTML = pinnedH+(rest.length?rest.map(p=>postHTML(p)).join(''):(!pinnedH?`<div style="text-align:center;padding:40px;color:var(--muted)">Sin publicaciones aún. ¡Comparte tu primera pesca!</div>`:''));
+  if(!el.children.length){ el.innerHTML = newHTML; return; }
+
+  // Smart update igual que renderFeed
+  rest.forEach(p=>{
+    const existing = document.getElementById('post_'+p.id);
+    if(!existing) return;
+    const tmp = document.createElement('div');
+    tmp.innerHTML = postHTML(p);
+    const newPost = tmp.firstElementChild;
+    const oldStats = existing.querySelector('.post-stats');
+    const newStats = newPost.querySelector('.post-stats');
+    if(oldStats && newStats && oldStats.outerHTML !== newStats.outerHTML)
+      oldStats.replaceWith(newStats.cloneNode(true));
+    const oldAct = existing.querySelector('.post-actions');
+    const newAct = newPost.querySelector('.post-actions');
+    if(oldAct && newAct && oldAct.outerHTML !== newAct.outerHTML)
+      oldAct.replaceWith(newAct.cloneNode(true));
+    const modalOpen = !!document.getElementById('_cmtModal_'+p.id);
+    const inputFocused = document.activeElement && document.activeElement.id === 'cinp_'+p.id;
+    if(!modalOpen && !inputFocused){
+      const oldCmts = existing.querySelector('.comments-section');
+      const newCmts = newPost.querySelector('.comments-section');
+      if(oldCmts && newCmts && oldCmts.innerHTML !== newCmts.innerHTML){
+        const wasOpen = oldCmts.classList.contains('open');
+        const newCmtsClone = newCmts.cloneNode(true);
+        if(wasOpen) newCmtsClone.classList.add('open');
+        oldCmts.replaceWith(newCmtsClone);
+      }
+    }
+  });
 }
 
 function postHTML(p){
@@ -6321,7 +6399,7 @@ function insertPostMention(nick){
 // ===== REACTIONS =====
 const _rxnPops = {};
 function showRxnPop(id){ cancelHideRxnPop(id); document.getElementById('rxnp_'+id)?.classList.add('show'); }
-function schedHideRxnPop(id){ _rxnPops[id]=setTimeout(()=>{ document.getElementById('rxnp_'+id)?.classList.remove('show'); },200); }
+function schedHideRxnPop(id){ _rxnPops[id]=setTimeout(()=>{ document.getElementById('rxnp_'+id)?.classList.remove('show'); },500); }
 function cancelHideRxnPop(id){ if(_rxnPops[id]){clearTimeout(_rxnPops[id]);delete _rxnPops[id];} }
 
 async function doReact(pid, emoji){
@@ -6396,8 +6474,20 @@ function quickReact(pid){ if(!window.CU){toast('Inicia sesión','err');return;} 
 
 // ===== COMMENTS =====
 function toggleComments(pid){
+  // Siempre toggle inline — no usar modal que el re-render destruye
+  const el = document.getElementById('cmts_'+pid);
+  if(el){
+    el.classList.toggle('open');
+    if(el.classList.contains('open')){
+      // Focus al input
+      setTimeout(()=>{ document.getElementById('cinp_'+pid)?.focus(); }, 50);
+    }
+    return;
+  }
+
+  // Fallback: modal (solo si no hay sección inline)
   const post = (_posts||[]).find(p=>p.id===pid);
-  if(!post){ const el=document.getElementById('cmts_'+pid); if(el) el.classList.toggle('open'); return; }
+  if(!post){ return; }
 
   const existing = document.getElementById('_cmtModal_'+pid);
   if(existing){ existing.remove(); return; }
@@ -14810,7 +14900,7 @@ window.setUserRole         = setUserRole;
 // CHANGELOG — Solo visible para ruizgustavo12
 // Actualizar VERSION y CHANGES cada vez que se sube un index nuevo
 // ═══════════════════════════════════════════════════════
-const _CL_VERSION = '2026-03-08-v42';
+const _CL_VERSION = '2026-03-08-v44';
 const _CL_CHANGES = [
   { emoji:'💬', text:'En qué estás pensando — el post box ahora dice tu nombre: ¿En qué estás pensando, ruizgustavo12?' },
   { emoji:'📤', text:'Compartir post por mensaje — ahora muestra vista previa con imagen, nick y texto. Click para ir directo al post' },
