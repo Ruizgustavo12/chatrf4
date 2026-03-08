@@ -2736,7 +2736,7 @@ function _stub(name){ return function(){ _q.push([name, arguments]); }; }
  'doReact','quickReact','saveProfile','openEditProfile','changeCover','changeAvatar',
  'previewPostImg','removePostImg','previewPostMedia','removePostMedia',
  'previewStoryImg','pickStoryEmoji','insertEmoji','insertFishTag',
- 'toggleComments','sharePost','toggleCmtMenu','editCmt','delCmt','quickCmtRxn','replyCmt','toggleReplies','showCmtRxnPop','hideCmtRxnPop','cancelHideCmtRxn','reactCmt','openImgLightbox','swPTab','reactChatMsg','showMsgRxnBar','hideMsgRxnBar','keepMsgRxnBar','showCmtMenu','hideCmtMenu','setChatTyping','filterShopCat','toggleEquipItem',
+ 'toggleComments','sharePost','toggleCmtMenu','editCmt','delCmt','quickCmtRxn','replyCmt','toggleReplies','showCmtRxnPop','hideCmtRxnPop','cancelHideCmtRxn','reactCmt','openImgLightbox','swPTab','setAppTheme','reactChatMsg','showMsgRxnBar','hideMsgRxnBar','keepMsgRxnBar','showCmtMenu','hideCmtMenu','setChatTyping','filterShopCat','toggleEquipItem',
  'showRxnPop','schedHideRxnPop','cancelHideRxnPop',
  'openSV','closeSV','svNav','reactStory','submitStoryComment','deleteMyStory','doSearch',
  'reportPost','submitReport','loadAdminData','deleteAdminPost','resolveReport',
@@ -5252,10 +5252,12 @@ function swPTab(el, tabId){
   const feedEl = document.getElementById('profileFeed');
   const postBox = document.getElementById('profilePostBox');
   const leftCol = document.getElementById('profileLeftCol');
+  const fondoEl = document.getElementById('ptFondo');
   if(aboutEl) aboutEl.style.display = tabId==='ptAbout' ? 'block' : 'none';
   if(galleryEl) galleryEl.style.display = tabId==='ptGallery' ? 'block' : 'none';
   if(friendsEl) friendsEl.style.display = tabId==='ptFriends' ? 'block' : 'none';
   if(shopEl) shopEl.style.display = tabId==='ptShop' ? 'block' : 'none';
+  if(fondoEl) fondoEl.style.display = tabId==='ptFondo' ? 'block' : 'none';
   if(feedEl) feedEl.style.display = tabId==='ptPosts' ? 'block' : 'none';
   if(postBox) postBox.style.display = tabId==='ptPosts' ? 'block' : 'none';
   if(leftCol) leftCol.style.display = (tabId==='ptAbout' || tabId==='ptFriends') ? 'none' : 'block';
