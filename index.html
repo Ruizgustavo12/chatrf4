@@ -1297,7 +1297,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
         <div style="display:flex;align-items:center;gap:8px;">
           <button id="svReactBtn"
             onmouseenter="document.getElementById('svReactPop').style.display='flex'"
-            ontouchstart="var p=document.getElementById('svReactPop');p.style.display=p.style.display==='flex'?'none':'flex';event.stopPropagation();"
+            ontouchstart="(function(){var p=document.getElementById('svReactPop');p.style.display=p.style.display==='flex'?'none':'flex';event.stopPropagation();})();"
             style="background:rgba(255,255,255,.15);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.25);border-radius:100px;padding:7px 14px;color:#fff;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s;"
             onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">
             ❤️ Me gusta
@@ -14192,7 +14192,7 @@ window.setUserRole         = setUserRole;
 // CHANGELOG — Solo visible para ruizgustavo12
 // Actualizar VERSION y CHANGES cada vez que se sube un index nuevo
 // ═══════════════════════════════════════════════════════
-const _CL_VERSION = '2026-03-08-v26';
+const _CL_VERSION = '2026-03-08-v27';
 const _CL_CHANGES = [
   { emoji:'🎨', text:'Historias: elegí color de fondo con 10 gradientes — preview en tiempo real mientras escribís' },
   { emoji:'😊', text:'Historias: botón emoji y GIF en el texto de la historia' },
