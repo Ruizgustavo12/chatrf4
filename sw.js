@@ -1,11 +1,11 @@
 // RF4 Social — Service Worker
 // Maneja cache, actualizaciones y rutas SPA correctamente
-const CACHE_NAME = 'rf4social-v4';
-const BASE = '/chatrf4';
+const CACHE_NAME = 'rf4social-v5';
+const BASE = '';
 
 // Solo cachear lo que existe seguro
 const PRECACHE = [
-  BASE + '/index.html',
+  '/index.html',
 ];
 
 // ── Instalación ──────────────────────────────────────────
@@ -48,8 +48,8 @@ self.addEventListener('fetch', event => {
   // Para navegación (HTML): siempre red primero, cache como fallback
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(BASE + '/index.html')
-        .catch(() => caches.match(BASE + '/index.html'))
+      fetch('/index.html')
+        .catch(() => caches.match('/index.html'))
     );
     return;
   }
