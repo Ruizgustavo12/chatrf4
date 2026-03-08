@@ -3552,22 +3552,19 @@ async function listenVerifiedUsers(){
 }
 
 let _postsPollingInterval = null;
-async function listenPosts() {
-  // Carga inicial
-  await _fetchPosts();
-  // Polling cada 2 minutos en lugar de onSnapshot continuo
-  if(_postsPollingInterval) clearInterval(_postsPollingInterval);
-  _postsPollingInterval = setInterval(_fetchPosts, 480000); // OPTIMIZADO: cada 8 min
-}
-
-async function _fetchPosts(){
-  try {
-    const snap = await getDocs(query(collection(db, 'posts'), orderBy('time', 'desc'), limit(30))); // Optimizado: 30 posts
-    _posts = snap.docs.map(d => ({ id: d.id, ...d.data(), time: d.data().time?.toMillis?.() || Date.now() }));
-    const activePage = document.querySelector('.page.active');
-    const pageId = activePage ? activePage.id : '';
-    if(pageId === 'page-profile'){ renderProfileFeed(); } else { renderFeed(); }
-  } catch(e){ console.warn('fetchPosts error:', e); }
+let _postsUnsub = null;
+function listenPosts() {
+  if(_postsUnsub){ _postsUnsub(); _postsUnsub = null; }
+  _postsUnsub = onSnapshot(
+    query(collection(db, 'posts'), orderBy('time', 'desc'), limit(50)),
+    snap => {
+      _posts = snap.docs.map(d => ({ id: d.id, ...d.data(), time: d.data().time?.toMillis?.() || Date.now() }));
+      const activePage = document.querySelector('.page.active');
+      const pageId = activePage ? activePage.id : '';
+      if(pageId === 'page-profile'){ renderProfileFeed(); } else { renderFeed(); }
+    },
+    err => { console.warn('listenPosts error:', err); }
+  );
 }
 
 
@@ -3578,27 +3575,26 @@ async function _fetchPosts(){
 
 
 
-let _storiesPollingInterval = null;
-async function listenStories() {
-  await _fetchStories();
-  if(_storiesPollingInterval) clearInterval(_storiesPollingInterval);
-  _storiesPollingInterval = setInterval(_fetchStories, 480000); // Optimizado: cada 8 min
-}
-
-async function _fetchStories(){
-  try {
-    const snap = await getDocs(query(collection(db, 'stories'), orderBy('time', 'desc'), limit(20))); // Optimizado: 20 stories
-    const now = Date.now();
-    const expiredIds = [];
-    _stories = snap.docs.filter(d => {
-      const t = d.data().time?.toMillis?.() || 0;
-      const ttl = d.data().userVerified ? 172800000 : 86400000;
-      if(t && (now - t) > ttl){ expiredIds.push(d.id); return false; }
-      return true;
-    }).map(d => ({ id: d.id, ...d.data(), time: d.data().time?.toMillis?.() || Date.now() }));
-    expiredIds.forEach(id => deleteDoc(doc(db, 'stories', id)).catch(()=>{}));
-    renderStories();
-  } catch(e){ console.warn('fetchStories error:', e); }
+let _storiesUnsub = null;
+function listenStories() {
+  if(_storiesUnsub){ _storiesUnsub(); _storiesUnsub = null; }
+  const since = new Date(Date.now() - 172800000); // últimas 48h max
+  _storiesUnsub = onSnapshot(
+    query(collection(db, 'stories'), orderBy('time', 'desc'), limit(50)),
+    snap => {
+      const now = Date.now();
+      const expiredIds = [];
+      _stories = snap.docs.filter(d => {
+        const t = d.data().time?.toMillis?.() || 0;
+        const ttl = d.data().userVerified ? 172800000 : 86400000;
+        if(t && (now - t) > ttl){ expiredIds.push(d.id); return false; }
+        return true;
+      }).map(d => ({ id: d.id, ...d.data(), time: d.data().time?.toMillis?.() || Date.now() }));
+      expiredIds.forEach(id => deleteDoc(doc(db, 'stories', id)).catch(()=>{}));
+      renderStories();
+    },
+    err => { console.warn('listenStories error:', err); }
+  );
 }
 
 // ===== INIT =====
@@ -14900,7 +14896,7 @@ window.setUserRole         = setUserRole;
 // CHANGELOG — Solo visible para ruizgustavo12
 // Actualizar VERSION y CHANGES cada vez que se sube un index nuevo
 // ═══════════════════════════════════════════════════════
-const _CL_VERSION = '2026-03-08-v44';
+const _CL_VERSION = '2026-03-08-v45';
 const _CL_CHANGES = [
   { emoji:'💬', text:'En qué estás pensando — el post box ahora dice tu nombre: ¿En qué estás pensando, ruizgustavo12?' },
   { emoji:'📤', text:'Compartir post por mensaje — ahora muestra vista previa con imagen, nick y texto. Click para ir directo al post' },
