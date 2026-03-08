@@ -1910,22 +1910,33 @@ select.fi option{background:var(--bg3);color:var(--text);}
             </div>
           </div>
         </div>
-        <!-- Music -->
+        <!-- Music — mismo sistema que modo texto, IDs foto_ -->
         <div>
-          <label style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block;">🎵 Música</label>
-          <input class="fi" id="storyMusicSearch" placeholder="🔍 Buscar canción..." style="width:100%;box-sizing:border-box;" oninput="debounceStoryMusic()" onfocus="_showStoryMusicSuggestions()" onkeydown="if(event.key==='Enter')searchStoryMusic()">
-          <span id="storyMusicSpinner" style="display:none;font-size:.8rem;">⏳</span>
-          <div id="storyMusicResults" style="max-height:200px;overflow-y:auto;display:none;background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-top:4px;"></div>
-          <div id="storyMusicSelected" style="display:none;margin-top:6px;background:rgba(46,196,182,.08);border:1px solid rgba(46,196,182,.3);border-radius:10px;padding:8px;">
-            <div style="display:flex;align-items:center;gap:8px;">
-              <img id="storyMusicCover" src="" style="width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0;">
+          <label style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block;">🎵 Música (opcional)</label>
+          <div style="position:relative;">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.85rem;pointer-events:none;">🔍</span>
+            <input id="foto_MusicSearch"
+              placeholder="Buscar canción o artista..."
+              autocomplete="off"
+              style="width:100%;box-sizing:border-box;padding:9px 70px 9px 32px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.85rem;outline:none;"
+              oninput="_fotoMusicInput()"
+              onfocus="_fotoMusicFocus()"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();_fotoMusicSearch();}"
+            >
+            <button onclick="_fotoMusicSearch()" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:var(--accent);border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.7rem;font-weight:700;color:#000;">Buscar</button>
+          </div>
+          <span id="foto_MusicSpinner" style="display:none;font-size:.75rem;color:var(--muted);padding:4px 0;text-align:center;">⏳ Buscando...</span>
+          <div id="foto_MusicResults" style="max-height:220px;overflow-y:auto;display:none;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-top:4px;box-shadow:0 4px 16px rgba(0,0,0,.2);"></div>
+          <div id="foto_MusicSelected" style="display:none;margin-top:8px;background:rgba(46,196,182,.08);border:1px solid rgba(46,196,182,.3);border-radius:10px;padding:10px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <img id="foto_MusicCover" src="" style="width:42px;height:42px;border-radius:8px;object-fit:cover;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.3);">
               <div style="flex:1;min-width:0;">
-                <div id="storyMusicTitle" style="font-size:.78rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
-                <div id="storyMusicArtist" style="font-size:.68rem;color:var(--muted);"></div>
+                <div id="foto_MusicTitle" style="font-size:.82rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+                <div id="foto_MusicArtist" style="font-size:.72rem;color:var(--muted);margin-top:2px;"></div>
               </div>
-              <button onclick="clearStoryMusic()" style="background:none;border:none;color:var(--muted);cursor:pointer;">✕</button>
+              <button onclick="_fotoClearMusic()" style="background:rgba(255,255,255,.1);border:none;color:var(--muted);width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:.8rem;display:flex;align-items:center;justify-content:center;">✕</button>
             </div>
-            <audio id="storyMusicPreview" controls style="width:100%;margin-top:6px;height:28px;" src=""></audio>
+            <audio id="foto_MusicPreview" controls style="width:100%;margin-top:8px;height:28px;" src=""></audio>
           </div>
         </div>
       </div>
@@ -1991,7 +2002,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
             >
             <button onclick="_txtMusicSearch()" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:var(--accent);border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.7rem;font-weight:700;color:#000;">Buscar</button>
           </div>
-          <span id="txt_MusicSpinner" style="display:none;font-size:.75rem;color:var(--muted);padding:4px 0;display:block;text-align:center;">⏳ Buscando...</span>
+          <span id="txt_MusicSpinner" style="display:none;font-size:.75rem;color:var(--muted);padding:4px 0;text-align:center;">⏳ Buscando...</span>
           <!-- Resultados / sugerencias -->
           <div id="txt_MusicResults" style="max-height:220px;overflow-y:auto;display:none;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-top:4px;box-shadow:0 4px 16px rgba(0,0,0,.2);"></div>
           <!-- Canción seleccionada -->
@@ -3388,7 +3399,7 @@ function _stub(name){ return function(){ _q.push([name, arguments]); }; }
  'previewSpotImg','removeSpotImg','submitSpot','loadSpots','toggleYtInput','previewYtEmbed','clearYtInput','extractYtId','openPostWithYt','loadFriendSpots','renderFriendSpotsInHome','openEditSpot','saveEditSpot','deleteSpot','scrollToPost',
  'renderSidebarFriends','renderSuggestedUsers','playNotifSound','showNotifToast','sendNotifToUserWithPost','openMessenger','loadVideos','filterVideos',
  'previewPezSemanaImg','submitPezSemana','deletePezSemana','loadPezSemana','openPezSemanalModal','openReactionsModal','buildRxnLabel',
- 'filterTrofeoFeed','listenTrofeosFeed','swSkillTab','searchStoryMusic','selectStoryMusic','clearStoryMusic','searchDeezer','playDeezer','closeTrophyBanner','debounceStoryMusic','_hoverStoryPreview','_leaveStoryPreview','debounceMusicSearch','_doSharePost','_cmtOpenGif','searchCmtGifs','sendCmtGif','_toggleSharePrivacy','_setSharePrivacy','_txtMusicInput','_txtMusicFocus','_txtMusicSearch','_txtSelectTrack','_txtClearMusic','_txtSelectPopular','_txtSetSearch'
+ 'filterTrofeoFeed','listenTrofeosFeed','swSkillTab','searchStoryMusic','selectStoryMusic','clearStoryMusic','searchDeezer','playDeezer','closeTrophyBanner','debounceStoryMusic','_hoverStoryPreview','_leaveStoryPreview','debounceMusicSearch','_doSharePost','_cmtOpenGif','searchCmtGifs','sendCmtGif','_toggleSharePrivacy','_setSharePrivacy','_txtMusicInput','_txtMusicFocus','_txtMusicSearch','_txtSelectTrack','_txtClearMusic','_txtSelectPopular','_txtSetSearch','_fotoMusicInput','_fotoMusicFocus','_fotoMusicSearch','_fotoSelectTrack','_fotoClearMusic','_fotoSelectPopular','_fotoSetSearch'
 ].forEach(fn => { window[fn] = _stub(fn); });
 </script>
 <script type="module">
@@ -5421,6 +5432,150 @@ window._txtClearMusic   = _txtClearMusic;
 window._txtSelectPopular = _txtSelectPopular;
 window._txtSetSearch    = _txtSetSearch;
 
+// ===== MÚSICA MODO FOTO (IDs únicos foto_) — mismo sistema que txt_ =====
+let _fotoMusicDebounce = null;
+
+function _fotoMusicInput(){
+  const q = document.getElementById('foto_MusicSearch')?.value.trim() || '';
+  clearTimeout(_fotoMusicDebounce);
+  if(q.length < 2){ _fotoShowSuggestions(q); return; }
+  _fotoMusicDebounce = setTimeout(()=> _fotoMusicSearch(), 400);
+}
+
+function _fotoMusicFocus(){
+  const q = document.getElementById('foto_MusicSearch')?.value.trim() || '';
+  _fotoShowSuggestions(q);
+  _loadPopularStoryMusic();
+}
+
+function _fotoShowSuggestions(q){
+  const res = document.getElementById('foto_MusicResults');
+  if(!res) return;
+  if(q.length >= 2) return;
+  const popular = (window._popularStoryTracks || []).slice(0,5);
+  const artists = q.length >= 1 ? _getSuggestions(q).slice(0,8) : (_ALL_ARTISTS||[]).slice(0,8);
+  let html = '';
+  if(popular.length > 0){
+    html += `<div style="padding:6px 12px 3px;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;">🔥 Populares en historias</div>`;
+    popular.forEach((t,i) => {
+      html += '<div onclick="_fotoSelectPopular('+i+')" style="display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border);">'
+        + '<img src="'+(t.cover||'')+'" style="width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0;">'
+        + '<div style="flex:1;min-width:0;">'
+        + '<div style="font-size:.82rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(t.title||'')+'</div>'
+        + '<div style="font-size:.7rem;color:var(--muted);">'+esc(t.artist||'')+'</div>'
+        + '</div></div>';
+    });
+  }
+  if(artists.length > 0){
+    html += `<div style="padding:6px 12px 3px;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;">🎤 Artistas sugeridos</div>`;
+    artists.forEach(s => {
+      html += '<div onclick="_fotoSetSearch(this)" data-val='+JSON.stringify(s)+' style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;">'
+        + '<span style="font-size:1rem;width:24px;text-align:center;">🎵</span>'
+        + '<span style="font-size:.83rem;color:var(--text);font-weight:600;">'+esc(s)+'</span>'
+        + '</div>';
+    });
+  }
+  if(!html){ res.style.display='none'; return; }
+  res.style.display='block';
+  res.innerHTML = html;
+}
+
+function _fotoSelectPopular(i){
+  const t = window._popularStoryTracks?.[i];
+  if(!t) return;
+  window._storyMusic = { title:t.title, artist:t.artist, cover:t.cover, preview:t.preview };
+  const sel = document.getElementById('foto_MusicSelected');
+  const cover = document.getElementById('foto_MusicCover');
+  const ttl = document.getElementById('foto_MusicTitle');
+  const art = document.getElementById('foto_MusicArtist');
+  const audio = document.getElementById('foto_MusicPreview');
+  const res = document.getElementById('foto_MusicResults');
+  if(sel) sel.style.display='block';
+  if(cover) cover.src = t.cover||'';
+  if(ttl) ttl.textContent = t.title||'';
+  if(art) art.textContent = t.artist||'';
+  if(audio && t.preview){ audio.src=t.preview; audio.play().catch(()=>{}); }
+  if(res) res.style.display='none';
+  const inp = document.getElementById('foto_MusicSearch');
+  if(inp) inp.value = t.title||'';
+  _scUpdatePreview();
+}
+
+async function _fotoMusicSearch(){
+  const q = document.getElementById('foto_MusicSearch')?.value.trim();
+  if(!q) return;
+  const res = document.getElementById('foto_MusicResults');
+  const spin = document.getElementById('foto_MusicSpinner');
+  if(!res) return;
+  if(spin) spin.style.display='block';
+  res.style.display = 'block';
+  res.innerHTML = '<div style="text-align:center;padding:14px;color:var(--muted);font-size:.8rem;">⏳ Buscando en Deezer...</div>';
+  const tracks = await _fetchDeezer(q);
+  if(spin) spin.style.display='none';
+  if(!tracks || tracks.length === 0){
+    res.innerHTML = '<div style="text-align:center;padding:14px;color:var(--muted);font-size:.8rem;">😕 Sin resultados para "'+q+'"</div>';
+    return;
+  }
+  window._fotoDeezerTracks = tracks;
+  res.innerHTML = tracks.slice(0,8).map((t,i) => `
+    <div onclick="_fotoSelectTrack(${i})"
+      style="display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .12s;"
+      onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
+      <img src="${t.cover||''}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;flex-shrink:0;" onerror="this.src=''">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:.82rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.title||''}</div>
+        <div style="font-size:.7rem;color:var(--muted);margin-top:1px;">${t.artist||''}</div>
+      </div>
+      ${t.preview ? `<span style="font-size:.7rem;color:var(--accent);">▶ 30s</span>` : ''}
+    </div>`).join('');
+}
+
+function _fotoSelectTrack(i){
+  const t = window._fotoDeezerTracks?.[i];
+  if(!t) return;
+  window._storyMusic = { title: t.title, artist: t.artist, cover: t.cover, preview: t.preview };
+  const sel = document.getElementById('foto_MusicSelected');
+  const cover = document.getElementById('foto_MusicCover');
+  const title = document.getElementById('foto_MusicTitle');
+  const artist = document.getElementById('foto_MusicArtist');
+  const audio = document.getElementById('foto_MusicPreview');
+  const res = document.getElementById('foto_MusicResults');
+  if(sel) sel.style.display='block';
+  if(cover) cover.src = t.cover||'';
+  if(title) title.textContent = t.title||'';
+  if(artist) artist.textContent = t.artist||'';
+  if(audio){ audio.src = t.preview||''; if(t.preview) audio.play().catch(()=>{}); }
+  if(res) res.style.display='none';
+  _scUpdatePreview();
+}
+
+function _fotoSetSearch(el){
+  const val = el.getAttribute('data-val');
+  if(!val) return;
+  const inp = document.getElementById('foto_MusicSearch');
+  if(inp){ inp.value = val; }
+  _fotoMusicSearch();
+}
+
+function _fotoClearMusic(){
+  window._storyMusic = null;
+  const sel = document.getElementById('foto_MusicSelected');
+  const audio = document.getElementById('foto_MusicPreview');
+  const inp = document.getElementById('foto_MusicSearch');
+  if(sel) sel.style.display='none';
+  if(audio){ audio.pause(); audio.src=''; }
+  if(inp) inp.value='';
+  _scUpdatePreview();
+}
+window._fotoMusicInput    = _fotoMusicInput;
+window._fotoMusicFocus    = _fotoMusicFocus;
+window._fotoMusicSearch   = _fotoMusicSearch;
+window._fotoSelectTrack   = _fotoSelectTrack;
+window._fotoClearMusic    = _fotoClearMusic;
+window._fotoSelectPopular = _fotoSelectPopular;
+window._fotoSetSearch     = _fotoSetSearch;
+
+
 async function _scSubmit(){ return submitStory(); }
 async function submitStory(){
   if(!window.CU){ toast('Inicia sesión primero','err'); return; }
@@ -5437,17 +5592,17 @@ async function submitStory(){
     userId:window.CU.id, userNick:window.CU.nick, userAv:window.CU.av||'',
     text, emoji:_storyEmojiPick||'🎣', img:imgUrl, yt:'', time:serverTimestamp(),
     userVerified:window.CU?.verified||false,
-    music: _storyMusic || null,
+    music: window._storyMusic || _storyMusic || null,
     bg: window._storyBg || null,
     gif: window._storyGif || null
   });
-  _storyImgData = null; _storyEmojiPick = ''; _storyMusic = null;
+  _storyImgData = null; _storyEmojiPick = ''; _storyMusic = null; window._storyMusic = null;
   window._storyBg = null; window._storyGif = null; window._scMode = 'chooser';
   const t1 = document.getElementById('storyText'); if(t1) t1.value='';
   const t2 = document.getElementById('storyTextText'); if(t2) t2.value='';
   const ip = document.getElementById('storyImgPrev'); if(ip) ip.innerHTML='';
   const gs = document.getElementById('storyGifSelected'); if(gs) gs.style.display='none';
-  clearStoryMusic();
+  clearStoryMusic(); _fotoClearMusic(); _txtClearMusic();
   cm('mAddStory');
   toast('Historia publicada 📖','ok');
 }
@@ -14378,7 +14533,7 @@ window.setUserRole         = setUserRole;
 // CHANGELOG — Solo visible para ruizgustavo12
 // Actualizar VERSION y CHANGES cada vez que se sube un index nuevo
 // ═══════════════════════════════════════════════════════
-const _CL_VERSION = '2026-03-08-v32';
+const _CL_VERSION = '2026-03-08-v33';
 const _CL_CHANGES = [
   { emoji:'🎨', text:'Historias: elegí color de fondo con 10 gradientes — preview en tiempo real mientras escribís' },
   { emoji:'😊', text:'Historias: botón emoji y GIF en el texto de la historia' },
