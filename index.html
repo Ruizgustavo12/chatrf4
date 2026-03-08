@@ -3089,7 +3089,7 @@ function _stub(name){ return function(){ _q.push([name, arguments]); }; }
  'previewSpotImg','removeSpotImg','submitSpot','loadSpots','toggleYtInput','previewYtEmbed','clearYtInput','extractYtId','openPostWithYt','loadFriendSpots','renderFriendSpotsInHome','openEditSpot','saveEditSpot','deleteSpot','scrollToPost',
  'renderSidebarFriends','renderSuggestedUsers','playNotifSound','showNotifToast','sendNotifToUserWithPost','openMessenger','loadVideos','filterVideos',
  'previewPezSemanaImg','submitPezSemana','deletePezSemana','loadPezSemana','openPezSemanalModal','openReactionsModal','buildRxnLabel',
- 'filterTrofeoFeed','listenTrofeosFeed','swSkillTab','searchStoryMusic','selectStoryMusic','clearStoryMusic','searchDeezer','playDeezer','closeTrophyBanner','debounceStoryMusic','_hoverStoryPreview','_leaveStoryPreview','debounceMusicSearch','_doSharePost'
+ 'filterTrofeoFeed','listenTrofeosFeed','swSkillTab','searchStoryMusic','selectStoryMusic','clearStoryMusic','searchDeezer','playDeezer','closeTrophyBanner','debounceStoryMusic','_hoverStoryPreview','_leaveStoryPreview','debounceMusicSearch','_doSharePost','_cmtOpenGif','searchCmtGifs','sendCmtGif'
 ].forEach(fn => { window[fn] = _stub(fn); });
 </script>
 <script type="module">
@@ -5569,7 +5569,7 @@ function toggleComments(pid){
                 <span style="font-weight:700;font-size:.82rem;color:${nameColor};cursor:pointer;" onclick="openUserProfile('${c.userId||''}','${esc(c.nick||'')}')">${esc(c.nick||'')}${verifiedBadge}</span>
                 ${isAuthor?'<span style="font-size:.62rem;color:#1877f2;font-weight:700;background:#e7f3ff;border-radius:4px;padding:1px 5px;line-height:1.4;">Autor</span>':''}
               </div>
-              <span style="font-size:.88rem;color:#050505;line-height:1.45;word-break:break-word;">${esc(c.text||'')}</span>
+              ${c.gif ? `<img src="${c.gif}" style="max-width:180px;border-radius:8px;margin-top:4px;display:block;" loading="lazy">` : `<span style="font-size:.88rem;color:#050505;line-height:1.45;word-break:break-word;">${esc(c.text||'')}</span>`}
             </div>
             ${menuHtml}
           </div>
@@ -5638,11 +5638,19 @@ function toggleComments(pid){
     <!-- Comment input -->
     <div style="padding:8px 12px 10px;display:flex;gap:8px;align-items:center;flex-shrink:0;border-top:1px solid #e4e6eb;">
       <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:#e4e6eb;flex-shrink:0;">${avHtml}</div>
-      <div style="flex:1;display:flex;align-items:center;background:#f0f2f5;border-radius:20px;">
+      <div style="flex:1;display:flex;align-items:center;background:#f0f2f5;border-radius:20px;gap:2px;padding-right:6px;">
         <input id="_cmtModalInp_${pid}" placeholder="Escribe un comentario..."
           style="flex:1;background:transparent;border:none;padding:9px 14px;color:#050505;font-size:.88rem;font-family:'Exo 2',sans-serif;outline:none;"
           onkeypress="if(event.key==='Enter'){event.preventDefault();_submitModalCmt('${pid}');}">
-        <button onclick="_submitModalCmt('${pid}')" style="background:none;border:none;color:#1877f2;font-size:1.1rem;cursor:pointer;padding:4px 12px;opacity:.5;transition:opacity .15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.5'">➤</button>
+        <button onclick="openEmojiPicker(event,'_cmtModalInp_${pid}')" title="Emoji"
+          style="background:none;border:none;font-size:1.1rem;cursor:pointer;padding:4px 5px;border-radius:50%;line-height:1;transition:background .15s;"
+          onmouseover="this.style.background='#e4e6eb'" onmouseout="this.style.background='none'">😊</button>
+        <button onclick="_cmtOpenGif('${pid}')" title="GIF"
+          style="background:none;border:none;font-size:.65rem;font-weight:900;cursor:pointer;padding:3px 5px;border-radius:6px;color:#1877f2;line-height:1;transition:background .15s;"
+          onmouseover="this.style.background='#e4e6eb'" onmouseout="this.style.background='none'">GIF</button>
+        <button onclick="_submitModalCmt('${pid}')"
+          style="background:none;border:none;color:#1877f2;font-size:1.1rem;cursor:pointer;padding:4px 6px;opacity:.5;transition:opacity .15s;"
+          onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.5'">➤</button>
       </div>
     </div>
   </div>`;
@@ -5665,15 +5673,20 @@ function _editModalCmt(pid, ci){
   if(!post||!post.comments||!post.comments[ci]) return;
   const c = post.comments[ci];
   const newText = prompt('Editar comentario:', c.text||'');
-  if(!newText||newText===c.text) return;
+  if(newText===null || newText.trim()==='' || newText.trim()===c.text) return;
   const pRef = doc(db,'posts',pid);
   getDoc(pRef).then(snap=>{
     if(!snap.exists()) return;
     const cmts = snap.data().comments||[];
-    if(cmts[ci]) cmts[ci].text = newText;
+    if(cmts[ci]){ cmts[ci].text = newText.trim(); cmts[ci].edited = true; }
     updateDoc(pRef,{comments:cmts}).then(()=>{
+      // Update local cache
+      if(post.comments[ci]) { post.comments[ci].text = newText.trim(); post.comments[ci].edited = true; }
+      // Refresh list in modal WITHOUT closing
+      const listEl = document.getElementById('_cmtModalList_'+pid);
       const modal = document.getElementById('_cmtModal_'+pid);
-      if(modal) { modal.remove(); toggleComments(pid); }
+      if(listEl && modal && modal._buildCmtHtml) listEl.innerHTML = modal._buildCmtHtml(post.comments);
+      toast('Comentario editado ✅','ok');
     });
   });
 }
@@ -5685,10 +5698,84 @@ async function _delModalCmt(pid, ci){
   if(!snap.exists()) return;
   const cmts = (snap.data().comments||[]).filter((_,i)=>i!==ci);
   await updateDoc(pRef,{comments:cmts});
+  // Update local cache
+  const post = (_posts||[]).find(p=>p.id===pid);
+  if(post) post.comments = cmts;
+  // Refresh list in modal WITHOUT closing
+  const listEl = document.getElementById('_cmtModalList_'+pid);
   const modal = document.getElementById('_cmtModal_'+pid);
-  if(modal){ modal.remove(); toggleComments(pid); }
+  if(listEl && modal && modal._buildCmtHtml) listEl.innerHTML = modal._buildCmtHtml(cmts);
+  const countEl = document.getElementById('_cmtModalCount_'+pid);
+  if(countEl) countEl.textContent = cmts.length + ' comentario' + (cmts.length!==1?'s':'');
+  toast('Comentario eliminado','ok');
 }
 
+
+function _cmtOpenGif(pid){
+  // Abre el GIF picker y cuando se selecciona uno lo envía como comentario con imagen
+  const existing = document.getElementById('_cmtGifPicker_'+pid);
+  if(existing){ existing.remove(); return; }
+  const inp = document.getElementById('_cmtModalInp_'+pid);
+  const wrap = document.createElement('div');
+  wrap.id = '_cmtGifPicker_'+pid;
+  wrap.style.cssText = 'padding:8px 12px;border-top:1px solid #e4e6eb;background:#fff;';
+  wrap.innerHTML = `
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <input id="_cmtGifSearch_${pid}" placeholder="Buscar GIF..." 
+        style="flex:1;padding:7px 12px;border:1px solid #e4e6eb;border-radius:20px;font-size:.82rem;outline:none;font-family:'Exo 2',sans-serif;"
+        oninput="searchCmtGifs('${pid}')" onkeypress="if(event.key==='Enter')searchCmtGifs('${pid}')">
+      <button onclick="document.getElementById('_cmtGifPicker_${pid}').remove()" 
+        style="background:#e4e6eb;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:.9rem;">✕</button>
+    </div>
+    <div id="_cmtGifResults_${pid}" style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;max-height:180px;overflow-y:auto;">
+      <div style="grid-column:1/-1;text-align:center;padding:16px;color:#65676b;font-size:.82rem;">Escribí algo para buscar GIFs 🎬</div>
+    </div>`;
+  // Insert before comment input area
+  const inputArea = inp?.closest('div')?.parentElement;
+  if(inputArea) inputArea.parentElement.insertBefore(wrap, inputArea);
+  document.getElementById('_cmtGifSearch_'+pid)?.focus();
+}
+
+async function searchCmtGifs(pid){
+  const q = document.getElementById('_cmtGifSearch_'+pid)?.value.trim();
+  const res = document.getElementById('_cmtGifResults_'+pid);
+  if(!res) return;
+  if(!q){ res.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:16px;color:#65676b;font-size:.82rem;">Escribí algo para buscar GIFs 🎬</div>'; return; }
+  res.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:10px;color:#65676b;font-size:.8rem;">Buscando...</div>';
+  try {
+    const r = await fetch(`https://api.tenor.com/v2/search?q=${encodeURIComponent(q)}&key=AIzaSyAyimkuYQYF_FXVALexPmHA5a7li72Bkr0&limit=12&media_filter=gif`);
+    const data = await r.json();
+    if(!data.results?.length){ res.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:10px;color:#65676b;font-size:.8rem;">Sin resultados</div>'; return; }
+    res.innerHTML = data.results.map(g=>{
+      const url = g.media_formats?.gif?.url || g.media_formats?.tinygif?.url || '';
+      const preview = g.media_formats?.tinygif?.url || url;
+      return `<img src="${preview}" data-full="${url}" style="width:100%;border-radius:6px;cursor:pointer;object-fit:cover;aspect-ratio:1;" 
+        onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'"
+        onclick="sendCmtGif('${pid}','${url}')">`;
+    }).join('');
+  } catch(e){ res.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:10px;color:#65676b;font-size:.8rem;">Error al buscar</div>'; }
+}
+
+async function sendCmtGif(pid, gifUrl){
+  if(!window.CU){ toast('Inicia sesión','err'); return; }
+  document.getElementById('_cmtGifPicker_'+pid)?.remove();
+  try {
+    const pRef = doc(db,'posts',pid);
+    const snap = await getDoc(pRef);
+    if(!snap.exists()) return;
+    const p = snap.data();
+    const newC = {userId:window.CU.id, nick:window.CU.nick, av:window.CU.av||'', verified:window.CU.verified||false, text:'', gif:gifUrl, time:Date.now()};
+    const newComments = [...(p.comments||[]), newC];
+    await updateDoc(pRef,{comments:newComments});
+    const localPost = (_posts||[]).find(lp=>lp.id===pid);
+    if(localPost) localPost.comments = newComments;
+    const listEl = document.getElementById('_cmtModalList_'+pid);
+    const modal = document.getElementById('_cmtModal_'+pid);
+    if(listEl && modal && modal._buildCmtHtml){ listEl.innerHTML = modal._buildCmtHtml(newComments); listEl.scrollTop = listEl.scrollHeight; }
+    const countEl = document.getElementById('_cmtModalCount_'+pid);
+    if(countEl) countEl.textContent = newComments.length + ' comentario' + (newComments.length!==1?'s':'');
+  } catch(e){ toast('Error al enviar GIF','err'); }
+}
 
 async function _submitModalCmt(pid){
   const inp = document.getElementById('_cmtModalInp_'+pid);
