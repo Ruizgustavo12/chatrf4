@@ -364,6 +364,28 @@ img[title="Verificado"]:hover{
 .post-theme-bosque .post-author,.post-theme-oro .post-author,.post-theme-neon .post-author,
 .post-theme-hielo .post-author,.post-theme-rosa .post-author,.post-theme-carbon .post-author,
 .post-theme-sunset .post-author { color:#fff; }
+
+/* ── FONDOS DE CHAT (item 1) ── */
+.chat-bg-ocean    { background:linear-gradient(180deg,#041428,#061e3a) !important; }
+.chat-bg-galaxy   { background:linear-gradient(180deg,#06030f,#0f0628) !important; }
+.chat-bg-forest   { background:linear-gradient(180deg,#030f07,#051a0c) !important; }
+.chat-bg-sunset   { background:linear-gradient(180deg,#1a0800,#2d1000) !important; }
+.chat-bg-neon     { background:linear-gradient(180deg,#08001a,#12002e) !important; }
+.chat-bg-midnight { background:linear-gradient(180deg,#000510,#001030) !important; }
+
+/* ── FUENTES DE POST (item 3) ── */
+.post-font-orbitron  .post-text { font-family:'Orbitron',monospace !important; font-size:.82rem !important; letter-spacing:.5px; }
+.post-font-serif     .post-text { font-family:Georgia,serif !important; font-style:italic; }
+.post-font-mono      .post-text { font-family:'Courier New',monospace !important; font-size:.85rem !important; }
+.post-font-cursive   .post-text { font-family:cursive !important; font-size:1rem !important; }
+.post-font-rounded   .post-text { font-family:'Exo 2',sans-serif !important; font-weight:700 !important; letter-spacing:.3px; }
+
+/* ── TEMAS DE COLOR APP (item 2) ── */
+body.app-theme-blue   { --accent:#2979ff; --accent2:#1565c0; --border:#1a3060; --bg:#080c18; --bg2:#0d1225; --bg3:#111830; --bg4:#151e38; }
+body.app-theme-purple { --accent:#9c27b0; --accent2:#6a0080; --border:#3d1060; --bg:#0a0510; --bg2:#100820; --bg3:#160b2a; --bg4:#1c1035; }
+body.app-theme-red    { --accent:#e53935; --accent2:#b71c1c; --border:#5a1010; --bg:#0f0505; --bg2:#180808; --bg3:#200a0a; --bg4:#280d0d; }
+body.app-theme-green  { --accent:#00c853; --accent2:#007c33; --border:#0a3a1e; --bg:#030e07; --bg2:#06160c; --bg3:#081e10; --bg4:#0b2815; }
+body.app-theme-github { --accent:#2ec4b6; --accent2:#1a8a80; --border:#30363d; --bg:#0d1117; --bg2:#161b22; --bg3:#1c2128; --bg4:#21262d; }
 .post-header{display:flex;align-items:center;gap:10px;padding:12px 14px;}
 .post-av{width:42px;height:42px;border-radius:50%;border:2px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);background:var(--bg4);flex-shrink:0;font-size:1rem;}
 .post-av img{width:100%;height:100%;object-fit:cover;}
@@ -2274,56 +2296,15 @@ select.fi option{background:var(--bg3);color:var(--text);}
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
     <span style="font-size:1.6rem;">🛒</span>
     <div>
-      <div style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:900;color:gold;">Tienda WikiPediaRF4</div>
+      <div style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:900;color:gold;">Tienda RF4 Latam</div>
       <div style="font-size:.72rem;color:var(--muted);">Personaliza tu perfil y publicaciones</div>
     </div>
   </div>
   <!-- Banner countdown descuento -->
-  <div id="shopDiscountBanner" style="display:none;position:relative;overflow:hidden;border-radius:16px;margin-bottom:20px;">
-    <div style="position:absolute;inset:0;background:linear-gradient(135deg,#1a0a00,#2a1500,#1a0800);z-index:0;"></div>
-    <div style="position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,180,0,.07),transparent);animation:_shopSweep 2.5s ease-in-out infinite;z-index:1;"></div>
-    <div style="position:absolute;top:10px;left:8%;font-size:1.1rem;animation:_shopFloat 3s ease-in-out infinite;z-index:1;">✨</div>
-    <div style="position:absolute;top:15px;right:10%;font-size:.9rem;animation:_shopFloat 3.5s ease-in-out infinite .8s;z-index:1;">🔥</div>
-    <div style="position:absolute;bottom:12px;left:15%;font-size:.8rem;animation:_shopFloat 4s ease-in-out infinite .4s;z-index:1;">⚡</div>
-    <div style="position:absolute;bottom:10px;right:18%;font-size:.9rem;animation:_shopFloat 3.2s ease-in-out infinite 1.2s;z-index:1;">💎</div>
-    <div style="position:relative;z-index:3;padding:20px 24px;">
-      <div style="display:flex;justify-content:center;margin-bottom:12px;">
-        <span style="background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;font-size:.65rem;font-weight:900;padding:4px 14px;border-radius:100px;letter-spacing:1.5px;text-transform:uppercase;box-shadow:0 4px 14px rgba(255,180,0,.4);">🎉 OFERTA ESPECIAL · 100% GRATIS</span>
-      </div>
-      <div style="text-align:center;font-family:'Orbitron',monospace;font-size:1rem;font-weight:900;color:#fff;letter-spacing:1px;margin-bottom:16px;text-shadow:0 0 20px rgba(255,180,0,.5);">⏳ TIEMPO RESTANTE DEL DESCUENTO</div>
-      <div style="display:flex;justify-content:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
-        <div style="text-align:center;background:rgba(0,0,0,.5);border:1px solid rgba(255,215,0,.3);border-radius:12px;padding:10px 16px;min-width:64px;backdrop-filter:blur(4px);">
-          <div id="_cdDays" style="font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:900;color:#ffd700;line-height:1;text-shadow:0 0 16px rgba(255,215,0,.6);">--</div>
-          <div style="font-size:.6rem;color:rgba(255,215,0,.7);font-weight:700;letter-spacing:1px;margin-top:4px;">DÍAS</div>
-        </div>
-        <div style="display:flex;align-items:center;font-size:1.5rem;color:rgba(255,215,0,.5);font-weight:900;padding-bottom:14px;">:</div>
-        <div style="text-align:center;background:rgba(0,0,0,.5);border:1px solid rgba(255,140,0,.3);border-radius:12px;padding:10px 16px;min-width:64px;backdrop-filter:blur(4px);">
-          <div id="_cdHours" style="font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:900;color:#ff8c00;line-height:1;text-shadow:0 0 16px rgba(255,140,0,.6);">--</div>
-          <div style="font-size:.6rem;color:rgba(255,140,0,.7);font-weight:700;letter-spacing:1px;margin-top:4px;">HORAS</div>
-        </div>
-        <div style="display:flex;align-items:center;font-size:1.5rem;color:rgba(255,215,0,.5);font-weight:900;padding-bottom:14px;">:</div>
-        <div style="text-align:center;background:rgba(0,0,0,.5);border:1px solid rgba(255,100,0,.3);border-radius:12px;padding:10px 16px;min-width:64px;backdrop-filter:blur(4px);">
-          <div id="_cdMins" style="font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:900;color:#ff6400;line-height:1;text-shadow:0 0 16px rgba(255,100,0,.6);">--</div>
-          <div style="font-size:.6rem;color:rgba(255,100,0,.7);font-weight:700;letter-spacing:1px;margin-top:4px;">MIN</div>
-        </div>
-        <div style="display:flex;align-items:center;font-size:1.5rem;color:rgba(255,215,0,.5);font-weight:900;padding-bottom:14px;">:</div>
-        <div style="text-align:center;background:rgba(0,0,0,.5);border:1px solid rgba(255,60,0,.3);border-radius:12px;padding:10px 16px;min-width:64px;backdrop-filter:blur(4px);">
-          <div id="_cdSecs" style="font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:900;color:#ff3c00;line-height:1;text-shadow:0 0 16px rgba(255,60,0,.6);">--</div>
-          <div style="font-size:.6rem;color:rgba(255,60,0,.7);font-weight:700;letter-spacing:1px;margin-top:4px;">SEG</div>
-        </div>
-      </div>
-      <div style="margin:0 auto;max-width:420px;">
-        <div style="background:rgba(255,255,255,.08);border-radius:100px;height:6px;overflow:hidden;margin-bottom:6px;">
-          <div id="_cdProgressBar" style="height:100%;border-radius:100px;background:linear-gradient(90deg,#ffd700,#ff4500);transition:width .5s ease;width:100%;box-shadow:0 0 8px rgba(255,150,0,.6);"></div>
-        </div>
-        <div id="shopDiscountEndLabel" style="text-align:center;font-size:.68rem;color:rgba(255,215,0,.6);font-weight:600;"></div>
-      </div>
-      <div id="shopCountdown" style="display:none;"></div>
-    </div>
-    <style>
-      @keyframes _shopSweep{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
-      @keyframes _shopFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-    </style>
+  <div id="shopDiscountBanner" style="display:none;background:linear-gradient(135deg,rgba(255,215,0,.12),rgba(255,100,0,.08));border:1.5px solid rgba(255,215,0,.4);border-radius:var(--r);padding:14px 18px;margin-bottom:16px;text-align:center;">
+    <div style="font-size:.75rem;color:gold;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">⏳ El descuento del 100% termina en</div>
+    <div id="shopCountdown" style="font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;color:#fff;letter-spacing:2px;">--d --h --m --s</div>
+    <div style="font-size:.7rem;color:var(--muted);margin-top:4px;" id="shopDiscountEndLabel"></div>
   </div>
   <!-- Categorías -->
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
@@ -2332,9 +2313,12 @@ select.fi option{background:var(--bg3);color:var(--text);}
     <button class="shop-cat-btn" onclick="filterShopCat(this,'badge')">🏅 Badges</button>
     <button class="shop-cat-btn" onclick="filterShopCat(this,'efecto')">✨ Efectos</button>
     <button class="shop-cat-btn" onclick="filterShopCat(this,'titulo')">📛 Títulos</button>
-    <button class="shop-cat-btn" onclick="filterShopCat(this,'postcolor')" style="background:linear-gradient(135deg,rgba(0,150,255,.15),rgba(150,0,255,.1));border-color:rgba(100,100,255,.3);">🎨 Colores de Post</button>
-  </div>
+    <button class="shop-cat-btn" onclick="filterShopCat(this,'postcolor')" style="background:linear-gradient(135deg,rgba(0,150,255,.15),rgba(150,0,255,.1));border-color:rgba(100,100,255,.3);">🎨 Color Post</button>
+    <button class="shop-cat-btn" onclick="filterShopCat(this,'postfont')" style="background:linear-gradient(135deg,rgba(255,200,0,.15),rgba(255,100,0,.1));border-color:rgba(255,180,0,.3);">✏️ Fuentes</button>
+    <button class="shop-cat-btn" onclick="filterShopCat(this,'chatbg')" style="background:linear-gradient(135deg,rgba(0,200,255,.15),rgba(0,100,200,.1));border-color:rgba(0,180,255,.3);">💬 Chat</button>
+    <button class="shop-cat-btn" onclick="filterShopCat(this,'apptheme')" style="background:linear-gradient(135deg,rgba(150,0,255,.15),rgba(80,0,180,.1));border-color:rgba(130,0,255,.3);">🎨 Tema App</button>
     <button class="shop-cat-btn" onclick="filterShopCat(this,'banner')" style="background:linear-gradient(135deg,rgba(255,80,0,.15),rgba(255,200,0,.1));border-color:rgba(255,120,0,.3);">🖼 Banners</button>
+  </div>
   <!-- Grid de ítems -->
   <div id="shopItemsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;"></div>
 </div>
@@ -4060,6 +4044,9 @@ function _renderProfileFeedHTML(el, mine){
 }
 
 function postHTML(p){
+  // Aplicar fuente equipada del autor del post al renderizar
+  const _authorEquipped = (window._usersShop && window._usersShop[p.userId]) || {};
+  const _postFontClass = _authorEquipped.postfont ? (SHOP_ITEMS.find(i=>i.id===_authorEquipped.postfont)?.postFont||'') : '';
   const myRxn = window.CU ? (p.reactions?.[window.CU.id]||null) : null;
   const totalRxn = Object.values(p.reactionCounts||{}).reduce((a,b)=>a+b,0);
   const topRxn = Object.entries(p.reactionCounts||{}).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([e])=>e).join('');
@@ -4236,7 +4223,9 @@ function postHTML(p){
   const _postBadge = _authorShop.badge ? (SHOP_ITEMS.find(i=>i.id===_authorShop.badge)?.preview || '') : '';
   const _postTitulo = _authorShop.titulo ? (()=>{ const t=SHOP_ITEMS.find(i=>i.id===_authorShop.titulo); return t ? t.emoji+' '+t.name : ''; })() : '';
   const _postMarcoClass = _authorShop.marco ? (SHOP_ITEMS.find(i=>i.id===_authorShop.marco)?.effect || '') : '';
-  return `<div class="post${isVerif?' post-verified':''}${_postTheme?' '+_postTheme:''}" id="post_${p.id}">
+  const _postFontId = _authorShop.postfont || null;
+  const _postFontCls = _postFontId ? (SHOP_ITEMS.find(i=>i.id===_postFontId)?.postFont || "") : "";
+  return `<div class="post${isVerif?" post-verified":""}${_postTheme?" "+_postTheme:""}${_postFontCls?" "+_postFontCls:""}" id="post_${p.id}">
     ${isVerif?`<div class="verif-post-tag">✅ VERIFICADO</div>`:''}
     <div class="post-header" style="position:relative;">
       <div class="${isVerif?'post-av-wrap':''} ${_postMarcoClass}" style="display:inline-block;border-radius:50%;">
@@ -5222,6 +5211,25 @@ const SHOP_ITEMS = [
   { id:'post_rosa',     cat:'postcolor', name:'Rosa Oscuro',       preview:'🌸', emoji:'🌸', price:550,  desc:'Fondo rosa profundo',                     theme:'post-theme-rosa' },
   { id:'post_carbon',   cat:'postcolor', name:'Carbono',           preview:'⚫', emoji:'⚫', price:400,  desc:'Gris oscuro premium minimalista',         theme:'post-theme-carbon' },
   { id:'post_sunset',   cat:'postcolor', name:'Atardecer',         preview:'🌅', emoji:'🌅', price:700,  desc:'Fondo sunset naranja cálido',             theme:'post-theme-sunset' },
+  // ── FONDOS DE CHAT ──
+  { id:'chat_ocean',    cat:'chatbg', name:'Chat Océano',      preview:'🌊', emoji:'🌊', price:400,  desc:'Fondo azul marino en tu chat',          chatBg:'chat-bg-ocean'    },
+  { id:'chat_galaxy',   cat:'chatbg', name:'Chat Galaxia',     preview:'🌌', emoji:'🌌', price:700,  desc:'Fondo espacial oscuro',                  chatBg:'chat-bg-galaxy',   exclusive:true },
+  { id:'chat_forest',   cat:'chatbg', name:'Chat Bosque',      preview:'🌲', emoji:'🌲', price:350,  desc:'Verde selva profunda',                   chatBg:'chat-bg-forest'   },
+  { id:'chat_sunset',   cat:'chatbg', name:'Chat Atardecer',   preview:'🌅', emoji:'🌅', price:450,  desc:'Naranja cálido del atardecer',            chatBg:'chat-bg-sunset'   },
+  { id:'chat_neon',     cat:'chatbg', name:'Chat Neón',        preview:'💜', emoji:'💜', price:600,  desc:'Morado neón vibrante',                   chatBg:'chat-bg-neon',     exclusive:true },
+  { id:'chat_midnight', cat:'chatbg', name:'Chat Medianoche',  preview:'🌙', emoji:'🌙', price:300,  desc:'Azul noche profunda',                    chatBg:'chat-bg-midnight'  },
+  // ── TEMAS DE COLOR APP ──
+  { id:'theme_blue',    cat:'apptheme', name:'Tema Azul',       preview:'💙', emoji:'💙', price:500,  desc:'Toda la app en tonos azul eléctrico',    appTheme:'app-theme-blue'    },
+  { id:'theme_purple',  cat:'apptheme', name:'Tema Morado',     preview:'💜', emoji:'💜', price:600,  desc:'Toda la app en tonos morado/violeta',    appTheme:'app-theme-purple', exclusive:true },
+  { id:'theme_red',     cat:'apptheme', name:'Tema Rojo',       preview:'❤️', emoji:'❤️', price:500,  desc:'Toda la app en tonos rojo intenso',      appTheme:'app-theme-red'     },
+  { id:'theme_green',   cat:'apptheme', name:'Tema Verde',      preview:'💚', emoji:'💚', price:500,  desc:'Toda la app en tonos verde esmeralda',   appTheme:'app-theme-green'   },
+  { id:'theme_github',  cat:'apptheme', name:'Tema GitHub',     preview:'⬛', emoji:'⬛', price:300,  desc:'El clásico gris oscuro estilo GitHub',   appTheme:'app-theme-github'  },
+  // ── FUENTES DE POST ──
+  { id:'font_orbitron', cat:'postfont', name:'Fuente Gaming',   preview:'🎮', emoji:'🎮', price:400,  desc:'Letras estilo Orbitron en tus posts',    postFont:'post-font-orbitron' },
+  { id:'font_serif',    cat:'postfont', name:'Fuente Clásica',  preview:'📜', emoji:'📜', price:300,  desc:'Tipografía serif elegante e italizada',  postFont:'post-font-serif'    },
+  { id:'font_mono',     cat:'postfont', name:'Fuente Código',   preview:'💻', emoji:'💻', price:350,  desc:'Monoespaciada estilo programador',       postFont:'post-font-mono'     },
+  { id:'font_cursive',  cat:'postfont', name:'Fuente Cursiva',  preview:'✍️', emoji:'✍️', price:450,  desc:'Escritura a mano cursiva',               postFont:'post-font-cursive', exclusive:true },
+  { id:'font_rounded',  cat:'postfont', name:'Fuente Bold',     preview:'💪', emoji:'💪', price:250,  desc:'Texto grueso y redondeado',              postFont:'post-font-rounded'  },
   // ── BANNERS ANIMADOS DE PORTADA ──
   { id:'banner_fuego',  cat:'banner', name:'Fuego Vivo',         preview:'🔥', emoji:'🔥', price:1200, desc:'Llamas y brasas animadas en tu portada',    exclusive:false, bannerFn:'bannerFuego'  },
   { id:'banner_flores', cat:'banner', name:'Pétalo Oscuro',      preview:'🌸', emoji:'🌸', price:1000, desc:'Pétalos violetas flotando en la oscuridad', exclusive:false, bannerFn:'bannerFlores' },
@@ -5460,18 +5468,24 @@ function renderShopGrid(){
   const gridProfile = document.getElementById('shopItemsGridProfile');
   if(!grid && !gridProfile) return;
   const items = _shopFilter === 'all' ? SHOP_ITEMS : SHOP_ITEMS.filter(i=>i.cat===_shopFilter);
-  const CAT_LABEL = {marco:'🖼 Marco',badge:'🏅 Badge',efecto:'✨ Efecto',titulo:'📛 Título',postcolor:'🎨 Color de Post',banner:'🖼 Banner Animado'};
+  const CAT_LABEL = {marco:'🖼 Marco',badge:'🏅 Badge',efecto:'✨ Efecto',titulo:'📛 Título',postcolor:'🎨 Color de Post',banner:'🖼 Banner Animado',chatbg:'💬 Fondo de Chat',apptheme:'🎨 Tema App',postfont:'✏️ Fuente de Post'};
   const _shopHTML = items.map(item => {
     const isEquipped = _equippedItems[item.cat] === item.id;
-    const postPreview = item.cat==='postcolor' ? `<div class="${item.theme}" style="border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:.63rem;color:#ddd;line-height:1.5;text-align:left;"><div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;"><div style="width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.2);flex-shrink:0;"></div><span style="font-weight:700;">ruizgustavo12</span></div><div>🎣 ¡Gran pesca hoy!</div></div>` : '';
+    const postPreview = item.cat==='postcolor' ? `<div class="${item.theme}" style="border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:.63rem;color:#ddd;line-height:1.5;text-align:left;"><div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;"><div style="width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.2);flex-shrink:0;"></div><span style="font-weight:700;">WikipediaRF4</span></div><div>🎣 ¡Gran pesca hoy!</div></div>` : '';
+    const chatBgPreview = item.cat==='chatbg' ? `<div class="${item.chatBg}" style="border-radius:8px;padding:8px 10px;margin-bottom:8px;height:55px;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;"><div style="align-self:flex-end;background:var(--accent);color:#000;font-size:.55rem;padding:3px 8px;border-radius:100px;font-weight:700;">Hola! 🎣</div><div style="align-self:flex-start;background:rgba(255,255,255,.12);color:#ddd;font-size:.55rem;padding:3px 8px;border-radius:100px;">Buena pesca!</div></div>` : '';
+    const fontPreview = item.cat==='postfont' ? `<div class="${item.postFont}" style="border-radius:8px;padding:8px 10px;margin-bottom:8px;background:var(--bg3);border:1px solid var(--border);"><div class="post-text" style="font-size:.7rem;margin:0;padding:0;">🎣 ¡Atrapé un lucio enorme hoy!</div></div>` : '';
+    const themePreview = item.cat==='apptheme' ? `<div style="border-radius:8px;padding:6px 8px;margin-bottom:8px;background:var(--bg3);border:1px solid var(--border);display:flex;gap:4px;align-items:center;flex-wrap:wrap;"><div style="width:14px;height:14px;border-radius:50%;background:${item.id==='theme_blue'?'#2979ff':item.id==='theme_purple'?'#9c27b0':item.id==='theme_red'?'#e53935':item.id==='theme_green'?'#00c853':'#2ec4b6'};"></div><span style="font-size:.58rem;color:var(--muted);">Acento</span><div style="flex:1;height:4px;border-radius:4px;background:${item.id==='theme_blue'?'#2979ff':item.id==='theme_purple'?'#9c27b0':item.id==='theme_red'?'#e53935':item.id==='theme_green'?'#00c853':'#2ec4b6'};opacity:.5;"></div></div>` : '';
     const bannerPreview = item.cat==='banner' ? `<div style="width:100%;height:60px;border-radius:8px;margin-bottom:8px;overflow:hidden;position:relative;background:${item.id==='banner_fuego'?'linear-gradient(180deg,#0a0000,#2d0800)':item.id==='banner_flores'?'linear-gradient(180deg,#0d0018,#2d0060)':item.id==='banner_ocean'?'linear-gradient(180deg,#00050f,#002050)':item.id==='banner_aurora'?'linear-gradient(180deg,#000508,#001a15)':item.id==='banner_galaxy'?'linear-gradient(180deg,#000005,#0a0020)':'linear-gradient(180deg,#050507,#101018)'};display:flex;align-items:center;justify-content:center;font-size:1.8rem;">${item.preview}</div>` : '';
     return `
     <div class="shop-item${isEquipped?' equipped':''}" id="sitem_${item.id}">
       ${isEquipped ? '<div class="shop-item-equipped-badge">✓ ACTIVO</div>' : ''}
       ${item.exclusive ? '<div style="position:absolute;top:6px;left:6px;background:linear-gradient(135deg,gold,#ff8c00);color:#000;font-size:.5rem;font-weight:900;border-radius:100px;padding:2px 6px;">✦ EXCL.</div>' : ''}
       ${postPreview}
+      ${chatBgPreview}
+      ${fontPreview}
+      ${themePreview}
       ${bannerPreview}
-      ${!item.theme && !item.bannerFn ? `<span style="font-size:2.2rem;display:block;margin-bottom:6px;">${item.preview}</span>` : ''}
+      ${!item.theme && !item.bannerFn && !item.chatBg && !item.postFont && !item.appTheme ? `<span style="font-size:2.2rem;display:block;margin-bottom:6px;">${item.preview}</span>` : ''}
       <div class="shop-item-name">${item.name}</div>
       <div class="shop-item-type">${CAT_LABEL[item.cat]||item.cat}</div>
       <div style="font-size:.62rem;color:var(--muted);margin-bottom:8px;line-height:1.35;">${item.desc}</div>
@@ -5577,6 +5591,27 @@ function applyShopEffects(){
   _stopShopParticles();
   const efectoId = _equippedItems.efecto;
   if(efectoId) _startShopParticles(efectoId);
+
+  // ── FONDO DE CHAT ──
+  const chatMsgs = document.getElementById('chatMessages');
+  const chatBgId = _equippedItems.chatbg;
+  if(chatMsgs){
+    chatMsgs.classList.remove('chat-bg-ocean','chat-bg-galaxy','chat-bg-forest','chat-bg-sunset','chat-bg-neon','chat-bg-midnight');
+    if(chatBgId){ const ci=SHOP_ITEMS.find(i=>i.id===chatBgId); if(ci?.chatBg) chatMsgs.classList.add(ci.chatBg); }
+  }
+
+  // ── TEMA DE COLOR APP ──
+  const themeId = _equippedItems.apptheme;
+  document.body.classList.remove('app-theme-blue','app-theme-purple','app-theme-red','app-theme-green','app-theme-github');
+  if(themeId){ const ti=SHOP_ITEMS.find(i=>i.id===themeId); if(ti?.appTheme) document.body.classList.add(ti.appTheme); }
+
+  // ── FUENTE DE POST ──
+  // Aplicar a todos los posts visibles
+  document.querySelectorAll('.post-box').forEach(el=>{
+    el.classList.remove('post-font-orbitron','post-font-serif','post-font-mono','post-font-cursive','post-font-rounded');
+    const fontId = _equippedItems.postfont;
+    if(fontId){ const fi=SHOP_ITEMS.find(i=>i.id===fontId); if(fi?.postFont) el.classList.add(fi.postFont); }
+  });
 
   // ── BANNER ANIMADO ──
   const bannerId = _equippedItems.banner;
@@ -6436,54 +6471,37 @@ async function saveSiteConfig(){
 let _shopCountdownTimer = null;
 function startShopCountdown(isoEnd){
   const banner = document.getElementById('shopDiscountBanner');
+  const cdEl = document.getElementById('shopCountdown');
   const labelEl = document.getElementById('shopDiscountEndLabel');
-  if(!banner) return;
+  if(!banner||!cdEl) return;
   if(_shopCountdownTimer) clearInterval(_shopCountdownTimer);
   if(!isoEnd){ banner.style.display='none'; return; }
   const end = new Date(isoEnd);
   if(isNaN(end.getTime())){ banner.style.display='none'; return; }
+  // Format end date label
   if(labelEl){
     const opts={day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'};
-    labelEl.textContent = '📅 Vence: ' + end.toLocaleString('es-AR', opts);
+    labelEl.textContent = 'Vence: ' + end.toLocaleString('es-AR', opts);
   }
-  const totalDuration = 30 * 24 * 3600000;
   function tick(){
     const now = new Date();
     const diff = end - now;
-    const dEl=document.getElementById('_cdDays');
-    const hEl=document.getElementById('_cdHours');
-    const mEl=document.getElementById('_cdMins');
-    const sEl=document.getElementById('_cdSecs');
-    const bar=document.getElementById('_cdProgressBar');
-    const pad=n=>String(Math.floor(n)).padStart(2,'0');
-    if(diff<=0){
-      if(dEl)dEl.textContent='00'; if(hEl)hEl.textContent='00';
-      if(mEl)mEl.textContent='00'; if(sEl)sEl.textContent='00';
-      if(bar)bar.style.width='0%';
+    if(diff <= 0){
+      cdEl.textContent = '¡Terminó!';
+      cdEl.style.color = 'var(--muted)';
       clearInterval(_shopCountdownTimer);
-      banner.style.display='none';
       return;
     }
-    const d=Math.floor(diff/86400000);
-    const h=Math.floor((diff%86400000)/3600000);
-    const m=Math.floor((diff%3600000)/60000);
-    const s=Math.floor((diff%60000)/1000);
-    if(dEl)dEl.textContent=pad(d);
-    if(hEl)hEl.textContent=pad(h);
-    if(mEl)mEl.textContent=pad(m);
-    if(sEl)sEl.textContent=pad(s);
-    if(bar){
-      const pct=Math.min(100,Math.max(0,(diff/totalDuration)*100));
-      bar.style.width=pct+'%';
-      if(pct<15)bar.style.background='linear-gradient(90deg,#ff0000,#ff4500)';
-      else if(pct<40)bar.style.background='linear-gradient(90deg,#ff8c00,#ff4500)';
-      else bar.style.background='linear-gradient(90deg,#ffd700,#ff4500)';
-    }
-    if(sEl){sEl.style.transition='transform .15s';sEl.style.transform='scale(1.2)';setTimeout(()=>{if(sEl)sEl.style.transform='scale(1)';},150);}
+    const d = Math.floor(diff/86400000);
+    const h = Math.floor((diff%86400000)/3600000);
+    const m = Math.floor((diff%3600000)/60000);
+    const s = Math.floor((diff%60000)/1000);
+    const pad = n=>String(n).padStart(2,'0');
+    cdEl.textContent = `${d}d ${pad(h)}h ${pad(m)}m ${pad(s)}s`;
   }
   banner.style.display='block';
   tick();
-  _shopCountdownTimer=setInterval(tick,1000);
+  _shopCountdownTimer = setInterval(tick, 1000);
 }
 window.startShopCountdown = startShopCountdown;
 
@@ -9210,7 +9228,13 @@ function openChatWith(uid, nick){
           <div style="font-size:.68rem;color:var(--green);" id="chatOnlineStatus">•</div>
         </div>
       </div>
-      <div id="chatMessages" style="flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;min-height:0;"></div>`;
+      <div id="chatMessages" style="flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;min-height:0;"></div>\`);
+  // Aplicar fondo de chat equipado
+  const _chatMsgsEl = document.getElementById('chatMessages');
+  if(_chatMsgsEl && _equippedItems?.chatbg){
+    const _chatBgItem = SHOP_ITEMS.find(i=>i.id===_equippedItems.chatbg);
+    if(_chatBgItem?.chatBg) _chatMsgsEl.classList.add(_chatBgItem.chatBg);
+  }
   }
   const inputRow = document.getElementById('chatInputRow');
   if(inputRow) inputRow.style.display='flex';
