@@ -4291,7 +4291,16 @@ function postHTML(p){
     ${!p.sharedFrom ? linkHTML : ''}
     ${!p.sharedFrom && p.text?`<div class="post-text">${renderCommentText(p.text)}</div>`:''}
     ${!p.sharedFrom ? fishTag : ''}
-    ${p.profileAction==='cover' && p.images&&p.images[0] ? `<div style="margin:0 0 10px;border-radius:var(--rs);overflow:hidden;position:relative;background:var(--bg3);cursor:pointer;" onclick="openImgLightbox('${p.images[0]}',${JSON.stringify(p.images||[])},'${p.id}')"><img src="${p.images[0]}" style="width:100%;max-height:340px;object-fit:cover;display:block;transition:opacity .2s;" onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='1'" loading="lazy"><div style="position:absolute;bottom:8px;left:10px;background:rgba(0,0,0,.55);color:#fff;font-size:.72rem;padding:3px 10px;border-radius:100px;backdrop-filter:blur(6px);">📷 Nueva foto de portada</div></div>` : p.profileAction==='avatar' && p.images&&p.images[0] ? `<div style="margin:0 0 10px;display:flex;justify-content:center;"><div style="width:140px;height:140px;border-radius:50%;overflow:hidden;border:4px solid var(--accent);box-shadow:0 0 20px rgba(0,198,255,.3);cursor:pointer;" onclick="openImgLightbox('${p.images[0]}',${JSON.stringify(p.images||[])},'${p.id}')"><img src="${p.images[0]}" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy"></div></div>` : (!p.sharedFrom ? imgHTML : '')}
+    ${(()=>{
+    if(p.images&&p.images.length){ window._postImgsMap=window._postImgsMap||{}; window._postImgsMap[p.id]=p.images; }
+    if(p.profileAction==='cover' && p.images&&p.images[0]){
+      return `<div style="margin:0 0 10px;border-radius:var(--rs);overflow:hidden;position:relative;background:#f0f2f5;cursor:pointer;" onclick="openImgLightboxById('${p.id}',0)"><img src="${p.images[0]}" style="width:100%;max-height:340px;object-fit:cover;display:block;transition:opacity .2s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'" loading="lazy"><div style="position:absolute;bottom:8px;left:10px;background:rgba(0,0,0,.55);color:#fff;font-size:.72rem;padding:3px 10px;border-radius:100px;backdrop-filter:blur(6px);">📷 Nueva foto de portada</div></div>`;
+    }
+    if(p.profileAction==='avatar' && p.images&&p.images[0]){
+      return `<div style="margin:0 0 10px;display:flex;justify-content:center;"><div style="width:140px;height:140px;border-radius:50%;overflow:hidden;border:4px solid var(--accent);box-shadow:0 0 20px rgba(0,198,255,.3);cursor:pointer;" onclick="openImgLightboxById('${p.id}',0)"><img src="${p.images[0]}" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy"></div></div>`;
+    }
+    return !p.sharedFrom ? imgHTML : '';
+  })()}
     ${videoHTML}
     <div class="post-stats">
       <div class="post-rxn-summary" onclick="openReactionsModal('${p.id}')" style="${totalRxn>0?'cursor:pointer':'cursor:default'}">
@@ -9348,21 +9357,21 @@ function openChatWith(uid, nick){
             const msgContent = m.gif
               ? `<img src="${m.gif}" style="max-width:200px;border-radius:10px;display:block;" loading="lazy">`
               : m.audioUrl
-              ? `<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:${mine?'16px 16px 4px 16px':'16px 16px 16px 4px'};background:${mine?'var(--accent)':'var(--bg3)'};max-width:220px;">
+              ? `<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:${mine?'16px 16px 4px 16px':'16px 16px 16px 4px'};background:${mine?'#0084ff':'#f0f0f0'};max-width:220px;">
                   <button onclick="toggleVoicePlay(this,'${m.audioUrl}')" style="background:rgba(255,255,255,.25);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:1rem;">▶</button>
                   <div style="flex:1;">
                     <div style="height:3px;background:rgba(255,255,255,.3);border-radius:2px;margin-bottom:4px;position:relative;">
                       <div class="voice-progress" style="height:100%;width:0%;background:${mine?'#fff':'var(--accent)'};border-radius:2px;transition:width .2s;"></div>
                     </div>
-                    <span style="font-size:.65rem;color:${mine?'rgba(255,255,255,.8)':'var(--muted)'};">🎤 ${m.audioDuration ? Math.floor(m.audioDuration/60)+':'+(m.audioDuration%60).toString().padStart(2,'0') : 'Audio'}</span>
+                    <span style="font-size:.65rem;color:${mine?'rgba(255,255,255,.85)':'#65676b'};">🎤 ${m.audioDuration ? Math.floor(m.audioDuration/60)+':'+(m.audioDuration%60).toString().padStart(2,'0') : 'Audio'}</span>
                   </div>
                 </div>`
-              : `<div style="max-width:220px;min-width:0;padding:8px 12px;border-radius:${mine?'16px 16px 4px 16px':'16px 16px 16px 4px'};background:${mine?'var(--accent)':'var(--bg3)'};color:${mine?'#fff':'var(--text)'};font-size:.84rem;line-height:1.5;word-break:break-word;display:inline-block;">${esc(m.text)}</div>`;
+              : `<div style="max-width:220px;min-width:0;padding:8px 12px;border-radius:${mine?'16px 16px 4px 16px':'16px 16px 16px 4px'};background:${mine?'#0084ff':'#f0f0f0'};color:${mine?'#ffffff':'#050505'};font-size:.84rem;line-height:1.5;word-break:break-word;display:inline-block;">${esc(m.text)}</div>`;
             const normalBubble = !isStoryComment ? `
               <div style="position:relative;" onmouseenter="showMsgRxnBar('${m.id}')" onmouseleave="hideMsgRxnBar('${m.id}')">
                 <div id="mrxnbar_${m.id}" style="display:none;position:absolute;${mine?'right:0':'left:0'};bottom:calc(100% + 4px);background:rgba(12,22,34,.98);border:1px solid rgba(255,255,255,.13);border-radius:100px;padding:4px 8px;align-items:center;gap:2px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.8);white-space:nowrap;" onmouseenter="keepMsgRxnBar('${m.id}')" onmouseleave="hideMsgRxnBar('${m.id}')">${rxnBtns}</div>
                 ${msgContent}
-                ${msgRxnTotal>0?`<div onclick="reactChatMsg('${chatId}','${m.id}','')" style="position:absolute;${mine?'left:-8px':'right:-8px'};bottom:-12px;background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:1px 7px;font-size:.75rem;cursor:pointer;white-space:nowrap;">${msgTopRxns} ${msgRxnTotal}</div>`:''}
+                ${msgRxnTotal>0?`<div onclick="reactChatMsg('${chatId}','${m.id}','')" style="position:absolute;${mine?'left:-8px':'right:-8px'};bottom:-12px;background:#fff;border:1px solid #ced0d4;border-radius:100px;padding:1px 7px;font-size:.75rem;cursor:pointer;white-space:nowrap;">${msgTopRxns} ${msgRxnTotal}</div>`:''}
               </div>` : '';
             return `<div style="display:flex;flex-direction:column;align-items:${mine?'flex-end':'flex-start'};gap:2px;margin-bottom:${msgRxnTotal>0?'12px':'4px'};" onclick="toggleMsgTime('msgtime_${m.id}')">
               ${storyCard}
@@ -9596,7 +9605,7 @@ async function reactChatMsg(chatId, msgId, emoji){
       rxns[window.CU.id] = emoji;
       // ✅ Notificar al autor del mensaje si no soy yo
       if(data.uid && data.uid !== window.CU.id){
-        await sendNotifToUser(data.uid, `${emoji} ${window.CU.nick} reaccionó a tu mensaje: "${(data.text||'').slice(0,40)}"`);
+        await sendNotifToUser(data.uid, `💬 ${emoji} ${window.CU.nick} reaccionó a tu mensaje`);
       }
     }
     await updateDoc(msgRef, {reactions: rxns});
