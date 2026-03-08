@@ -307,6 +307,20 @@ img[title="Verificado"]:hover{
 /* ===== GIF PICKER ===== */
 .gif-picker{position:absolute;bottom:calc(100% + 8px);left:0;width:320px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:9999;overflow:hidden;display:none;flex-direction:column;}
 .gif-picker.open{display:flex;}
+/* STICKER PICKER */
+.stk-picker{position:absolute;bottom:calc(100% + 8px);left:0;width:300px;background:#fff;border:1px solid #ddd;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.2);z-index:9999;overflow:hidden;display:none;flex-direction:column;max-height:360px;}
+.stk-picker.open{display:flex;}
+.stk-search{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid #e4e6eb;}
+.stk-search input{flex:1;border:none;outline:none;font-size:.88rem;color:#050505;background:transparent;}
+.stk-search input::placeholder{color:#65676b;}
+.stk-cats{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px;overflow-y:auto;}
+.stk-cat-btn{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:100px;border:none;cursor:pointer;font-size:.85rem;font-weight:700;color:#fff;transition:opacity .15s;}
+.stk-cat-btn:hover{opacity:.88;}
+.stk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:8px;overflow-y:auto;flex:1;}
+.stk-item{cursor:pointer;border-radius:8px;overflow:hidden;aspect-ratio:1;transition:transform .12s;}
+.stk-item:hover{transform:scale(1.06);}
+.stk-item img{width:100%;height:100%;object-fit:cover;}
+.stk-back{background:none;border:none;color:#1877f2;font-size:.82rem;font-weight:700;cursor:pointer;padding:6px 10px;display:flex;align-items:center;gap:4px;}
 .gif-search{padding:8px;border-bottom:1px solid var(--border);display:flex;gap:6px;align-items:center;}
 .gif-search input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:6px 12px;font-size:.82rem;color:var(--text);outline:none;font-family:'Exo 2',sans-serif;}
 .gif-search input:focus{border-color:var(--accent);}
@@ -2666,7 +2680,7 @@ function _stub(name){ return function(){ _q.push([name, arguments]); }; }
  'doReact','quickReact','saveProfile','openEditProfile','changeCover','changeAvatar',
  'previewPostImg','removePostImg','previewPostMedia','removePostMedia',
  'previewStoryImg','pickStoryEmoji','insertEmoji','insertFishTag',
- 'toggleComments','_submitModalCmt','sharePost','toggleCmtMenu','editCmt','delCmt','quickCmtRxn','replyCmt','toggleReplies','showCmtRxnPop','hideCmtRxnPop','cancelHideCmtRxn','reactCmt','openImgLightbox','openImgLightboxById','swPTab','setAppTheme','reactChatMsg','showMsgRxnBar','hideMsgRxnBar','keepMsgRxnBar','showCmtMenu','hideCmtMenu','setChatTyping','filterShopCat','toggleEquipItem',
+ 'toggleComments','_submitModalCmt','sharePost','toggleCmtMenu','editCmt','delCmt','quickCmtRxn','replyCmt','toggleReplies','showCmtRxnPop','hideCmtRxnPop','cancelHideCmtRxn','reactCmt','openImgLightbox','openImgLightboxById','toggleStickerPicker','closeStickerPicker','loadStickerCat','searchStickers','sendSticker','resetStickerCats','swPTab','setAppTheme','reactChatMsg','showMsgRxnBar','hideMsgRxnBar','keepMsgRxnBar','showCmtMenu','hideCmtMenu','setChatTyping','filterShopCat','toggleEquipItem',
  'showRxnPop','schedHideRxnPop','cancelHideRxnPop',
  'openSV','closeSV','svNav','reactStory','submitStoryComment','deleteMyStory','doSearch',
  'reportPost','submitReport','loadAdminData','deleteAdminPost','resolveReport',
@@ -4366,11 +4380,22 @@ function postHTML(p){
             onkeypress="if(event.key==='Enter'){event.preventDefault();submitComment('${p.id}');}"
             oninput="handleMentionInput(this,'${p.id}')" style="flex:1;background:transparent;border:none;padding:9px 12px;">
           <button onclick="openEmojiPicker(event,'cinp_${p.id}')" style="background:none;border:none;font-size:1rem;cursor:pointer;padding:4px;color:#65676b;" title="Emoji">😊</button>
+          <button onclick="toggleStickerPicker('stkpick_${p.id}','cinp_${p.id}')" style="background:none;border:none;font-size:1rem;cursor:pointer;padding:4px;color:#65676b;" title="Stickers">🎭</button>
           <button onclick="toggleGifPicker('gifpick_${p.id}','cinp_${p.id}')" style="background:none;border:none;font-size:.6rem;font-weight:900;cursor:pointer;padding:3px 5px;color:#65676b;border:1px solid #65676b;border-radius:4px;line-height:1;" title="GIF">GIF</button>
           <div class="gif-picker" id="gifpick_${p.id}" style="bottom:calc(100% + 4px);">
             <div class="gif-search"><input type="text" placeholder="Buscar GIF..." oninput="searchGifs(this.value,'gifpick_${p.id}','cinp_${p.id}')"><button onclick="closeGifPicker('gifpick_${p.id}')" style="background:none;border:none;color:#65676b;font-size:1rem;cursor:pointer;">✕</button></div>
             <div class="gif-grid" id="gifgrid_${p.id}"></div>
             <div class="gif-powered">Powered by GIPHY</div>
+          </div>
+          <div class="stk-picker" id="stkpick_${p.id}">
+            <div class="stk-search">
+              <span style="font-size:1rem;">🔍</span>
+              <input type="text" placeholder="Buscar" id="stksearch_${p.id}" oninput="searchStickers(this.value,'stkpick_${p.id}','cinp_${p.id}')">
+              <button onclick="closeStickerPicker('stkpick_${p.id}')" style="background:none;border:none;color:#65676b;font-size:1rem;cursor:pointer;padding:2px;">✕</button>
+            </div>
+            <div id="stkcontent_${p.id}">
+              <div class="stk-cats" id="stkcats_${p.id}"></div>
+            </div>
           </div>
           <div id="mention_${p.id}" style="display:none;position:absolute;bottom:calc(100% + 4px);left:0;background:#fff;border:1px solid #ced0d4;border-radius:8px;min-width:180px;max-height:180px;overflow-y:auto;z-index:500;box-shadow:0 4px 16px rgba(0,0,0,.2);"></div>
         </div>
@@ -10119,6 +10144,134 @@ function blobToBase64(blob){
   });
 }
 
+
+// ===== STICKER PICKER (Facebook style) =====
+const STK_CATS = [
+  {label:'Feliz',     emoji:'🥳', color:'#f5a623', q:'happy cartoon sticker'},
+  {label:'Enamorado', emoji:'😍', color:'#e91e8c', q:'love heart sticker'},
+  {label:'Triste',    emoji:'😢', color:'#7b8fa1', q:'sad crying sticker'},
+  {label:'Comiendo',  emoji:'🍕', color:'#f4511e', q:'eating food sticker'},
+  {label:'Celebrando',emoji:'🎉', color:'#8e24aa', q:'celebration party sticker'},
+  {label:'Activo',    emoji:'⚡', color:'#43a047', q:'sports active energy sticker'},
+  {label:'Trabajando',emoji:'💼', color:'#5e6c84', q:'working office sticker'},
+  {label:'Soñoliento',emoji:'😴', color:'#546e7a', q:'sleepy tired sticker'},
+  {label:'Enojado',   emoji:'😠', color:'#e53935', q:'angry mad sticker'},
+  {label:'Confundido',emoji:'😕', color:'#8d6e63', q:'confused thinking sticker'},
+];
+
+function toggleStickerPicker(pickerId, targetId){
+  // Close all gif pickers
+  document.querySelectorAll('.gif-picker.open').forEach(p=>p.classList.remove('open'));
+  const picker = document.getElementById(pickerId);
+  if(!picker) return;
+  const isOpen = picker.classList.contains('open');
+  document.querySelectorAll('.stk-picker.open').forEach(p=>p.classList.remove('open'));
+  if(!isOpen){
+    picker.classList.add('open');
+    picker.dataset.target = targetId;
+    // Render categories
+    const postId = pickerId.replace('stkpick_','');
+    const catsEl = document.getElementById('stkcats_'+postId);
+    if(catsEl && !catsEl.innerHTML){
+      catsEl.innerHTML = STK_CATS.map(c=>`
+        <button class="stk-cat-btn" style="background:${c.color};" onclick="loadStickerCat('${c.q}','${pickerId}','${targetId}','${c.label}')">
+          <span style="font-size:1.3rem;">${c.emoji}</span>${c.label}
+        </button>`).join('');
+    }
+    const inp = document.getElementById('stksearch_'+postId);
+    if(inp) setTimeout(()=>inp.focus(),100);
+  }
+}
+
+function closeStickerPicker(pickerId){
+  const picker = document.getElementById(pickerId);
+  if(picker) picker.classList.remove('open');
+}
+
+let _stkDebounce = null;
+async function loadStickerCat(query, pickerId, targetId, label){
+  const postId = pickerId.replace('stkpick_','');
+  const contentEl = document.getElementById('stkcontent_'+postId);
+  if(!contentEl) return;
+  contentEl.innerHTML = `
+    <div style="display:flex;align-items:center;padding:4px 8px;border-bottom:1px solid #e4e6eb;">
+      <button class="stk-back" onclick="resetStickerCats('${pickerId}')">← Volver</button>
+      <span style="font-size:.82rem;font-weight:700;color:#050505;flex:1;text-align:center;">${label}</span>
+    </div>
+    <div class="stk-grid" id="stkgrid_${postId}">
+      <div style="grid-column:1/-1;text-align:center;padding:20px;color:#65676b;font-size:.82rem;">⏳ Cargando...</div>
+    </div>`;
+  try {
+    const res = await fetch(\`https://api.giphy.com/v1/stickers/search?api_key=6JhiiqPRlv7emFmLUm5z9Q9palmKtLq6&q=\${encodeURIComponent(query)}&limit=15&rating=g\`);
+    const data = await res.json();
+    renderStickerResults(data.data, postId, pickerId, targetId);
+  } catch(e){
+    const g = document.getElementById('stkgrid_'+postId);
+    if(g) g.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:12px;color:#65676b;">Error cargando</div>';
+  }
+}
+
+async function searchStickers(query, pickerId, targetId){
+  clearTimeout(_stkDebounce);
+  const postId = pickerId.replace('stkpick_','');
+  if(!query.trim()){
+    resetStickerCats(pickerId);
+    return;
+  }
+  _stkDebounce = setTimeout(async()=>{
+    const contentEl = document.getElementById('stkcontent_'+postId);
+    if(!contentEl) return;
+    contentEl.innerHTML = `
+      <div style="display:flex;align-items:center;padding:4px 8px;border-bottom:1px solid #e4e6eb;">
+        <button class="stk-back" onclick="resetStickerCats('${pickerId}')">← Volver</button>
+        <span style="font-size:.82rem;font-weight:700;color:#050505;flex:1;text-align:center;">${query}</span>
+      </div>
+      <div class="stk-grid" id="stkgrid_${postId}">
+        <div style="grid-column:1/-1;text-align:center;padding:20px;color:#65676b;">🔍 Buscando...</div>
+      </div>`;
+    try {
+      const res = await fetch(\`https://api.giphy.com/v1/stickers/search?api_key=6JhiiqPRlv7emFmLUm5z9Q9palmKtLq6&q=\${encodeURIComponent(query)}&limit=15&rating=g\`);
+      const data = await res.json();
+      renderStickerResults(data.data, postId, pickerId, targetId);
+    } catch(e){}
+  }, 400);
+}
+
+function renderStickerResults(stickers, postId, pickerId, targetId){
+  const grid = document.getElementById('stkgrid_'+postId);
+  if(!grid) return;
+  if(!stickers||!stickers.length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:16px;color:#65676b;">Sin resultados</div>';
+    return;
+  }
+  grid.innerHTML = stickers.map(s=>{
+    const url = s.images?.fixed_height_small?.url || s.images?.original?.url;
+    const orig = s.images?.original?.url || url;
+    return \`<div class="stk-item" onclick="sendSticker('\${orig}','\${pickerId}','\${targetId}')"><img src="\${url}" loading="lazy" alt="sticker"></div>\`;
+  }).join('');
+}
+
+function resetStickerCats(pickerId){
+  const postId = pickerId.replace('stkpick_','');
+  const contentEl = document.getElementById('stkcontent_'+postId);
+  const inp = document.getElementById('stksearch_'+postId);
+  if(inp) inp.value = '';
+  if(contentEl) contentEl.innerHTML = \`<div class="stk-cats" id="stkcats_\${postId}">\${STK_CATS.map(c=>\`
+    <button class="stk-cat-btn" style="background:\${c.color};" onclick="loadStickerCat('\${c.q}','\${pickerId}',document.getElementById('\${pickerId}').dataset.target,'\${c.label}')">
+      <span style="font-size:1.3rem;">\${c.emoji}</span>\${c.label}
+    </button>\`).join('')}</div>\`;
+}
+
+function sendSticker(gifUrl, pickerId, targetId){
+  closeStickerPicker(pickerId);
+  // Same as sendGif — stickers are animated GIFs
+  if(targetId === 'chatInput'){
+    sendChatMsg(gifUrl);
+  } else {
+    submitCommentGif(gifUrl, targetId.replace('cinp_',''));
+  }
+}
+
 // ===== GIPHY =====
 const GIPHY_KEY = '6JhiiqPRlv7emFmLUm5z9Q9palmKtLq6';
 let _gifDebounce = null;
@@ -11040,7 +11193,7 @@ const _expose = {
   insertEmoji,insertFishTag,openEmojiPicker,insertEmojiChar,
   toggleComments,sharePost,
   reactCmt,editCmt,delCmt,quickCmtRxn,replyCmt,toggleReplies,
-  openImgLightbox,openImgLightboxById,swPTab,filterShopCat,toggleEquipItem,
+  openImgLightbox,openImgLightboxById,toggleStickerPicker,closeStickerPicker,loadStickerCat,searchStickers,sendSticker,resetStickerCats,swPTab,filterShopCat,toggleEquipItem,
   showRxnPop,schedHideRxnPop,cancelHideRxnPop,
   openSV,closeSV,svNav,reactStory,reportStory,submitStoryComment,deleteMyStory,
   doSearch,
