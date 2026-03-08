@@ -2957,7 +2957,7 @@ window._usersShop = {}; // cache shopEquipped
 let _usersLastFetch = 0;
 async function listenVerifiedUsers(){
   // Solo recargar si pasaron más de 5 minutos
-  if(Date.now() - _usersLastFetch < 300000 && Object.keys(window._verifUsers||{}).length > 0) return;
+  if(Date.now() - _usersLastFetch < 1800000 && Object.keys(window._verifUsers||{}).length > 0) return; // Cache 30 min
   try {
     const snap = await getDocs(collection(db,'users'));
     window._verifUsers = {};
@@ -2977,12 +2977,12 @@ async function listenPosts() {
   await _fetchPosts();
   // Polling cada 2 minutos en lugar de onSnapshot continuo
   if(_postsPollingInterval) clearInterval(_postsPollingInterval);
-  _postsPollingInterval = setInterval(_fetchPosts, 120000);
+  _postsPollingInterval = setInterval(_fetchPosts, 300000); // Optimizado: cada 5 min
 }
 
 async function _fetchPosts(){
   try {
-    const snap = await getDocs(query(collection(db, 'posts'), orderBy('time', 'desc'), limit(60)));
+    const snap = await getDocs(query(collection(db, 'posts'), orderBy('time', 'desc'), limit(30))); // Optimizado: 30 posts
     _posts = snap.docs.map(d => ({ id: d.id, ...d.data(), time: d.data().time?.toMillis?.() || Date.now() }));
     const activePage = document.querySelector('.page.active');
     const pageId = activePage ? activePage.id : '';
@@ -3002,12 +3002,12 @@ let _storiesPollingInterval = null;
 async function listenStories() {
   await _fetchStories();
   if(_storiesPollingInterval) clearInterval(_storiesPollingInterval);
-  _storiesPollingInterval = setInterval(_fetchStories, 180000);
+  _storiesPollingInterval = setInterval(_fetchStories, 480000); // Optimizado: cada 8 min
 }
 
 async function _fetchStories(){
   try {
-    const snap = await getDocs(query(collection(db, 'stories'), orderBy('time', 'desc'), limit(40)));
+    const snap = await getDocs(query(collection(db, 'stories'), orderBy('time', 'desc'), limit(20))); // Optimizado: 20 stories
     const now = Date.now();
     const expiredIds = [];
     _stories = snap.docs.filter(d => {
@@ -6488,29 +6488,22 @@ function listenNotifs(){
   listenUnreadMsgsBadge();
 }
 
-// Escucha mensajes no leídos en tiempo real de todos los amigos
+// Escucha mensajes no leídos - optimizado con polling en vez de onSnapshot por amigo
 let _unsubMsgBadgeListeners = [];
-function listenUnreadMsgsBadge(){
-  _unsubMsgBadgeListeners.forEach(u=>u());
-  _unsubMsgBadgeListeners = [];
+let _msgBadgeInterval = null;
+async function _fetchUnreadMsgs(){
   const friends = window.CU?.friendsList || [];
   const myId = window.CU?.id;
   if(!myId || !friends.length) return;
-  friends.forEach(f=>{
-    const chatId = [myId, f.id].sort().join('_');
-    // Escuchar los últimos 20 mensajes para contar no leídos correctamente
-    const q = query(
-      collection(db,'chats',chatId,'messages'),
-      orderBy('time','desc'),
-      limit(20)
-    );
-    const unsub = onSnapshot(q, snap=>{
-      // Contar no leídos
+  await Promise.all(friends.map(async f=>{
+    try {
+      const chatId = [myId, f.id].sort().join('_');
+      const q = query(collection(db,'chats',chatId,'messages'), orderBy('time','desc'), limit(15));
+      const snap = await getDocs(q);
       const unreadCount = snap.docs.filter(d=>{
         const m = d.data();
         return m.uid !== myId && !m.read && !(m.deletedFor||{})[myId];
       }).length;
-      // Buscar el último mensaje visible (no borrado para mí)
       const visibleDoc = snap.docs.find(d=>!(d.data().deletedFor||{})[myId]);
       const lm = _chatLastMsgs[f.id] || {};
       if(visibleDoc){
@@ -6526,17 +6519,21 @@ function listenUnreadMsgsBadge(){
       } else {
         _chatLastMsgs[f.id] = { ...lm, unread: false, unreadCount: 0 };
       }
-      updateMsgBadge();
-      // Re-render lista si está visible
-      if(_messengerOpen){
-        const _ub_list = document.getElementById('messengerList');
-        if(_ub_list && _ub_list.style.display !== 'none'){
-          _ub_list.innerHTML = _buildMessengerHTML();
-        }
-      }
-    });
-    _unsubMsgBadgeListeners.push(unsub);
-  });
+    } catch(e){}
+  }));
+  updateMsgBadge();
+  if(_messengerOpen){
+    const _ub_list = document.getElementById('messengerList');
+    if(_ub_list && _ub_list.style.display !== 'none') _ub_list.innerHTML = _buildMessengerHTML();
+  }
+}
+function listenUnreadMsgsBadge(){
+  _unsubMsgBadgeListeners.forEach(u=>{ if(typeof u==='function') u(); });
+  _unsubMsgBadgeListeners = [];
+  if(_msgBadgeInterval) clearInterval(_msgBadgeInterval);
+  _fetchUnreadMsgs();
+  // Polling cada 90 segundos en vez de onSnapshot por cada amigo
+  _msgBadgeInterval = setInterval(_fetchUnreadMsgs, 90000);
 }
 
 // ===== MESSENGER =====
@@ -9303,29 +9300,32 @@ async function startPresence(){
   await setDoc(presRef, {nick:window.CU.nick, av:window.CU.av||'', last:serverTimestamp(), device:_device}, {merge:true});
   _presenceInterval = setInterval(async()=>{
     if(window.CU) await setDoc(presRef,{nick:window.CU.nick,av:window.CU.av||'',last:serverTimestamp(),device:_device},{merge:true});
-  }, 30000);
+  }, 120000); // Optimizado: cada 2 min en vez de 30 seg
   listenPresence();
 }
 
-function listenPresence(){
+let _presencePollingInterval = null;
+async function _fetchPresence(){
   try {
-    onSnapshot(collection(db,'presence'), snap=>{
-      const now = Date.now();
-      const all = snap.docs.map(d=>({id:d.id,...d.data(),ts:d.data().last?.toMillis?.()||0}));
-      const online = all.filter(u=>now - u.ts < 120000);
-      const offline = all.filter(u=>now - u.ts >= 120000 && u.ts > 0)
-        .sort((a,b)=>b.ts-a.ts).slice(0,8);
-      renderContacts(online);
-      document.querySelectorAll('#onlineCount,#sidebarOnlineCount').forEach(el=>{ if(el) el.textContent=online.length; });
-      renderSidebarOnline(online, offline);
-    }, err=>{
-      console.warn('listenPresence error:', err.code, err.message);
-      const el = document.getElementById('sidebarOnlineList');
-      if(el) el.innerHTML = `<div style="font-size:.72rem;color:#ff7043;padding:8px 4px;">⚠️ Sin permiso en Firestore.<br><span style="color:var(--muted);">Agregá reglas para <b>presence</b></span></div>`;
-    });
-  } catch(e) {
-    console.error('listenPresence catch:', e);
+    const snap = await getDocs(collection(db,'presence'));
+    const now = Date.now();
+    const all = snap.docs.map(d=>({id:d.id,...d.data(),ts:d.data().last?.toMillis?.()||0}));
+    const online = all.filter(u=>now - u.ts < 180000);
+    const offline = all.filter(u=>now - u.ts >= 180000 && u.ts > 0)
+      .sort((a,b)=>b.ts-a.ts).slice(0,8);
+    renderContacts(online);
+    document.querySelectorAll('#onlineCount,#sidebarOnlineCount').forEach(el=>{ if(el) el.textContent=online.length; });
+    renderSidebarOnline(online, offline);
+  } catch(err){
+    console.warn('listenPresence error:', err.code, err.message);
+    const el = document.getElementById('sidebarOnlineList');
+    if(el) el.innerHTML = `<div style="font-size:.72rem;color:#ff7043;padding:8px 4px;">⚠️ Sin permiso en Firestore.<br><span style="color:var(--muted);">Agregá reglas para <b>presence</b></span></div>`;
   }
+}
+function listenPresence(){
+  _fetchPresence();
+  if(_presencePollingInterval) clearInterval(_presencePollingInterval);
+  _presencePollingInterval = setInterval(_fetchPresence, 180000);
 }
 
 function fmtLastSeen(ts){
@@ -9786,24 +9786,28 @@ function renderMessengerList(){
   if(!window._chatUserAvCache) window._chatUserAvCache = {};
   (window.CU?.friendsList||[]).forEach(f=>{ if(f.av) window._chatUserAvCache[f.id]=f.av; });
 
-  // Listener de presencia SEPARADO del chat (no se cancela al abrir chat)
-  if(_messengerListUnsub){ _messengerListUnsub(); _messengerListUnsub=null; }
-  _messengerListUnsub = onSnapshot(collection(db,'presence'), async snap=>{
-    const now = Date.now();
-    _messengerOnlineIds = new Set(
-      snap.docs
-        .map(d=>({id:d.id, ts:d.data().last?.toMillis?.()||0}))
-        .filter(u=>u.id!==window.CU?.id && now-u.ts<120000)
-        .map(u=>u.id)
-    );
-    // Actualizar último mensaje de cada amigo
+  // Polling cada 2 minutos en vez de onSnapshot continuo para presencia del messenger
+  if(_messengerListUnsub){ clearInterval(_messengerListUnsub); _messengerListUnsub=null; }
+  async function _refreshMessengerPresence(){
+    try {
+      const snap = await getDocs(collection(db,'presence'));
+      const now = Date.now();
+      _messengerOnlineIds = new Set(
+        snap.docs
+          .map(d=>({id:d.id, ts:d.data().last?.toMillis?.()||0}))
+          .filter(u=>u.id!==window.CU?.id && now-u.ts<180000)
+          .map(u=>u.id)
+      );
+    } catch(e){}
+    // Actualizar último mensaje de cada amigo (solo si no se cargó antes)
     const friends = window.CU?.friendsList || [];
     const myId = window.CU?.id;
     if(!myId) return;
     await Promise.all(friends.map(async f=>{
+      if(_chatLastMsgs[f.id]) return; // Ya cargado, no releer
       try {
         const chatId = [myId, f.id].sort().join('_');
-        const q = query(collection(db,'chats',chatId,'messages'), orderBy('time','desc'), limit(30));
+        const q = query(collection(db,'chats',chatId,'messages'), orderBy('time','desc'), limit(20));
         const s = await getDocs(q);
         const visible = s.docs.find(d=>!(d.data().deletedFor||{})[myId]);
         if(visible){
@@ -9817,19 +9821,19 @@ function renderMessengerList(){
             unreadCount
           };
         } else {
-          // Sin mensajes visibles pero puede estar archivado — mantener entrada vacía para que aparezca en "archivados"
           if(!_chatLastMsgs[f.id]) _chatLastMsgs[f.id] = { text:'', time:0, mine:false, unread:false, unreadCount:0 };
         }
       } catch(e){}
     }));
-    // Re-render con datos frescos
     const list2 = document.getElementById('messengerList');
     if(list2 && list2.style.display !== 'none'){
       list2.innerHTML = _buildMessengerHTML();
       (window.CU?.friendsList||[]).forEach(f=>{ if(f.av && window._chatUserAvCache) window._chatUserAvCache[f.id]=f.av; });
     }
     updateMsgBadge();
-  });
+  }
+  _refreshMessengerPresence();
+  _messengerListUnsub = setInterval(_refreshMessengerPresence, 120000);
 }
 
 
