@@ -6186,6 +6186,9 @@ function postHTML(p){
             onkeypress="if(event.key==='Enter'){event.preventDefault();submitComment('${p.id}');}"
             oninput="handleMentionInput(this,'${p.id}')" style="flex:1;background:transparent;border:none;padding:9px 12px;">
           <button onclick="openEmojiPicker(event,'cinp_${p.id}')" style="background:none;border:none;font-size:1rem;cursor:pointer;padding:4px;color:#65676b;" title="Emoji">😊</button>
+          <label style="background:none;border:none;font-size:1rem;cursor:pointer;padding:4px;color:#65676b;display:flex;align-items:center;" title="Imagen">
+            🖼️<input type="file" accept="image/*" style="display:none;" onchange="submitCommentImg(this,'${p.id}')">
+          </label>
           <button onclick="toggleStickerPicker('stkpick_${p.id}','cinp_${p.id}')" style="background:none;border:none;font-size:1rem;cursor:pointer;padding:4px;color:#65676b;" title="Stickers">🎭</button>
           <button onclick="toggleGifPicker('gifpick_${p.id}','cinp_${p.id}')" style="background:none;border:none;font-size:.6rem;font-weight:900;cursor:pointer;padding:3px 5px;color:#65676b;border:1px solid #65676b;border-radius:4px;line-height:1;" title="GIF">GIF</button>
           <div class="gif-picker" id="gifpick_${p.id}" style="bottom:calc(100% + 4px);">
@@ -7027,6 +7030,58 @@ function replyCmt(e, pid, nick){
   // Scroll input into view
   inp.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
+
+async function submitCommentImg(input, pid){
+  if(!window.CU){ toast('Inicia sesión para comentar','err'); return; }
+  const file = input.files[0];
+  if(!file) return;
+  input.value = '';
+  toast('Subiendo imagen...','inf');
+  try {
+    const imgUrl = await uploadImage(file, 'comments');
+    let p = _posts.find(p=>p.id===pid);
+    if(!p){
+      const snap = await getDoc(doc(db,'posts',pid));
+      if(!snap.exists()){ toast('Post no encontrado','err'); return; }
+      p = {id:snap.id,...snap.data()};
+      _posts.push(p);
+    }
+    const newC = {userId:window.CU.id, nick:window.CU.nick, av:window.CU.av||'', verified:window.CU.verified||false, text:'', gif:imgUrl, time:Date.now()};
+    const newComments = [...(p.comments||[]), newC];
+    await updateDoc(doc(db,'posts',pid), {comments: newComments});
+    p.comments = newComments;
+    if(p.userId && p.userId !== window.CU.id){
+      sendNotifToUserWithPost(p.userId, `🖼️ ${window.CU.nick} comentó con una imagen`, p.id);
+    }
+    addXP(3,'comentario');
+    const cmtsEl = document.getElementById('cmts_'+pid);
+    if(cmtsEl){
+      cmtsEl.classList.add('open');
+      // Re-render comments section
+      const inp = document.getElementById('cinp_'+pid);
+      if(inp && inp.parentElement && inp.parentElement.parentElement){
+        const cmtList = cmtsEl.querySelector('.cmt-list');
+        if(cmtList){
+          const newCmtDiv = document.createElement('div');
+          newCmtDiv.innerHTML = `<div style="display:flex;gap:8px;padding:6px 0;">
+            <div style="width:32px;height:32px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--accent);">
+              ${window.CU.av?'<img src="'+window.CU.av+'" style="width:100%;height:100%;object-fit:cover;">':window.CU.nick[0]}
+            </div>
+            <div><div style="font-size:.82rem;font-weight:700;">${esc(window.CU.nick)}</div>
+            <img src="${imgUrl}" style="max-width:200px;border-radius:8px;margin-top:4px;display:block;" loading="lazy"></div>
+          </div>`;
+          cmtList.appendChild(newCmtDiv.firstElementChild);
+        }
+      }
+    }
+    toast('Imagen enviada 🖼️','ok');
+  } catch(e){
+    console.error('submitCommentImg error:',e);
+    toast('Error al subir imagen','err');
+  }
+}
+window.submitCommentImg = submitCommentImg;
+
 async function submitComment(pid){
   if(!window.CU){ toast('Inicia sesión para comentar','err'); return; }
   const inp = document.getElementById('cinp_'+pid);
