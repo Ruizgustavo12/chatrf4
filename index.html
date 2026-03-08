@@ -3529,20 +3529,14 @@ async function doReg(){
 
 function onLogin(){
   updateNavUI();
-  listenVerifiedUsers().then(()=>{
-    listenPosts();
-    listenStories();
-  }).catch(()=>{
-    listenPosts();
-    listenStories();
-  });
+  listenVerifiedUsers().then(()=>{ listenPosts(); listenStories(); }).catch(()=>{ listenPosts(); listenStories(); });
   startPresence().then(()=>{ if(typeof updatePresenceActivity==='function') updatePresenceActivity('home'); });
   listenNotifs();
   listenTrofeosSidebar();
   loadAds();
   loadPezSemana();
   loadXPLevels();
-  loadShopEquipped(); // cargar ítems equipados de tienda
+  loadShopEquipped();
   // Update "Crear historia" card with user photo
   const storyPhoto = document.getElementById('storyAddPhoto');
   const storyPhotoInner = document.getElementById('storyAddPhotoInner');
@@ -3557,6 +3551,7 @@ function onLogin(){
     }
   }
   checkFriendsBirthdays();
+  if(typeof window._checkChangelog === 'function') window._checkChangelog();
   loadRealFriends().then(()=>{
     renderProfile();
     renderSidebarFriends();
@@ -13266,5 +13261,101 @@ window.setUserRole         = setUserRole;
   <div id="emojiPickerGrid" style="display:grid;grid-template-columns:repeat(8,1fr);gap:2px;"></div>
 </div>
 
-</body>
+<!-- CHANGELOG ADMIN NOTIFICATION -->
+<script>
+// ═══════════════════════════════════════════════════════
+// CHANGELOG — Solo visible para ruizgustavo12
+// Actualizar VERSION y CHANGES cada vez que se sube un index nuevo
+// ═══════════════════════════════════════════════════════
+const _CL_VERSION = '2026-03-08-v14';
+const _CL_CHANGES = [
+  { emoji:'🎵', text:'Búsqueda de música con debounce — resultados mientras escribís en YouTube y Deezer' },
+  { emoji:'▶',  text:'Preview hover en resultados de YouTube — hover 800ms y arranca el video mute' },
+  { emoji:'🔁', text:'Compartir publicaciones con modal estilo Facebook — podés escribir algo antes de compartir' },
+  { emoji:'💬', text:'Comentarios ya no cierran el modal al enviar — se actualizan en tiempo real' },
+  { emoji:'😍', text:'Reacciones actualizan el botón y contador al instante sin recargar el feed' },
+  { emoji:'🎵', text:'Música en historias: Enter para buscar, preview al hover en resultados Deezer' },
+  { emoji:'🐉', text:'Efecto Dragones en tienda — solo verificados pueden equiparlo' },
+  { emoji:'🏆', text:'Banner trofeo flotante 6 segundos — widget estático eliminado del feed' },
+  { emoji:'⚡', text:'Firebase optimizado: lecturas reducidas de 180k a ~40k por día' },
+];
+
+const _CL_KEY = 'cl_seen_' + _CL_VERSION;
+
+function _showChangelog(){
+  if(localStorage.getItem(_CL_KEY)) return; // ya lo vio
+  
+  const toast = document.createElement('div');
+  toast.id = '_clToast';
+  toast.style.cssText = `
+    position:fixed;top:70px;right:16px;z-index:99999;
+    background:linear-gradient(135deg,#1a2a1a,#0d1f0d);
+    border:1.5px solid #3fb950;border-radius:14px;
+    padding:14px 16px;max-width:320px;
+    box-shadow:0 8px 32px rgba(0,0,0,.6),0 0 20px rgba(63,185,80,.15);
+    cursor:pointer;animation:_clIn .4s cubic-bezier(.34,1.56,.64,1) forwards;
+  `;
+  toast.innerHTML = `
+    <style>@keyframes _clIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}</style>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="font-size:1.4rem;flex-shrink:0;">🛠️</div>
+      <div style="flex:1;">
+        <div style="font-size:.8rem;font-weight:900;color:#3fb950;letter-spacing:.5px;">ACTUALIZACIÓN DISPONIBLE</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.7);margin-top:2px;">${_CL_CHANGES.length} cambios nuevos · Click para ver</div>
+      </div>
+      <button onclick="event.stopPropagation();localStorage.setItem('${_CL_KEY}','1');document.getElementById('_clToast').remove();" 
+        style="background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.5);width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:.75rem;flex-shrink:0;">✕</button>
+    </div>
+  `;
+  toast.addEventListener('click', ()=>{
+    toast.remove();
+    _showChangelogModal();
+  });
+  document.body.appendChild(toast);
+  
+  // Auto-hide after 15s si no lo tocó
+  setTimeout(()=>{ const t=document.getElementById('_clToast'); if(t) t.style.animation='_clIn .3s reverse forwards'; setTimeout(()=>{ const t=document.getElementById('_clToast'); if(t) t.remove(); },300); }, 15000);
+}
+
+function _showChangelogModal(){
+  localStorage.setItem(_CL_KEY,'1');
+  const m = document.createElement('div');
+  m.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;';
+  m.innerHTML = `
+    <div style="background:#161b22;border:1px solid #30363d;border-radius:16px;width:460px;max-width:95vw;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.8);">
+      <div style="padding:18px 20px 14px;border-bottom:1px solid #30363d;display:flex;align-items:center;gap:12px;">
+        <div style="font-size:1.5rem;">🛠️</div>
+        <div style="flex:1;">
+          <div style="font-family:'Orbitron',monospace;font-size:.9rem;font-weight:900;color:#3fb950;">Cambios del día</div>
+          <div style="font-size:.68rem;color:#7d8590;margin-top:2px;">Versión ${_CL_VERSION}</div>
+        </div>
+        <button onclick="this.closest('div[style*=inset]').remove()" style="background:#21262d;border:none;color:#7d8590;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;">✕</button>
+      </div>
+      <div style="overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px;">
+        ${_CL_CHANGES.map((c,i)=>`
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 12px;background:#1c2128;border-radius:10px;border:1px solid #30363d;animation:_clIn .3s ease ${i*0.05}s both;">
+            <span style="font-size:1.2rem;flex-shrink:0;margin-top:1px;">${c.emoji}</span>
+            <span style="font-size:.82rem;color:#e6edf3;line-height:1.5;">${c.text}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div style="padding:12px 20px;border-top:1px solid #30363d;text-align:center;">
+        <button onclick="this.closest('div[style*=inset]').remove()" style="background:linear-gradient(135deg,#3fb950,#2ea043);border:none;color:#fff;padding:9px 28px;border-radius:8px;font-family:'Exo 2',sans-serif;font-weight:700;cursor:pointer;font-size:.85rem;">✅ Entendido</button>
+      </div>
+    </div>
+  `;
+  m.addEventListener('click', e=>{ if(e.target===m) m.remove(); });
+  document.body.appendChild(m);
+}
+
+// Hook en onAuthStateChanged — mostrar solo si es ruizgustavo12
+window._checkChangelog = function(){
+  const nick = window.CU?.nick;
+  const email = window.CU?.email;
+  if(nick === 'ruizgustavo12' || email === 'synxyes@gmail.com'){
+    setTimeout(_showChangelog, 2000); // esperar que cargue todo
+  }
+};
+window._showChangelogModal = _showChangelogModal;
+</script></body>
 </html>
