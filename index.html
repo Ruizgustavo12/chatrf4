@@ -3232,7 +3232,7 @@ function onLogin(){
     listenPosts();
     listenStories();
   });
-  startPresence();
+  startPresence().then(()=>{ if(typeof updatePresenceActivity==='function') updatePresenceActivity('home'); });
   listenNotifs();
   listenTrofeosSidebar();
   loadAds();
@@ -11626,11 +11626,7 @@ async function searchSpotify(){
     <div style="font-size:1.8rem;margin-bottom:8px;">🎵</div><div>Buscando en YouTube...</div></div>`;
 
   // Usamos Invidious (instancia pública de YouTube sin API key)
-  const instances = [
-    'https://inv.nadeko.net',
-    'https://invidious.privacydev.net',
-    'https://vid.puffyan.us',
-  ];
+  const instances = _YT_SEARCH_INSTANCES;
 
   for(const base of instances){
     try {
@@ -11683,34 +11679,26 @@ function renderYTFallback(q){
   </div>`;
 }
 
-// Instancias Invidious para embed (sin restricciones de embedding)
-const _YT_EMBED_INSTANCES = [
+// Instancias Invidious para búsqueda
+const _YT_SEARCH_INSTANCES = [
   'https://inv.nadeko.net',
   'https://invidious.privacydev.net',
   'https://iv.melmac.space',
 ];
-let _ytEmbedBase = _YT_EMBED_INSTANCES[0];
 
 function playYouTube(videoId, title){
+  // Usar youtube-nocookie.com que tiene menos restricciones de embed
   const wrap = document.getElementById('musicPlayerWrap');
   const iframe = document.getElementById('spotifyEmbed');
   if(!wrap || !iframe) return;
 
-  // Usar Invidious embed — no tiene restricciones de embedding como YouTube
-  iframe.src = `${_ytEmbedBase}/embed/${videoId}?autoplay=1&local=1`;
+  iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
   iframe.style.height = '220px';
-  iframe.onerror = () => {
-    // Si falla, probar siguiente instancia
-    const idx = _YT_EMBED_INSTANCES.indexOf(_ytEmbedBase);
-    if(idx < _YT_EMBED_INSTANCES.length - 1){
-      _ytEmbedBase = _YT_EMBED_INSTANCES[idx + 1];
-      iframe.src = `${_ytEmbedBase}/embed/${videoId}?autoplay=1&local=1`;
-    }
-  };
-  // Actualizar link directo a YouTube
+  wrap.style.display = 'block';
+
   const ytLink = document.getElementById('musicYTLink');
   if(ytLink) ytLink.href = `https://www.youtube.com/watch?v=${videoId}`;
-  wrap.style.display = 'block';
+
   setTimeout(()=>wrap.scrollIntoView({behavior:'smooth',block:'end'}), 100);
   toast(`▶ ${title}`,'ok');
 }
