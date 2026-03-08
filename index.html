@@ -1285,6 +1285,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
         <div class="sv-music-title" style="font-size:.75rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
         <div class="sv-music-artist" style="font-size:.65rem;color:rgba(255,255,255,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
       </div>
+      <div class="sv-music-playbtn" style="display:none;width:26px;height:26px;background:rgba(255,255,255,.2);border-radius:50%;align-items:center;justify-content:center;cursor:pointer;font-size:.75rem;flex-shrink:0;">▶</div>
       <span style="font-size:.75rem;">🎵</span>
     </div>
 
@@ -4331,8 +4332,22 @@ function renderSV(){
   if(s.music && s.music.preview){
     const audio = new Audio(s.music.preview);
     audio.volume = 0.8;
-    audio.play().catch(()=>{});
     window._svAudio = audio;
+    // Intentar play — si falla por autoplay policy, esperar click del usuario
+    const playPromise = audio.play();
+    if(playPromise !== undefined){
+      playPromise.catch(()=>{
+        // Autoplay bloqueado — mostrar botón play en la barra
+        const svBar = document.getElementById('svMusicBar');
+        if(svBar){
+          const playBtn = svBar.querySelector('.sv-music-playbtn');
+          if(playBtn){
+            playBtn.style.display = 'flex';
+            playBtn.onclick = () => { audio.play(); playBtn.style.display = 'none'; };
+          }
+        }
+      });
+    }
     if(svMusic){
       svMusic.style.display = 'flex';
       const cover = svMusic.querySelector('.sv-music-cover');
