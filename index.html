@@ -5933,21 +5933,47 @@ function postHTML(p){
     const _sharedClick = p.sharedPostId ? ' onclick="scrollToPost(\'' + p.sharedPostId + '\')" style="margin:0 14px 10px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--bg3);cursor:pointer;"' : ' style="margin:0 14px 10px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--bg3);"';
     return '<div'+_sharedClick+'>'      +'<div style="display:flex;align-items:center;gap:8px;padding:10px 12px 8px;">'        +'<div style="width:32px;height:32px;border-radius:50%;border:1px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;color:var(--accent);background:var(--bg4);flex-shrink:0;">'+origAvHTML+'</div>'        +'<div style="flex:1;min-width:0;">'          +'<div style="font-size:.84rem;font-weight:700;color:var(--text);">'+esc(origNick||'')+'</div>'          +(origText ? '<div style="font-size:.78rem;color:var(--muted);margin-top:1px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">'+esc(origText)+'</div>' : '')        +'</div>'        +(p.sharedPostId ? '<div style="font-size:.72rem;color:var(--accent);flex-shrink:0;padding-left:6px;">Ver →</div>' : '')      +'</div>'      +sharedMediaHTML      +(!origText && !origImg && !origYtId ? '<div style="padding:10px 12px;font-size:.78rem;color:var(--muted);">📸 Publicación compartida</div>' : '')    +'</div>';
   })() : '';
+  // Detectar URL en el texto si no hay link guardado
+  const _postUrl = (p.link?.url) || (p.text&&(p.text.match(/https?:\/\/[^\s]+/)||[])[0]) || '';
   const linkHTML = (function(){
     var lnk = p.link || null;
-    if(!lnk && p.text){ var _um=(p.text.match(/https?:\/\/[^\s]+/)||[])[0]; if(_um) return '<div style="padding:0 14px 6px;"><a href="'+esc(_um)+'" target="_blank" rel="noopener" style="color:#5897fb;font-size:.83rem;text-decoration:none;word-break:break-all;">'+esc(_um)+'</a></div>'; }
-    if(!lnk) return '';
-    var disp=lnk.url||''; try{disp=new URL(lnk.url).hostname+(new URL(lnk.url).pathname.length>1?new URL(lnk.url).pathname:'');}catch(e){}
-    if(disp.length>60) disp=disp.slice(0,60)+'...';
-    var imgPart=lnk.img?'<img src="'+esc(lnk.img)+'" style="width:100%;max-height:280px;object-fit:cover;display:block;" loading="lazy">':'';
-    var sitePart=lnk.site?'<div style="font-size:.63rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">'+esc(lnk.site.toUpperCase())+'</div>':'';
-    var descPart=lnk.desc?'<div style="font-size:.8rem;color:var(--muted);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">'+esc(lnk.desc)+'</div>':'';
-    return '<div style="margin:0 0 10px;">'
-      +'<div style="padding:0 14px 5px;"><a href="'+esc(lnk.url)+'" target="_blank" rel="noopener" style="color:#5897fb;font-size:.82rem;text-decoration:none;word-break:break-all;">'+esc(disp)+'</a></div>'
-      +'<a href="'+esc(lnk.url)+'" target="_blank" rel="noopener" style="display:block;text-decoration:none;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--bg3);">'
-      +imgPart
-      +'<div style="padding:10px 14px 12px;">'+sitePart+'<div style="font-size:.9rem;font-weight:700;color:var(--text);line-height:1.35;margin-bottom:4px;">'+esc(lnk.title||lnk.url)+'</div>'+descPart+'</div>'
-      +'</a></div>';
+    if(!lnk && !_postUrl) return '';
+    if(!lnk && _postUrl){
+      // URL en texto sin preview guardado — mostrar card con preview dinámico
+      var uid2 = 'lprev_'+p.id;
+      // Cargar preview asíncrono si no está en caché
+      if(!window._linkPreviewCache) window._linkPreviewCache = {};
+      if(!window._linkPreviewCache[_postUrl]){
+        window._linkPreviewCache[_postUrl] = 'loading';
+        (async function(){
+          try {
+            const resp = await fetch('https://api.allorigins.win/get?url='+encodeURIComponent(_postUrl));
+            const json = await resp.json();
+            const tmp2 = document.createElement('div');
+            tmp2.innerHTML = json.contents||'';
+            function gm2(k){ return (tmp2.querySelector('meta[property="'+k+'"]')||tmp2.querySelector('meta[name="'+k+'"]')||{getAttribute:()=>''}).getAttribute('content')||''; }
+            const title2 = gm2('og:title')||(tmp2.querySelector('title')||{}).textContent||_postUrl;
+            const desc2 = gm2('og:description')||gm2('description')||'';
+            const img2 = gm2('og:image')||'';
+            let site2=''; try{ site2=new URL(_postUrl).hostname; }catch(e){}
+            window._linkPreviewCache[_postUrl] = {url:_postUrl,title:title2,desc:desc2,img:img2,site:site2};
+            // Actualizar el DOM si el elemento todavía existe
+            const el2 = document.getElementById(uid2);
+            if(el2) el2.outerHTML = _buildLinkCard(window._linkPreviewCache[_postUrl]);
+          } catch(e){ window._linkPreviewCache[_postUrl] = null; }
+        })();
+      }
+      var cached = window._linkPreviewCache[_postUrl];
+      if(cached && cached !== 'loading') return _buildLinkCard(cached);
+      // Mientras carga mostrar skeleton
+      var disp2=_postUrl; try{disp2=new URL(_postUrl).hostname;}catch(e){}
+      return '<div id="'+uid2+'" style="margin:0 0 10px;"><a href="'+esc(_postUrl)+'" target="_blank" rel="noopener" style="display:block;text-decoration:none;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--bg3);padding:12px 14px;">'
+        +'<div style="font-size:.75rem;color:var(--muted);margin-bottom:4px;">🔗 '+esc(disp2)+'</div>'
+        +'<div style="height:12px;background:var(--border);border-radius:4px;width:60%;margin-bottom:6px;"></div>'
+        +'<div style="height:10px;background:var(--border);border-radius:4px;width:80%;"></div>'
+        +'</a></div>';
+    }
+    return _buildLinkCard(lnk);
   })();
   const isMyPost = window.CU && p.userId === window.CU.id;
   const CMT_RXNS=['👍','❤️','😂','😮','😢','🔥'];
@@ -6177,6 +6203,23 @@ function _autoLinkDetect(txt){
   if(m && m!==_autoLinkUrl){ _autoLinkUrl=m; clearTimeout(_autoLinkTmr); _autoLinkTmr=setTimeout(function(){ fetchLinkPreview(m); },900); }
   else if(!m && _autoLinkUrl){ _autoLinkUrl=''; clearPostLink(); }
 }
+function _buildLinkCard(lnk){
+  if(!lnk||!lnk.url) return '';
+  var disp=lnk.url; try{disp=new URL(lnk.url).hostname+(new URL(lnk.url).pathname.length>1?new URL(lnk.url).pathname:'');}catch(e){}
+  if(disp.length>55) disp=disp.slice(0,55)+'...';
+  var imgPart=lnk.img?'<img src="'+esc(lnk.img)+'" style="width:100%;max-height:240px;object-fit:cover;display:block;" loading="lazy" onerror="this.remove()">':'';
+  var sitePart=lnk.site?'<div style="font-size:.63rem;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;font-weight:700;">'+esc(lnk.site)+'</div>':'';
+  var descPart=lnk.desc?'<div style="font-size:.78rem;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:3px;">'+esc(lnk.desc)+'</div>':'';
+  return '<div style="margin:0 0 10px;">'
+    +'<a href="'+esc(lnk.url)+'" target="_blank" rel="noopener" style="display:block;text-decoration:none;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--bg3);transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">'
+    +imgPart
+    +'<div style="padding:10px 14px 12px;">'+sitePart
+    +'<div style="font-size:.88rem;font-weight:700;color:var(--text);line-height:1.35;">'+esc(lnk.title||lnk.url)+'</div>'
+    +descPart
+    +'<div style="font-size:.7rem;color:var(--muted);margin-top:6px;">🔗 '+esc(disp)+'</div>'
+    +'</div></a></div>';
+}
+
 async function fetchLinkPreview(url){
   if(!url) return;
   if(!url.startsWith('http')) url = 'https://' + url;
