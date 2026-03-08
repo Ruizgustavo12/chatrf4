@@ -9164,138 +9164,124 @@ function renderSidebarOnline(online, offline){
   const myId = window.CU?.id;
   const onlineFiltered = online.filter(u=>u.id !== myId);
 
-  // Banner builder for each user
+  // ── CSS animations para los 4 marcos ──
+  if(!document.getElementById('_presenceFrameCSS')){
+    const s = document.createElement('style');
+    s.id = '_presenceFrameCSS';
+    s.textContent = `
+      /* ONLINE PC — pulso azul eléctrico */
+      @keyframes _frmOnPC {
+        0%   { box-shadow: 0 0 0 2px #1877f2, 0 0 8px 2px rgba(24,119,242,.5); }
+        50%  { box-shadow: 0 0 0 2px #42a5f5, 0 0 16px 4px rgba(66,165,245,.7); }
+        100% { box-shadow: 0 0 0 2px #1877f2, 0 0 8px 2px rgba(24,119,242,.5); }
+      }
+      /* ONLINE MOBILE — pulso verde neón */
+      @keyframes _frmOnMob {
+        0%   { box-shadow: 0 0 0 2px #00e676, 0 0 8px 2px rgba(0,230,118,.5); }
+        50%  { box-shadow: 0 0 0 2px #69f0ae, 0 0 18px 5px rgba(105,240,174,.75); }
+        100% { box-shadow: 0 0 0 2px #00e676, 0 0 8px 2px rgba(0,230,118,.5); }
+      }
+      /* OFFLINE PC — parpadeo gris/morado suave */
+      @keyframes _frmOffPC {
+        0%,100% { box-shadow: 0 0 0 2px #5c6bc0, 0 0 5px 1px rgba(92,107,192,.3); }
+        50%     { box-shadow: 0 0 0 2px #9fa8da, 0 0 10px 3px rgba(159,168,218,.4); border-color:#9fa8da; }
+      }
+      /* OFFLINE MOBILE — destello naranja apagado */
+      @keyframes _frmOffMob {
+        0%,100% { box-shadow: 0 0 0 2px #bf360c, 0 0 4px 1px rgba(191,54,12,.25); }
+        50%     { box-shadow: 0 0 0 2px #ff7043, 0 0 9px 3px rgba(255,112,67,.35); }
+      }
+      .frm-on-pc  { animation: _frmOnPC  1.8s ease-in-out infinite; border: 2px solid #1877f2 !important; }
+      .frm-on-mob { animation: _frmOnMob 1.6s ease-in-out infinite; border: 2px solid #00e676 !important; }
+      .frm-off-pc { animation: _frmOffPC 3s ease-in-out infinite;   border: 2px solid #5c6bc0 !important; }
+      .frm-off-mob{ animation: _frmOffMob 3.5s ease-in-out infinite; border: 2px solid #bf360c !important; }
+    `;
+    document.head.appendChild(s);
+  }
+
+  function frameClass(isOnline, device){
+    if(isOnline)  return device==='mobile' ? 'frm-on-mob'  : 'frm-on-pc';
+    else          return device==='mobile' ? 'frm-off-mob' : 'frm-off-pc';
+  }
+
+  function devLabel(device, isOnline){
+    if(isOnline){
+      return device==='mobile'
+        ? `<span style="font-size:.6rem;font-weight:800;color:#00e676;letter-spacing:.04em;">📱 MÓVIL</span>`
+        : `<span style="font-size:.6rem;font-weight:800;color:#42a5f5;letter-spacing:.04em;">🖥️ PC</span>`;
+    } else {
+      return device==='mobile'
+        ? `<span style="font-size:.6rem;color:#ff7043;letter-spacing:.04em;">📱 móvil</span>`
+        : `<span style="font-size:.6rem;color:#9fa8da;letter-spacing:.04em;">🖥️ pc</span>`;
+    }
+  }
+
   function userBanner(u, isOnline){
     const nick = esc(u.nick||'?');
-    const initials = `<img src="${u.av||getDefaultAv(u.gender||'')}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
-    const devIcon = u.device==='mobile' ? '📱' : '🖥️';
+    const dev = u.device || 'desktop';
+    const fc = frameClass(isOnline, dev);
+    const bgCard = isOnline
+      ? (dev==='mobile' ? 'rgba(0,230,118,.06)' : 'rgba(24,119,242,.07)')
+      : 'rgba(255,255,255,.02)';
+    const borderColor = isOnline
+      ? (dev==='mobile' ? '#00e676' : '#1877f2')
+      : (dev==='mobile' ? '#bf360c' : '#5c6bc0');
     const statusText = isOnline
-      ? `<span style="color:#1877f2;font-size:.68rem;font-weight:600;">● En línea · ${devIcon}</span>`
-      : `<span style="color:#65676b;font-size:.68rem;">${fmtLastSeen(u.ts)} · ${devIcon}</span>`;
-
-    // Color palette for banner: online = fire orange/red, offline = dark purple/grey
-    const bannerBg = isOnline
-      ? '#ffffff'
-      : '#f0f2f5';
-    const emberColor = isOnline ? '#1877f2' : '#65676b';
-    const glowColor  = isOnline ? 'rgba(24,119,242,.15)' : 'rgba(0,0,0,.08)';
-    const rimColor   = isOnline ? '#1877f2' : '#ced0d4';
-
-    // Unique canvas ID
-    const cid = 'emb_'+u.id.replace(/[^a-z0-9]/gi,'_');
+      ? `<span style="font-size:.68rem;font-weight:600;color:${dev==='mobile'?'#00e676':'#42a5f5'};">● En línea</span>`
+      : `<span style="font-size:.68rem;color:var(--muted);">${fmtLastSeen(u.ts)}</span>`;
 
     return `
-      <div style="position:relative;margin-bottom:4px;border-radius:8px;overflow:hidden;cursor:pointer;
-           background:${bannerBg};border:1px solid ${isOnline?'rgba(24,119,242,.2)':'#ced0d4'};
-           box-shadow:0 1px 3px rgba(0,0,0,.1);transition:background .15s;height:42px;display:flex;align-items:center;"
-           onmouseover="this.style.background='#e7f3ff'"
-           onmouseout="this.style.background='${bannerBg}'"
+      <div style="position:relative;margin-bottom:5px;border-radius:10px;overflow:hidden;cursor:pointer;
+           background:${bgCard};border:1px solid ${borderColor};
+           transition:transform .15s,box-shadow .15s;height:46px;display:flex;align-items:center;"
+           onmouseover="this.style.transform='translateX(2px)'"
+           onmouseout="this.style.transform=''"
            onclick="openUserProfile('${u.id}','${nick}')">
 
-        <!-- Particle canvas background -->
-        <canvas id="${cid}" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.7;"></canvas>
-
-        <!-- Rim light left -->
-        <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,${rimColor},transparent,${rimColor});opacity:.8;border-radius:7px 0 0 7px;"></div>
-
-        <!-- Avatar -->
-        <div style="position:relative;flex-shrink:0;margin:0 7px;z-index:2;">
-          <div style="width:30px;height:30px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;
-               font-size:.75rem;font-weight:700;color:#fff;background:${isOnline?'#1877f2':'#65676b'};
-               border:2px solid ${isOnline?'#1877f2':'#ced0d4'};box-shadow:none;">
-            ${u.av?`<img src="${u.av}" style="width:100%;height:100%;object-fit:cover;${isOnline?'':'filter:grayscale(.3);'}">`:`${initials}`}
+        <!-- Avatar con marco animado -->
+        <div style="position:relative;flex-shrink:0;margin:0 8px;z-index:2;">
+          <div class="${fc}" style="width:30px;height:30px;border-radius:50%;overflow:hidden;
+               display:flex;align-items:center;justify-content:center;background:var(--bg3);">
+            <img src="${u.av||getDefaultAv(u.gender||'')}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;${isOnline?'':'filter:grayscale(.4);opacity:.8;'}">
           </div>
-          ${isOnline?`<div style="position:absolute;bottom:-1px;right:-1px;width:8px;height:8px;border-radius:50%;background:#4ade80;border:1.5px solid #1a0800;"></div>`:''}
+          ${isOnline?`<div style="position:absolute;bottom:-1px;right:-1px;width:9px;height:9px;border-radius:50%;
+            background:${dev==='mobile'?'#00e676':'#1877f2'};border:2px solid var(--bg2);
+            box-shadow:0 0 4px ${dev==='mobile'?'#00e676':'#1877f2'};"></div>`:''}
         </div>
 
-        <!-- Text -->
+        <!-- Texto -->
         <div style="flex:1;min-width:0;z-index:2;">
-          <div style="font-size:.82rem;font-weight:700;color:#050505;font-family:'Exo 2',sans-serif;
-               white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${nick}</div>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <span style="font-size:.8rem;font-weight:700;color:var(--text);font-family:'Exo 2',sans-serif;
+                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;">${nick}</span>
+            ${devLabel(dev, isOnline)}
+          </div>
           ${statusText}
         </div>
 
-        <!-- Chat button -->
+        <!-- Chat button (solo online) -->
         ${isOnline?`<button onclick="event.stopPropagation();openChatWith('${u.id}','${nick}')"
-          style="background:rgba(255,100,0,.18);border:1px solid rgba(255,100,0,.3);border-radius:5px;
-                 color:#ffaa55;font-size:.75rem;cursor:pointer;padding:2px 6px;margin-right:6px;z-index:2;
-                 font-family:'Exo 2',sans-serif;transition:background .15s;"
-          onmouseover="this.style.background='rgba(255,100,0,.35)'" onmouseout="this.style.background='rgba(255,100,0,.18)'"
+          style="background:rgba(255,255,255,.07);border:1px solid ${borderColor};border-radius:6px;
+                 color:${dev==='mobile'?'#00e676':'#42a5f5'};font-size:.8rem;cursor:pointer;padding:3px 7px;
+                 margin-right:7px;z-index:3;font-family:'Exo 2',sans-serif;transition:background .15s;"
+          onmouseover="this.style.background='rgba(255,255,255,.14)'" onmouseout="this.style.background='rgba(255,255,255,.07)'"
           title="Mensaje">💬</button>`:''}
       </div>`;
   }
 
   let html = '';
   if(onlineFiltered.length){
+    html += `<div style="font-size:.6rem;color:var(--muted);padding:4px 4px 3px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;">🟢 En línea · ${onlineFiltered.length}</div>`;
     html += onlineFiltered.map(u=>userBanner(u,true)).join('');
   }
   if(offline.length){
-    if(onlineFiltered.length) html += `<div style="font-size:.63rem;color:var(--muted);padding:6px 4px 3px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;">Última conexión</div>`;
+    html += `<div style="font-size:.6rem;color:var(--muted);padding:${onlineFiltered.length?'8px':'4px'} 4px 3px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;">⚫ Desconectados</div>`;
     html += offline.map(u=>userBanner(u,false)).join('');
   }
   if(!onlineFiltered.length && !offline.length){
     html = `<div style="text-align:center;padding:16px 8px;color:var(--muted);font-size:.75rem;">🎣 Nadie conectado</div>`;
   }
   el.innerHTML = html;
-
-  // Fire/sparkle particle animation on each banner canvas
-  el.querySelectorAll('canvas[id^="emb_"]').forEach(canvas=>{
-    const isFireCanvas = canvas.closest('div[style*="ff6a00"]') !== null
-      || (canvas.closest('div') && canvas.closest('div').style.background && canvas.closest('div').style.background.includes('2d0f00'));
-    const isOnlineCanvas = canvas.parentElement && canvas.parentElement.style.background && canvas.parentElement.style.background.includes('2d0f00');
-    const W = canvas.offsetWidth || 240;
-    const H = canvas.offsetHeight || 38;
-    canvas.width = W;
-    canvas.height = H;
-    const ctx2 = canvas.getContext('2d');
-    if(!ctx2) return;
-    const particles = [];
-    const COUNT = isOnlineCanvas ? 18 : 12;
-    for(let i=0;i<COUNT;i++){
-      particles.push({
-        x: Math.random()*W,
-        y: H + Math.random()*10,
-        vx:(Math.random()-.5)*.6,
-        vy: -(0.3 + Math.random()*0.7),
-        life:Math.random(),
-        maxLife:1,
-        size:1+Math.random()*2.5
-      });
-    }
-    function drawFrame(){
-      if(!canvas.isConnected){ return; }
-      ctx2.clearRect(0,0,W,H);
-      particles.forEach(p=>{
-        p.life += 0.018;
-        if(p.life >= p.maxLife){
-          p.x = Math.random()*W;
-          p.y = H + 2;
-          p.vx = (Math.random()-.5)*.6;
-          p.vy = -(0.3 + Math.random()*.7);
-          p.life = 0;
-          p.size = 1+Math.random()*2.5;
-        }
-        p.x += p.vx;
-        p.y += p.vy;
-        const prog = p.life/p.maxLife;
-        const alpha = prog < 0.2 ? prog/0.2 : 1 - (prog-0.2)/0.8;
-        if(isOnlineCanvas){
-          const r=255,g=Math.floor(80+prog*80),b=0;
-          ctx2.beginPath();
-          ctx2.arc(p.x,p.y,p.size*(1-prog*.4),0,Math.PI*2);
-          ctx2.fillStyle=`rgba(${r},${g},${b},${alpha*.8})`;
-          ctx2.fill();
-        } else {
-          ctx2.beginPath();
-          ctx2.arc(p.x,p.y,p.size*(1-prog*.4),0,Math.PI*2);
-          ctx2.fillStyle=`rgba(140,120,255,${alpha*.6})`;
-          ctx2.fill();
-        }
-      });
-      requestAnimationFrame(drawFrame);
-    }
-    drawFrame();
-  });
 }
 
 function renderContacts(onlineUsers){
