@@ -3,8 +3,8 @@
   "name": "WikipediaRF4 - Red Social",
   "short_name": "WikipediaRF4",
   "description": "Red social de pesca deportiva - Russian Fishing 4",
-  "start_url": "/chatrf4/",
-  "scope": "/chatrf4/",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0f1117",
@@ -12,13 +12,13 @@
   "lang": "es",
   "icons": [
     {
-      "src": "/chatrf4/icon-192.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/chatrf4/icon-512.png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
