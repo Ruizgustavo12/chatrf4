@@ -891,6 +891,10 @@ select.fi option{background:var(--bg3);color:var(--text);}
 
       <!-- Spots de amigos en inicio -->
       <div id="friendSpotsHome"></div>
+      <!-- Botón refrescar -->
+      <div style="text-align:center;margin-bottom:8px;">
+        <button onclick="_fetchPosts();_fetchStories();toast('Feed actualizado 🎣','ok');" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:5px 18px;font-size:.75rem;cursor:pointer;font-family:'Exo 2',sans-serif;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">↻ Actualizar feed</button>
+      </div>
       <!-- Posts -->
       <div id="feedPosts"><div style="text-align:center;padding:40px;color:var(--muted);font-size:.85rem;">🎣 Cargando feed...</div></div>
     </div>
@@ -2941,37 +2945,41 @@ async function uploadImage(fileOrBase64, folder) {
 
 // Caché de usuarios verificados — se actualiza en tiempo real
 window._verifUsers = {};
-window._usersShop = {}; // cache shopEquipped de todos los usuarios, actualizado en tiempo real
-function listenVerifiedUsers(){
-  return new Promise(resolve => {
-    let resolved = false;
-    onSnapshot(collection(db,'users'), snap => {
-      window._verifUsers = {};
-      window._usersShop = {};
-      snap.docs.forEach(d => {
-        const data = d.data();
-        if(data.verified === true) window._verifUsers[d.id] = true;
-        // Siempre guardar shopEquipped aunque sea {} vacío (undefined = nunca tuvo tienda)
-        window._usersShop[d.id] = data.shopEquipped || {};
-      });
-      if(!resolved){ resolved=true; resolve(); }
-      else { renderFeed(); renderProfileFeed(); }
+window._usersShop = {}; // cache shopEquipped
+let _usersLastFetch = 0;
+async function listenVerifiedUsers(){
+  // Solo recargar si pasaron más de 5 minutos
+  if(Date.now() - _usersLastFetch < 300000 && Object.keys(window._verifUsers||{}).length > 0) return;
+  try {
+    const snap = await getDocs(collection(db,'users'));
+    window._verifUsers = {};
+    window._usersShop = {};
+    snap.docs.forEach(d => {
+      const data = d.data();
+      if(data.verified === true) window._verifUsers[d.id] = true;
+      window._usersShop[d.id] = data.shopEquipped || {};
     });
-  });
+    _usersLastFetch = Date.now();
+  } catch(e){ console.warn('listenVerifiedUsers error:', e); }
 }
 
-function listenPosts() {
-  if (_unsubPosts) _unsubPosts();
-  _unsubPosts = onSnapshot(query(collection(db, 'posts'), orderBy('time', 'desc')), snap => {
+let _postsPollingInterval = null;
+async function listenPosts() {
+  // Carga inicial
+  await _fetchPosts();
+  // Polling cada 2 minutos en lugar de onSnapshot continuo
+  if(_postsPollingInterval) clearInterval(_postsPollingInterval);
+  _postsPollingInterval = setInterval(_fetchPosts, 120000);
+}
+
+async function _fetchPosts(){
+  try {
+    const snap = await getDocs(query(collection(db, 'posts'), orderBy('time', 'desc'), limit(60)));
     _posts = snap.docs.map(d => ({ id: d.id, ...d.data(), time: d.data().time?.toMillis?.() || Date.now() }));
     const activePage = document.querySelector('.page.active');
     const pageId = activePage ? activePage.id : '';
-    if(pageId === 'page-profile'){
-      renderProfileFeed();
-    } else {
-      renderFeed();
-    }
-  });
+    if(pageId === 'page-profile'){ renderProfileFeed(); } else { renderFeed(); }
+  } catch(e){ console.warn('fetchPosts error:', e); }
 }
 
 
@@ -2982,9 +2990,16 @@ function listenPosts() {
 
 
 
-function listenStories() {
-  if (_unsubStories) _unsubStories();
-  _unsubStories = onSnapshot(query(collection(db, 'stories'), orderBy('time', 'desc')), snap => {
+let _storiesPollingInterval = null;
+async function listenStories() {
+  await _fetchStories();
+  if(_storiesPollingInterval) clearInterval(_storiesPollingInterval);
+  _storiesPollingInterval = setInterval(_fetchStories, 180000);
+}
+
+async function _fetchStories(){
+  try {
+    const snap = await getDocs(query(collection(db, 'stories'), orderBy('time', 'desc'), limit(40)));
     const now = Date.now();
     const expiredIds = [];
     _stories = snap.docs.filter(d => {
@@ -2995,7 +3010,7 @@ function listenStories() {
     }).map(d => ({ id: d.id, ...d.data(), time: d.data().time?.toMillis?.() || Date.now() }));
     expiredIds.forEach(id => deleteDoc(doc(db, 'stories', id)).catch(()=>{}));
     renderStories();
-  });
+  } catch(e){ console.warn('fetchStories error:', e); }
 }
 
 // ===== INIT =====
@@ -3229,6 +3244,9 @@ async function doReg(){
 function onLogin(){
   updateNavUI();
   listenVerifiedUsers().then(()=>{
+    listenPosts();
+    listenStories();
+  }).catch(()=>{
     listenPosts();
     listenStories();
   });
@@ -11331,14 +11349,12 @@ function listenTrofeosFeed(){
 }
 
 function listenTrofeosSidebar(){
-  onSnapshot(
-    query(collection(trophiesDb,'trophies'), where('status','==','approved'), orderBy('createdAt','desc')),
-    snap => {
-      const items = snap.docs.slice(0,5).map(d=>({id:d.id,...d.data()}));
+  getDocs(query(collection(trophiesDb,'trophies'), where('status','==','approved'), orderBy('createdAt','desc'), limit(5)))
+    .then(snap => {
+      const items = snap.docs.map(d=>({id:d.id,...d.data()}));
       renderTrofeoSidebar(items);
       renderHomeTrophyWidget(items[0]||null);
-    }
-  );
+    }).catch(e=>console.warn('trofeosSidebar error:',e));
 }
 
 function renderHomeTrophyWidget(t){
@@ -11731,6 +11747,7 @@ const _expose = {
   doReact,quickReact,
   togglePassVis, maskEmail, startEmailChange, cancelEmailChange, sendVerifEmailForChange, confirmEmailChange,
   setMusicType, quickGenreSearch, searchSpotify, playSpotify, closeMusicPlayer,
+  _fetchPosts, _fetchStories,
   saveProfile,openEditProfile,calcAgeFromBirthdate,
   changeCover,changeAvatar,
   previewPostImg,removePostImg,previewPostMedia,removePostMedia,
