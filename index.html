@@ -3609,11 +3609,7 @@ function init(){
     const splash = document.getElementById('splashScreen');
     if(splash && splash.style.display !== 'none'){
       splash.style.display = 'none';
-      if(window._maintenanceBypass){
-        document.getElementById('mAuth').style.display = 'block';
-      } else {
-        document.getElementById('maintenanceScreen').style.display = 'flex';
-      }
+      document.getElementById('mAuth').style.display = 'block';
     }
   }, 4000);
 
@@ -3627,26 +3623,9 @@ function init(){
         const snap = await getDoc(doc(db, 'users', user.uid));
         if (snap.exists()) {
           window.CU = {id: user.uid, ...snap.data()};
-          // MAINTENANCE MODE: solo admins pueden acceder
-          const _isAdmin = window._maintenanceBypass
-            || window.CU.nick === 'ruizgustavo12'
-            || window.CU.email === 'synxyes@gmail.com'
-            || window.CU.admin === true;
-          if(!_isAdmin){
-            setTimeout(async()=>{ 
-              try{ await signOut(auth); }catch(e){}
-              window.CU = null;
-              document.getElementById('mAuth').style.display = 'none';
-              const ms = document.getElementById('maintenanceScreen');
-              if(ms) ms.style.display = 'flex';
-            }, 500);
-            return;
-          }
-          // Admin — ocultar todo y entrar
           document.getElementById('maintenanceScreen').style.display = 'none';
           document.getElementById('mAuth').style.display = 'none';
           hideSplash();
-          window._maintenanceBypass = true; // mantener el flag activo
           onLogin();
         } else {
           hideSplash();
@@ -3660,13 +3639,7 @@ function init(){
     } else {
       window.CU = null;
       hideSplash();
-      // Si no hay sesión y el bypass está activo → ir al login
-      if(window._maintenanceBypass){
-        document.getElementById('mAuth').style.display = 'block';
-      } else {
-        // Sin sesión y sin bypass → mostrar mantenimiento
-        document.getElementById('maintenanceScreen').style.display = 'flex';
-      }
+      document.getElementById('mAuth').style.display = 'block';
     }
   });
 }
