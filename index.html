@@ -3106,7 +3106,7 @@ function _stub(name){ return function(){ _q.push([name, arguments]); }; }
 // ===== FIREBASE SETUP (modular ESM — sin eval, compatible con CSP) =====
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, addDoc, deleteDoc, onSnapshot, query, orderBy, limit, serverTimestamp, increment, where, deleteField } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, addDoc, deleteDoc, onSnapshot, query, orderBy, limit, serverTimestamp, increment, where, deleteField, Timestamp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js';
 
 const firebaseConfig = {
@@ -3226,7 +3226,7 @@ async function listenPosts() {
   await _fetchPosts();
   // Polling cada 2 minutos en lugar de onSnapshot continuo
   if(_postsPollingInterval) clearInterval(_postsPollingInterval);
-  _postsPollingInterval = setInterval(_fetchPosts, 300000); // Optimizado: cada 5 min
+  _postsPollingInterval = setInterval(_fetchPosts, 480000); // OPTIMIZADO: cada 8 min
 }
 
 async function _fetchPosts(){
@@ -6921,7 +6921,7 @@ async function _fetchUnreadMsgs(){
   await Promise.all(friends.map(async f=>{
     try {
       const chatId = [myId, f.id].sort().join('_');
-      const q = query(collection(db,'chats',chatId,'messages'), orderBy('time','desc'), limit(15));
+      const q = query(collection(db,'chats',chatId,'messages'), orderBy('time','desc'), limit(5)); // OPTIMIZADO: limit 5 en vez de 15
       const snap = await getDocs(q);
       const unreadCount = snap.docs.filter(d=>{
         const m = d.data();
@@ -6956,7 +6956,7 @@ function listenUnreadMsgsBadge(){
   if(_msgBadgeInterval) clearInterval(_msgBadgeInterval);
   _fetchUnreadMsgs();
   // Polling cada 90 segundos en vez de onSnapshot por cada amigo
-  _msgBadgeInterval = setInterval(_fetchUnreadMsgs, 90000);
+  _msgBadgeInterval = setInterval(_fetchUnreadMsgs, 180000); // OPTIMIZADO: cada 3 min en vez de 90s
 }
 
 // ===== MESSENGER =====
@@ -9757,19 +9757,24 @@ async function startPresence(){
   await setDoc(presRef, {nick:window.CU.nick, av:window.CU.av||'', last:serverTimestamp(), device:_device}, {merge:true});
   _presenceInterval = setInterval(async()=>{
     if(window.CU) await setDoc(presRef,{nick:window.CU.nick,av:window.CU.av||'',last:serverTimestamp(),device:_device},{merge:true});
-  }, 120000); // Optimizado: cada 2 min en vez de 30 seg
+  }, 240000); // OPTIMIZADO: cada 4 min en vez de 2 min
   listenPresence();
 }
 
 let _presencePollingInterval = null;
 async function _fetchPresence(){
   try {
-    const snap = await getDocs(collection(db,'presence'));
+    // OPTIMIZADO: solo lee usuarios activos en últimos 5 min (1 query filtrada vs toda la colección)
+    const since = Timestamp.fromMillis(Date.now() - 300000); // 5 minutos
+    const onlineSnap = await getDocs(query(collection(db,'presence'), where('last','>',since), limit(50)));
     const now = Date.now();
-    const all = snap.docs.map(d=>({id:d.id,...d.data(),ts:d.data().last?.toMillis?.()||0}));
-    const online = all.filter(u=>now - u.ts < 180000);
-    const offline = all.filter(u=>now - u.ts >= 180000 && u.ts > 0)
+    const online = onlineSnap.docs.map(d=>({id:d.id,...d.data(),ts:d.data().last?.toMillis?.()||0}));
+    // offline: usamos cache local para no hacer otra query
+    const offline = Object.values(window._presenceCache||{})
+      .filter(u=> now - u.ts >= 300000 && now - u.ts < 3600000)
       .sort((a,b)=>b.ts-a.ts).slice(0,8);
+    // actualizar cache
+    online.forEach(u=>{ if(!window._presenceCache) window._presenceCache={}; window._presenceCache[u.id]=u; });
     renderContacts(online);
     document.querySelectorAll('#onlineCount,#sidebarOnlineCount').forEach(el=>{ if(el) el.textContent=online.length; });
     renderSidebarOnline(online, offline);
@@ -9782,7 +9787,8 @@ async function _fetchPresence(){
 function listenPresence(){
   _fetchPresence();
   if(_presencePollingInterval) clearInterval(_presencePollingInterval);
-  _presencePollingInterval = setInterval(_fetchPresence, 180000);
+  // OPTIMIZADO: cada 5 min en vez de 3 min (era 180s, ahora 300s)
+  _presencePollingInterval = setInterval(_fetchPresence, 300000);
 }
 
 function fmtLastSeen(ts){
