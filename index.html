@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="RF4 Latam">
-  <link rel="apple-touch-icon" href="/icon-192.png">
-  <link rel="manifest" href="/manifest.json">
+  <!-- apple icon removed -->
+  <!-- manifest removed -->
   <script>
     if('serviceWorker' in navigator){
       window.addEventListener('load', ()=>{
@@ -28,10 +28,7 @@
                 }
               });
             });
-          }).catch(err=>console.log('SW error:', err));
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          window.location.reload();
-        });
+          }).catch(err=>{}); // sw.js optional
       });
     }
     let _deferredPrompt;
@@ -3246,8 +3243,8 @@ const ROUTES = {
 const PAGE_TO_URL = {};  // URL siempre queda en /chatrf4/
 
 function navigateTo(id, pushState = true) {
-  pushState = false; // URL siempre fija en /
-  // URL siempre queda en /chatrf4/ — sin sub-rutas
+  // URL siempre fija — no cambia la barra de direcciones
+  // La lógica de mostrar/ocultar páginas la hace gp()
 }
 
 // Handle browser back/forward
