@@ -11576,19 +11576,33 @@ function quickGenreSearch(q){
   searchSpotify();
 }
 
-// Obtiene token de Spotify (Client Credentials)
+// Obtiene token de Spotify (Client Credentials via proxy CORS)
 let _spotToken = null, _spotTokenExp = 0;
 async function getSpotToken(){
   if(_spotToken && Date.now() < _spotTokenExp) return _spotToken;
   const creds = btoa(_SPOTIFY_CLIENT_ID + ':' + _SPOTIFY_CLIENT_SECRET);
-  try {
-    const r = await fetch('https://accounts.spotify.com/api/token',{
-      method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded','Authorization':'Basic '+creds},
-      body:'grant_type=client_credentials'
-    });
-    const d = await r.json();
-    if(d.access_token){ _spotToken=d.access_token; _spotTokenExp=Date.now()+(d.expires_in-60)*1000; return _spotToken; }
-  } catch(e){}
+  // Intentar directo primero, si falla usar proxy CORS
+  const endpoints = [
+    'https://accounts.spotify.com/api/token',
+    'https://corsproxy.io/?https://accounts.spotify.com/api/token',
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://accounts.spotify.com/api/token'),
+  ];
+  for(const url of endpoints){
+    try {
+      const r = await fetch(url,{
+        method:'POST',
+        headers:{'Content-Type':'application/x-www-form-urlencoded','Authorization':'Basic '+creds},
+        body:'grant_type=client_credentials'
+      });
+      if(!r.ok) continue;
+      const d = await r.json();
+      if(d.access_token){
+        _spotToken = d.access_token;
+        _spotTokenExp = Date.now() + (d.expires_in - 60) * 1000;
+        return _spotToken;
+      }
+    } catch(e){ continue; }
+  }
   return null;
 }
 
@@ -11604,8 +11618,11 @@ async function searchSpotify(){
 
   const token = await getSpotToken();
   if(!token){
-    // Fallback: abrir búsqueda directa en Spotify
-    resultsEl.innerHTML = spotifyFallbackHTML(q);
+    resultsEl.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);">
+      <div style="font-size:1.5rem;margin-bottom:8px;">⚠️</div>
+      <div style="margin-bottom:12px;">No se pudo conectar con Spotify.<br><span style="font-size:.75rem;">Verificá que la app de Spotify esté activa en developer.spotify.com</span></div>
+      ${spotifyFallbackHTML(q)}
+    </div>`;
     return;
   }
 
@@ -11613,6 +11630,7 @@ async function searchSpotify(){
     const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=${_musicType}&limit=16&market=AR`,{
       headers:{'Authorization':'Bearer '+token}
     });
+    if(!res.ok) throw new Error('HTTP '+res.status);
     const data = await res.json();
     renderMusicResults(data);
   } catch(e){
