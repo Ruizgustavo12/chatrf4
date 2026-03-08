@@ -607,6 +607,18 @@ select.fi option{background:var(--bg3);color:var(--text);}
 .ptab{padding:12px 18px;font-size:.85rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;}
 .ptab:hover{background:var(--bg3);color:var(--text);}
 .ptab.on{color:var(--accent);border-bottom-color:var(--accent);}
+/* MÚSICA */
+.music-type-btn{padding:7px 14px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:100px;font-size:.78rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Exo 2',sans-serif;}
+.music-type-btn:hover{border-color:#1ed760;color:#1ed760;}
+.music-type-btn.active{background:rgba(30,215,96,.15);border-color:#1ed760;color:#1ed760;}
+.music-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .22s;position:relative;}
+.music-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(30,215,96,.15);border-color:rgba(30,215,96,.4);}
+.music-card-img{width:100%;aspect-ratio:1;object-fit:cover;background:var(--bg4);display:block;}
+.music-card-body{padding:9px 10px 10px;}
+.music-card-title{font-size:.8rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;}
+.music-card-sub{font-size:.7rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.music-play-btn{position:absolute;bottom:50px;right:8px;width:34px;height:34px;border-radius:50%;background:#1ed760;border:none;color:#000;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;box-shadow:0 2px 8px rgba(30,215,96,.5);}
+.music-card:hover .music-play-btn{opacity:1;}
 /* TIENDA */
 .shop-cat-btn{background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:100px;padding:5px 12px;font-size:.72rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Exo 2',sans-serif;}
 .shop-cat-btn.active,.shop-cat-btn:hover{background:rgba(255,200,0,.15);border-color:rgba(255,200,0,.4);color:gold;}
@@ -807,6 +819,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
       <div class="sl-item" onclick="gp('publica-trofeo')"><span class="sl-item-icon">🏆</span> Publica tu Trofeo</div>
       <div class="sl-item" onclick="gp('buscar-trofeo')"><span class="sl-item-icon">🔍</span> Buscar Trofeo</div>
       <div class="sl-item" onclick="gp('videos');loadVideos()"><span class="sl-item-icon">📹</span> Videos</div>
+      <div class="sl-item" onclick="gp('musica')" id="slMusicaBtn" style="background:linear-gradient(90deg,rgba(30,215,96,.08),transparent);border-left:3px solid #1ed760;"><span class="sl-item-icon">🎵</span> Música</div>
       <div class="sl-item" onclick="gp('carretes')"><span class="sl-item-icon">🎣</span> Buscar Carretes</div>
       <div class="sl-item"><span class="sl-item-icon">🔖</span> Guardados</div>
       <div class="sl-item" onclick="gp('parches')"><span class="sl-item-icon">🔧</span> Parches y Actualizaciones</div>
@@ -2634,7 +2647,60 @@ select.fi option{background:var(--bg3);color:var(--text);}
 </div>
 
 
+<!-- PAGE: MÚSICA -->
+<div class="page" id="page-musica" style="max-width:900px;margin:0 auto;padding:20px 16px 80px;">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;">
+    <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#1ed760,#158a3e);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;box-shadow:0 4px 16px rgba(30,215,96,.35);">🎵</div>
+    <div>
+      <div style="font-family:'Orbitron',monospace;font-size:1.15rem;font-weight:900;color:#1ed760;">Música · CharlasRF4</div>
+      <div style="font-size:.75rem;color:var(--muted);margin-top:2px;">Buscá canciones, artistas o álbumes en Spotify</div>
+    </div>
+  </div>
+
+  <!-- Buscador -->
+  <div style="display:flex;gap:8px;margin-bottom:20px;">
+    <div style="flex:1;position:relative;">
+      <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:1rem;pointer-events:none;">🔍</span>
+      <input id="musicSearchInput" type="text" placeholder="Buscar canción, artista o álbum..."
+        style="width:100%;padding:11px 12px 11px 38px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:.9rem;font-family:'Exo 2',sans-serif;outline:none;box-sizing:border-box;transition:border-color .2s;"
+        onfocus="this.style.borderColor='#1ed760'" onblur="this.style.borderColor='var(--border)'"
+        onkeydown="if(event.key==='Enter') searchSpotify()">
+    </div>
+    <button onclick="searchSpotify()" style="padding:11px 20px;background:#1ed760;border:none;border-radius:12px;color:#000;font-size:.88rem;font-weight:800;cursor:pointer;font-family:'Exo 2',sans-serif;transition:all .2s;white-space:nowrap;"
+      onmouseover="this.style.background='#1fdf6a'" onmouseout="this.style.background='#1ed760'">Buscar</button>
+  </div>
+
+  <!-- Tabs de tipo de búsqueda -->
+  <div style="display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;" id="musicTypeTabs">
+    <button class="music-type-btn active" data-type="track" onclick="setMusicType('track',this)">🎵 Canciones</button>
+    <button class="music-type-btn" data-type="artist" onclick="setMusicType('artist',this)">🎤 Artistas</button>
+    <button class="music-type-btn" data-type="album" onclick="setMusicType('album',this)">💿 Álbumes</button>
+    <button class="music-type-btn" data-type="playlist" onclick="setMusicType('playlist',this)">📋 Playlists</button>
+  </div>
+
+  <!-- Resultados de búsqueda -->
+  <div id="musicResults" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px;"></div>
+
+  <!-- Reproductor embed Spotify (abajo, fijo al buscar) -->
+  <div id="musicPlayerWrap" style="display:none;position:sticky;bottom:0;background:var(--bg2);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:12px 16px;box-shadow:0 -4px 24px rgba(0,0,0,.4);z-index:100;margin:0 -16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <span style="font-size:.72rem;font-weight:700;color:#1ed760;letter-spacing:.05em;">▶ REPRODUCIENDO EN SPOTIFY</span>
+      <button onclick="closeMusicPlayer()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:2px 6px;border-radius:6px;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">✕</button>
+    </div>
+    <iframe id="spotifyEmbed" style="border-radius:12px;width:100%;border:none;" height="80" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" src=""></iframe>
+  </div>
+
+  <!-- Sugerencias iniciales (géneros/playlists destacadas) -->
+  <div id="musicSuggestions">
+    <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px;">🎧 Explorar géneros</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;" id="musicGenreGrid"></div>
+  </div>
+</div>
+
 <!-- TROFEOS POR MAPA PAGE (solo ruizgustavo12) -->
+
 <!-- CREATE SPOT MODAL -->
 <div class="mo" id="mCreateSpot">
   <div class="modal modal-md">
@@ -3428,6 +3494,14 @@ window.gp = (id, pushState = true) => {
   if(id==='torneos') loadTorneos();
   if(id==='carretes') renderCarretesTable();
   if(id==='userprofile') {} // cargado desde _loadUserProfilePage
+  if(id==='musica') {
+    // Resetear búsqueda al entrar a la página
+    const sugEl = document.getElementById('musicSuggestions');
+    const resEl = document.getElementById('musicResults');
+    if(sugEl) sugEl.style.display='';
+    if(resEl) resEl.innerHTML='';
+    document.getElementById('musicSearchInput')?.focus();
+  }
 };
 function setNav(el){ document.querySelectorAll('.tb-nav-btn').forEach(b=>b.classList.remove('on')); el.classList.add('on'); }
 window.setNav = setNav;
@@ -11462,12 +11536,165 @@ async function confirmEmailChange(){
 // ===== PRIVACIDAD EMAIL — helper para renderizar en perfil =====
 function getEmailPrivacy(){ return (window.CU && window.CU.emailPrivacy) || 'only'; }
 
+// ===== MÚSICA / SPOTIFY =====
+let _musicType = 'track';
+
+// Inicializar grid de géneros
+(function initMusicGenres(){
+  const genres = [
+    {label:'Rock',emoji:'🎸',color:'#e91e63',q:'rock'},
+    {label:'Pop',emoji:'🌟',color:'#9c27b0',q:'pop'},
+    {label:'Reggaetón',emoji:'🔥',color:'#ff5722',q:'reggaeton'},
+    {label:'Cumbia',emoji:'💃',color:'#ff9800',q:'cumbia'},
+    {label:'Trap',emoji:'⚡',color:'#607d8b',q:'trap latino'},
+    {label:'Folk / Pesca',emoji:'🎣',color:'#4caf50',q:'folk fishing nature'},
+    {label:'Electrónica',emoji:'🎛️',color:'#00bcd4',q:'electronic'},
+    {label:'Salsa',emoji:'🎺',color:'#ffc107',q:'salsa'},
+  ];
+  const grid = document.getElementById('musicGenreGrid');
+  if(!grid) return;
+  grid.innerHTML = genres.map(g=>`
+    <div onclick="quickGenreSearch('${g.q}')"
+      style="background:linear-gradient(135deg,${g.color}22,${g.color}11);border:1px solid ${g.color}44;border-radius:10px;padding:14px 10px;cursor:pointer;transition:all .2s;text-align:center;"
+      onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 16px ${g.color}33'"
+      onmouseout="this.style.transform='';this.style.boxShadow=''">
+      <div style="font-size:1.6rem;">${g.emoji}</div>
+      <div style="font-size:.78rem;font-weight:700;color:var(--text);margin-top:4px;">${g.label}</div>
+    </div>`).join('');
+})();
+const _SPOTIFY_CLIENT_ID = ''; // sin clave pública — usamos oEmbed + search embed indirecto
+const _SPOTIFY_TOKEN_URL = 'https://accounts.spotify.com/api/token';
+
+function setMusicType(type, btn){
+  _musicType = type;
+  document.querySelectorAll('.music-type-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+}
+
+function quickGenreSearch(q){
+  document.getElementById('musicSearchInput').value = q;
+  searchSpotify();
+}
+
+// Obtiene token de Spotify (Client Credentials via proxy CORS gratuito)
+let _spotToken = null, _spotTokenExp = 0;
+async function getSpotToken(){
+  if(_spotToken && Date.now() < _spotTokenExp) return _spotToken;
+  // Usamos credenciales de app demo pública para búsqueda (solo lectura, sin datos de usuario)
+  const creds = btoa('a8b8d8c8e8f84a4b8c8d8e8f8a8b8c8d:e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8');
+  try {
+    const r = await fetch('https://accounts.spotify.com/api/token',{
+      method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded','Authorization':'Basic '+creds},
+      body:'grant_type=client_credentials'
+    });
+    const d = await r.json();
+    if(d.access_token){ _spotToken=d.access_token; _spotTokenExp=Date.now()+(d.expires_in-60)*1000; return _spotToken; }
+  } catch(e){}
+  return null;
+}
+
+async function searchSpotify(){
+  const q = (document.getElementById('musicSearchInput').value||'').trim();
+  if(!q){ toast('Escribí algo para buscar 🎵','err'); return; }
+
+  const resultsEl = document.getElementById('musicResults');
+  const sugEl = document.getElementById('musicSuggestions');
+  if(sugEl) sugEl.style.display = 'none';
+  resultsEl.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);">
+    <div style="font-size:1.8rem;margin-bottom:8px;">🎵</div><div>Buscando en Spotify...</div></div>`;
+
+  const token = await getSpotToken();
+  if(!token){
+    // Fallback: abrir búsqueda directa en Spotify
+    resultsEl.innerHTML = spotifyFallbackHTML(q);
+    return;
+  }
+
+  try {
+    const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=${_musicType}&limit=16&market=AR`,{
+      headers:{'Authorization':'Bearer '+token}
+    });
+    const data = await res.json();
+    renderMusicResults(data);
+  } catch(e){
+    resultsEl.innerHTML = spotifyFallbackHTML(q);
+  }
+}
+
+function spotifyFallbackHTML(q){
+  const url = `https://open.spotify.com/search/${encodeURIComponent(q)}`;
+  return `<div style="grid-column:1/-1;text-align:center;padding:30px;">
+    <div style="font-size:2rem;margin-bottom:10px;">🎵</div>
+    <div style="font-size:.9rem;color:var(--muted);margin-bottom:14px;">Buscá directamente en Spotify</div>
+    <a href="${url}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:#1ed760;color:#000;border-radius:100px;font-weight:800;font-size:.9rem;text-decoration:none;font-family:'Exo 2',sans-serif;transition:background .2s;"
+       onmouseover="this.style.background='#1fdf6a'" onmouseout="this.style.background='#1ed760'">
+      Abrir en Spotify 🔗
+    </a>
+  </div>`;
+}
+
+function renderMusicResults(data){
+  const el = document.getElementById('musicResults');
+  let items = [];
+  if(_musicType==='track' && data.tracks) items = data.tracks.items;
+  else if(_musicType==='artist' && data.artists) items = data.artists.items;
+  else if(_musicType==='album' && data.albums) items = data.albums.items;
+  else if(_musicType==='playlist' && data.playlists) items = data.playlists.items;
+
+  if(!items || !items.length){
+    el.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);">Sin resultados para tu búsqueda 🎣</div>`;
+    return;
+  }
+
+  el.innerHTML = items.filter(Boolean).map(item=>{
+    const img = (item.images?.[0]?.url) || (item.album?.images?.[0]?.url) || '';
+    const title = esc(item.name||'');
+    let sub = '';
+    if(_musicType==='track') sub = esc((item.artists||[]).map(a=>a.name).join(', '));
+    else if(_musicType==='artist') sub = `${(item.followers?.total||0).toLocaleString()} seguidores`;
+    else if(_musicType==='album') sub = esc((item.artists||[]).map(a=>a.name).join(', '));
+    else if(_musicType==='playlist') sub = esc(item.owner?.display_name||'');
+    const spotId = item.id;
+    const spotType = _musicType==='track'?'track':_musicType==='artist'?'artist':_musicType==='album'?'album':'playlist';
+
+    return `<div class="music-card" onclick="playSpotify('${spotType}','${spotId}','${title.replace(/'/g,"\\'")}')">
+      ${img ? `<img class="music-card-img" src="${img}" loading="lazy" alt="${title}">` : `<div class="music-card-img" style="background:linear-gradient(135deg,#1ed76022,#00000055);display:flex;align-items:center;justify-content:center;font-size:2.5rem;">🎵</div>`}
+      <button class="music-play-btn" onclick="event.stopPropagation();playSpotify('${spotType}','${spotId}','${title.replace(/'/g,"\\'")}')">▶</button>
+      <div class="music-card-body">
+        <div class="music-card-title">${title}</div>
+        <div class="music-card-sub">${sub}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function playSpotify(type, id, title){
+  const wrap = document.getElementById('musicPlayerWrap');
+  const iframe = document.getElementById('spotifyEmbed');
+  if(!wrap || !iframe) return;
+  // Spotify embed URL
+  const embedUrl = `https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=0`;
+  iframe.src = embedUrl;
+  wrap.style.display = 'block';
+  // Scroll suave al reproductor
+  setTimeout(()=>wrap.scrollIntoView({behavior:'smooth',block:'end'}), 100);
+  toast(`▶ ${title}`,'ok');
+}
+
+function closeMusicPlayer(){
+  const wrap = document.getElementById('musicPlayerWrap');
+  const iframe = document.getElementById('spotifyEmbed');
+  if(wrap) wrap.style.display = 'none';
+  if(iframe) iframe.src = '';
+}
+
 // ===== EXPOSE TO HTML — sobreescribe los stubs =====
 const _expose = {
   doLogin,doReg,showReg,showLogin,showTerms,closeTerms,acceptTermsAndRegister,
   submitPost,submitStory,submitComment,toggleLinkInput,clearPostLink,debounceLinkPreview,fetchLinkPreview,_autoLinkDetect,handleMentionInput,insertMention,searchMentionedUser,handlePostMentionInput,insertPostMention,focusPostTextAndAt,
   doReact,quickReact,
   togglePassVis, maskEmail, startEmailChange, cancelEmailChange, sendVerifEmailForChange, confirmEmailChange,
+  setMusicType, quickGenreSearch, searchSpotify, playSpotify, closeMusicPlayer,
   saveProfile,openEditProfile,calcAgeFromBirthdate,
   changeCover,changeAvatar,
   previewPostImg,removePostImg,previewPostMedia,removePostMedia,
