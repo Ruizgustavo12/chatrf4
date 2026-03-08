@@ -799,6 +799,28 @@ select.fi option{background:var(--bg3);color:var(--text);}
 <!-- TOAST -->
 <div class="toast-ct" id="toastCt"></div>
 
+<!-- BANNER TROFEO — aparece 1 vez por sesión, 30 segundos -->
+<div id="trophyBanner" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9990;width:calc(100% - 32px);max-width:420px;background:linear-gradient(135deg,#1a1400,#2a1e00);border:1.5px solid rgba(255,215,0,.5);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.5),0 0 24px rgba(255,215,0,.12);overflow:hidden;cursor:pointer;animation:trophyBannerIn .4s cubic-bezier(.34,1.56,.64,1) forwards;" onclick="closeTrophyBanner();gp('trofeos-feed')">
+  <!-- Barra de progreso -->
+  <div style="height:3px;background:rgba(255,215,0,.15);">
+    <div id="trophyBannerBar" style="height:100%;background:linear-gradient(90deg,var(--gold),#ffb300);width:100%;transition:width 30s linear;"></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;">
+    <div id="trophyBannerImg" style="width:52px;height:52px;border-radius:10px;overflow:hidden;flex-shrink:0;background:rgba(255,215,0,.1);display:flex;align-items:center;justify-content:center;font-size:1.8rem;border:1px solid rgba(255,215,0,.25);">🏆</div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:.65rem;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px;">🥇 Nuevo Trofeo Aprobado</div>
+      <div id="trophyBannerFish" style="font-family:'Orbitron',monospace;font-size:.92rem;font-weight:900;color:#ffe066;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+      <div id="trophyBannerWeight" style="font-size:.82rem;font-weight:700;color:#fff;margin-top:1px;"></div>
+      <div id="trophyBannerNick" style="font-size:.72rem;color:rgba(255,255,255,.5);margin-top:1px;"></div>
+    </div>
+    <button onclick="event.stopPropagation();closeTrophyBanner()" style="background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.5);width:28px;height:28px;border-radius:50%;font-size:.85rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.5)'">✕</button>
+  </div>
+</div>
+<style>
+@keyframes trophyBannerIn{from{opacity:0;transform:translateX(-50%) translateY(20px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+@keyframes trophyBannerOut{to{opacity:0;transform:translateX(-50%) translateY(20px);}}
+</style>
+
 <!-- PAGE: HOME -->
 <div class="page active" id="page-home">
   <div class="layout">
@@ -3075,7 +3097,7 @@ function _stub(name){ return function(){ _q.push([name, arguments]); }; }
  'previewSpotImg','removeSpotImg','submitSpot','loadSpots','toggleYtInput','previewYtEmbed','clearYtInput','extractYtId','openPostWithYt','loadFriendSpots','renderFriendSpotsInHome','openEditSpot','saveEditSpot','deleteSpot','scrollToPost',
  'renderSidebarFriends','renderSuggestedUsers','playNotifSound','showNotifToast','sendNotifToUserWithPost','openMessenger','loadVideos','filterVideos',
  'previewPezSemanaImg','submitPezSemana','deletePezSemana','loadPezSemana','openPezSemanalModal','openReactionsModal','buildRxnLabel',
- 'filterTrofeoFeed','listenTrofeosFeed','swSkillTab','searchStoryMusic','selectStoryMusic','clearStoryMusic','searchDeezer','playDeezer'
+ 'filterTrofeoFeed','listenTrofeosFeed','swSkillTab','searchStoryMusic','selectStoryMusic','clearStoryMusic','searchDeezer','playDeezer','closeTrophyBanner'
 ].forEach(fn => { window[fn] = _stub(fn); });
 </script>
 <script type="module">
@@ -11786,7 +11808,48 @@ function renderHomeTrophyWidget(t){
   if(nickEl) nickEl.textContent = '👤 ' + nick;
   if(timeEl) timeEl.textContent = fmtT(time);
   widget.style.display = 'block';
+
+  // Banner toast — solo una vez por sesión
+  if(!sessionStorage.getItem('_trophyBannerShown')) {
+    sessionStorage.setItem('_trophyBannerShown','1');
+    showTrophyBanner(t);
+  }
 }
+
+let _trophyBannerTimer = null;
+function showTrophyBanner(t){
+  const banner = document.getElementById('trophyBanner');
+  if(!banner) return;
+  const fish = t.fish||t.especie||'?';
+  const weight = t.weight||t.peso||0;
+  const nick = t.userNick||t.submittedBy||t.nick||'?';
+  const images = t.images||[];
+  const imgUrl = images[0]||t.imageUrl||t.img||'';
+  const imgEl = document.getElementById('trophyBannerImg');
+  const fishEl = document.getElementById('trophyBannerFish');
+  const weightEl = document.getElementById('trophyBannerWeight');
+  const nickEl = document.getElementById('trophyBannerNick');
+  const bar = document.getElementById('trophyBannerBar');
+  if(imgEl) imgEl.innerHTML = imgUrl ? `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;">` : '🏆';
+  if(fishEl) fishEl.textContent = fish;
+  if(weightEl) weightEl.textContent = weight ? weight + ' kg' : '';
+  if(nickEl) nickEl.textContent = '👤 ' + nick;
+  banner.style.display = 'block';
+  // Arrancar barra de progreso
+  if(bar){ requestAnimationFrame(()=>requestAnimationFrame(()=>{ bar.style.width='0%'; })); }
+  // Cerrar automáticamente a los 30s
+  if(_trophyBannerTimer) clearTimeout(_trophyBannerTimer);
+  _trophyBannerTimer = setTimeout(()=>closeTrophyBanner(), 30000);
+}
+
+function closeTrophyBanner(){
+  const banner = document.getElementById('trophyBanner');
+  if(!banner) return;
+  banner.style.animation = 'trophyBannerOut .35s ease forwards';
+  setTimeout(()=>{ banner.style.display='none'; banner.style.animation=''; }, 350);
+  if(_trophyBannerTimer){ clearTimeout(_trophyBannerTimer); _trophyBannerTimer=null; }
+}
+window.closeTrophyBanner = closeTrophyBanner;
 
 function filterTrofeoFeed(filter, btn){
   _trofeoFeedFilter = filter;
