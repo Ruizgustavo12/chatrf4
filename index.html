@@ -1279,6 +1279,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
     <div class="sv-text" id="svText"></div>
 
     <!-- BARRA DE MÚSICA DEEZER -->
+    <audio id="svAudioEl" preload="none"></audio>
     <div id="svMusicBar" style="display:none;position:absolute;bottom:120px;left:12px;right:12px;z-index:25;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:7px 14px;align-items:center;gap:10px;">
       <img class="sv-music-cover" src="" style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1.5px solid rgba(255,255,255,.3);">
       <div style="flex:1;min-width:0;">
@@ -4547,7 +4548,6 @@ function _svStartTimer(){
   if(_svAutoTimer) clearTimeout(_svAutoTimer);
   _svAutoTimer=setTimeout(()=>{
     if(_svIdx<_stories.length-1){
-      if(window._svAudio){ window._svAudio.pause(); window._svAudio.src=''; window._svAudio=null; }
       _svIdx++;renderSV();_svStartTimer();
     }else{closeSV();}
   },SV_DURATION);
@@ -4562,8 +4562,19 @@ function closeSV(){
   document.getElementById('storyViewer').classList.remove('open');
   if(_svAutoTimer){clearTimeout(_svAutoTimer);_svAutoTimer=null;}
   if(window._svViewsUnsub){ window._svViewsUnsub(); window._svViewsUnsub=null; }
-  if(window._svAudio){ window._svAudio.pause(); window._svAudio.src=''; window._svAudio=null; }
+  // Parar audio usando el elemento DOM — inmediato y definitivo
+  const audioEl = document.getElementById('svAudioEl');
+  if(audioEl){
+    audioEl.pause();
+    audioEl.removeAttribute('src');
+    audioEl.load();
+    audioEl.onerror = null;
+    audioEl.oncanplay = null;
+  }
   window._svCurrentStoryId = null;
+  window._svAudio = null;
+  const svMusic = document.getElementById('svMusicBar');
+  if(svMusic) svMusic.style.display = 'none';
 }
 
 // Registra vista y escucha contador en tiempo real
@@ -4674,12 +4685,6 @@ document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){ const sv=document.getElementById('storyViewer'); if(sv&&sv.classList.contains('open')) closeSV(); }
 });
 function svNav(dir){
-  // Matar audio INMEDIATAMENTE antes de cambiar historia
-  if(window._svAudio){
-    window._svAudio.pause();
-    window._svAudio.src='';
-    window._svAudio=null;
-  }
   _svIdx=Math.max(0,Math.min(_stories.length-1,_svIdx+dir));
   renderSV(); _svStartTimer(); _svRegisterView();
 }
@@ -4725,42 +4730,40 @@ function renderSV(){
   if(cinp) cinp.value = '';
 
   // --- MÚSICA DEEZER ---
-  // Solo reiniciar audio si cambió de historia (distinto id)
-  if(window._svAudio && window._svCurrentStoryId !== s.id){
-    window._svAudio.pause(); window._svAudio.src=''; window._svAudio = null;
-  }
+  // Usar SIEMPRE el elemento <audio id="svAudioEl"> del DOM — garantiza parada inmediata
+  const audio = document.getElementById('svAudioEl');
+  // PARAR inmediatamente — elemento DOM, pause() es síncrono y definitivo
+  audio.pause();
+  audio.removeAttribute('src');
+  audio.load();
+  audio.onerror = null;
+  audio.oncanplay = null;
   window._svCurrentStoryId = s.id;
-  // Si ya hay audio sonando para esta historia, no crear otro
-  if(window._svAudio && !window._svAudio.paused) {
-    // solo actualizar la barra visual, no tocar el audio
-  } else if(window._svAudio){ window._svAudio.pause(); window._svAudio.src=''; window._svAudio=null; }
+  audio.volume = 0.85;
+  audio.loop = true;
+
   const svMusic = document.getElementById('svMusicBar');
 
   async function _svPlayMusic(previewUrl, musicData){
-    const audio = new Audio();
-    audio.src = previewUrl;
-    audio.volume = 0.85;
-    audio.loop = true;
-    audio.preload = 'auto';
-    window._svAudio = audio;
-
     if(svMusic){
       svMusic.style.display = 'flex';
       const cover = svMusic.querySelector('.sv-music-cover');
-      const title = svMusic.querySelector('.sv-music-title');
-      const artist = svMusic.querySelector('.sv-music-artist');
+      const titleEl = svMusic.querySelector('.sv-music-title');
+      const artistEl = svMusic.querySelector('.sv-music-artist');
       const playBtn = svMusic.querySelector('.sv-music-playbtn');
       if(cover) cover.src = musicData.cover || '';
-      if(title) title.textContent = musicData.title || '';
-      if(artist) artist.textContent = musicData.artist || '';
+      if(titleEl) titleEl.textContent = musicData.title || '';
+      if(artistEl) artistEl.textContent = musicData.artist || '';
       if(playBtn) playBtn.style.display = 'none';
     }
 
-    const tryPlay = () => {
-      audio.play().then(()=>{
-        const playBtn = svMusic?.querySelector('.sv-music-playbtn');
-        if(playBtn) playBtn.style.display = 'none';
-      }).catch(()=>{
+    // Guardar el storyId actual para verificar que no cambió antes de reproducir
+    const playStoryId = s.id;
+
+    const doPlay = () => {
+      // Si el usuario ya cambió de historia antes de que cargue, no reproducir
+      if(window._svCurrentStoryId !== playStoryId) return;
+      audio.play().catch(()=>{
         const playBtn = svMusic?.querySelector('.sv-music-playbtn');
         if(playBtn){
           playBtn.style.display = 'flex';
@@ -4769,43 +4772,36 @@ function renderSV(){
       });
     };
 
-    // Si hay error de carga, intentar re-buscar el preview en Deezer
-    audio.addEventListener('error', async ()=>{
+    audio.onerror = async ()=>{
+      audio.onerror = null;
+      if(window._svCurrentStoryId !== playStoryId) return;
       if(!musicData.title) return;
       try {
         const proxies = [
           q=>`https://corsproxy.io/?${encodeURIComponent('https://api.deezer.com/search?q='+encodeURIComponent(q)+'&limit=5')}`,
           q=>`https://api.allorigins.win/get?url=${encodeURIComponent('https://api.deezer.com/search?q='+encodeURIComponent(q)+'&limit=5')}`
         ];
-        const query = (musicData.title||'') + ' ' + (musicData.artist||'');
-        let tracks = null;
+        const q2 = (musicData.title||'') + ' ' + (musicData.artist||'');
         for(const pFn of proxies){
           try {
-            const r = await fetch(pFn(query));
+            const r = await fetch(pFn(q2));
             const d = await r.json();
             const data = d.data ? d : (d.contents ? JSON.parse(d.contents) : null);
-            if(data?.data?.length){ tracks = data.data; break; }
+            if(data?.data?.[0]?.preview){
+              if(window._svCurrentStoryId !== playStoryId) return;
+              audio.src = data.data[0].preview;
+              audio.load();
+              audio.oncanplay = ()=>{ audio.oncanplay=null; doPlay(); };
+              return;
+            }
           } catch(e){}
         }
-        if(tracks && tracks[0]?.preview){
-          audio.src = tracks[0].preview;
-          audio.load();
-          audio.play().catch(()=>{
-            const playBtn = svMusic?.querySelector('.sv-music-playbtn');
-            if(playBtn){ playBtn.style.display='flex'; playBtn.onclick=()=>{audio.play();playBtn.style.display='none';}; }
-          });
-        }
       } catch(e){}
-    }, {once:true});
+    };
 
-    if(audio.readyState >= 2){ tryPlay(); }
-    else { audio.addEventListener('canplay', tryPlay, {once:true}); }
-
-    const svCard = document.getElementById('svCard') || document.getElementById('svBg')?.parentElement;
-    if(svCard && !svCard._musicClickBound){
-      svCard._musicClickBound = true;
-      svCard.addEventListener('click', ()=>{ if(window._svAudio && window._svAudio.paused) window._svAudio.play().catch(()=>{}); }, {once:false});
-    }
+    audio.oncanplay = ()=>{ audio.oncanplay=null; doPlay(); };
+    audio.src = previewUrl;
+    audio.load();
   }
 
   if(s.music && s.music.preview){
