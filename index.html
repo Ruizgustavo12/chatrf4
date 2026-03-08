@@ -396,38 +396,52 @@ img[title="Verificado"]:hover{
 .rxn-btn:hover{transform:scale(1.6) translateY(-6px);}
 .rxn-btn:hover .rxn-tooltip{opacity:1!important;}
 
-/* COMMENTS */
-.comments-section{padding:8px 14px 12px;display:none;border-top:1px solid #ced0d4;}
+/* ===== COMMENTS - FACEBOOK STYLE ===== */
+.comments-section{display:none;padding:0 12px 8px;border-top:1px solid #ced0d4;}
+.comments-section.open{display:block;}
 
-/* Reply button in comments */
-.cmt-reply-btn{background:none;border:none;font-size:.75rem;font-weight:700;color:var(--muted);cursor:pointer;padding:2px 6px;border-radius:100px;transition:color .15s;}
-.cmt-reply-btn:hover{color:var(--accent);}
-/* Comment that is a reply (@mention) gets a subtle left border */
-.comment-item.is-reply .comment-bubble{background:#f0f2f5;border-radius:18px;padding:8px 12px;display:inline-block;max-width:calc(100% - 8px);}
+/* Action buttons (Me gusta / Comentar / Compartir) */
+.post-actions{display:flex;gap:0;padding:0 4px;border-top:1px solid #ced0d4;}
+.act-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:8px;background:none;border:none;color:#65676b;font-size:.88rem;font-weight:700;cursor:pointer;transition:background .15s;}
+.act-btn:hover{background:#f2f2f2;color:#050505;}
 
-/* Comment menu hover (CSS-only, no JS needed) */
+/* Comment input row */
+.comment-input-row{display:flex;gap:8px;align-items:center;padding:8px 0 6px;}
+.comment-input{flex:1;background:#f0f2f5;border:none;border-radius:20px;padding:9px 16px;color:#050505;font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;resize:none;}
+.comment-input::placeholder{color:#65676b;}
+.comment-input:focus{background:#e4e6eb;}
+.comment-send{background:none;border:none;color:#1877f2;font-size:1.1rem;cursor:pointer;padding:4px 8px;opacity:.5;transition:opacity .15s;}
+.comment-send:hover{opacity:1;}
+
+/* Comment item */
+.comment-item{display:flex;gap:8px;align-items:flex-start;margin-bottom:4px;}
+.comment-bubble{background:#f0f2f5;border-radius:18px;padding:8px 12px;display:inline-block;max-width:100%;}
+.comment-author{font-size:.82rem;font-weight:700;color:#050505;display:block;margin-bottom:1px;}
+.comment-text{font-size:.88rem;line-height:1.4;color:#050505;word-break:break-word;}
+
+/* Comment meta (time, like, reply) */
+.cmt-meta{display:flex;align-items:center;gap:10px;padding:2px 4px 0;flex-wrap:wrap;}
+.cmt-meta-time{font-size:.72rem;color:#65676b;}
+.cmt-reply-btn{background:none;border:none;font-size:.75rem;font-weight:700;color:#65676b;cursor:pointer;padding:0;transition:color .15s;}
+.cmt-reply-btn:hover{color:#050505;text-decoration:underline;}
+.cmt-like-btn{background:none;border:none;font-size:.75rem;font-weight:700;color:#65676b;cursor:pointer;padding:0;transition:color .15s;}
+.cmt-like-btn:hover{color:#1877f2;}
+.cmt-like-btn.active{color:#1877f2;}
+
+/* Comment menu */
 .cmt-menu-wrap{position:relative;flex-shrink:0;}
-.cmt-menu-wrap .cmt-menu-dropdown{display:none;position:absolute;right:0;top:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);min-width:150px;z-index:9999;box-shadow:0 2px 12px rgba(0,0,0,.15);overflow:hidden;}
+.cmt-dots-btn{background:none;border:none;color:#65676b;font-size:1rem;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;opacity:0;transition:opacity .15s,background .15s;}
+.comment-item:hover .cmt-dots-btn{opacity:1;}
+.cmt-dots-btn:hover{background:#e4e6eb;}
+.cmt-menu-dropdown{display:none;position:absolute;right:0;top:0;background:#fff;border:1px solid #ced0d4;border-radius:8px;min-width:160px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.15);overflow:hidden;}
 .cmt-menu-wrap:hover .cmt-menu-dropdown{display:block;}
-.cmt-menu-wrap .cmt-dots-btn{background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;}
-.cmt-menu-wrap:hover .cmt-dots-btn{background:var(--bg4);}
 
-/* Comment reaction popup hover (CSS-only) */
+/* Reaction popup */
 .cmt-rxn-wrap{position:relative;}
-.cmt-rxn-wrap .cmt-rxn-popup{display:none;position:absolute;bottom:100%;left:0;background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:8px 10px 16px;align-items:center;box-shadow:0 2px 12px rgba(0,0,0,.2);white-space:nowrap;z-index:9998;flex-direction:row;}
+.cmt-rxn-popup{display:none;position:absolute;bottom:calc(100% + 6px);left:0;background:#fff;border:1px solid #ced0d4;border-radius:100px;padding:6px 8px;align-items:center;box-shadow:0 4px 16px rgba(0,0,0,.2);white-space:nowrap;z-index:9998;flex-direction:row;gap:4px;}
 .cmt-rxn-wrap:hover .cmt-rxn-popup{display:flex;}
 
-.comments-section.open{display:block;}
-.comment-input-row{display:flex;gap:8px;margin-bottom:10px;}
-.comment-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:100px;
-  padding:8px 14px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.83rem;outline:none;}
-.comment-input:focus{border-color:var(--accent);background:var(--bg3);}
-.comment-send{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#000;
-  width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;}
-.comment-item{display:flex;gap:8px;margin-bottom:8px;}
-.comment-bubble{background:var(--bg3);border-radius:var(--r);border-bottom-left-radius:4px;padding:8px 12px;flex:1;}
-.comment-author{font-size:.78rem;font-weight:700;color:var(--accent);margin-bottom:2px;}
-.comment-text{font-size:.83rem;line-height:1.4;}
+
 
 
 /* ===== XP / LEVEL / STREAK ===== */
@@ -3957,6 +3971,9 @@ function pickStoryEmoji(em){ _storyEmojiPick = em; toast('Emoji '+em+' seleccion
 function renderFeed(){
   const el = document.getElementById('feedPosts');
   if(!el) return;
+  // Always refresh image map so lightbox works after smart-patch
+  window._postImgsMap = window._postImgsMap || {};
+  _posts.forEach(p=>{ if(p.images&&p.images.length) window._postImgsMap[p.id]=p.images; });
   const scrollY = window.scrollY;
   const newHTML = _posts.map(p=>postHTML(p)).join('');
   // First render - just set innerHTML
@@ -4158,32 +4175,30 @@ function postHTML(p){
     if(canDel) menuBtns += '<button onclick="delCmt(event,\''+p.id+'\','+ci+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#f55;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">🗑 Eliminar</button>';
     menuBtns += '<button onclick="toast(\'Comentario reportado\',\'ok\')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#fa0;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">⚠️ Reportar</button>';
     const rxnBtnsHtml = CMT_RXNS.map(em=>'<button onclick="reactCmt(event,\''+p.id+'\','+ci+',\''+em+'\')" style="background:none;border:none;font-size:1.3rem;cursor:pointer;padding:3px;border-radius:50%;transition:transform .13s;" onmouseover="this.style.transform=\'scale(1.4) translateY(-4px)\'" onmouseout="this.style.transform=\'scale(1)\'">'+em+'</button>').join('');
-    const isReply = c.text && c.text.startsWith('@');
-    return '<div class="comment-item" style="display:flex;align-items:flex-start;position:relative;margin-bottom:6px;">'
-      +'<div class="sl-av" style="width:32px;height:32px;font-size:.75rem;flex-shrink:0;cursor:pointer;margin-top:2px;" onclick="openUserProfile(\''+c.userId+'\',\''+esc(c.nick)+'\')">'+((c.av?'<img src="'+c.av+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">':esc((c.nick||'?')[0])))+'</div>'
+    return '<div class="comment-item">'
+      +'<div class="sl-av" style="width:32px;height:32px;font-size:.75rem;flex-shrink:0;cursor:pointer;" onclick="openUserProfile(\''+c.userId+'\',\''+esc(c.nick)+'\')">'+((c.av?'<img src="'+c.av+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">':esc((c.nick||'?')[0])))+'</div>'
       +'<div style="flex:1;min-width:0;">'
-        +'<div class="comment-bubble" style="margin-bottom:3px;">'
-          +'<div style="display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:2px;">'
-            +'<div class="comment-author" style="cursor:pointer;" onclick="openUserProfile(\''+c.userId+'\',\''+esc(c.nick)+'\')">'+(c.nick||'?')+'</div>'
-            +'<div class="cmt-menu-wrap">'
-              +'<button class="cmt-dots-btn">⋯</button>'
-              +'<div class="cmt-menu-dropdown">'
-                +menuBtns
-              +'</div>'
-            +'</div>'
+        +'<div style="position:relative;display:inline-block;max-width:100%;">'
+          +'<div class="comment-bubble">'
+            +'<span class="comment-author" style="cursor:pointer;" onclick="openUserProfile(\''+c.userId+'\',\''+esc(c.nick)+'\')">'+(c.nick||'?')+'</span>'
+            +(c.gif?'<img src="'+c.gif+'" style="max-width:180px;border-radius:8px;margin-top:4px;display:block;" loading="lazy">'  :'<span class="comment-text"> '+renderCommentText(c.text)+(c.edited?' <span style="font-size:.63rem;color:#65676b;">(editado)</span>':'')+'</span>')
           +'</div>'
-          +(c.gif?'<img src="'+c.gif+'" style="max-width:180px;border-radius:8px;margin-top:4px;display:block;" loading="lazy">'  :'<div class="comment-text">'+renderCommentText(c.text)+(c.edited?' <span style="font-size:.63rem;color:var(--muted);">(editado)</span>':'')+'</div>')
+          +'<div class="cmt-menu-wrap" style="position:absolute;top:-6px;right:-32px;">'
+            +'<button class="cmt-dots-btn">⋯</button>'
+            +'<div class="cmt-menu-dropdown">'+menuBtns+'</div>'
+          +'</div>'
         +'</div>'
-        +'<div style="display:flex;align-items:center;gap:10px;padding:0 4px 4px;flex-wrap:wrap;">'
-          +'<span style="font-size:.7rem;color:var(--muted);">'+timeStr+'</span>'
-          +'<button onclick="replyCmt(event,\''+p.id+'\',\''+esc(c.nick)+'\')" class="cmt-reply-btn">Responder</button>'
+        +(cRxnTotal>0?'<div style="display:inline-flex;align-items:center;gap:2px;background:#fff;border:1px solid #ced0d4;border-radius:100px;padding:2px 5px;font-size:.72rem;margin-top:2px;box-shadow:0 1px 3px rgba(0,0,0,.1);">'+cTopRxn+' <span style="color:#65676b;">'+cRxnTotal+'</span></div>':'')
+        +'<div class="cmt-meta">'
+          +'<span class="cmt-meta-time">'+timeStr+'</span>'
           +'<div class="cmt-rxn-wrap">'
-            +'<button onclick="quickCmtRxn(event,\''+p.id+'\','+ci+')" style="background:none;border:none;font-size:.75rem;font-weight:700;cursor:pointer;padding:2px 6px;border-radius:100px;color:'+(myRxnC?'var(--accent)':'var(--muted)')+';padding:2px 6px;">'+(myRxnC?myRxnC+' ':'')+' Me gusta</button>'
-            +'<div class="cmt-rxn-popup">'
-              +rxnBtnsHtml
-            +'</div>'
+            +'<button class="cmt-like-btn'+(myRxnC?' active':'')+'" onclick="quickCmtRxn(event,\''+p.id+'\','+ci+')">'
+            +(myRxnC?myRxnC+' Me gusta':'Me gusta')
+            +'</button>'
+            +'<div class="cmt-rxn-popup">'+rxnBtnsHtml+'</div>'
           +'</div>'
-          +'</div>'
+          +'<button onclick="replyCmt(event,\''+p.id+'\',\''+esc(c.nick)+'\')" class="cmt-reply-btn">Responder</button>'
+        +'</div>'
           +(cRxnTotal>0?'<span style="font-size:.72rem;background:var(--bg3);border-radius:100px;padding:1px 6px;color:var(--muted);">'+cTopRxn+' '+cRxnTotal+'</span>':'')
         +'</div>'
       +'</div>'
@@ -4301,24 +4316,20 @@ function postHTML(p){
     <div class="comments-section" id="cmts_${p.id}">
       ${cmtsHTML}
       <div class="comment-input-row">
-        <div class="sl-av" style="width:32px;height:32px;font-size:.75rem;flex-shrink:0">${window.CU?window.CU.nick[0]:'?'}</div>
-        <div style="position:relative;flex:1;">
-          <button onclick="openEmojiPicker(event,'cinp_${p.id}')" style="background:none;border:none;font-size:1.1rem;cursor:pointer;padding:4px 6px;color:var(--muted);flex-shrink:0;" title="Emoji">😊</button>
-          <button onclick="toggleGifPicker('gifpick_${p.id}','cinp_${p.id}')" style="background:none;border:none;font-size:.65rem;font-weight:900;cursor:pointer;padding:3px 5px;color:var(--accent);border:1px solid var(--accent);border-radius:4px;line-height:1;flex-shrink:0;" title="GIF">GIF</button>
+        <div class="sl-av" style="width:36px;height:36px;font-size:.8rem;flex-shrink:0;">${window.CU?.av?'<img src="'+window.CU.av+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">':window.CU?.nick?.[0]||'?'}</div>
+        <div style="position:relative;flex:1;display:flex;align-items:center;background:#f0f2f5;border-radius:20px;padding:0 8px 0 0;">
+          <input class="comment-input" placeholder="Escribe un comentario..." id="cinp_${p.id}" 
+            onkeypress="if(event.key==='Enter'){event.preventDefault();submitComment('${p.id}');}"
+            oninput="handleMentionInput(this,'${p.id}')" style="flex:1;background:transparent;border:none;padding:9px 12px;">
+          <button onclick="openEmojiPicker(event,'cinp_${p.id}')" style="background:none;border:none;font-size:1rem;cursor:pointer;padding:4px;color:#65676b;" title="Emoji">😊</button>
+          <button onclick="toggleGifPicker('gifpick_${p.id}','cinp_${p.id}')" style="background:none;border:none;font-size:.6rem;font-weight:900;cursor:pointer;padding:3px 5px;color:#65676b;border:1px solid #65676b;border-radius:4px;line-height:1;" title="GIF">GIF</button>
           <div class="gif-picker" id="gifpick_${p.id}" style="bottom:calc(100% + 4px);">
-            <div class="gif-search">
-              <input type="text" placeholder="Buscar GIF..." oninput="searchGifs(this.value,'gifpick_${p.id}','cinp_${p.id}')">
-              <button onclick="closeGifPicker('gifpick_${p.id}')" style="background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;">✕</button>
-            </div>
+            <div class="gif-search"><input type="text" placeholder="Buscar GIF..." oninput="searchGifs(this.value,'gifpick_${p.id}','cinp_${p.id}')"><button onclick="closeGifPicker('gifpick_${p.id}')" style="background:none;border:none;color:#65676b;font-size:1rem;cursor:pointer;">✕</button></div>
             <div class="gif-grid" id="gifgrid_${p.id}"></div>
             <div class="gif-powered">Powered by GIPHY</div>
           </div>
-          <input class="comment-input" placeholder="Escribe un comentario... usa @ para etiquetar" id="cinp_${p.id}" 
-            onkeypress="if(event.key==='Enter')submitComment('${p.id}')"
-            oninput="handleMentionInput(this,'${p.id}')">
-          <div id="mention_${p.id}" style="display:none;position:absolute;bottom:100%;left:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);min-width:180px;max-height:180px;overflow-y:auto;z-index:500;box-shadow:0 4px 16px rgba(0,0,0,.5);"></div>
+          <div id="mention_${p.id}" style="display:none;position:absolute;bottom:calc(100% + 4px);left:0;background:#fff;border:1px solid #ced0d4;border-radius:8px;min-width:180px;max-height:180px;overflow-y:auto;z-index:500;box-shadow:0 4px 16px rgba(0,0,0,.2);"></div>
         </div>
-        <button class="comment-send" onclick="submitComment('${p.id}')">➤</button>
       </div>
     </div>
   </div>`;
