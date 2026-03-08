@@ -5584,7 +5584,15 @@ function cancelHideCmtRxn(pid, ci){ clearTimeout(_cmtRxnHide['crxnp_'+pid+'_'+ci
 async function reactCmt(e, pid, ci, em){
   if(e) e.stopPropagation();
   if(!window.CU){ toast('Iniciá sesión','err'); return; }
-  const p = _posts.find(p=>p.id===pid); if(!p) return;
+  let p = _posts.find(p=>p.id===pid);
+  if(!p){
+    try {
+      const snap = await getDoc(doc(db,'posts',pid));
+      if(!snap.exists()) return;
+      p = {id:snap.id,...snap.data()};
+      _posts.push(p);
+    } catch(e){ return; }
+  }
   const newCmts = [...(p.comments||[])];
   const c = {...(newCmts[ci]||{})};
   const uRxns = {...(c.userReactions||{})};
@@ -5683,9 +5691,15 @@ async function submitComment(pid){
   }
   addXP(3,'comentario');
   inp.value='';
-  // Keep comments open - don't jump, just add class if not already open
+  // Refresh comment section in DOM
   const cmtsEl = document.getElementById('cmts_'+pid);
   if(cmtsEl && !cmtsEl.classList.contains('open')) cmtsEl.classList.add('open');
+  // Re-render comments in modal if open
+  const modalCmts = document.getElementById('_cmtModal_'+pid);
+  if(modalCmts && p) {
+    const cmtBody = modalCmts.querySelector('.cmt-list');
+    if(cmtBody) cmtBody.innerHTML = _buildCmtHtml ? _buildCmtHtml(p.comments||[]) : '';
+  }
 }
 
 // Mention autocomplete
@@ -9734,6 +9748,9 @@ function togglePostMenu(pid, e, ownerId){
   if(!myId){
     menu.querySelectorAll('[data-owner-only],[data-other-only]').forEach(b => b.style.display='none');
   }
+  // Si el menu quedó vacío (sin botones visibles), ocultar el menú entero
+  const visibleBtns = [...menu.querySelectorAll('button')].filter(b=>b.style.display!=='none');
+  if(!visibleBtns.length){ menu.style.display='none'; return; }
 
   const isOpen = menu.style.display === 'block';
   menu.style.display = isOpen ? 'none' : 'block';
@@ -9766,8 +9783,19 @@ async function saveEditPost(){
 
 async function deleteMyPost(pid){
   if(!confirm('¿Eliminar tu publicación?')) return;
-  await deleteDoc(doc(db,'posts',pid));
-  toast('Publicación eliminada','ok');
+  try {
+    await deleteDoc(doc(db,'posts',pid));
+    // Quitar del cache local inmediatamente
+    if(window._posts) window._posts = window._posts.filter(p=>p.id!==pid);
+    // Cerrar menú si está abierto
+    const menu = document.getElementById('pmenu_'+pid);
+    if(menu) menu.style.display='none';
+    // Quitar la card del DOM sin recargar todo
+    const card = document.getElementById('post_'+pid) || document.querySelector('[data-pid="'+pid+'"]');
+    if(card){ card.style.transition='opacity .3s'; card.style.opacity='0'; setTimeout(()=>card.remove(),300); }
+    else { renderFeed && renderFeed(); }
+    toast('Publicación eliminada','ok');
+  } catch(e){ toast('Error al eliminar','err'); }
 }
 
 // ===== PRESENCE (ONLINE USERS) =====
