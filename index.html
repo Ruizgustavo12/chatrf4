@@ -5705,63 +5705,11 @@ function pickStoryEmoji(em){ _storyEmojiPick = em; toast('Emoji '+em+' seleccion
 function renderFeed(){
   const el = document.getElementById('feedPosts');
   if(!el) return;
-  // Always refresh image map so lightbox works after smart-patch
   window._postImgsMap = window._postImgsMap || {};
   _posts.forEach(p=>{ if(p.images&&p.images.length) window._postImgsMap[p.id]=p.images; });
   const scrollY = window.scrollY;
-  const newHTML = _posts.map(p=>postHTML(p)).join('');
-  // First render - just set innerHTML
-  if(!el.children.length){
-    el.innerHTML = newHTML;
-    return;
-  }
-  // Smart patch: only replace posts that changed, preserve open comments
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = newHTML;
-  const newPosts = Array.from(tempDiv.children);
-  const existingPosts = Array.from(el.children);
-  // If post count changed, do full rebuild
-  if(existingPosts.length !== newPosts.length){
-    el.innerHTML = newHTML;
-    window.scrollTo(0, scrollY);
-    return;
-  }
-  newPosts.forEach((newPost, i) => {
-    const existing = existingPosts[i];
-    if(!existing || existing.id !== newPost.id){
-      el.innerHTML = newHTML;
-      window.scrollTo(0, scrollY);
-      return;
-    }
-    if(existing.outerHTML === newPost.outerHTML) return; // no change
-    // Patch only changed sub-sections, preserve open state
-    const wasOpen = existing.querySelector('.comments-section.open') !== null;
-    // 1. Update post-stats (reaction counts)
-    const oldStats = existing.querySelector('.post-stats');
-    const newStats = newPost.querySelector('.post-stats');
-    if(oldStats && newStats && oldStats.outerHTML !== newStats.outerHTML){
-      oldStats.replaceWith(newStats);
-    }
-    // 2. Update post-actions (reaction button active state)
-    const oldAct = existing.querySelector('.post-actions');
-    const newAct = newPost.querySelector('.post-actions');
-    if(oldAct && newAct && oldAct.outerHTML !== newAct.outerHTML){
-      oldAct.replaceWith(newAct);
-    }
-    // 3. Update comments section content BUT preserve open/closed state
-    const oldCmts = existing.querySelector('.comments-section');
-    const newCmts = newPost.querySelector('.comments-section');
-    if(oldCmts && newCmts && oldCmts.innerHTML !== newCmts.innerHTML){
-      newCmts.classList.toggle('open', wasOpen); // preserve open state
-      oldCmts.replaceWith(newCmts);
-    }
-    // 4. Update rxn popup (reaction button state)
-    const oldRxnPop = existing.querySelector('.rxn-popup');
-    const newRxnPop = newPost.querySelector('.rxn-popup');
-    if(oldRxnPop && newRxnPop && oldRxnPop.outerHTML !== newRxnPop.outerHTML){
-      oldRxnPop.replaceWith(newRxnPop);
-    }
-  });
+  el.innerHTML = _posts.map(p=>postHTML(p)).join('');
+  window.scrollTo(0, scrollY);
 }
 
 function renderProfileFeed(){
@@ -5789,33 +5737,8 @@ function _renderProfileFeedHTML(el, mine){
     if(pp) pinnedH=`<div style='margin-bottom:6px;'><span class='pinned-label'>📌 Post fijado</span>${postHTML(pp)}</div>`;
   }
   const rest=mine.filter(p=>p.id!==window.CU?.pinnedPostId);
-  const newHTML = pinnedH+(rest.length?rest.map(p=>postHTML(p)).join(''):(!pinnedH?`<div style="text-align:center;padding:40px;color:var(--muted)">Sin publicaciones aún. ¡Comparte tu primera pesca!</div>`:''));
-  if(el.innerHTML === newHTML) return;
-  if(!el.children.length){ el.innerHTML = newHTML; return; }
-  // Smart patch
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = newHTML;
-  const newPosts = Array.from(tempDiv.children);
-  const existingPosts = Array.from(el.children);
-  if(existingPosts.length !== newPosts.length){ el.innerHTML = newHTML; window.scrollTo(0,scrollY); return; }
-  newPosts.forEach((newPost,i)=>{
-    const existing = existingPosts[i];
-    if(!existing || existing.id !== newPost.id){ el.innerHTML = newHTML; window.scrollTo(0,scrollY); return; }
-    if(existing.outerHTML === newPost.outerHTML) return;
-    const wasOpen = existing.querySelector('.comments-section.open') !== null;
-    const oldStats = existing.querySelector('.post-stats');
-    const newStats = newPost.querySelector('.post-stats');
-    if(oldStats && newStats && oldStats.outerHTML !== newStats.outerHTML) oldStats.replaceWith(newStats);
-    const oldAct = existing.querySelector('.post-actions');
-    const newAct = newPost.querySelector('.post-actions');
-    if(oldAct && newAct && oldAct.outerHTML !== newAct.outerHTML) oldAct.replaceWith(newAct);
-    const oldCmts = existing.querySelector('.comments-section');
-    const newCmts = newPost.querySelector('.comments-section');
-    if(oldCmts && newCmts && oldCmts.innerHTML !== newCmts.innerHTML){
-      newCmts.classList.toggle('open', wasOpen);
-      oldCmts.replaceWith(newCmts);
-    }
-  });
+  el.innerHTML = pinnedH+(rest.length?rest.map(p=>postHTML(p)).join(''):(!pinnedH?`<div style="text-align:center;padding:40px;color:var(--muted)">Sin publicaciones aún. ¡Comparte tu primera pesca!</div>`:''));
+  window.scrollTo(0, scrollY);
 }
 
 function postHTML(p){
@@ -6607,6 +6530,19 @@ function toggleComments(pid){
         <button onclick="openEmojiPicker(event,'_cmtModalInp_${pid}')" title="Emoji"
           style="background:none;border:none;font-size:1.1rem;cursor:pointer;padding:4px 5px;border-radius:50%;line-height:1;transition:background .15s;"
           onmouseover="this.style.background='#e4e6eb'" onmouseout="this.style.background='none'">😊</button>
+        <button onclick="toggleStickerPicker('_modalstkpick_${pid}','_cmtModalInp_${pid}')" title="Stickers"
+          style="background:none;border:none;font-size:1.1rem;cursor:pointer;padding:4px 5px;border-radius:50%;line-height:1;transition:background .15s;"
+          onmouseover="this.style.background='#e4e6eb'" onmouseout="this.style.background='none'">🎭</button>
+        <div class="stk-picker" id="_modalstkpick_${pid}" style="bottom:calc(100% + 4px);left:auto;right:0;">
+          <div class="stk-search">
+            <span style="font-size:1rem;">🔍</span>
+            <input type="text" placeholder="Buscar" id="_modalstksearch_${pid}" oninput="searchStickers(this.value,'_modalstkpick_${pid}','_cmtModalInp_${pid}')">
+            <button onclick="closeStickerPicker('_modalstkpick_${pid}')" style="background:none;border:none;color:#65676b;font-size:1rem;cursor:pointer;padding:2px;">✕</button>
+          </div>
+          <div id="_modalstkcontent_${pid}">
+            <div class="stk-cats" id="_modalstkcats_${pid}"></div>
+          </div>
+        </div>
         <button onclick="_cmtOpenGif('${pid}')" title="GIF"
           style="background:none;border:none;font-size:.65rem;font-weight:900;cursor:pointer;padding:3px 5px;border-radius:6px;color:#1877f2;line-height:1;transition:background .15s;"
           onmouseover="this.style.background='#e4e6eb'" onmouseout="this.style.background='none'">GIF</button>
@@ -12834,6 +12770,10 @@ function sendSticker(gifUrl, pickerId, targetId){
   closeStickerPicker(pickerId);
   if(targetId === 'chatInput'){
     sendChatMsg(gifUrl);
+  } else if(targetId.startsWith('_cmtModalInp_')){
+    // Sticker desde modal de comentarios
+    const pid = targetId.replace('_cmtModalInp_','');
+    sendCmtGif(pid, gifUrl);
   } else {
     submitCommentGif(gifUrl, targetId.replace('cinp_',''));
   }
@@ -14828,16 +14768,15 @@ window.setUserRole         = setUserRole;
 // CHANGELOG — Solo visible para ruizgustavo12
 // Actualizar VERSION y CHANGES cada vez que se sube un index nuevo
 // ═══════════════════════════════════════════════════════
-const _CL_VERSION = '2026-03-08-v39';
+const _CL_VERSION = '2026-03-08-v40';
 const _CL_CHANGES = [
+  { emoji:'⚡', text:'Feed instantáneo — se eliminó el smart patch de Firebase, el feed ahora re-renderiza directo y sin lag' },
   { emoji:'🎵', text:'Fix: Música en historias — si la URL de Deezer falla, se re-busca automáticamente y sigue sonando' },
-  { emoji:'💬', text:'Fix: Comentarios en publicaciones — ahora funcionan siempre, incluso en posts de otros perfiles' },
-  { emoji:'❤️', text:'Fix: Reacciones — manejo de errores robusto, el botón del modal también se actualiza al instante' },
-  { emoji:'🎨', text:'Historias: elegí color de fondo con 10 gradientes — preview en tiempo real mientras escribís' },
-  { emoji:'😊', text:'Historias: botón emoji y GIF en el texto de la historia' },
-  { emoji:'🎤', text:'Música historias: sugerencias instantáneas al escribir — KAR → Karol G, BAD → Bad Bunny, etc.' },
-  { emoji:'⋯',  text:'Comentarios: 3 puntitos en cada comentario → Editar / Eliminar sin cerrar el modal' },
-  { emoji:'🔁', text:'Compartir publicaciones con modal estilo Facebook — escribí algo antes de compartir' },
+  { emoji:'💬', text:'Fix: Comentarios — funcionan siempre incluso en posts de otros perfiles, con feedback visual' },
+  { emoji:'❤️', text:'Fix: Reacciones — manejo de errores robusto, botón del modal se actualiza al instante' },
+  { emoji:'🎨', text:'Historias: elegí color de fondo con 10 gradientes — preview en tiempo real' },
+  { emoji:'⋯',  text:'Comentarios: 3 puntitos → Editar / Eliminar sin cerrar el modal' },
+  { emoji:'🔁', text:'Compartir publicaciones con modal estilo Facebook' },
 ];
 
 const _CL_KEY = 'cl_seen_' + _CL_VERSION;
