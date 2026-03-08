@@ -2677,7 +2677,7 @@ function _stub(name){ return function(){ _q.push([name, arguments]); }; }
  'doReact','quickReact','saveProfile','openEditProfile','changeCover','changeAvatar',
  'previewPostImg','removePostImg','previewPostMedia','removePostMedia',
  'previewStoryImg','pickStoryEmoji','insertEmoji','insertFishTag',
- 'toggleComments','_submitModalCmt','sharePost','toggleCmtMenu','editCmt','delCmt','quickCmtRxn','replyCmt','toggleReplies','showCmtRxnPop','hideCmtRxnPop','cancelHideCmtRxn','reactCmt','openImgLightbox','openImgLightboxById','toggleStickerPicker','closeStickerPicker','loadStickerCat','searchStickers','sendSticker','resetStickerCats','swPTab','setAppTheme','reactChatMsg','showMsgRxnBar','hideMsgRxnBar','keepMsgRxnBar','showCmtMenu','hideCmtMenu','setChatTyping','filterShopCat','toggleEquipItem',
+ 'toggleComments','_submitModalCmt','_editModalCmt','_delModalCmt','sharePost','toggleCmtMenu','editCmt','delCmt','quickCmtRxn','replyCmt','toggleReplies','showCmtRxnPop','hideCmtRxnPop','cancelHideCmtRxn','reactCmt','openImgLightbox','openImgLightboxById','toggleStickerPicker','closeStickerPicker','loadStickerCat','searchStickers','sendSticker','resetStickerCats','swPTab','setAppTheme','reactChatMsg','showMsgRxnBar','hideMsgRxnBar','keepMsgRxnBar','showCmtMenu','hideCmtMenu','setChatTyping','filterShopCat','toggleEquipItem',
  'showRxnPop','schedHideRxnPop','cancelHideRxnPop',
  'openSV','closeSV','svNav','reactStory','submitStoryComment','deleteMyStory','doSearch',
  'reportPost','submitReport','loadAdminData','deleteAdminPost','resolveReport',
@@ -4707,104 +4707,183 @@ function quickReact(pid){ if(!window.CU){toast('Inicia sesión','err');return;} 
 
 // ===== COMMENTS =====
 function toggleComments(pid){
-  // Find post data
   const post = (_posts||[]).find(p=>p.id===pid);
   if(!post){ const el=document.getElementById('cmts_'+pid); if(el) el.classList.toggle('open'); return; }
 
-  // Open Facebook-style comment modal (like image 2)
   const existing = document.getElementById('_cmtModal_'+pid);
   if(existing){ existing.remove(); return; }
 
-  const avHtml = window.CU ? `<img src="${window.CU.av||getDefaultAv(window.CU.gender||'')}" style="width:100%;height:100%;object-fit:cover;">` : '';
-  const postAvHtml = `<img src="${post.userAv||getDefaultAv('')}" style="width:100%;height:100%;object-fit:cover;">`;
-
   const modal = document.createElement('div');
   modal.id = '_cmtModal_'+pid;
-  modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;animation:fadeIn .15s ease;';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;';
 
-  const cmts = post.comments||[];
-  const cmtsHtml = cmts.length ? cmts.map(c=>{
-    const av = `<img src="${c.av||getDefaultAv(c.gender||'')}" style="width:100%;height:100%;object-fit:cover;">`;
-    const isAuthor = post.userId === c.userId;
-    return `<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:10px;">
-      <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:#e4e6eb;flex-shrink:0;">${av}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="background:#f0f2f5;border-radius:18px;padding:8px 12px;display:inline-block;max-width:100%;">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
-            <span style="font-weight:700;font-size:.82rem;color:#050505;cursor:pointer;" onclick="openUserProfile('${c.userId||''}','${esc(c.nick||'')}')">${esc(c.nick||'')}</span>
-            ${isAuthor?'<span style="font-size:.65rem;color:#1877f2;font-weight:700;background:#e7f3ff;border-radius:4px;padding:1px 5px;">Autor</span>':''}
+  function _buildCmtHtml(cmts){
+    if(!cmts.length) return `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;gap:8px;">
+        <div style="width:60px;height:60px;opacity:.3;">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+            <rect x="8" y="4" width="24" height="32" rx="2" fill="#bcc0c4"/>
+            <rect x="8" y="4" width="24" height="32" rx="2" fill="#bcc0c4"/>
+            <path d="M26 4l6 6h-6V4z" fill="#8a8d91"/>
+            <rect x="12" y="16" width="14" height="2" rx="1" fill="#fff"/>
+            <rect x="12" y="21" width="10" height="2" rx="1" fill="#fff"/>
+            <rect x="12" y="26" width="12" height="2" rx="1" fill="#fff"/>
+            <rect x="14" y="30" width="20" height="14" rx="2" fill="#1877f2"/>
+            <path d="M18 37l4 4 8-8" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div style="font-weight:700;font-size:.95rem;color:#050505;">Todavía no hay comentarios</div>
+        <div style="font-size:.82rem;color:#65676b;">Sé la primera persona en comentar.</div>
+      </div>`;
+
+    return cmts.map((c,ci)=>{
+      const av = `<img src="${c.av||getDefaultAv(c.gender||'')}" style="width:100%;height:100%;object-fit:cover;">`;
+      const isAuthor = post.userId === c.userId;
+      const isVerified = c.verified || false;
+      const isMine = window.CU && c.userId === window.CU.id;
+      const isPostOwner = window.CU && post.userId === window.CU.id;
+      const canEdit = isMine;
+      const canDel = isMine || isPostOwner || window.CU?.admin;
+      // Name color: verified = gold, author = blue, normal = black
+      const nameColor = isVerified ? '#f5a623' : isAuthor ? '#1877f2' : '#050505';
+      const verifiedBadge = isVerified ? '<span style="color:#f5a623;font-size:.8rem;margin-left:2px;" title="Verificado">✓</span>' : '';
+
+      const menuId = `_cmtmenu_${pid}_${ci}`;
+      const menuHtml = (canEdit||canDel) ? `
+        <div style="position:relative;margin-left:auto;">
+          <button onclick="var m=document.getElementById('${menuId}');m.style.display=m.style.display==='block'?'none':'block';event.stopPropagation();"
+            style="background:none;border:none;color:#65676b;font-size:1rem;cursor:pointer;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1;"
+            onmouseover="this.style.background='#f0f2f5'" onmouseout="this.style.background='none'">···</button>
+          <div id="${menuId}" style="display:none;position:absolute;right:0;top:100%;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.2);min-width:160px;z-index:99;overflow:hidden;">
+            ${canEdit?`<button onclick="document.getElementById('${menuId}').style.display='none';_editModalCmt('${pid}',${ci})"
+              style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;padding:10px 14px;font-size:.88rem;color:#050505;cursor:pointer;font-family:'Exo 2',sans-serif;"
+              onmouseover="this.style.background='#f0f2f5'" onmouseout="this.style.background='none'">
+              <span style="font-size:1rem;">✏️</span> Editar
+            </button>`:''}
+            ${canDel?`<button onclick="document.getElementById('${menuId}').style.display='none';_delModalCmt('${pid}',${ci})"
+              style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;padding:10px 14px;font-size:.88rem;color:#e41e3f;cursor:pointer;font-family:'Exo 2',sans-serif;"
+              onmouseover="this.style.background='#fff0f2'" onmouseout="this.style.background='none'">
+              <span style="font-size:1rem;">🗑️</span> Eliminar
+            </button>`:''}
           </div>
-          <span style="font-size:.88rem;color:#050505;line-height:1.4;">${esc(c.text||'')}</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;padding:2px 4px 0;">
-          <span style="font-size:.72rem;color:#65676b;">${c.time?fmtT(c.time):''}</span>
-          <button style="background:none;border:none;font-size:.72rem;font-weight:700;color:#65676b;cursor:pointer;padding:0;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Me gusta</button>
-          <button style="background:none;border:none;font-size:.72rem;font-weight:700;color:#65676b;cursor:pointer;padding:0;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Responder</button>
-        </div>
-      </div>
-    </div>`;
-  }).join('') : '<div style="text-align:center;padding:24px;color:#65676b;font-size:.85rem;">Sin comentarios. ¡Sé el primero!</div>';
+        </div>` : '';
 
-  // Reaction counts
+      return `<div id="_cmtrow_${pid}_${ci}" style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;">
+        <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:#e4e6eb;flex-shrink:0;cursor:pointer;" onclick="openUserProfile('${c.userId||''}','${esc(c.nick||'')}')">${av}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:flex-start;gap:4px;">
+            <div style="background:#f0f2f5;border-radius:18px;padding:8px 12px;display:inline-block;max-width:calc(100% - 36px);">
+              <div style="display:flex;align-items:center;gap:4px;margin-bottom:1px;">
+                <span style="font-weight:700;font-size:.82rem;color:${nameColor};cursor:pointer;" onclick="openUserProfile('${c.userId||''}','${esc(c.nick||'')}')">${esc(c.nick||'')}${verifiedBadge}</span>
+                ${isAuthor?'<span style="font-size:.62rem;color:#1877f2;font-weight:700;background:#e7f3ff;border-radius:4px;padding:1px 5px;line-height:1.4;">Autor</span>':''}
+              </div>
+              <span style="font-size:.88rem;color:#050505;line-height:1.45;word-break:break-word;">${esc(c.text||'')}</span>
+            </div>
+            ${menuHtml}
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:3px 4px 0;">
+            <span style="font-size:.72rem;color:#65676b;">${c.time?fmtT(c.time):''}</span>
+            <button style="background:none;border:none;font-size:.72rem;font-weight:700;color:#65676b;cursor:pointer;padding:0;" onmouseover="this.style.color='#050505'" onmouseout="this.style.color='#65676b'">Me gusta</button>
+            <button style="background:none;border:none;font-size:.72rem;font-weight:700;color:#65676b;cursor:pointer;padding:0;" onmouseover="this.style.color='#050505'" onmouseout="this.style.color='#65676b'" onclick="document.getElementById('_cmtModalInp_${pid}').value='@${esc(c.nick||'')} ';document.getElementById('_cmtModalInp_${pid}').focus()">Responder</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  const avHtml = window.CU ? `<img src="${window.CU.av||getDefaultAv(window.CU.gender||'')}" style="width:100%;height:100%;object-fit:cover;">` : '';
   const rxnCounts = post.reactionCounts||{};
   const topRxns = Object.entries(rxnCounts).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([e])=>e).join('');
   const totalRxns = Object.values(rxnCounts).reduce((a,b)=>a+(b||0),0);
+  const cmts = post.comments||[];
 
   modal.innerHTML = `
-  <div style="background:#fff;border-radius:12px;width:500px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3);">
+  <style>
+    #_cmtModalBox_${pid} * { box-sizing:border-box; }
+    @keyframes _cmtFadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+  <div id="_cmtModalBox_${pid}" style="background:#fff;border-radius:12px;width:520px;max-width:96vw;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3);animation:_cmtFadeIn .18s ease;">
+
     <!-- Header -->
-    <div style="display:flex;align-items:center;justify-content:center;padding:14px;border-bottom:1px solid #e4e6eb;position:relative;flex-shrink:0;">
+    <div style="display:flex;align-items:center;justify-content:center;padding:14px 16px;border-bottom:1px solid #e4e6eb;position:relative;flex-shrink:0;">
       <span style="font-weight:700;font-size:1rem;color:#050505;">Publicación de ${esc(post.userNick||'')}</span>
       <button onclick="document.getElementById('_cmtModal_${pid}').remove()"
-        style="position:absolute;right:12px;background:#e4e6eb;border:none;color:#050505;width:34px;height:34px;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>
+        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:#e4e6eb;border:none;color:#050505;width:34px;height:34px;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1;">✕</button>
     </div>
 
-    <!-- Post preview (text only, no image) -->
-    ${post.images&&post.images.length?`<div style="cursor:pointer;max-height:200px;overflow:hidden;" onclick="document.getElementById('_cmtModal_${pid}').remove();openImgLightboxById('${pid}',0)"><img src="${post.images[0]}" style="width:100%;object-fit:cover;max-height:200px;display:block;"></div>`:''}
+    <!-- Image preview if exists -->
+    ${post.images&&post.images.length?`<div style="cursor:pointer;max-height:180px;overflow:hidden;flex-shrink:0;" onclick="document.getElementById('_cmtModal_${pid}').remove();openImgLightboxById('${pid}',0)"><img src="${post.images[0]}" style="width:100%;object-fit:cover;max-height:180px;display:block;"></div>`:''}
 
-    <!-- Reaction summary + action buttons -->
-    <div style="padding:8px 14px 0;flex-shrink:0;">
-      ${totalRxns>0?`<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #e4e6eb;">
-        <div style="display:flex;align-items:center;gap:4px;font-size:.82rem;color:#65676b;cursor:pointer;">
-          <span style="font-size:.95rem;">${topRxns}</span> ${totalRxns}
-        </div>
-        <div style="font-size:.82rem;color:#65676b;">${cmts.length} comentario${cmts.length!==1?'s':''}</div>
-      </div>`:`<div style="border-bottom:1px solid #e4e6eb;margin-bottom:2px;"></div>`}
-      <div style="display:flex;padding:2px 0;border-bottom:1px solid #e4e6eb;">
-        <button onclick="doReact('${pid}','👍')"
-          style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:700;color:#65676b;"
-          onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background='none'">👍 Me gusta</button>
-        <button onclick="document.getElementById('_cmtModalInp_${pid}').focus()"
-          style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:700;color:#65676b;"
-          onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background='none'">💬 Comentar</button>
-        <button onclick="sharePost('${pid}')"
-          style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:700;color:#65676b;"
-          onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background='none'">↗ Compartir</button>
-      </div>
+    <!-- Reaction + share counts -->
+    ${(totalRxns>0||cmts.length>0)?`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;flex-shrink:0;">
+      ${totalRxns>0?`<div style="display:flex;align-items:center;gap:4px;font-size:.85rem;color:#65676b;cursor:pointer;"><span style="font-size:1rem;">${topRxns}</span>${totalRxns}</div>`:'<div></div>'}
+      ${cmts.length>0?`<div style="font-size:.85rem;color:#65676b;cursor:pointer;">${cmts.length} comentario${cmts.length!==1?'s':''}</div>`:''}
+    </div>`:''}
+
+    <!-- Action buttons -->
+    <div style="display:flex;border-top:1px solid #e4e6eb;border-bottom:1px solid #e4e6eb;flex-shrink:0;">
+      <button onclick="doReact('${pid}','👍')" style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:0;cursor:pointer;font-size:.88rem;font-weight:700;color:#65676b;" onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background='none'">👍 Me gusta</button>
+      <button onclick="document.getElementById('_cmtModalInp_${pid}').focus()" style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;cursor:pointer;font-size:.88rem;font-weight:700;color:#65676b;" onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background='none'">💬 Comentar</button>
+      <button onclick="sharePost('${pid}')" style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;cursor:pointer;font-size:.88rem;font-weight:700;color:#65676b;" onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background='none'">↗ Compartir</button>
     </div>
 
     <!-- Comments list -->
-    <div id="_cmtModalList_${pid}" style="flex:1;overflow-y:auto;padding:10px 14px;">
-      ${cmtsHtml}
+    <div id="_cmtModalList_${pid}" style="flex:1;overflow-y:auto;padding:12px 14px;min-height:80px;">
+      ${_buildCmtHtml(cmts)}
     </div>
 
     <!-- Comment input -->
     <div style="padding:8px 12px 10px;display:flex;gap:8px;align-items:center;flex-shrink:0;border-top:1px solid #e4e6eb;">
       <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:#e4e6eb;flex-shrink:0;">${avHtml}</div>
       <div style="flex:1;display:flex;align-items:center;background:#f0f2f5;border-radius:20px;">
-        <input id="_cmtModalInp_${pid}" placeholder="Escribe un comentario..." 
-          style="flex:1;background:transparent;border:none;padding:9px 12px;color:#050505;font-size:.88rem;font-family:'Exo 2',sans-serif;outline:none;"
+        <input id="_cmtModalInp_${pid}" placeholder="Escribe un comentario..."
+          style="flex:1;background:transparent;border:none;padding:9px 14px;color:#050505;font-size:.88rem;font-family:'Exo 2',sans-serif;outline:none;"
           onkeypress="if(event.key==='Enter'){event.preventDefault();_submitModalCmt('${pid}');}">
-        <button onclick="_submitModalCmt('${pid}')" style="background:none;border:none;color:#1877f2;font-size:1rem;cursor:pointer;padding:4px 10px;opacity:.5;transition:opacity .15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.5'">➤</button>
+        <button onclick="_submitModalCmt('${pid}')" style="background:none;border:none;color:#1877f2;font-size:1.1rem;cursor:pointer;padding:4px 12px;opacity:.5;transition:opacity .15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.5'">➤</button>
       </div>
     </div>
   </div>`;
 
-  modal.addEventListener('click', e=>{ if(e.target===modal) modal.remove(); });
+  // Close menu when clicking outside
+  modal.addEventListener('click', e=>{
+    document.querySelectorAll('[id^="_cmtmenu_"]').forEach(m=>m.style.display='none');
+    if(e.target===modal) modal.remove();
+  });
+  document.addEventListener('keydown', function _esc(e){ if(e.key==='Escape'){ modal.remove(); document.removeEventListener('keydown',_esc); }});
   document.body.appendChild(modal);
-  // Focus input
   setTimeout(()=>{ const inp=document.getElementById('_cmtModalInp_'+pid); if(inp) inp.focus(); }, 100);
 }
+
+function _editModalCmt(pid, ci){
+  const post = (_posts||[]).find(p=>p.id===pid);
+  if(!post||!post.comments||!post.comments[ci]) return;
+  const c = post.comments[ci];
+  const newText = prompt('Editar comentario:', c.text||'');
+  if(!newText||newText===c.text) return;
+  const pRef = doc(db,'posts',pid);
+  getDoc(pRef).then(snap=>{
+    if(!snap.exists()) return;
+    const cmts = snap.data().comments||[];
+    if(cmts[ci]) cmts[ci].text = newText;
+    updateDoc(pRef,{comments:cmts}).then(()=>{
+      const modal = document.getElementById('_cmtModal_'+pid);
+      if(modal) { modal.remove(); toggleComments(pid); }
+    });
+  });
+}
+
+async function _delModalCmt(pid, ci){
+  if(!confirm('¿Eliminar este comentario?')) return;
+  const pRef = doc(db,'posts',pid);
+  const snap = await getDoc(pRef);
+  if(!snap.exists()) return;
+  const cmts = (snap.data().comments||[]).filter((_,i)=>i!==ci);
+  await updateDoc(pRef,{comments:cmts});
+  const modal = document.getElementById('_cmtModal_'+pid);
+  if(modal){ modal.remove(); toggleComments(pid); }
+}
+
 
 async function _submitModalCmt(pid){
   const inp = document.getElementById('_cmtModalInp_'+pid);
@@ -4812,32 +4891,18 @@ async function _submitModalCmt(pid){
   const txt = inp.value.trim();
   if(!txt || !window.CU) return;
   inp.value = '';
-  // Save to Firestore (reuse submitComment logic)
   try {
     const pRef = doc(db,'posts',pid);
     const snap = await getDoc(pRef);
     if(!snap.exists()) return;
     const p = snap.data();
-    const newC = {userId:window.CU.id,nick:window.CU.nick,av:window.CU.av||'',text:txt,time:Date.now()};
+    const newC = {userId:window.CU.id, nick:window.CU.nick, av:window.CU.av||'', verified:window.CU.verified||false, text:txt, time:Date.now()};
     const newComments = [...(p.comments||[]), newC];
     await updateDoc(pRef,{comments:newComments});
-    // Re-render comments in modal
-    const listEl = document.getElementById('_cmtModalList_'+pid);
-    if(listEl){
-      const av2 = `<img src="${window.CU.av||getDefaultAv(window.CU.gender||'')}" style="width:100%;height:100%;object-fit:cover;">`;
-      listEl.innerHTML += `<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:10px;">
-        <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:#e4e6eb;flex-shrink:0;">${av2}</div>
-        <div style="flex:1;min-width:0;">
-          <div style="background:#f0f2f5;border-radius:18px;padding:8px 12px;display:inline-block;max-width:100%;">
-            <span style="font-weight:700;font-size:.82rem;color:#050505;">${esc(window.CU.nick)}</span>
-            <span style="font-size:.88rem;color:#050505;margin-left:6px;">${esc(txt)}</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;padding:2px 4px 0;">
-            <span style="font-size:.72rem;color:#65676b;">Ahora</span>
-          </div>
-        </div>
-      </div>`;
-      listEl.scrollTop = listEl.scrollHeight;
+    // Re-open modal to refresh comment list
+    const modal = document.getElementById('_cmtModal_'+pid);
+    if(modal){ modal.remove(); toggleComments(pid); }
+    if(p.userId && p.userId !== window.CU.id) sendNotifToUserWithPost(p.userId, \`💬 \${window.CU.nick} comentó: "\${txt.slice(0,40)}"\`, pid);
     }
     if(p.userId && p.userId !== window.CU.id) sendNotifToUserWithPost(p.userId, `💬 ${window.CU.nick} comentó: "${txt.slice(0,40)}"`, pid);
   } catch(e){ console.error(e); }
