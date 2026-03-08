@@ -4799,9 +4799,14 @@ function renderSV(){
       } catch(e){}
     };
 
-    audio.oncanplay = ()=>{ audio.oncanplay=null; doPlay(); };
     audio.src = previewUrl;
     audio.load();
+    // Si ya está en caché readyState >= 2, oncanplay no se dispara — llamar directo
+    if(audio.readyState >= 2){
+      doPlay();
+    } else {
+      audio.oncanplay = ()=>{ audio.oncanplay=null; doPlay(); };
+    }
   }
 
   if(s.music && s.music.preview){
