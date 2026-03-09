@@ -841,6 +841,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
   </div>
 </div>
 <style>
+@keyframes livePulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,0,0,.4);}50%{opacity:.85;box-shadow:0 0 0 6px rgba(255,0,0,0);}}
 @keyframes trophyBannerIn{from{opacity:0;transform:translateX(-50%) translateY(20px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
 @keyframes trophyBannerOut{to{opacity:0;transform:translateX(-50%) translateY(20px);}}
 </style>
@@ -915,6 +916,17 @@ select.fi option{background:var(--bg3);color:var(--text);}
         <!-- Stories se renderizan con JS -->
       </div>
 
+      <!-- LIVE WIDGET -->
+      <div id="liveWidget" style="display:none;margin-bottom:12px;border-radius:var(--r);overflow:hidden;border:2px solid rgba(255,0,0,.5);box-shadow:0 0 20px rgba(255,0,0,.15);">
+        <div style="background:linear-gradient(135deg,#1a0000,#2d0000);padding:10px 14px;display:flex;align-items:center;gap:10px;">
+          <span style="display:inline-flex;align-items:center;gap:6px;background:#ff0000;color:#fff;font-size:.72rem;font-weight:900;padding:3px 10px;border-radius:100px;animation:livePulse 1.5s ease-in-out infinite;">🔴 EN VIVO</span>
+          <span id="liveWidgetTitle" style="font-size:.85rem;font-weight:700;color:#fff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+          <button onclick="document.getElementById('liveWidget').style.display='none'" style="background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.6);width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:.85rem;">✕</button>
+        </div>
+        <div style="position:relative;padding-bottom:56.25%;height:0;background:#000;">
+          <iframe id="liveIframe" src="" frameborder="0" allowfullscreen allow="autoplay;encrypted-media" style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+        </div>
+      </div>
       <!-- Post Box -->
       <div class="post-box">
         <div class="post-box-top">
@@ -2507,6 +2519,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
     <button class="adm-tab" onclick="swAdminTab(this,'admt-torneos')">🏆 Torneos</button>
     <button class="adm-tab" onclick="swAdminTab(this,'admt-grupos')">🎣 Grupos</button>
     <button class="adm-tab" onclick="swAdminTab(this,'admt-ads')">📢 Publicidad</button>
+    <button class="adm-tab" onclick="swAdminTab(this,'admt-live')" style="background:rgba(255,0,0,.1);border-color:rgba(255,0,0,.3);color:#ff4444;">🔴 Live</button>
     <button class="adm-tab" onclick="swAdminTab(this,'admt-pezdelsemana')" style="background:rgba(0,230,118,.08);border-color:rgba(0,230,118,.3);color:var(--green);">🐟 Pez Semanal</button>
     <button class="adm-tab" onclick="swAdminTab(this,'admt-xplevels');renderXPLevelsAdmin();" style="background:rgba(255,215,0,.08);border-color:rgba(255,215,0,.3);color:var(--gold);">⚡ Niveles XP</button>
     <button class="adm-tab" onclick="swAdminTab(this,'admt-insignias');loadInsigniasPanel();" style="background:rgba(46,196,182,.08);border-color:rgba(46,196,182,.3);color:var(--accent);">🎣 Insignias & Roles</button>
@@ -2637,6 +2650,27 @@ select.fi option{background:var(--bg3);color:var(--text);}
   </div>
 
   <!-- TAB: Publicidad -->
+  <!-- TAB: LIVE -->
+  <div id="admt-live" style="display:none;">
+    <div style="background:var(--bg2);border:1px solid rgba(255,0,0,.25);border-radius:var(--r);padding:20px;margin-bottom:16px;">
+      <div style="font-family:'Orbitron',monospace;font-size:.85rem;font-weight:700;color:#ff4444;margin-bottom:16px;">🔴 Control de Live</div>
+      <div class="fg">
+        <label class="fl">URL del stream (YouTube o Twitch)</label>
+        <input class="fi" id="liveUrlInput" placeholder="https://www.youtube.com/watch?v=... o https://www.twitch.tv/canal">
+        <div style="font-size:.68rem;color:var(--muted);margin-top:4px;">Pegá la URL normal — se convierte automáticamente al embed.</div>
+      </div>
+      <div class="fg">
+        <label class="fl">Título del live</label>
+        <input class="fi" id="liveTitleInput" placeholder="Ej: 🎣 Pesca en vivo — Akhtuba River">
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+        <button onclick="adminSetLive(true)" style="flex:1;background:linear-gradient(135deg,#ff0000,#cc0000);color:#fff;border:none;border-radius:var(--rs);padding:10px;font-size:.85rem;font-weight:800;cursor:pointer;font-family:'Exo 2',sans-serif;">🔴 Activar Live</button>
+        <button onclick="adminSetLive(false)" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:var(--rs);padding:10px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;">⏹ Terminar Live</button>
+      </div>
+      <div id="liveAdminStatus" style="margin-top:14px;font-size:.78rem;border-radius:var(--rs);padding:10px;display:none;"></div>
+    </div>
+  </div>
+
   <div id="admt-ads" style="display:none;">
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px;">
       <div style="font-family:'Orbitron',monospace;font-size:.85rem;font-weight:700;color:var(--accent);margin-bottom:14px;">📢 Crear Anuncio</div>
@@ -3930,6 +3964,7 @@ function onLogin(){
     renderSidebarFriends();
     renderSuggestedUsers();
     renderNewFishers();
+    listenLive();
     renderSuggestedPosts();
     renderFriendSpotsInHome();
     checkDailyStreak();
@@ -8857,7 +8892,7 @@ async function submitReport(){
 function swAdminTab(el, tabId){
   document.querySelectorAll('.adm-tab').forEach(t=>t.classList.remove('adm-on'));
   el.classList.add('adm-on');
-  ['admt-reports','admt-posts','admt-users','admt-verif','admt-site','admt-parches','admt-torneos','admt-grupos','admt-ads','admt-pezdelsemana','admt-xplevels']
+  ['admt-reports','admt-posts','admt-users','admt-verif','admt-site','admt-parches','admt-torneos','admt-grupos','admt-ads','admt-live','admt-pezdelsemana','admt-xplevels']
     .forEach(id=>{ const e=document.getElementById(id); if(e) e.style.display='none'; });
   const tab = document.getElementById(tabId);
   if(tab) tab.style.display='block';
@@ -8868,6 +8903,7 @@ function swAdminTab(el, tabId){
   if(tabId==='admt-verif') loadVerifRequests();
   if(tabId==='admt-site') loadSiteConfig();
   if(tabId==='admt-ads') loadAdminAds();
+  if(tabId==='admt-live') loadAdminLive();
 }
 
 async function loadAdminData(){
@@ -9263,6 +9299,84 @@ async function submitAd(){
   toast('Anuncio publicado 📢','ok');
   loadAdminAds(); loadAds();
 }
+
+
+// ===== LIVE STREAMING =====
+function _parseLiveUrl(url){
+  url = (url||'').trim();
+  // YouTube watch
+  let m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if(m) return `https://www.youtube.com/embed/${m[1]}?autoplay=1&rel=0`;
+  // YouTube live directo
+  m = url.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]+)/);
+  if(m) return url;
+  // Twitch
+  m = url.match(/twitch\.tv\/([a-zA-Z0-9_]+)/);
+  if(m) return `https://player.twitch.tv/?channel=${m[1]}&parent=${location.hostname}&autoplay=true`;
+  return '';
+}
+
+async function adminSetLive(activate){
+  const url = document.getElementById('liveUrlInput')?.value.trim() || '';
+  const title = document.getElementById('liveTitleInput')?.value.trim() || '🔴 Stream en vivo';
+  const statusEl = document.getElementById('liveAdminStatus');
+  if(activate && !url){ toast('Pegá la URL del stream','err'); return; }
+  const embedUrl = activate ? _parseLiveUrl(url) : '';
+  if(activate && !embedUrl){ toast('URL no reconocida. Usá YouTube o Twitch','err'); return; }
+  try {
+    await setDoc(doc(db,'config','live'), { active: activate, url: embedUrl, title, rawUrl: url, updatedAt: serverTimestamp() });
+    toast(activate ? '🔴 ¡Live activado!' : '⏹ Live terminado', activate ? 'ok' : 'inf');
+    if(statusEl){
+      statusEl.style.display = 'block';
+      statusEl.style.background = activate ? 'rgba(255,0,0,.1)' : 'var(--bg3)';
+      statusEl.style.border = activate ? '1px solid rgba(255,0,0,.3)' : '1px solid var(--border)';
+      statusEl.style.color = activate ? '#ff4444' : 'var(--muted)';
+      statusEl.textContent = activate ? `🔴 Live activo: ${title}` : '⏹ Sin live activo';
+    }
+    _applyLiveWidget({ active: activate, url: embedUrl, title });
+  } catch(e){ toast('Error al guardar live','err'); console.error(e); }
+}
+
+async function loadAdminLive(){
+  try {
+    const snap = await getDoc(doc(db,'config','live'));
+    const data = snap.exists() ? snap.data() : {};
+    const statusEl = document.getElementById('liveAdminStatus');
+    if(document.getElementById('liveUrlInput')) document.getElementById('liveUrlInput').value = data.rawUrl||'';
+    if(document.getElementById('liveTitleInput')) document.getElementById('liveTitleInput').value = data.title||'';
+    if(statusEl){
+      statusEl.style.display = 'block';
+      const active = data.active || false;
+      statusEl.style.background = active ? 'rgba(255,0,0,.1)' : 'var(--bg3)';
+      statusEl.style.border = active ? '1px solid rgba(255,0,0,.3)' : '1px solid var(--border)';
+      statusEl.style.color = active ? '#ff4444' : 'var(--muted)';
+      statusEl.textContent = active ? `🔴 Live activo: ${data.title||''}` : '⏹ Sin live activo';
+    }
+  } catch(e){}
+}
+
+function _applyLiveWidget(data){
+  const widget = document.getElementById('liveWidget');
+  const iframe = document.getElementById('liveIframe');
+  const titleEl = document.getElementById('liveWidgetTitle');
+  if(!widget || !iframe) return;
+  if(data?.active && data.url){
+    iframe.src = data.url;
+    if(titleEl) titleEl.textContent = data.title || '🔴 Stream en vivo';
+    widget.style.display = 'block';
+  } else {
+    iframe.src = '';
+    widget.style.display = 'none';
+  }
+}
+
+async function listenLive(){
+  onSnapshot(doc(db,'config','live'), snap => {
+    _applyLiveWidget(snap.exists() ? snap.data() : {});
+  });
+}
+window.adminSetLive = adminSetLive;
+window.loadAdminLive = loadAdminLive;
 
 async function loadAdminAds(){
   try {
