@@ -481,7 +481,7 @@ img[title="Verificado"]:hover{
 .sug-post-card{display:flex;gap:10px;align-items:center;padding:8px;border-radius:var(--rs);cursor:pointer;transition:background .18s;border:1px solid transparent;margin-bottom:6px;}
 .sug-post-card:hover{background:var(--bg3);border-color:var(--border);}
 .sug-post-thumb{width:56px;height:56px;border-radius:var(--rs);object-fit:cover;flex-shrink:0;background:var(--bg4);}
-.sug-post-thumb-empty{width:56px;height:56px;border-radius:var(--rs);flex-shrink:0;background:linear-gradient(135deg,#e4e6eb,#d8dadf);display:flex;align-items:center;justify-content:center;font-size:1.5rem;}
+.sug-post-thumb-empty{width:56px;height:56px;border-radius:var(--rs);flex-shrink:0;background:linear-gradient(135deg,#21262d,#1c2128);display:flex;align-items:center;justify-content:center;font-size:1.5rem;}
 .sug-post-info{flex:1;min-width:0;}
 .sug-post-author{font-size:.72rem;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .sug-post-text{font-size:.78rem;font-weight:500;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
@@ -6685,11 +6685,11 @@ function toggleComments(pid){
         <div style="position:relative;margin-left:auto;">
           <button onclick="var m=document.getElementById('${menuId}');m.style.display=m.style.display==='block'?'none':'block';event.stopPropagation();"
             style="background:none;border:none;color:#8b949e;font-size:1rem;cursor:pointer;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1;"
-            onmouseover="this.style.background='#f0f2f5'" onmouseout="this.style.background='none'">···</button>
+            onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='none'">···</button>
           <div id="${menuId}" style="display:none;position:absolute;right:0;top:100%;background:#161b22;border:1px solid #30363d;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.2);min-width:160px;z-index:99;overflow:hidden;">
             ${canEdit?`<button onclick="document.getElementById('${menuId}').style.display='none';_editModalCmt('${pid}',${ci})"
               style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;padding:10px 14px;font-size:.88rem;color:#e6edf3;cursor:pointer;font-family:'Exo 2',sans-serif;"
-              onmouseover="this.style.background='#f0f2f5'" onmouseout="this.style.background='none'">
+              onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='none'">
               <span style="font-size:1rem;">✏️</span> Editar
             </button>`:''}
             ${canDel?`<button onclick="document.getElementById('${menuId}').style.display='none';_delModalCmt('${pid}',${ci})"
@@ -6759,15 +6759,15 @@ function toggleComments(pid){
         <button id="_modalRxnBtn_${pid}" onclick="doReact('${pid}','👍')" 
           onmouseenter="showRxnPop('_modal_${pid}')" onmouseleave="schedHideRxnPop('_modal_${pid}')"
           style="width:100%;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:0;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;" 
-          onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background='none'">👍 Me gusta</button>
+          onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='none'">👍 Me gusta</button>
         <div class="rxn-popup" id="rxnp__modal_${pid}" 
           onmouseenter="cancelHideRxnPop('_modal_${pid}')" onmouseleave="schedHideRxnPop('_modal_${pid}')"
           style="bottom:100%;top:auto;left:50%;transform:translateX(-50%);">
           ${rxnBtns}
         </div>
       </div>
-      <button onclick="document.getElementById('_cmtModalInp_${pid}').focus()" style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;" onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background='none'">💬 Comentar</button>
-      <button onclick="sharePost('${pid}')" style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;" onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background='none'">↗ Compartir</button>
+      <button onclick="document.getElementById('_cmtModalInp_${pid}').focus()" style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;" onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='none'">💬 Comentar</button>
+      <button onclick="sharePost('${pid}')" style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;" onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='none'">↗ Compartir</button>
     </div>
 
     <!-- Comments list -->
@@ -6784,10 +6784,10 @@ function toggleComments(pid){
           onkeypress="if(event.key==='Enter'){event.preventDefault();_submitModalCmt('${pid}');}">
         <button onclick="openEmojiPicker(event,'_cmtModalInp_${pid}')" title="Emoji"
           style="background:none;border:none;font-size:1.1rem;cursor:pointer;padding:4px 5px;border-radius:50%;line-height:1;transition:background .15s;"
-          onmouseover="this.style.background='#e4e6eb'" onmouseout="this.style.background='none'">😊</button>
+          onmouseover="this.style.background='#21262d'" onmouseout="this.style.background='none'">😊</button>
         <button onclick="toggleStickerPicker('_modalstkpick_${pid}','_cmtModalInp_${pid}')" title="Stickers"
           style="background:none;border:none;font-size:1.1rem;cursor:pointer;padding:4px 5px;border-radius:50%;line-height:1;transition:background .15s;"
-          onmouseover="this.style.background='#e4e6eb'" onmouseout="this.style.background='none'">🎭</button>
+          onmouseover="this.style.background='#21262d'" onmouseout="this.style.background='none'">🎭</button>
         <div class="stk-picker" id="_modalstkpick_${pid}" style="bottom:calc(100% + 4px);left:auto;right:0;">
           <div class="stk-search">
             <span style="font-size:1rem;">🔍</span>
@@ -6800,7 +6800,7 @@ function toggleComments(pid){
         </div>
         <button onclick="_cmtOpenGif('${pid}')" title="GIF"
           style="background:none;border:none;font-size:.65rem;font-weight:900;cursor:pointer;padding:3px 5px;border-radius:6px;color:#1877f2;line-height:1;transition:background .15s;"
-          onmouseover="this.style.background='#e4e6eb'" onmouseout="this.style.background='none'">GIF</button>
+          onmouseover="this.style.background='#21262d'" onmouseout="this.style.background='none'">GIF</button>
         <button onclick="_submitModalCmt('${pid}')"
           style="background:none;border:none;color:#1877f2;font-size:1.1rem;cursor:pointer;padding:4px 6px;opacity:.5;transition:opacity .15s;"
           onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.5'">➤</button>
@@ -8687,7 +8687,7 @@ function openImgLightbox(src, allImgs, postId){
           <div style="position:relative;flex:1;" id="_igRxnWrap">
             <button onclick="igReact('👍')" onmouseenter="document.getElementById('_igRxnPop').style.display='flex'" onmouseleave="setTimeout(()=>{if(!document.getElementById('_igRxnPop').matches(':hover'))document.getElementById('_igRxnPop').style.display='none'},300)"
               style="width:100%;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;transition:background .15s;"
-              onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background='none'">
+              onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='none'">
               <span id="_igMyRxnIcon">👍</span> Me gusta
             </button>
             <div id="_igRxnPop" style="display:none;position:absolute;bottom:calc(100% + 4px);left:0;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:6px 8px;align-items:center;gap:2px;box-shadow:0 4px 16px rgba(0,0,0,.2);white-space:nowrap;z-index:999;"
@@ -8699,10 +8699,10 @@ function openImgLightbox(src, allImgs, postId){
           </div>
           <button onclick="document.getElementById('_igCmtInp').focus()"
             style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;transition:background .15s;"
-            onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background='none'">💬 Comentar</button>
+            onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='none'">💬 Comentar</button>
           ${_galPostId?`<button onclick="igShare()"
             style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;transition:background .15s;"
-            onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background='none'">↗ Compartir</button>`:''}
+            onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='none'">↗ Compartir</button>`:''}
         </div>
       </div>
 
@@ -10824,14 +10824,14 @@ async function sharePost(pid){
   const header = document.createElement('div');
   Object.assign(header.style, {
     display:'flex', alignItems:'center', justifyContent:'center',
-    padding:'14px 16px', borderBottom:'1px solid #e4e6eb',
+    padding:'14px 16px', borderBottom:'1px solid #30363d',
     position:'relative', flexShrink:'0'
   });
   header.innerHTML = '<span style="font-weight:800;font-size:1.05rem;color:#e6edf3;">Compartir</span>';
   const btnClose = document.createElement('button');
   Object.assign(btnClose.style, {
     position:'absolute', right:'12px', top:'50%', transform:'translateY(-50%)',
-    background:'#e4e6eb', border:'none', color:'#050505', width:'34px', height:'34px',
+    background:'#21262d', border:'none', color:'#e6edf3', width:'34px', height:'34px',
     borderRadius:'50%', cursor:'pointer', fontSize:'1.1rem', display:'flex',
     alignItems:'center', justifyContent:'center', fontWeight:'700'
   });
@@ -10850,16 +10850,16 @@ async function sharePost(pid){
 
   const userInfo = document.createElement('div');
   const nickEl = document.createElement('div');
-  Object.assign(nickEl.style, { fontSize:'.9rem', fontWeight:'700', color:'#050505' });
+  Object.assign(nickEl.style, { fontSize:'.9rem', fontWeight:'700', color:'#e6edf3' });
   nickEl.textContent = window.CU?.nick||'';
 
   // Privacy button
   const privBtn = document.createElement('button');
   Object.assign(privBtn.style, {
     display:'inline-flex', alignItems:'center', gap:'5px',
-    background:'#e4e6eb', border:'none', borderRadius:'6px',
+    background:'#21262d', border:'none', borderRadius:'6px',
     padding:'4px 10px', fontSize:'.75rem', fontWeight:'700',
-    color:'#050505', cursor:'pointer', marginTop:'4px'
+    color:'#e6edf3', cursor:'pointer', marginTop:'4px'
   });
   const _privLabels = { public:'🌐 Público', friends:'👥 Amigos', only_me:'🔒 Solo yo' };
   const _updatePrivBtn = ()=> { privBtn.innerHTML = (_privLabels[window._sharePrivacy]||'🌐 Público') + ' <span style="font-size:.6rem;">▼</span>'; };
@@ -10869,7 +10869,7 @@ async function sharePost(pid){
   const privMenu = document.createElement('div');
   Object.assign(privMenu.style, {
     display:'none', position:'fixed', background:'#fff',
-    border:'1px solid #e4e6eb', borderRadius:'12px',
+    border:'1px solid #30363d', borderRadius:'12px',
     boxShadow:'0 8px 30px rgba(0,0,0,.18)', minWidth:'200px',
     zIndex:'99999', overflow:'hidden'
   });
@@ -10879,7 +10879,7 @@ async function sharePost(pid){
     <div data-val="friends" style="display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;font-size:.85rem;font-weight:600;color:#e6edf3;"><span style="font-size:1.3rem;">👥</span><div><div>Amigos</div><div style="font-size:.7rem;color:#8b949e;">Solo tus amigos</div></div><span class="_pc" style="margin-left:auto;color:#1877f2;display:none;">✔</span></div>
     <div data-val="only_me" style="display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;font-size:.85rem;font-weight:600;color:#e6edf3;"><span style="font-size:1.3rem;">🔒</span><div><div>Solo yo</div><div style="font-size:.7rem;color:#8b949e;">Solo vos lo ves</div></div><span class="_pc" style="margin-left:auto;color:#1877f2;display:none;">✔</span></div>`;
   privMenu.querySelectorAll('[data-val]').forEach(row => {
-    row.addEventListener('mouseenter', ()=> row.style.background='#f0f2f5');
+    row.addEventListener('mouseenter', ()=> row.style.background='#1c2128');
     row.addEventListener('mouseleave', ()=> row.style.background='');
     row.addEventListener('click', ()=> {
       window._sharePrivacy = row.dataset.val;
@@ -10918,13 +10918,13 @@ async function sharePost(pid){
   const cmtRow = document.createElement('div');
   Object.assign(cmtRow.style, {
     padding:'8px 16px', display:'flex', alignItems:'center', gap:'8px',
-    borderBottom:'1px solid #f0f2f5'
+    borderBottom:'1px solid #30363d'
   });
   const ta = document.createElement('textarea');
   ta.id = '_shareTxt_'+pid;
   ta.placeholder = 'Escribe algo...';
   Object.assign(ta.style, {
-    flex:'1', background:'transparent', border:'none', color:'#050505',
+    flex:'1', background:'transparent', border:'none', color:'#e6edf3',
     fontFamily:"'Exo 2',sans-serif", fontSize:'.92rem', resize:'none',
     outline:'none', minHeight:'36px', maxHeight:'80px', lineHeight:'1.4', padding:'4px 0'
   });
@@ -10934,7 +10934,7 @@ async function sharePost(pid){
   const emojiPanel = document.createElement('div');
   Object.assign(emojiPanel.style, {
     display:'none', flexWrap:'wrap', gap:'2px',
-    padding:'6px', background:'#f0f2f5', borderRadius:'10px',
+    padding:'6px', background:'#0d1117', borderRadius:'10px',
     maxWidth:'240px', maxHeight:'120px', overflowY:'auto',
     position:'absolute', zIndex:'99999', boxShadow:'0 4px 16px rgba(0,0,0,.15)'
   });
@@ -10943,7 +10943,7 @@ async function sharePost(pid){
     const eb = document.createElement('button');
     eb.textContent = em;
     Object.assign(eb.style, { background:'none', border:'none', fontSize:'1.2rem', cursor:'pointer', padding:'3px', borderRadius:'5px' });
-    eb.addEventListener('mouseenter', ()=> eb.style.background='#e4e6eb');
+    eb.addEventListener('mouseenter', ()=> eb.style.background='#21262d');
     eb.addEventListener('mouseleave', ()=> eb.style.background='none');
     eb.addEventListener('mousedown', e=> {
       e.preventDefault();
@@ -10962,7 +10962,7 @@ async function sharePost(pid){
     background:'none', border:'none', fontSize:'1.25rem',
     cursor:'pointer', padding:'4px', borderRadius:'6px', flexShrink:'0', lineHeight:'1'
   });
-  emojiBtnInline.addEventListener('mouseenter', ()=> emojiBtnInline.style.background='#f0f2f5');
+  emojiBtnInline.addEventListener('mouseenter', ()=> emojiBtnInline.style.background='#1c2128');
   emojiBtnInline.addEventListener('mouseleave', ()=> emojiBtnInline.style.background='none');
   emojiBtnInline.addEventListener('click', e => {
     e.stopPropagation();
@@ -10985,7 +10985,7 @@ async function sharePost(pid){
   preview.style.padding='10px 16px';
   const previewInner = document.createElement('div');
   Object.assign(previewInner.style, {
-    border:'1px solid #e4e6eb', borderRadius:'10px', overflow:'hidden', background:'#f9f9f9'
+    border:'1px solid #30363d', borderRadius:'10px', overflow:'hidden', background:'#161b22'
   });
   if(p.images&&p.images[0]){
     const img = document.createElement('img');
@@ -11018,12 +11018,12 @@ async function sharePost(pid){
   const _mkShareBtn = (icon, label, color, action) => {
     const b = document.createElement('button');
     Object.assign(b.style, { display:'flex', flexDirection:'column', alignItems:'center', gap:'4px', background:'none', border:'none', cursor:'pointer', padding:'6px 8px', borderRadius:'10px', minWidth:'58px' });
-    b.addEventListener('mouseenter',()=> b.style.background='#f0f2f5');
+    b.addEventListener('mouseenter',()=> b.style.background='#1c2128');
     b.addEventListener('mouseleave',()=> b.style.background='none');
     const iconDiv = document.createElement('div');
     Object.assign(iconDiv.style, { width:'42px', height:'42px', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.15rem' });
     if(typeof color === 'string' && color.startsWith('linear')){ iconDiv.style.background=color; }
-    else { iconDiv.style.background=color||'#e4e6eb'; }
+    else { iconDiv.style.background=color||'#21262d'; }
     iconDiv.textContent = icon;
     const labelEl = document.createElement('span');
     labelEl.style.cssText='font-size:.62rem;color:#e6edf3;font-weight:600;';
@@ -11033,8 +11033,8 @@ async function sharePost(pid){
     return b;
   };
 
-  shareButtons.appendChild(_mkShareBtn('🔁','Feed','#e4e6eb', ()=>{ const _t=ta.value.trim(),_pr=window._sharePrivacy; overlay.remove(); _doSharePost(pid,realPid,_pr,_t); }));
-  shareButtons.appendChild(_mkShareBtn('🔗','Copiar enlace','#e4e6eb', ()=>{ navigator.clipboard.writeText(location.href+'#post_'+pid).then(()=>toast('¡Enlace copiado!','ok')); overlay.remove(); }));
+  shareButtons.appendChild(_mkShareBtn('🔁','Feed','#21262d', ()=>{ const _t=ta.value.trim(),_pr=window._sharePrivacy; overlay.remove(); _doSharePost(pid,realPid,_pr,_t); }));
+  shareButtons.appendChild(_mkShareBtn('🔗','Copiar enlace','#21262d', ()=>{ navigator.clipboard.writeText(location.href+'#post_'+pid).then(()=>toast('¡Enlace copiado!','ok')); overlay.remove(); }));
   shareButtons.appendChild(_mkShareBtn('💬','WhatsApp','#25D366', ()=>{ window.open('https://wa.me/?text='+encodeURIComponent(location.href+'#post_'+pid),'_blank'); overlay.remove(); }));
   shareButtons.appendChild(_mkShareBtn('✈️','Telegram','#229ED9', ()=>{ window.open('https://t.me/share/url?url='+encodeURIComponent(location.href+'#post_'+pid),'_blank'); overlay.remove(); }));
   shareButtons.appendChild(_mkShareBtn('📸','Instagram','linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)', ()=>{ navigator.clipboard.writeText(location.href+'#post_'+pid).then(()=>toast('Copiá el enlace y pegalo en Instagram 📸','ok')); overlay.remove(); }));
@@ -11052,7 +11052,7 @@ async function sharePost(pid){
     friends.forEach(fr=>{
       const fb = document.createElement('button');
       Object.assign(fb.style, { display:'flex', flexDirection:'column', alignItems:'center', gap:'3px', background:'none', border:'none', cursor:'pointer', padding:'5px 6px', borderRadius:'10px', minWidth:'52px', maxWidth:'64px' });
-      fb.addEventListener('mouseenter',()=>fb.style.background='#f0f2f5');
+      fb.addEventListener('mouseenter',()=>fb.style.background='#1c2128');
       fb.addEventListener('mouseleave',()=>fb.style.background='none');
       const avDiv = document.createElement('div');
       Object.assign(avDiv.style,{width:'38px',height:'38px',borderRadius:'50%',overflow:'hidden',flexShrink:'0'});
@@ -11095,9 +11095,9 @@ async function sharePost(pid){
 
   const btnCancel = document.createElement('button');
   btnCancel.textContent='Cancelar';
-  Object.assign(btnCancel.style,{background:'#e4e6eb',border:'none',color:'#050505',padding:'10px 20px',borderRadius:'8px',cursor:'pointer',fontFamily:"'Exo 2',sans-serif",fontWeight:'700',fontSize:'.88rem'});
+  Object.assign(btnCancel.style,{background:'#21262d',border:'none',color:'#e6edf3',padding:'10px 20px',borderRadius:'8px',cursor:'pointer',fontFamily:"'Exo 2',sans-serif",fontWeight:'700',fontSize:'.88rem'});
   btnCancel.addEventListener('mouseenter',()=>btnCancel.style.background='#ccd0d5');
-  btnCancel.addEventListener('mouseleave',()=>btnCancel.style.background='#e4e6eb');
+  btnCancel.addEventListener('mouseleave',()=>btnCancel.style.background='#21262d');
   btnCancel.onclick=()=>overlay.remove();
 
   const btnShare = document.createElement('button');
@@ -12588,7 +12588,7 @@ function openChatWith(uid, nick){
                     <span style="font-size:.65rem;color:${mine?'rgba(255,255,255,.85)':'#65676b'};">🎤 ${m.audioDuration ? Math.floor(m.audioDuration/60)+':'+(m.audioDuration%60).toString().padStart(2,'0') : 'Audio'}</span>
                   </div>
                 </div>`
-              : `<div style="max-width:220px;min-width:0;padding:8px 12px;border-radius:${mine?'16px 16px 4px 16px':'16px 16px 16px 4px'};background:${mine?'#0084ff':'#f0f0f0'};color:${mine?'#ffffff':'#050505'};font-size:.84rem;line-height:1.5;word-break:break-word;display:inline-block;">${esc(m.text)}</div>`;
+              : `<div style="max-width:220px;min-width:0;padding:8px 12px;border-radius:${mine?'16px 16px 4px 16px':'16px 16px 16px 4px'};background:${mine?'#0084ff':'#21262d'};color:${mine?'#ffffff':'#e6edf3'};font-size:.84rem;line-height:1.5;word-break:break-word;display:inline-block;">${esc(m.text)}</div>`;
             const normalBubble = !isStoryComment ? `
               <div style="position:relative;" onmouseenter="showMsgRxnBar('${m.id}')" onmouseleave="hideMsgRxnBar('${m.id}')">
                 <div id="mrxnbar_${m.id}" style="display:none;position:absolute;${mine?'right:0':'left:0'};bottom:calc(100% + 4px);background:rgba(12,22,34,.98);border:1px solid rgba(255,255,255,.13);border-radius:100px;padding:4px 8px;align-items:center;gap:2px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.8);white-space:nowrap;" onmouseenter="keepMsgRxnBar('${m.id}')" onmouseleave="hideMsgRxnBar('${m.id}')">${rxnBtns}</div>
