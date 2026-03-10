@@ -870,6 +870,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
       <div class="sl-item" onclick="gp('carretes')"><span class="sl-item-icon">🎣</span> Buscar Carretes</div>
       <div class="sl-item"><span class="sl-item-icon">🔖</span> Guardados</div>
       <div class="sl-item" onclick="gp('parches')"><span class="sl-item-icon">🔧</span> Parches y Actualizaciones</div>
+      <div class="sl-item" onclick="gp('soporte')"><span class="sl-item-icon">🆘</span> Soporte Técnico</div>
       <div class="divider"></div>
       <!-- Nuevos Pescadores -->
       <div style="padding:0 6px 8px;">
@@ -3300,6 +3301,92 @@ select.fi option{background:var(--bg3);color:var(--text);}
   </div>
 </div>
 
+
+<!-- ===== PÁGINA SOPORTE TÉCNICO ===== -->
+<div class="page" id="page-soporte" style="max-width:680px;margin:0 auto;padding:24px 16px 80px;">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+    <div style="background:linear-gradient(135deg,#ff6b35,#f7c59f);border-radius:14px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">🆘</div>
+    <div>
+      <div style="font-family:'Orbitron',monospace;font-size:1.15rem;font-weight:900;color:#ff6b35;">Soporte Técnico</div>
+      <div style="font-size:.75rem;color:var(--muted);margin-top:2px;">Reportá un problema y el equipo te contactará</div>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div id="soporteForm" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px;">
+
+    <!-- Tipo de error -->
+    <div style="margin-bottom:18px;">
+      <label style="display:block;font-size:.82rem;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">Tipo de problema</label>
+      <select id="soporteTipo" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:11px 14px;font-size:.9rem;font-family:'Exo 2',sans-serif;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%228%22 viewBox=%220 0 12 8%22><path fill=%22%23888%22 d=%22M6 8L0 0h12z%22/></svg>');background-repeat:no-repeat;background-position:right 14px center;" onchange="soporteCheckOtro()">
+        <option value="">— Seleccioná un problema —</option>
+        <optgroup label="🌐 Problemas de la Web">
+          <option value="no-carga">La página no carga / pantalla en blanco</option>
+          <option value="login-fallo">No puedo iniciar sesión / registrarme</option>
+          <option value="foto-no-sube">No puedo subir fotos o videos</option>
+          <option value="musica-fallo">El reproductor de música no funciona</option>
+          <option value="notif-fallo">Las notificaciones no llegan</option>
+          <option value="chat-fallo">El chat / mensajes no funcionan</option>
+          <option value="perfil-fallo">No puedo editar mi perfil</option>
+          <option value="post-fallo">No puedo publicar / comentar</option>
+          <option value="torneo-fallo">Problema con torneos o trofeos</option>
+          <option value="mapa-fallo">El mapa / spots no cargan</option>
+          <option value="error-visual">Error visual / diseño roto</option>
+          <option value="lento">La web va muy lenta</option>
+        </optgroup>
+        <optgroup label="👤 Cuenta y Seguridad">
+          <option value="cuenta-bloqueada">Mi cuenta fue bloqueada</option>
+          <option value="reporte-usuario">Quiero reportar a un usuario</option>
+          <option value="datos-incorrectos">Mis datos o estadísticas son incorrectos</option>
+        </optgroup>
+        <option value="otro">🔧 Otro (describilo abajo)</option>
+      </select>
+    </div>
+
+    <!-- Campo "Otro" - aparece solo si selecciona Otro -->
+    <div id="soporteOtroWrap" style="display:none;margin-bottom:18px;">
+      <label style="display:block;font-size:.82rem;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">¿Cuál es el problema?</label>
+      <input id="soporteOtroTxt" placeholder="Describí brevemente el tipo de error..." style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:11px 14px;font-size:.9rem;font-family:'Exo 2',sans-serif;outline:none;box-sizing:border-box;">
+    </div>
+
+    <!-- Descripción detallada -->
+    <div style="margin-bottom:18px;">
+      <label style="display:block;font-size:.82rem;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">Descripción del error *</label>
+      <textarea id="soporteDesc" placeholder="Contanos qué pasó, qué estabas haciendo cuando ocurrió el error, y si hay algún mensaje de error que viste..." style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:12px 14px;font-size:.9rem;font-family:'Exo 2',sans-serif;outline:none;resize:vertical;min-height:110px;box-sizing:border-box;line-height:1.6;"></textarea>
+    </div>
+
+    <!-- Dispositivo (opcional) -->
+    <div style="margin-bottom:22px;">
+      <label style="display:block;font-size:.82rem;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">Dispositivo (opcional)</label>
+      <select id="soporteDispositivo" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:11px 14px;font-size:.9rem;font-family:'Exo 2',sans-serif;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%228%22 viewBox=%220 0 12 8%22><path fill=%22%23888%22 d=%22M6 8L0 0h12z%22/></svg>');background-repeat:no-repeat;background-position:right 14px center;">
+        <option value="">— No especificado —</option>
+        <option value="pc-windows">💻 PC / Windows</option>
+        <option value="mac">🍎 Mac / Safari</option>
+        <option value="android">📱 Android</option>
+        <option value="iphone">📱 iPhone / iOS</option>
+        <option value="tablet">📟 Tablet</option>
+      </select>
+    </div>
+
+    <!-- Botón enviar -->
+    <button onclick="submitSoporte()" style="width:100%;padding:14px;background:linear-gradient(135deg,#ff6b35,#f7931e);border:none;border-radius:12px;color:#fff;font-size:1rem;font-weight:800;cursor:pointer;font-family:'Exo 2',sans-serif;letter-spacing:.03em;transition:opacity .2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+      📨 Enviar Reporte
+    </button>
+  </div>
+
+  <!-- Estado: enviado (oculto por defecto) -->
+  <div id="soporteEnviado" style="display:none;text-align:center;padding:40px 24px;background:var(--bg2);border:1px solid rgba(46,196,182,.3);border-radius:var(--r);">
+    <div style="font-size:3rem;margin-bottom:12px;">✅</div>
+    <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:var(--accent);margin-bottom:10px;">¡Reporte enviado!</div>
+    <div style="font-size:.9rem;color:var(--muted);line-height:1.7;max-width:380px;margin:0 auto;">Tu reporte fue enviado al equipo de administración.<br>Se pondrán en contacto con vos a la brevedad. 🙌</div>
+    <button onclick="soporteNuevoReporte()" style="margin-top:20px;padding:10px 28px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;">Enviar otro reporte</button>
+  </div>
+
+</div>
+<!-- ===== FIN SOPORTE ===== -->
+
 <div class="page" id="page-musica" style="max-width:900px;margin:0 auto;padding:20px 16px 80px;">
 
   <!-- Header -->
@@ -4112,6 +4199,7 @@ const ROUTES = {
   '/publica-trofeo': 'publica-trofeo',
   '/carretes': 'carretes',
   '/parches': 'parches',
+  '/soporte': 'soporte',
   '/casitrofeo': 'casitrofeo',
   '/mensajes': 'mensajes',
   '/notificaciones': 'notificaciones',
@@ -4134,6 +4222,7 @@ const PAGE_TO_URL = {
   'publica-trofeo':'/publica-trofeo',
   'carretes':      '/carretes',
   'parches':       '/parches',
+  'soporte':       '/soporte',
   'casitrofeo':    '/casitrofeo',
   'mensajes':      '/mensajes',
   'notificaciones':'/notificaciones',
@@ -4244,6 +4333,7 @@ window.gp = (id, pushState = true) => {
     }
   }
   if(id==='parches') loadParches();
+  if(id==='soporte') initSoportePage();
   if(id==='torneos') loadTorneos();
   if(id==='carretes') renderCarretesTable();
   if(id==='userprofile') {} // cargado desde _loadUserProfilePage
@@ -9280,6 +9370,98 @@ async function loadAdminPatches(){
   } catch(e){ console.error(e); }
 }
 
+
+// ====== SOPORTE TÉCNICO ======
+function initSoportePage(){
+  // Resetear form si ya fue enviado antes
+  document.getElementById('soporteForm').style.display='block';
+  document.getElementById('soporteEnviado').style.display='none';
+  document.getElementById('soporteTipo').value='';
+  document.getElementById('soporteDesc').value='';
+  document.getElementById('soporteOtroTxt').value='';
+  document.getElementById('soporteOtroWrap').style.display='none';
+  document.getElementById('soporteDispositivo').value='';
+}
+
+function soporteCheckOtro(){
+  const val = document.getElementById('soporteTipo').value;
+  document.getElementById('soporteOtroWrap').style.display = val==='otro' ? 'block' : 'none';
+}
+
+async function submitSoporte(){
+  if(!window.CU){ toast('Tenés que estar logueado para enviar un reporte','err'); return; }
+  const tipo = document.getElementById('soporteTipo').value;
+  const desc = document.getElementById('soporteDesc').value.trim();
+  const otroTxt = document.getElementById('soporteOtroTxt').value.trim();
+  const dispositivo = document.getElementById('soporteDispositivo').value;
+
+  if(!tipo){ toast('Seleccioná el tipo de problema','err'); return; }
+  if(!desc){ toast('Describí el error antes de enviar','err'); return; }
+
+  const tipoLabel = tipo==='otro' ? ('Otro: '+(otroTxt||'sin especificar')) : document.getElementById('soporteTipo').selectedOptions[0]?.text || tipo;
+
+  toast('Enviando reporte...','inf');
+
+  try {
+    // Guardar en colección 'soporte' en Firestore
+    await addDoc(collection(db,'soporte'),{
+      uid: window.CU.uid,
+      nick: window.CU.nick||'',
+      tipo: tipoLabel,
+      desc,
+      dispositivo,
+      time: serverTimestamp(),
+      leido: false
+    });
+
+    // Enviar notificación al admin (ruizgustavo12)
+    try {
+      const adminSnap = await getDocs(query(collection(db,'users'), where('nick','==','ruizgustavo12')));
+      if(!adminSnap.empty){
+        const adminId = adminSnap.docs[0].id;
+        await addDoc(collection(db,'notifs'), {
+          to: adminId,
+          type: 'soporte',
+          from: window.CU.uid,
+          fromNick: window.CU.nick||'',
+          text: '🆘 Nuevo reporte de soporte de @'+(window.CU.nick||'usuario')+': '+tipoLabel,
+          sub: desc.length>120 ? desc.slice(0,120)+'...' : desc,
+          time: serverTimestamp(),
+          read: false
+        });
+      }
+      // También buscar por rol admin
+      const adminsSnap = await getDocs(query(collection(db,'users'), where('role','==','admin')));
+      adminsSnap.docs.forEach(async adminDoc => {
+        if(adminDoc.id !== window.CU.uid){
+          await addDoc(collection(db,'notifs'),{
+            to: adminDoc.id,
+            type: 'soporte',
+            from: window.CU.uid,
+            fromNick: window.CU.nick||'',
+            text: '🆘 Soporte: @'+(window.CU.nick||'usuario')+' · '+tipoLabel,
+            sub: desc.length>120 ? desc.slice(0,120)+'...' : desc,
+            time: serverTimestamp(),
+            read: false
+          });
+        }
+      });
+    } catch(ne){ console.warn('No se pudo notificar admin:', ne); }
+
+    // Mostrar mensaje de éxito
+    document.getElementById('soporteForm').style.display='none';
+    document.getElementById('soporteEnviado').style.display='block';
+
+  } catch(e){
+    console.error('Error soporte:', e);
+    toast('Error al enviar el reporte. Intentá de nuevo.','err');
+  }
+}
+
+function soporteNuevoReporte(){
+  initSoportePage();
+}
+
 async function loadParches(){
   try {
     const snap = await getDocs(query(collection(db,'patches'),orderBy('time','desc')));
@@ -11993,6 +12175,7 @@ const _PAGE_ACTIVITY = {
   'torneos':       {icon:'⚔️', text:'viendo torneos'},
   'carretes':      {icon:'🎣', text:'buscando carretes'},
   'parches':       {icon:'🔧', text:'viendo novedades'},
+  'soporte':       {icon:'🆘', text:'en soporte técnico'},
   'shop':          {icon:'🛍️', text:'en la tienda'},
   'admin':         {icon:'⚙️', text:'en administración'},
 };
@@ -14515,14 +14698,14 @@ async function searchDeezer(){
   resultsEl.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);"><div style="font-size:1.8rem;margin-bottom:8px;animation:spin 1s linear infinite;display:inline-block;">🎵</div><div style="margin-top:8px;">Buscando música...</div></div>`;
 
   try {
-    const url = `https://api.jamendo.com/v3.0/tracks/?client_id=${JAMENDO_CLIENT_ID}&format=json&limit=30&namesearch=${encodeURIComponent(q)}&include=musicinfo&audioformat=mp32`;
+    const url = `https://api.jamendo.com/v3.0/tracks/?client_id=${JAMENDO_CLIENT_ID}&format=json&limit=30&namesearch=${encodeURIComponent(q)}&include=musicinfo&audioformat=mp32&audiodownload_allowed=true`;
     const r = await fetch(url, {signal: AbortSignal.timeout(8000)});
     if(!r.ok) throw new Error('HTTP '+r.status);
     const data = await r.json();
     const tracks = data.results || [];
     if(tracks.length === 0){
       // Try broader search by tags
-      const url2 = `https://api.jamendo.com/v3.0/tracks/?client_id=${JAMENDO_CLIENT_ID}&format=json&limit=30&search=${encodeURIComponent(q)}&include=musicinfo&audioformat=mp32`;
+      const url2 = `https://api.jamendo.com/v3.0/tracks/?client_id=${JAMENDO_CLIENT_ID}&format=json&limit=30&search=${encodeURIComponent(q)}&include=musicinfo&audioformat=mp32&audiodownload_allowed=true`;
       const r2 = await fetch(url2, {signal: AbortSignal.timeout(8000)});
       const data2 = await r2.json();
       const tracks2 = data2.results || [];
@@ -14553,7 +14736,7 @@ function renderJamendoResults(tracks){
     const safeId = t.id||'';
     const safeTitle = (t.name||'').replace(/'/g,"\'").replace(/"/g,'&quot;');
     const safeArtist = (t.artist_name||'').replace(/'/g,"\'").replace(/"/g,'&quot;');
-    const safeAudio = (t.audio||'').replace(/'/g,"\'");
+    const safeAudio = (t.audiodownload||t.audio||'').replace(/'/g,"\'");
     const thumb = t.album_image || t.image || 'https://api.jamendo.com/v3.0/tracks/file/?client_id=197c0e16&id='+t.id+'&imagesize=200';
     return `<div class="music-card" style="cursor:pointer;position:relative;" id="jcard_${safeId}">
       <div style="position:relative;" onclick="playJamendo('${safeId}','${safeTitle}','${safeArtist}','${safeAudio}')">
@@ -14587,38 +14770,49 @@ function playJamendo(trackId, title, artist, audioUrl){
   const wrap = document.getElementById('musicPlayerWrap');
   if(titleEl) titleEl.textContent = title||'';
   if(artistEl) artistEl.textContent = artist||'';
+  if(wrap) wrap.style.display='block';
 
-  // Use Jamendo widget iframe (avoids CORS on direct audio URLs)
-  const iframe = document.getElementById('ytMusicPlayer');
-  if(iframe){
-    iframe.style.cssText = 'display:block;width:0;height:0;border:none;position:absolute;opacity:0;pointer-events:none;';
-    iframe.src = 'https://widgets.jamendo.com/v3/track/'+trackId+'/?autoplay=1&width=400&theme=dark';
-  }
-
-  // Also try direct Audio() — works if server allows it
-  if(audioUrl){
+  // Intentar reproducción directa con múltiples fuentes
+  const tryPlay = (urls, index=0) => {
+    if(index >= urls.length){
+      // Fallback: abrir en Jamendo
+      toast('Abriendo en Jamendo...','inf');
+      window.open('https://www.jamendo.com/track/'+trackId,'_blank');
+      if(btn) btn.textContent='\u25b6';
+      return;
+    }
+    const src = urls[index];
+    if(!src){ tryPlay(urls, index+1); return; }
     const audio = new Audio();
     audio.crossOrigin = 'anonymous';
-    audio.src = audioUrl;
+    audio.preload = 'none';
+    audio.src = src;
     audio.volume = 0.8;
-    audio.play().then(()=>{ _currentAudio = audio; }).catch(()=>{ /* widget handles it */ });
-    audio.onended = ()=>{ if(btn) btn.textContent='\u25b6'; _currentTrackId=null; };
     const progWrap = document.getElementById('musicProgBar');
-    if(progWrap){ audio.ontimeupdate=()=>{ if(audio.duration) progWrap.style.width=(audio.currentTime/audio.duration*100)+'%'; }; }
-    _currentAudio = audio;
-  }
+    audio.play().then(()=>{
+      _currentAudio = audio;
+      toast('\u25b6 '+title,'ok');
+      if(titleEl) titleEl.textContent = title||'';
+      if(artistEl) artistEl.textContent = artist||'';
+      audio.onended = ()=>{ if(btn) btn.textContent='\u25b6'; _currentTrackId=null; };
+      if(progWrap){ audio.ontimeupdate=()=>{ if(audio.duration) progWrap.style.width=(audio.currentTime/audio.duration*100)+'%'; }; }
+      const pauseBtn = document.getElementById('musicPauseBtn');
+      if(pauseBtn){
+        pauseBtn.onclick = ()=>{
+          if(audio.paused){ audio.play(); pauseBtn.textContent='\u23f8'; }
+          else { audio.pause(); pauseBtn.textContent='\u25b6'; }
+        };
+      }
+    }).catch(()=>{ tryPlay(urls, index+1); });
+  };
 
-  if(wrap) wrap.style.display='block';
-  toast('\u25b6 '+title, 'ok');
-
-  const pauseBtn = document.getElementById('musicPauseBtn');
-  if(pauseBtn){
-    pauseBtn.onclick = function(){
-      if(_currentAudio && !_currentAudio.paused){ _currentAudio.pause(); pauseBtn.textContent='\u25b6'; }
-      else if(_currentAudio && _currentAudio.paused){ _currentAudio.play(); pauseBtn.textContent='\u23f8'; }
-      else if(iframe){ iframe.src=iframe.src; }
-    };
-  }
+  // Fuentes en orden: audiodownload (sin CORS), audio, stream Jamendo CDN
+  const sources = [
+    audioUrl,
+    audioUrl ? audioUrl.replace('https://mp3d.jamendo.com','https://storage.googleapis.com/jamendo') : null,
+    `https://mp3d.jamendo.com/?trackid=${trackId}&format=mp32`
+  ];
+  tryPlay(sources);
 }
 
 function searchSpotify(){ searchDeezer(); }
@@ -14658,6 +14852,7 @@ const _expose = {
   doReact,quickReact,
   togglePassVis, maskEmail, startEmailChange, cancelEmailChange, sendVerifEmailForChange, confirmEmailChange,
   setMusicType, quickGenreSearch, searchSpotify, searchDeezer, playDeezer, playSpotify, closeMusicPlayer,
+  submitSoporte, soporteCheckOtro, soporteNuevoReporte, initSoportePage,
   saveProfile,openEditProfile,calcAgeFromBirthdate,
   changeCover,changeAvatar,
   previewPostImg,removePostImg,previewPostMedia,removePostMedia,
