@@ -6827,6 +6827,7 @@ function toggleComments(pid){
         <div style="font-size:.82rem;color:#8b949e;">Sé la primera persona en comentar.</div>
       </div>`;
 
+    const CMT_RXNS_M=['👍','❤️','😂','😮','😢','🔥'];
     return cmts.map((c,ci)=>{
       const av = `<img src="${c.av||getDefaultAv(c.gender||'')}" style="width:100%;height:100%;object-fit:cover;">`;
       const isAuthor = post.userId === c.userId;
@@ -6835,17 +6836,22 @@ function toggleComments(pid){
       const isPostOwner = window.CU && post.userId === window.CU.id;
       const canEdit = isMine;
       const canDel = isMine || isPostOwner || window.CU?.admin;
-      // Name color: verified = gold, author = blue, normal = black
-      const nameColor = isVerified ? '#f5a623' : isAuthor ? '#1877f2' : '#050505';
-      const verifiedBadge = isVerified ? '<span style="color:#f5a623;font-size:.8rem;margin-left:2px;" title="Verificado">✓</span>' : '';
+      const myRxnM = window.CU ? ((c.userReactions||{})[window.CU.id]||'') : '';
+      const cRxnsM = c.reactions||{};
+      const cRxnTotalM = Object.values(cRxnsM).reduce((a,b)=>a+b,0);
+      const cTopRxnM = Object.entries(cRxnsM).filter(e=>e[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,2).map(e=>e[0]).join('');
+      const nameColor = isVerified ? '#f5a623' : isAuthor ? '#1877f2' : '#e6edf3';
+      const verifiedBadge = isVerified ? '<span style="color:#f5a623;font-size:.8rem;margin-left:2px;">✓</span>' : '';
+      const rxnPopupId = `_mrxnp_${pid}_${ci}`;
+      const rxnBtnsM = CMT_RXNS_M.map(em=>`<button onclick="reactCmt(event,'${pid}',${ci},'${em}');document.getElementById('${rxnPopupId}').style.display='none';" style="background:none;border:none;font-size:1.4rem;cursor:pointer;padding:3px;border-radius:50%;transition:transform .12s;" onmouseover="this.style.transform='scale(1.5) translateY(-4px)'" onmouseout="this.style.transform='scale(1)'">${em}</button>`).join('');
 
       const menuId = `_cmtmenu_${pid}_${ci}`;
       const menuHtml = (canEdit||canDel) ? `
-        <div style="position:relative;margin-left:auto;">
+        <div style="position:relative;margin-left:4px;flex-shrink:0;">
           <button onclick="var m=document.getElementById('${menuId}');m.style.display=m.style.display==='block'?'none':'block';event.stopPropagation();"
-            style="background:none;border:none;color:#8b949e;font-size:1rem;cursor:pointer;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1;"
-            onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='none'">···</button>
-          <div id="${menuId}" style="display:none;position:absolute;right:0;top:100%;background:#161b22;border:1px solid #30363d;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.2);min-width:160px;z-index:99;overflow:hidden;">
+            style="background:none;border:none;color:#8b949e;font-size:1rem;cursor:pointer;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1;opacity:0;transition:opacity .15s;"
+            onmouseover="this.style.background='#21262d';this.style.opacity='1'" onmouseout="this.style.background='none'" class="_cmtdotsbtn_">···</button>
+          <div id="${menuId}" style="display:none;position:absolute;right:0;top:100%;background:#161b22;border:1px solid #30363d;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);min-width:160px;z-index:9999;overflow:hidden;">
             ${canEdit?`<button onclick="document.getElementById('${menuId}').style.display='none';_editModalCmt('${pid}',${ci})"
               style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;padding:10px 14px;font-size:.88rem;color:#e6edf3;cursor:pointer;font-family:'Exo 2',sans-serif;"
               onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='none'">
@@ -6853,29 +6859,41 @@ function toggleComments(pid){
             </button>`:''}
             ${canDel?`<button onclick="document.getElementById('${menuId}').style.display='none';_delModalCmt('${pid}',${ci})"
               style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;padding:10px 14px;font-size:.88rem;color:#e41e3f;cursor:pointer;font-family:'Exo 2',sans-serif;"
-              onmouseover="this.style.background='#fff0f2'" onmouseout="this.style.background='none'">
+              onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='none'">
               <span style="font-size:1rem;">🗑️</span> Eliminar
             </button>`:''}
           </div>
         </div>` : '';
 
-      return `<div id="_cmtrow_${pid}_${ci}" style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;">
-        <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:#21262d;flex-shrink:0;cursor:pointer;" onclick="openUserProfile('${c.userId||''}','${esc(c.nick||'')}')">${av}</div>
+      const isReply = !!c.replyTo;
+      return `<div id="_cmtrow_${pid}_${ci}" style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;${isReply?'margin-left:44px;':''}" onmouseenter="var b=this.querySelector('._cmtdotsbtn_');if(b)b.style.opacity='1'" onmouseleave="var b=this.querySelector('._cmtdotsbtn_');if(b)b.style.opacity='0'">
+        <div style="width:${isReply?'30px':'36px'};height:${isReply?'30px':'36px'};border-radius:50%;overflow:hidden;background:#21262d;flex-shrink:0;cursor:pointer;" onclick="openUserProfile('${c.userId||''}','${esc(c.nick||'')}')">${av}</div>
         <div style="flex:1;min-width:0;">
           <div style="display:flex;align-items:flex-start;gap:4px;">
-            <div style="background:#0d1117;border-radius:18px;padding:8px 12px;display:inline-block;max-width:calc(100% - 36px);">
-              <div style="display:flex;align-items:center;gap:4px;margin-bottom:1px;">
+            <div style="background:#21262d;border-radius:18px;padding:8px 12px;display:inline-block;max-width:calc(100% - 40px);position:relative;">
+              <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
                 <span style="font-weight:700;font-size:.82rem;color:${nameColor};cursor:pointer;" onclick="openUserProfile('${c.userId||''}','${esc(c.nick||'')}')">${esc(c.nick||'')}${verifiedBadge}</span>
-                ${isAuthor?'<span style="font-size:.62rem;color:#1877f2;font-weight:700;background:#e7f3ff;border-radius:4px;padding:1px 5px;line-height:1.4;">Autor</span>':''}
+                ${isAuthor?'<span style="font-size:.6rem;color:#1877f2;font-weight:700;background:rgba(24,119,242,.15);border-radius:4px;padding:1px 5px;">Autor</span>':''}
               </div>
-              ${c.gif ? `<img src="${c.gif}" style="max-width:180px;border-radius:8px;margin-top:4px;display:block;" loading="lazy">` : `<span style="font-size:.88rem;color:#e6edf3;line-height:1.45;word-break:break-word;">${esc(c.text||'')}</span>`}
+              ${c.gif ? `<img src="${c.gif}" style="max-width:180px;border-radius:8px;margin-top:4px;display:block;" loading="lazy">` : `<span style="font-size:.88rem;color:#e6edf3;line-height:1.45;word-break:break-word;">${esc(c.text||'')}${c.edited?'<span style="font-size:.65rem;color:#8b949e;margin-left:4px;">(editado)</span>':''}</span>`}
+              ${cRxnTotalM>0?`<div style="position:absolute;bottom:-10px;right:8px;display:flex;align-items:center;gap:2px;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:1px 5px;font-size:.72rem;cursor:pointer;" onclick="event.stopPropagation()">${cTopRxnM} <span style="color:#8b949e;">${cRxnTotalM}</span></div>`:''}
             </div>
             ${menuHtml}
           </div>
-          <div style="display:flex;align-items:center;gap:12px;padding:3px 4px 0;">
+          <div style="display:flex;align-items:center;gap:10px;padding:${cRxnTotalM>0?'14px':'4px'} 4px 2px;flex-wrap:wrap;">
             <span style="font-size:.72rem;color:#8b949e;">${c.time?fmtT(c.time):''}</span>
-            <button style="background:none;border:none;font-size:.72rem;font-weight:700;color:#8b949e;cursor:pointer;padding:0;" onmouseover="this.style.color='#050505'" onmouseout="this.style.color='#65676b'" onclick="quickCmtRxn(event,'${pid}',${ci})">Me gusta</button>
-            <button style="background:none;border:none;font-size:.72rem;font-weight:700;color:#8b949e;cursor:pointer;padding:0;" onmouseover="this.style.color='#050505'" onmouseout="this.style.color='#65676b'" onclick="document.getElementById('_cmtModalInp_${pid}').value='@${esc(c.nick||'')} ';document.getElementById('_cmtModalInp_${pid}').focus()">Responder</button>
+            <div style="position:relative;">
+              <button id="_mlikebtn_${pid}_${ci}" style="background:none;border:none;font-size:.75rem;font-weight:700;color:${myRxnM?'#1877f2':'#8b949e'};cursor:pointer;padding:0;transition:color .15s;"
+                onclick="quickCmtRxn(event,'${pid}',${ci})"
+                onmouseenter="clearTimeout(window['_mrxnhide_${pid}_${ci}']);var p=document.getElementById('${rxnPopupId}');if(p)p.style.display='flex';"
+                onmouseleave="window['_mrxnhide_${pid}_${ci}']=setTimeout(function(){var p=document.getElementById('${rxnPopupId}');if(p)p.style.display='none';},400)">${myRxnM?myRxnM+' Me gusta':'👍 Me gusta'}</button>
+              <div id="${rxnPopupId}" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:5px 8px;align-items:center;gap:2px;box-shadow:0 4px 20px rgba(0,0,0,.5);white-space:nowrap;z-index:9999;flex-direction:row;"
+                onmouseenter="clearTimeout(window['_mrxnhide_${pid}_${ci}'])"
+                onmouseleave="window['_mrxnhide_${pid}_${ci}']=setTimeout(function(){var p=document.getElementById('${rxnPopupId}');if(p)p.style.display='none';},200)">
+                ${rxnBtnsM}
+              </div>
+            </div>
+            <button style="background:none;border:none;font-size:.75rem;font-weight:700;color:#8b949e;cursor:pointer;padding:0;transition:color .15s;" onmouseover="this.style.color='#e6edf3'" onmouseout="this.style.color='#8b949e'" onclick="document.getElementById('_cmtModalInp_${pid}').value='@${esc(c.nick||'')} ';document.getElementById('_cmtModalInp_${pid}').focus()">Responder</button>
           </div>
         </div>
       </div>`;
@@ -7151,51 +7169,103 @@ function _reRenderInlineCmts(pid, p, cmts){
   if(!cmtsEl) return;
   const listEl = cmtsEl.querySelector('.cmt-list');
   if(!listEl) return;
-  const CMT_RXNS_R=['👍','❤️','😂','😮','😢','🔥'];
-  const rebuilt = (cmts||[]).map(function(c2,ci2){
-    if(c2.replyTo) return '';
-    const av2 = '<img src="'+(c2.av||getDefaultAv(c2.gender||''))+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
-    const myRxnC2 = window.CU ? ((c2.userReactions||{})[window.CU.id]||'') : '';
-    const cRxns2 = c2.reactions||{};
-    const cRxnTotal2 = Object.values(cRxns2).reduce((a,b)=>a+b,0);
-    const cTopRxn2 = Object.entries(cRxns2).filter(function(e){return e[1]>0;}).sort(function(a,b){return b[1]-a[1];}).slice(0,2).map(function(e){return e[0];}).join('');
-    const rxnBtns2 = CMT_RXNS_R.map(function(em){ return '<button onclick="reactCmt(event,\''+pid+'\','+ci2+',\''+em+'\')" style="background:none;border:none;font-size:1.3rem;cursor:pointer;padding:3px;border-radius:50%;transition:transform .13s;" onmouseover="this.style.transform=\'scale(1.4) translateY(-4px)\'" onmouseout="this.style.transform=\'scale(1)\'">'+em+'</button>'; }).join('');
-    const isMine2 = window.CU && c2.userId===window.CU.id;
-    const canDel2 = window.CU && (c2.userId===window.CU.id || p.userId===window.CU.id);
-    let menuBtns2 = '';
-    if(isMine2) menuBtns2 += '<button onclick="editCmt(event,\''+pid+'\','+ci2+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:var(--text);padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">✏️ Editar</button>';
-    if(canDel2) menuBtns2 += '<button onclick="delCmt(event,\''+pid+'\','+ci2+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#f55;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">🗑 Eliminar</button>';
-    menuBtns2 += '<button onclick="toast(\'Comentario reportado\',\'ok\')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#fa0;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">⚠️ Reportar</button>';
-    const timeStr2 = c2.time ? fmtT(c2.time) : '';
-    return '<div class="comment-item">'
-      +'<div class="sl-av" style="width:32px;height:32px;font-size:.75rem;flex-shrink:0;cursor:pointer;" onclick="openUserProfile(\''+c2.userId+'\',\''+esc(c2.nick||'')+'\')">'+av2+'</div>'
+  // Rebuild using the same postHTML logic — re-render the whole post's comment section
+  // but preserve the open state and input value
+  const inp = document.getElementById('cinp_'+pid);
+  const savedVal = inp ? inp.value : '';
+  // Re-generate the same HTML that postHTML uses
+  const allCmts2 = cmts||[];
+  const CMT_RXNS2=['👍','❤️','😂','😮','😢','🔥'];
+  const rebuilt2 = allCmts2.map(function(c,ci){
+    if(c.replyTo) return ''; // replies shown in collapsed block under parent
+    const isMine = window.CU && c.userId===window.CU.id;
+    const canDel2 = window.CU && (c.userId===window.CU.id || p.userId===window.CU.id);
+    const cRxns = c.reactions||{};
+    const cRxnTotal = Object.values(cRxns).reduce(function(a,b){return a+b;},0);
+    const cTopRxn = Object.entries(cRxns).filter(function(e){return e[1]>0;}).sort(function(a,b){return b[1]-a[1];}).slice(0,2).map(function(e){return e[0];}).join('');
+    const myRxnC = window.CU ? ((c.userReactions||{})[window.CU.id]||'') : '';
+    const timeStr = c.time ? fmtT(c.time) : '';
+    let menuBtns = '';
+    if(isMine) menuBtns += '<button onclick="editCmt(event,\''+pid+'\','+ci+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:var(--text);padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">✏️ Editar</button>';
+    if(canDel2) menuBtns += '<button onclick="delCmt(event,\''+pid+'\','+ci+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#f55;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">🗑 Eliminar</button>';
+    menuBtns += '<button onclick="toast(\'Comentario reportado\',\'ok\')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#fa0;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">⚠️ Reportar</button>';
+    const rxnBtnsHtml = CMT_RXNS2.map(function(em){ return '<button onclick="reactCmt(event,\''+pid+'\','+ci+',\''+em+'\')" style="background:none;border:none;font-size:1.3rem;cursor:pointer;padding:3px;border-radius:50%;transition:transform .13s;" onmouseover="this.style.transform=\'scale(1.4) translateY(-4px)\'" onmouseout="this.style.transform=\'scale(1)\'">'+em+'</button>'; }).join('');
+    const avImg = c.av ? '<img src="'+c.av+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' : '<img src="'+getDefaultAv(c.gender||'')+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+    const row = '<div class="comment-item">'
+      +'<div class="sl-av" style="width:32px;height:32px;font-size:.75rem;flex-shrink:0;cursor:pointer;" onclick="openUserProfile(\''+c.userId+'\',\''+esc(c.nick||'')+'\')">'+avImg+'</div>'
       +'<div style="flex:1;min-width:0;">'
         +'<div style="position:relative;display:inline-block;max-width:100%;">'
           +'<div class="comment-bubble">'
-            +'<span class="comment-author" style="cursor:pointer;" onclick="openUserProfile(\''+c2.userId+'\',\''+esc(c2.nick||'')+'\')">'+(c2.nick||'?')+'</span>'
-            +(c2.gif?'<img src="'+c2.gif+'" style="max-width:180px;border-radius:8px;margin-top:4px;display:block;" loading="lazy">'
-                    :'<span class="comment-text"> '+renderCommentText(c2.text||'')+(c2.edited?' <span style="font-size:.63rem;color:#8b949e;">(editado)</span>':'')+'</span>')
+            +'<span class="comment-author" style="cursor:pointer;" onclick="openUserProfile(\''+c.userId+'\',\''+esc(c.nick||'')+'\')">'+(c.nick||'?')+'</span>'
+            +(c.gif?'<img src="'+c.gif+'" style="max-width:180px;border-radius:8px;margin-top:4px;display:block;" loading="lazy">'
+                   :'<span class="comment-text"> '+renderCommentText(c.text||'')+(c.edited?' <span style="font-size:.63rem;color:#8b949e;">(editado)</span>':'')+'</span>')
           +'</div>'
           +'<div class="cmt-menu-wrap" style="position:absolute;top:-6px;right:-32px;">'
             +'<button class="cmt-dots-btn">⋯</button>'
-            +'<div class="cmt-menu-dropdown">'+menuBtns2+'</div>'
+            +'<div class="cmt-menu-dropdown">'+menuBtns+'</div>'
           +'</div>'
         +'</div>'
-        +(cRxnTotal2>0?'<div style="display:inline-flex;align-items:center;gap:2px;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:2px 5px;font-size:.72rem;margin-top:2px;box-shadow:0 1px 3px rgba(0,0,0,.1);">'+cTopRxn2+' <span style="color:#8b949e;">'+cRxnTotal2+'</span></div>':'')
+        +(cRxnTotal>0?'<div style="display:inline-flex;align-items:center;gap:2px;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:2px 5px;font-size:.72rem;margin-top:2px;">'+cTopRxn+' <span style="color:#8b949e;">'+cRxnTotal+'</span></div>':'')
         +'<div class="cmt-meta">'
-          +'<span class="cmt-meta-time">'+timeStr2+'</span>'
+          +'<span class="cmt-meta-time">'+timeStr+'</span>'
           +'<div class="cmt-rxn-wrap">'
-            +'<button class="cmt-like-btn'+(myRxnC2?' active':'')+'" onclick="quickCmtRxn(event,\''+pid+'\','+ci2+')">'
-            +(myRxnC2?myRxnC2+' Me gusta':'Me gusta')
+            +'<button class="cmt-like-btn'+(myRxnC?' active':'')+'" onclick="quickCmtRxn(event,\''+pid+'\','+ci+')">'
+            +(myRxnC?myRxnC+' Me gusta':'Me gusta')
             +'</button>'
-            +'<div class="cmt-rxn-popup">'+rxnBtns2+'</div>'
+            +'<div class="cmt-rxn-popup">'+rxnBtnsHtml+'</div>'
           +'</div>'
-          +'<button onclick="replyCmt(event,\''+pid+'\',\''+esc(c2.nick||'')+'\')" class="cmt-reply-btn">Responder</button>'
+          +'<button onclick="replyCmt(event,\''+pid+'\',\''+esc(c.nick||'')+'\')" class="cmt-reply-btn">Responder</button>'
         +'</div>'
       +'</div>'
     +'</div>';
+    // Replies block
+    const replies2 = allCmts2.filter(function(r2){ return r2.replyTo && c.nick && r2.replyTo.toLowerCase()===(c.nick||'').toLowerCase() && allCmts2.indexOf(r2)>ci; });
+    if(!replies2.length) return row;
+    const rid2 = 'replies_'+pid+'_'+ci;
+    const repliesHtml2 = replies2.slice(0,30).map(function(r2){
+      const rMine = window.CU && r2.userId===window.CU.id;
+      const rCanDel = window.CU && (r2.userId===window.CU.id || p.userId===window.CU.id);
+      const r2Idx = allCmts2.indexOf(r2);
+      const r2Rxns = r2.reactions||{};
+      const r2RxnTotal = Object.values(r2Rxns).reduce(function(a,b){return a+b;},0);
+      const r2TopRxn = Object.entries(r2Rxns).filter(function(e){return e[1]>0;}).sort(function(a,b){return b[1]-a[1];}).slice(0,2).map(function(e){return e[0];}).join('');
+      const myR2Rxn = window.CU ? ((r2.userReactions||{})[window.CU.id]||'') : '';
+      const r2RxnBtns = CMT_RXNS2.map(function(em){ return '<button onclick="reactCmt(event,\''+pid+'\','+r2Idx+',\''+em+'\')" style="background:none;border:none;font-size:1.2rem;cursor:pointer;padding:3px;border-radius:50%;transition:transform .13s;" onmouseover="this.style.transform=\'scale(1.4) translateY(-4px)\'" onmouseout="this.style.transform=\'scale(1)\'">'+em+'</button>'; }).join('');
+      let r2Menu = '';
+      if(rMine) r2Menu += '<button onclick="editCmt(event,\''+pid+'\','+r2Idx+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:var(--text);padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">✏️ Editar</button>';
+      if(rCanDel) r2Menu += '<button onclick="delCmt(event,\''+pid+'\','+r2Idx+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#f55;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">🗑 Eliminar</button>';
+      r2Menu += '<button onclick="toast(\'Comentario reportado\',\'ok\')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#fa0;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">⚠️ Reportar</button>';
+      const avHTML2 = '<img src="'+(r2.av||getDefaultAv(r2.gender||''))+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+      return '<div class="comment-item" style="display:flex;align-items:flex-start;margin-top:4px;margin-bottom:4px;">'
+        +'<div class="sl-av" style="width:28px;height:28px;font-size:.68rem;flex-shrink:0;cursor:pointer;margin-top:2px;" onclick="openUserProfile(\''+r2.userId+'\',\''+esc(r2.nick||'')+'\')">'+avHTML2+'</div>'
+        +'<div style="flex:1;min-width:0;">'
+          +'<div class="comment-bubble" style="margin-bottom:3px;">'
+            +'<div style="display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:2px;">'
+              +'<div class="comment-author" style="cursor:pointer;font-size:.74rem;" onclick="openUserProfile(\''+r2.userId+'\',\''+esc(r2.nick||'\')">'+(r2.nick||'?')+'</div>'
+              +'<div class="cmt-menu-wrap"><button class="cmt-dots-btn">⋯</button><div class="cmt-menu-dropdown">'+r2Menu+'</div></div>'
+            +'</div>'
+            +'<div class="comment-text" style="font-size:.81rem;">'+renderCommentText(r2.text||'')+(r2.edited?' <span style="font-size:.6rem;color:var(--muted);">(editado)</span>':'')+'</div>'
+          +'</div>'
+          +'<div style="display:flex;align-items:center;gap:8px;padding:0 4px 2px;flex-wrap:wrap;">'
+            +'<span style="font-size:.66rem;color:var(--muted);">'+(r2.time?fmtT(r2.time):'')+'</span>'
+            +'<button onclick="replyCmt(event,\''+pid+'\',\''+esc(c.nick||'')+'\')" class="cmt-reply-btn" style="font-size:.7rem;">Responder</button>'
+            +'<div class="cmt-rxn-wrap">'
+              +'<button onclick="quickCmtRxn(event,\''+pid+'\','+r2Idx+')" style="background:none;border:none;font-size:.72rem;font-weight:700;cursor:pointer;padding:2px 5px;border-radius:100px;color:'+(myR2Rxn?'var(--accent)':'var(--muted)')+';">'+(myR2Rxn?myR2Rxn+' ':'')+' Me gusta</button>'
+              +'<div class="cmt-rxn-popup">'+r2RxnBtns+'</div>'
+            +'</div>'
+            +(r2RxnTotal>0?'<span style="font-size:.68rem;background:var(--bg3);border-radius:100px;padding:1px 5px;color:var(--muted);">'+r2TopRxn+' '+r2RxnTotal+'</span>':'')
+          +'</div>'
+        +'</div>'
+      +'</div>';
+    }).join('');
+    const label2 = replies2.length===1?'1 respuesta':replies2.length+' respuestas';
+    return row + '<div style="margin-left:44px;margin-top:2px;">'
+      +'<button onclick="toggleReplies(\''+rid2+'\')" id="btn_'+rid2+'" style="background:none;border:none;color:#1877f2;font-size:.82rem;font-weight:700;cursor:pointer;padding:6px 0;">↩ '+label2+'</button>'
+      +'<div id="'+rid2+'" style="display:none;margin-top:4px;">'+repliesHtml2+'</div>'
+      +'</div>';
   }).join('');
-  listEl.innerHTML = rebuilt;
+  listEl.innerHTML = rebuilt2;
+  if(inp) inp.value = savedVal;
   // Update count in post-stats
   const cntEl = document.querySelector('#post_'+pid+' .post-stats [onclick*="toggleComments"]');
   if(cntEl){ const cnt=(cmts||[]).length; cntEl.textContent = cnt>0 ? cnt+' comentarios' : ''; }
