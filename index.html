@@ -5967,13 +5967,13 @@ function renderFeed(){
     // Actualizar comentarios SOLO si no hay modal abierto y no hay input activo
     const modalOpen = !!document.getElementById('_cmtModal_'+p.id);
     const inputFocused = document.activeElement && document.activeElement.id === 'cinp_'+p.id;
-    if(!modalOpen && !inputFocused){
+    const cmtSectionOpen = existing.querySelector('.comments-section.open');
+    if(!modalOpen && !inputFocused && !cmtSectionOpen){
       const oldCmts = existing.querySelector('.comments-section');
       const newCmts = newPost.querySelector('.comments-section');
       if(oldCmts && newCmts && oldCmts.innerHTML !== newCmts.innerHTML){
         const wasOpen = oldCmts.classList.contains('open');
         const newCmtsClone = newCmts.cloneNode(true);
-        // Only re-open if it was manually opened by user (not auto-opened)
         if(wasOpen) newCmtsClone.classList.add('open');
         oldCmts.replaceWith(newCmtsClone);
       }
@@ -6786,18 +6786,20 @@ function quickReact(pid){ if(!window.CU){toast('Inicia sesión','err');return;} 
 
 // ===== COMMENTS =====
 function toggleComments(pid){
-  // Siempre toggle inline — no usar modal que el re-render destruye
   const el = document.getElementById('cmts_'+pid);
   if(el){
+    const wasOpen = el.classList.contains('open');
     el.classList.toggle('open');
-    if(el.classList.contains('open')){
-      // Focus al input
+    if(!wasOpen){
+      // Opening: render comments fresh from _posts cache
+      const p = (_posts||[]).find(p=>p.id===pid);
+      if(p) _reRenderInlineCmts(pid, p, p.comments||[]);
       setTimeout(()=>{ document.getElementById('cinp_'+pid)?.focus(); }, 50);
     }
     return;
   }
 
-  // Fallback: modal (solo si no hay sección inline)
+  // Fallback: modal (solo si no hay sección inline en el DOM)
   const post = (_posts||[]).find(p=>p.id===pid);
   if(!post){ return; }
 
@@ -7163,113 +7165,128 @@ function hideCmtMenu(pid, ci){
   }, 200);
 }
 function toggleCmtMenu(e, pid, ci){ showCmtMenu(pid, ci); }
-// Helper: rebuild the inline .cmt-list for a given post after any comment change
+// ═══════════════════════════════════════════════════════
+// RENDER INLINE COMMENTS — fuente única de verdad
+// ═══════════════════════════════════════════════════════
 function _reRenderInlineCmts(pid, p, cmts){
   const cmtsEl = document.getElementById('cmts_'+pid);
   if(!cmtsEl) return;
-  const listEl = cmtsEl.querySelector('.cmt-list');
-  if(!listEl) return;
-  // Rebuild using the same postHTML logic — re-render the whole post's comment section
-  // but preserve the open state and input value
+  let listEl = cmtsEl.querySelector('.cmt-list');
+  if(!listEl){
+    // Si no hay .cmt-list todavía, créalo antes del comment-input-row
+    listEl = document.createElement('div');
+    listEl.className = 'cmt-list';
+    const inputRow = cmtsEl.querySelector('.comment-input-row');
+    if(inputRow) cmtsEl.insertBefore(listEl, inputRow);
+    else cmtsEl.appendChild(listEl);
+  }
+
   const inp = document.getElementById('cinp_'+pid);
   const savedVal = inp ? inp.value : '';
-  // Re-generate the same HTML that postHTML uses
-  const allCmts2 = cmts||[];
-  const CMT_RXNS2=['👍','❤️','😂','😮','😢','🔥'];
-  const rebuilt2 = allCmts2.map(function(c,ci){
-    if(c.replyTo) return ''; // replies shown in collapsed block under parent
-    const isMine = window.CU && c.userId===window.CU.id;
-    const canDel2 = window.CU && (c.userId===window.CU.id || p.userId===window.CU.id);
-    const cRxns = c.reactions||{};
-    const cRxnTotal = Object.values(cRxns).reduce(function(a,b){return a+b;},0);
-    const cTopRxn = Object.entries(cRxns).filter(function(e){return e[1]>0;}).sort(function(a,b){return b[1]-a[1];}).slice(0,2).map(function(e){return e[0];}).join('');
-    const myRxnC = window.CU ? ((c.userReactions||{})[window.CU.id]||'') : '';
-    const timeStr = c.time ? fmtT(c.time) : '';
-    let menuBtns = '';
-    if(isMine) menuBtns += '<button onclick="editCmt(event,\''+pid+'\','+ci+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:var(--text);padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">✏️ Editar</button>';
-    if(canDel2) menuBtns += '<button onclick="delCmt(event,\''+pid+'\','+ci+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#f55;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">🗑 Eliminar</button>';
-    menuBtns += '<button onclick="toast(\'Comentario reportado\',\'ok\')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#fa0;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">⚠️ Reportar</button>';
-    const rxnBtnsHtml = CMT_RXNS2.map(function(em){ return '<button onclick="reactCmt(event,\''+pid+'\','+ci+',\''+em+'\')" style="background:none;border:none;font-size:1.3rem;cursor:pointer;padding:3px;border-radius:50%;transition:transform .13s;" onmouseover="this.style.transform=\'scale(1.4) translateY(-4px)\'" onmouseout="this.style.transform=\'scale(1)\'">'+em+'</button>'; }).join('');
-    const avImg = c.av ? '<img src="'+c.av+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' : '<img src="'+getDefaultAv(c.gender||'')+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
-    const row = '<div class="comment-item">'
-      +'<div class="sl-av" style="width:32px;height:32px;font-size:.75rem;flex-shrink:0;cursor:pointer;" onclick="openUserProfile(\''+c.userId+'\',\''+esc(c.nick||'')+'\')">'+avImg+'</div>'
+  const allC = cmts||[];
+  const RXN = ['👍','❤️','😂','😮','😢','🔥'];
+
+  function _safenick(n){ return (n||'').replace(/'/g,"\\'"); }
+
+  function buildCmtRow(c, ci, isReply){
+    const cu = window.CU;
+    const isMine  = cu && c.userId === cu.id;
+    const isOwner = cu && p.userId  === cu.id;
+    const canEdit = isMine;
+    const canDel  = isMine || isOwner || cu?.admin;
+    const myRxn   = cu ? ((c.userReactions||{})[cu.id]||'') : '';
+    const rMap    = c.reactions||{};
+    const rTotal  = Object.values(rMap).reduce((a,b)=>a+b,0);
+    const rTop    = Object.entries(rMap).filter(e=>e[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,2).map(e=>e[0]).join('');
+    const t       = c.time ? fmtT(c.time) : '';
+    const avSrc   = c.av||getDefaultAv(c.gender||'');
+    const nick    = c.nick||'?';
+    const safeN   = _safenick(nick);
+    const uid     = c.userId||'';
+    const sz      = isReply ? '28' : '32';
+
+    // Reaction emoji buttons
+    const rxnBtns = RXN.map(em=>
+      '<button onclick="reactCmt(event,\''+pid+'\','+ci+',\''+em+'\')" '
+      +'style="background:none;border:none;font-size:1.3rem;cursor:pointer;padding:3px;border-radius:50%;transition:transform .13s;" '
+      +'onmouseover="this.style.transform=\'scale(1.4) translateY(-4px)\'" '
+      +'onmouseout="this.style.transform=\'scale(1)\'">'+em+'</button>'
+    ).join('');
+
+    // Menu buttons
+    let menu = '';
+    if(canEdit) menu += '<button onclick="editCmt(event,\''+pid+'\','+ci+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:var(--text);padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">✏️ Editar</button>';
+    if(canDel)  menu += '<button onclick="delCmt(event,\''+pid+'\','+ci+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#f55;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">🗑 Eliminar</button>';
+    menu += '<button onclick="toast(\'Reportado\',\'ok\')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#fa0;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">⚠️ Reportar</button>';
+
+    const bodyHtml = c.gif
+      ? '<img src="'+c.gif+'" style="max-width:180px;border-radius:8px;margin-top:4px;display:block;" loading="lazy">'
+      : '<span class="comment-text"> '+renderCommentText(c.text||'')+(c.edited?' <span style="font-size:.63rem;color:#8b949e;">(editado)</span>':'')+'</span>';
+
+    return '<div class="comment-item" style="'+(isReply?'margin-left:40px;':'')+'">'
+      +'<div class="sl-av" style="width:'+sz+'px;height:'+sz+'px;font-size:.75rem;flex-shrink:0;cursor:pointer;" onclick="openUserProfile(\''+uid+'\',\''+safeN+'\')">'
+        +'<img src="'+avSrc+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="if(!this.dataset.e){this.dataset.e=1;this.src=\'hombre.png\';}">'
+      +'</div>'
       +'<div style="flex:1;min-width:0;">'
         +'<div style="position:relative;display:inline-block;max-width:100%;">'
           +'<div class="comment-bubble">'
-            +'<span class="comment-author" style="cursor:pointer;" onclick="openUserProfile(\''+c.userId+'\',\''+esc(c.nick||'')+'\')">'+(c.nick||'?')+'</span>'
-            +(c.gif?'<img src="'+c.gif+'" style="max-width:180px;border-radius:8px;margin-top:4px;display:block;" loading="lazy">'
-                   :'<span class="comment-text"> '+renderCommentText(c.text||'')+(c.edited?' <span style="font-size:.63rem;color:#8b949e;">(editado)</span>':'')+'</span>')
+            +'<span class="comment-author" style="cursor:pointer;" onclick="openUserProfile(\''+uid+'\',\''+safeN+'\')">'+nick+'</span>'
+            +bodyHtml
           +'</div>'
           +'<div class="cmt-menu-wrap" style="position:absolute;top:-6px;right:-32px;">'
             +'<button class="cmt-dots-btn">⋯</button>'
-            +'<div class="cmt-menu-dropdown">'+menuBtns+'</div>'
+            +'<div class="cmt-menu-dropdown">'+menu+'</div>'
           +'</div>'
         +'</div>'
-        +(cRxnTotal>0?'<div style="display:inline-flex;align-items:center;gap:2px;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:2px 5px;font-size:.72rem;margin-top:2px;">'+cTopRxn+' <span style="color:#8b949e;">'+cRxnTotal+'</span></div>':'')
+        +(rTotal>0?'<div style="display:inline-flex;align-items:center;gap:2px;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:2px 5px;font-size:.72rem;margin-top:2px;">'+rTop+' <span style="color:#8b949e;">'+rTotal+'</span></div>':'')
         +'<div class="cmt-meta">'
-          +'<span class="cmt-meta-time">'+timeStr+'</span>'
+          +'<span class="cmt-meta-time">'+t+'</span>'
           +'<div class="cmt-rxn-wrap">'
-            +'<button class="cmt-like-btn'+(myRxnC?' active':'')+'" onclick="quickCmtRxn(event,\''+pid+'\','+ci+')">'
-            +(myRxnC?myRxnC+' Me gusta':'Me gusta')
-            +'</button>'
-            +'<div class="cmt-rxn-popup">'+rxnBtnsHtml+'</div>'
+            +'<button class="cmt-like-btn'+(myRxn?' active':'')+'" onclick="quickCmtRxn(event,\''+pid+'\','+ci+')">'+(myRxn?myRxn+' Me gusta':'Me gusta')+'</button>'
+            +'<div class="cmt-rxn-popup">'+rxnBtns+'</div>'
           +'</div>'
-          +'<button onclick="replyCmt(event,\''+pid+'\',\''+esc(c.nick||'')+'\')" class="cmt-reply-btn">Responder</button>'
+          +'<button onclick="replyCmt(event,\''+pid+'\',\''+safeN+'\')" class="cmt-reply-btn">Responder</button>'
         +'</div>'
       +'</div>'
     +'</div>';
-    // Replies block
-    const replies2 = allCmts2.filter(function(r2){ return r2.replyTo && c.nick && r2.replyTo.toLowerCase()===(c.nick||'').toLowerCase() && allCmts2.indexOf(r2)>ci; });
-    if(!replies2.length) return row;
-    const rid2 = 'replies_'+pid+'_'+ci;
-    const repliesHtml2 = replies2.slice(0,30).map(function(r2){
-      const rMine = window.CU && r2.userId===window.CU.id;
-      const rCanDel = window.CU && (r2.userId===window.CU.id || p.userId===window.CU.id);
-      const r2Idx = allCmts2.indexOf(r2);
-      const r2Rxns = r2.reactions||{};
-      const r2RxnTotal = Object.values(r2Rxns).reduce(function(a,b){return a+b;},0);
-      const r2TopRxn = Object.entries(r2Rxns).filter(function(e){return e[1]>0;}).sort(function(a,b){return b[1]-a[1];}).slice(0,2).map(function(e){return e[0];}).join('');
-      const myR2Rxn = window.CU ? ((r2.userReactions||{})[window.CU.id]||'') : '';
-      const r2RxnBtns = CMT_RXNS2.map(function(em){ return '<button onclick="reactCmt(event,\''+pid+'\','+r2Idx+',\''+em+'\')" style="background:none;border:none;font-size:1.2rem;cursor:pointer;padding:3px;border-radius:50%;transition:transform .13s;" onmouseover="this.style.transform=\'scale(1.4) translateY(-4px)\'" onmouseout="this.style.transform=\'scale(1)\'">'+em+'</button>'; }).join('');
-      let r2Menu = '';
-      if(rMine) r2Menu += '<button onclick="editCmt(event,\''+pid+'\','+r2Idx+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:var(--text);padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">✏️ Editar</button>';
-      if(rCanDel) r2Menu += '<button onclick="delCmt(event,\''+pid+'\','+r2Idx+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#f55;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">🗑 Eliminar</button>';
-      r2Menu += '<button onclick="toast(\'Comentario reportado\',\'ok\')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#fa0;padding:10px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap;">⚠️ Reportar</button>';
-      const avHTML2 = '<img src="'+(r2.av||getDefaultAv(r2.gender||''))+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
-      return '<div class="comment-item" style="display:flex;align-items:flex-start;margin-top:4px;margin-bottom:4px;">'
-        +'<div class="sl-av" style="width:28px;height:28px;font-size:.68rem;flex-shrink:0;cursor:pointer;margin-top:2px;" onclick="openUserProfile(\''+r2.userId+'\',\''+esc(r2.nick||'')+'\')">'+avHTML2+'</div>'
-        +'<div style="flex:1;min-width:0;">'
-          +'<div class="comment-bubble" style="margin-bottom:3px;">'
-            +'<div style="display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:2px;">'
-              +'<div class="comment-author" style="cursor:pointer;font-size:.74rem;" onclick="openUserProfile(\''+r2.userId+'\',\''+esc(r2.nick||'')+'\')">'+( r2.nick||'?')+'</div>'
-              +'<div class="cmt-menu-wrap"><button class="cmt-dots-btn">⋯</button><div class="cmt-menu-dropdown">'+r2Menu+'</div></div>'
-            +'</div>'
-            +'<div class="comment-text" style="font-size:.81rem;">'+renderCommentText(r2.text||'')+(r2.edited?' <span style="font-size:.6rem;color:var(--muted);">(editado)</span>':'')+'</div>'
-          +'</div>'
-          +'<div style="display:flex;align-items:center;gap:8px;padding:0 4px 2px;flex-wrap:wrap;">'
-            +'<span style="font-size:.66rem;color:var(--muted);">'+(r2.time?fmtT(r2.time):'')+'</span>'
-            +'<button onclick="replyCmt(event,\''+pid+'\',\''+esc(c.nick||'')+'\')" class="cmt-reply-btn" style="font-size:.7rem;">Responder</button>'
-            +'<div class="cmt-rxn-wrap">'
-              +'<button onclick="quickCmtRxn(event,\''+pid+'\','+r2Idx+')" style="background:none;border:none;font-size:.72rem;font-weight:700;cursor:pointer;padding:2px 5px;border-radius:100px;color:'+(myR2Rxn?'var(--accent)':'var(--muted)')+';">'+(myR2Rxn?myR2Rxn+' ':'')+' Me gusta</button>'
-              +'<div class="cmt-rxn-popup">'+r2RxnBtns+'</div>'
-            +'</div>'
-            +(r2RxnTotal>0?'<span style="font-size:.68rem;background:var(--bg3);border-radius:100px;padding:1px 5px;color:var(--muted);">'+r2TopRxn+' '+r2RxnTotal+'</span>':'')
-          +'</div>'
-        +'</div>'
-      +'</div>';
-    }).join('');
-    const label2 = replies2.length===1?'1 respuesta':replies2.length+' respuestas';
-    return row + '<div style="margin-left:44px;margin-top:2px;">'
-      +'<button onclick="toggleReplies(\''+rid2+'\')" id="btn_'+rid2+'" style="background:none;border:none;color:#1877f2;font-size:.82rem;font-weight:700;cursor:pointer;padding:6px 0;">↩ '+label2+'</button>'
-      +'<div id="'+rid2+'" style="display:none;margin-top:4px;">'+repliesHtml2+'</div>'
-      +'</div>';
-  }).join('');
-  listEl.innerHTML = rebuilt2;
+  }
+
+  // Build all comment rows — top-level + collapsible replies
+  let html = '';
+  allC.forEach(function(c, ci){
+    if(c.replyTo) return; // rendered under parent
+    html += buildCmtRow(c, ci, false);
+    // Find replies for this comment
+    const replies = allC.filter(function(r, ri){
+      return r.replyTo && c.nick && r.replyTo.toLowerCase() === (c.nick||'').toLowerCase() && ri > ci;
+    });
+    if(replies.length){
+      const rid = 'replies_'+pid+'_'+ci;
+      const label = replies.length === 1 ? '1 respuesta' : replies.length+' respuestas';
+      let rHtml = '';
+      replies.forEach(function(r2){
+        const r2i = allC.indexOf(r2);
+        rHtml += buildCmtRow(r2, r2i, true);
+      });
+      html += '<div style="margin-left:40px;margin-top:2px;">'
+        +'<button onclick="toggleReplies(\''+rid+'\')" id="btn_'+rid+'" style="background:none;border:none;color:#1877f2;font-size:.82rem;font-weight:700;cursor:pointer;padding:6px 0;">↩ '+label+'</button>'
+        +'<div id="'+rid+'" style="display:none;margin-top:4px;">'+rHtml+'</div>'
+        +'</div>';
+    }
+  });
+
+  if(!html){
+    html = '<div style="text-align:center;padding:16px 0;color:var(--muted);font-size:.85rem;">Sé el primero en comentar 🎣</div>';
+  }
+
+  listEl.innerHTML = html;
   if(inp) inp.value = savedVal;
-  // Update count in post-stats
+
+  // Actualizar contador
   const cntEl = document.querySelector('#post_'+pid+' .post-stats [onclick*="toggleComments"]');
-  if(cntEl){ const cnt=(cmts||[]).length; cntEl.textContent = cnt>0 ? cnt+' comentarios' : ''; }
+  if(cntEl){ const cnt = allC.length; cntEl.textContent = cnt > 0 ? cnt+' comentario'+(cnt!==1?'s':'') : ''; }
 }
+
 async function editCmt(e, pid, ci){
   if(e) e.stopPropagation();
   document.querySelectorAll('[id^="cmtmenu_"]').forEach(m=>{ m.style.display='none'; });
