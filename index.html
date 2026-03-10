@@ -14571,61 +14571,52 @@ function renderJamendoResults(tracks){
 }
 
 function playJamendo(trackId, title, artist, audioUrl){
-  // Stop previous
-  if(_currentAudio){
-    _currentAudio.pause();
-    _currentAudio.src = '';
-    // Reset previous card button
-    if(_currentTrackId){
-      const prevBtn = document.getElementById('jplay_'+_currentTrackId);
-      if(prevBtn) prevBtn.textContent = '▶';
-    }
+  // Reset previous card button
+  if(_currentTrackId){
+    const prevBtn = document.getElementById('jplay_'+_currentTrackId);
+    if(prevBtn) prevBtn.textContent = '\u25b6';
   }
-  // Update player bar
-  const wrap = document.getElementById('musicPlayerWrap');
+  if(_currentAudio){ _currentAudio.pause(); _currentAudio.src=''; _currentAudio=null; }
+
+  _currentTrackId = trackId;
+  const btn = document.getElementById('jplay_'+trackId);
+  if(btn) btn.textContent = '\u23f8';
+
   const titleEl = document.getElementById('deezerTitleBig');
   const artistEl = document.getElementById('deezerArtistBig');
+  const wrap = document.getElementById('musicPlayerWrap');
+  if(titleEl) titleEl.textContent = title||'';
+  if(artistEl) artistEl.textContent = artist||'';
+
+  // Use Jamendo widget iframe (avoids CORS on direct audio URLs)
   const iframe = document.getElementById('ytMusicPlayer');
-  if(iframe) iframe.style.display = 'none';
+  if(iframe){
+    iframe.style.cssText = 'display:block;width:0;height:0;border:none;position:absolute;opacity:0;pointer-events:none;';
+    iframe.src = 'https://widgets.jamendo.com/v3/track/'+trackId+'/?autoplay=1&width=400&theme=dark';
+  }
 
-  // Create audio element
-  const audio = new Audio(audioUrl);
-  audio.volume = 0.8;
-  _currentAudio = audio;
-  _currentTrackId = trackId;
+  // Also try direct Audio() — works if server allows it
+  if(audioUrl){
+    const audio = new Audio();
+    audio.crossOrigin = 'anonymous';
+    audio.src = audioUrl;
+    audio.volume = 0.8;
+    audio.play().then(()=>{ _currentAudio = audio; }).catch(()=>{ /* widget handles it */ });
+    audio.onended = ()=>{ if(btn) btn.textContent='\u25b6'; _currentTrackId=null; };
+    const progWrap = document.getElementById('musicProgBar');
+    if(progWrap){ audio.ontimeupdate=()=>{ if(audio.duration) progWrap.style.width=(audio.currentTime/audio.duration*100)+'%'; }; }
+    _currentAudio = audio;
+  }
 
-  // Update play button on card
-  const btn = document.getElementById('jplay_'+trackId);
-  if(btn) btn.textContent = '⏸';
+  if(wrap) wrap.style.display='block';
+  toast('\u25b6 '+title, 'ok');
 
-  audio.play().then(()=>{
-    if(titleEl) titleEl.textContent = title||'';
-    if(artistEl) artistEl.textContent = artist||'';
-    if(wrap) wrap.style.display = 'block';
-    toast('▶ '+title, 'ok');
-  }).catch(e=>{
-    console.error('Audio play error:', e);
-    toast('Error al reproducir — intentá de nuevo','err');
-    if(btn) btn.textContent = '▶';
-  });
-
-  audio.onended = ()=>{
-    if(btn) btn.textContent = '▶';
-    _currentTrackId = null;
-  };
-  audio.onerror = ()=>{
-    toast('No se pudo cargar el audio','err');
-    if(btn) btn.textContent = '▶';
-    _currentTrackId = null;
-  };
-
-  // Add progress bar to player
-  const progWrap = document.getElementById('musicProgBar');
-  if(progWrap){
-    audio.ontimeupdate = ()=>{
-      if(audio.duration){
-        progWrap.style.width = (audio.currentTime/audio.duration*100)+'%';
-      }
+  const pauseBtn = document.getElementById('musicPauseBtn');
+  if(pauseBtn){
+    pauseBtn.onclick = function(){
+      if(_currentAudio && !_currentAudio.paused){ _currentAudio.pause(); pauseBtn.textContent='\u25b6'; }
+      else if(_currentAudio && _currentAudio.paused){ _currentAudio.play(); pauseBtn.textContent='\u23f8'; }
+      else if(iframe){ iframe.src=iframe.src; }
     };
   }
 }
