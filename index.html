@@ -4284,7 +4284,7 @@ async function doLogin(){
       return;
     }
     window.CU = {id: cred.user.uid, ...snap.data()};
-    saveAccountLocally(input, window.CU.nick);
+    saveAccountLocally(input, window.CU.nick, pw, window.CU.av||'');
     document.getElementById('mAuth').style.display='none';
     onLogin();
     toast('¡Bienvenido '+window.CU.nick+'! 🎣','ok');
@@ -10525,29 +10525,55 @@ function loadSavedAccounts(){
   if(!el) return;
   if(accounts.length > 0){
     el.style.display = 'block';
-    el.innerHTML = `<div style="font-size:.75rem;color:#8b949e;margin-bottom:8px;font-weight:600;">Cuentas guardadas:</div>`
+    el.innerHTML = `<div style="font-size:.75rem;color:#8b949e;margin-bottom:8px;font-weight:600;">Cuentas guardadas — click para entrar:</div>`
       + accounts.map(a=>`
-        <div onclick="quickLogin('${a.email}')" class="fb-saved">
-          <div class="fb-saved-av">${(a.nick||a.email)[0].toUpperCase()}</div>
+        <div onclick="quickLogin('${a.email}')" class="fb-saved" style="position:relative;">
+          <div class="fb-saved-av">${a.av ? `<img src="${a.av}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : (a.nick||a.email)[0].toUpperCase()}</div>
           <div class="fb-saved-info">
-            <div class="fb-saved-nick">${a.nick||a.email}</div>
-            <div class="fb-saved-email">${a.email}</div>
+            <div class="fb-saved-nick">${a.nick||a.email} ${a.pw ? '<span style="font-size:.65rem;color:#42b72a;font-weight:600;">● guardada</span>' : ''}</div>
+            <div class="fb-saved-email">${maskEmail(a.email)}</div>
           </div>
-          <div style="color:#1877f2;font-size:.78rem;font-weight:600;">Entrar →</div>
-        </div>`).join('') + '<div style="height:8px;"></div>';
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="color:#1877f2;font-size:.78rem;font-weight:600;">${a.pw ? '⚡ Entrar' : 'Entrar →'}</span>
+            <span onclick="removeSavedAccount('${a.email}',event)" style="color:#666;font-size:.8rem;padding:2px 6px;border-radius:4px;cursor:pointer;" title="Quitar cuenta" onmouseover="this.style.color='#fa3e3e'" onmouseout="this.style.color='#666'">✕</span>
+          </div>
+        </div>`).join('') + '<div style="height:4px;"></div>';
+  } else {
+    el.style.display = 'none';
+    el.innerHTML = '';
   }
 }
 
 function quickLogin(email){
   document.getElementById('lEmail').value = email;
+  const accounts = JSON.parse(localStorage.getItem('crf4_savedAccounts')||'[]');
+  const acc = accounts.find(a=>a.email===email);
+  if(acc && acc.pw){
+    try {
+      document.getElementById('lPass').value = atob(acc.pw);
+      doLogin();
+      return;
+    } catch(e){}
+  }
   document.getElementById('lPass').focus();
 }
 
-function saveAccountLocally(email, nick){
+function saveAccountLocally(email, nick, pw, av){
   let accounts = JSON.parse(localStorage.getItem('crf4_savedAccounts')||'[]');
-  if(!accounts.find(a=>a.email===email)) accounts.push({email, nick});
+  const existing = accounts.find(a=>a.email===email);
+  const entry = {email, nick, pw: pw ? btoa(pw) : (existing&&existing.pw||''), av: av||existing&&existing.av||''};
+  if(existing){ Object.assign(existing, entry); }
+  else { accounts.push(entry); }
   if(accounts.length > 5) accounts = accounts.slice(-5);
   localStorage.setItem('crf4_savedAccounts', JSON.stringify(accounts));
+}
+
+function removeSavedAccount(email, e){
+  e && e.stopPropagation();
+  let accounts = JSON.parse(localStorage.getItem('crf4_savedAccounts')||'[]');
+  accounts = accounts.filter(a=>a.email!==email);
+  localStorage.setItem('crf4_savedAccounts', JSON.stringify(accounts));
+  loadSavedAccounts();
 }
 
 async function doForgotPassword(){
@@ -14707,6 +14733,7 @@ function closeTrophyBanner(){
   if(_trophyBannerTimer){ clearTimeout(_trophyBannerTimer); _trophyBannerTimer=null; }
 }
 window.closeTrophyBanner = closeTrophyBanner;
+window.removeSavedAccount = removeSavedAccount;
 
 function filterTrofeoFeed(filter, btn){
   _trofeoFeedFilter = filter;
