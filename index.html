@@ -6011,18 +6011,22 @@ function renderFeed(){
 function renderProfileFeed(){
   const el = document.getElementById('profileFeed');
   if(!el||!window.CU) return;
-  const mine = _posts.filter(p=>p.userId===window.CU.id);
-  if(!mine.length){
-    // Fallback: load from Firestore
-    getDocs(query(collection(db,'posts'), where('userId','==',window.CU.id), orderBy('time','desc'))).then(snap=>{
-      const fetched = snap.docs.map(d=>({id:d.id,...d.data()}));
-      // Merge into _posts so reactions/comments work
-      fetched.forEach(p=>{ if(!_posts.find(x=>x.id===p.id)) _posts.push(p); });
-      _renderProfileFeedHTML(el, fetched);
-    }).catch(()=>{ el.innerHTML=`<div style="text-align:center;padding:40px;color:var(--muted)">Sin publicaciones aún. ¡Comparte tu primera pesca!</div>`; });
-    return;
-  }
-  _renderProfileFeedHTML(el, mine);
+  // Siempre ir a Firestore para mostrar todos los posts actualizados
+  getDocs(query(collection(db,'posts'), where('userId','==',window.CU.id))).then(snap=>{
+    const fetched = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{
+      const ta = a.time?.toMillis?.() || a.time || 0;
+      const tb = b.time?.toMillis?.() || b.time || 0;
+      return tb - ta;
+    });
+    // Merge into _posts so reactions/comments work
+    fetched.forEach(p=>{ const idx=_posts.findIndex(x=>x.id===p.id); if(idx>=0) _posts[idx]=p; else _posts.unshift(p); });
+    _renderProfileFeedHTML(el, fetched);
+  }).catch(e=>{
+    console.warn('renderProfileFeed error:', e);
+    // Fallback al cache
+    const mine = _posts.filter(p=>p.userId===window.CU.id);
+    _renderProfileFeedHTML(el, mine);
+  });
 }
 
 function _renderProfileFeedHTML(el, mine){
@@ -12231,13 +12235,20 @@ async function _loadUserProfilePage(uid, nick){
     }
 
     // ── STATS ──
-    // Fetch this user's posts from Firestore (not just local _posts cache) so profile is always complete
-    let userPosts = _posts.filter(p=>p.userId===uid);
-    if(!userPosts.length){
-      try {
-        const postsSnap = await getDocs(query(collection(db,'posts'), where('userId','==',uid)));
-        userPosts = postsSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.time||0)-(a.time||0));
-      } catch(e){ userPosts = []; }
+    // Siempre ir a Firestore para tener los posts completos y actualizados
+    let userPosts = [];
+    try {
+      const postsSnap = await getDocs(query(collection(db,'posts'), where('userId','==',uid)));
+      userPosts = postsSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{
+        const ta = a.time?.toMillis?.() || a.time || 0;
+        const tb = b.time?.toMillis?.() || b.time || 0;
+        return tb - ta;
+      });
+      // Merge al cache local para que reacciones/comentarios funcionen
+      userPosts.forEach(p=>{ const idx=(_posts||[]).findIndex(x=>x.id===p.id); if(idx>=0) _posts[idx]=p; else (_posts||[]).unshift(p); });
+    } catch(e){
+      console.warn('Error cargando posts del perfil:', e);
+      userPosts = _posts.filter(p=>p.userId===uid);
     }
     document.getElementById('upPostCount').textContent = userPosts.length;
     document.getElementById('upFriendCount').textContent = (u.friends||[]).length;
