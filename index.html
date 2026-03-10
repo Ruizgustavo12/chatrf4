@@ -3613,8 +3613,51 @@ function listenPosts() {
   if(_postsUnsub){ _postsUnsub(); _postsUnsub = null; }
   _postsUnsub = onSnapshot(
     query(collection(db, 'posts'), orderBy('time', 'desc'), limit(50)),
-    snap => {
+    async snap => {
       _posts = snap.docs.map(d => ({ id: d.id, ...d.data(), time: d.data().time?.toMillis?.() || Date.now() }));
+
+      // --- ENRICH COMMENTS: fill missing nick/av from Firebase ---
+      // Pre-load own data and friends
+      if(window.CU){
+        window._userInfoCache = window._userInfoCache || {};
+        window._userInfoCache[window.CU.id] = {nick: window.CU.nick||'', av: window.CU.av||'', gender: window.CU.gender||''};
+        (window.CU.friendsList||[]).forEach(f=>{ if(f.id) window._userInfoCache[f.id]={nick:f.nick||'',av:f.av||'',gender:f.gender||''}; });
+      }
+      // Collect all unique userIds from comments that are missing nick or av
+      const missingUids = new Set();
+      _posts.forEach(p => (p.comments||[]).forEach(c => {
+        if(c.userId && (!c.nick || !c.av)) missingUids.add(c.userId);
+      }));
+      // Fetch missing users in parallel
+      if(missingUids.size > 0){
+        window._userInfoCache = window._userInfoCache || {};
+        const toFetch = [...missingUids].filter(uid => !window._userInfoCache[uid]);
+        if(toFetch.length > 0){
+          try {
+            await Promise.all(toFetch.map(async uid => {
+              try {
+                const s = await getDoc(doc(db,'users',uid));
+                window._userInfoCache[uid] = s.exists()
+                  ? {nick: s.data().nick||'', av: s.data().av||'', gender: s.data().gender||''}
+                  : {nick:'', av:'', gender:''};
+              } catch(e){ window._userInfoCache[uid]={nick:'',av:'',gender:''}; }
+            }));
+          } catch(e){}
+        }
+        // Apply cached data to comments
+        _posts.forEach(p => (p.comments||[]).forEach(c => {
+          if(c.userId){
+            const info = window._userInfoCache[c.userId];
+            if(info){
+              if(!c.nick) c.nick = info.nick;
+              if(!c.av)   c.av   = info.av;
+              if(!c.gender) c.gender = info.gender;
+            }
+          }
+        }));
+      }
+      // --- END ENRICH ---
+
       const activePage = document.querySelector('.page.active');
       const pageId = activePage ? activePage.id : '';
       if(pageId === 'page-profile'){ renderProfileFeed(); }
