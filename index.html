@@ -15365,22 +15365,39 @@ let _trofeoFeedFilter = 'all';
 
 function listenTrofeosFeed(){
   if(_unsubTrofeos) return;
-  _unsubTrofeos = onSnapshot(
-    query(collection(trophiesDb,'trophies'), where('status','==','approved'), orderBy('createdAt','desc')),
+  // Escuchar trofeos locales aprobados (db charlasrf4)
+  const unsubLocal = onSnapshot(
+    query(collection(db,'trofeosPendientes'), where('status','==','approved'), orderBy('createdAt','desc')),
     snap => {
-      _trofeosFeedData = snap.docs.map(d=>({id:d.id,...d.data()}));
+      const local = snap.docs.map(d=>({id:d.id,...d.data(),_src:'local'}));
+      // Combinar con los externos ya cargados
+      const ext = _trofeosFeedData.filter(t=>t._src==='ext');
+      _trofeosFeedData = [...local, ...ext].sort((a,b)=>{
+        const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+        const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+        return tb - ta;
+      });
       renderTrofeosFeed();
     },
-    err => {
-      console.error('Trofeos error:', err);
-      const el = document.getElementById('trofeosFeed');
-      if(el) el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted);">⚠️ Error cargando trofeos.</div>`;
-    }
+    err => { console.warn('Trofeos local error:', err); }
   );
+  // También intentar cargar los externos de trophiesDb
+  getDocs(query(collection(trophiesDb,'trophies'), where('status','==','approved'), orderBy('createdAt','desc')))
+    .then(snap => {
+      const ext = snap.docs.map(d=>({id:d.id,...d.data(),_src:'ext'}));
+      const local = _trofeosFeedData.filter(t=>t._src==='local');
+      _trofeosFeedData = [...local, ...ext].sort((a,b)=>{
+        const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+        const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+        return tb - ta;
+      });
+      renderTrofeosFeed();
+    }).catch(e=>console.warn('Trofeos ext error:', e));
+  _unsubTrofeos = unsubLocal;
 }
 
 function listenTrofeosSidebar(){
-  getDocs(query(collection(trophiesDb,'trophies'), where('status','==','approved'), orderBy('createdAt','desc'), limit(5)))
+  getDocs(query(collection(db,'trofeosPendientes'), where('status','==','approved'), orderBy('createdAt','desc'), limit(5)))
     .then(snap => {
       const items = snap.docs.map(d=>({id:d.id,...d.data()}));
       renderTrofeoSidebar(items);
@@ -16647,7 +16664,7 @@ window.wkInit = () => {
 // Update banner counters
 async function wkUpdateBannerCounts() {
   try {
-    const snap = await getDocs(query(collection(trophiesDb,'trofeos'), where('status','==','approved')));
+    const snap = await getDocs(query(collection(db,'trofeosPendientes'), where('status','==','approved')));
     const total = snap.size;
     const el = document.getElementById('wkTotalTrophy');
     if(el) el.textContent = total;
@@ -16702,7 +16719,7 @@ async function wkLoadHome() {
   if(!grid) return;
   grid.innerHTML = '<div class="wk-ld"><div class="wk-sp"></div></div>';
   try {
-    const snap = await getDocs(query(collection(trophiesDb,'trofeos'), where('status','==','approved'), orderBy('createdAt','desc'), limit(12)));
+    const snap = await getDocs(query(collection(db,'trofeosPendientes'), where('status','==','approved'), orderBy('createdAt','desc'), limit(12)));
     _wkAllTrophies = snap.docs.map(d=>({id:d.id,...d.data()}));
     if(_wkAllTrophies.length===0){ grid.innerHTML=''; empty.style.display='block'; return; }
     empty.style.display='none';
@@ -16713,7 +16730,7 @@ async function wkLoadHome() {
   } catch(e) {
     // fallback: try without orderBy
     try {
-      const snap2 = await getDocs(query(collection(trophiesDb,'trofeos'), where('status','==','approved'), limit(12)));
+      const snap2 = await getDocs(query(collection(db,'trofeosPendientes'), where('status','==','approved'), limit(12)));
       _wkAllTrophies = snap2.docs.map(d=>({id:d.id,...d.data()}));
       if(!_wkAllTrophies.length){ grid.innerHTML=''; empty.style.display='block'; return; }
       empty.style.display='none';
@@ -16736,7 +16753,7 @@ window.wkOnHomeMapChange = async () => {
   grid.innerHTML = '<div class="wk-ld"><div class="wk-sp"></div></div>';
   empty.style.display='none';
   try {
-    const snap = await getDocs(query(collection(trophiesDb,'trofeos'), where('map','==',map), where('status','==','approved')));
+    const snap = await getDocs(query(collection(db,'trofeosPendientes'), where('map','==',map), where('status','==','approved')));
     const items = snap.docs.map(d=>({id:d.id,...d.data()}));
     count.textContent = items.length + ' trofeos';
     if(!items.length){ grid.innerHTML=''; empty.style.display='block'; return; }
@@ -16751,7 +16768,7 @@ window.wkRenderTrophies = async () => {
   if(!grid) return;
   grid.innerHTML = '<div class="wk-ld"><div class="wk-sp"></div></div>';
   try {
-    const snap = await getDocs(query(collection(trophiesDb,'trofeos'), where('status','==','approved'), orderBy('createdAt','desc')));
+    const snap = await getDocs(query(collection(db,'trofeosPendientes'), where('status','==','approved'), orderBy('createdAt','desc')));
     let items = snap.docs.map(d=>({id:d.id,...d.data()}));
     // Apply filters
     const fMap = document.getElementById('wkFMap')?.value||'';
@@ -16769,7 +16786,7 @@ window.wkRenderTrophies = async () => {
   } catch(e){
     // fallback without orderBy
     try {
-      const snap2 = await getDocs(query(collection(trophiesDb,'trofeos'), where('status','==','approved')));
+      const snap2 = await getDocs(query(collection(db,'trofeosPendientes'), where('status','==','approved')));
       let items2 = snap2.docs.map(d=>({id:d.id,...d.data()}));
       const fMap = document.getElementById('wkFMap')?.value||'';
       const fTech = document.getElementById('wkFTech')?.value||'';
@@ -16800,7 +16817,7 @@ window.wkRenderRanking = async () => {
   if(loader) loader.style.display='flex';
   podium.innerHTML=''; list.innerHTML='';
   try {
-    const tS = await getDocs(query(collection(trophiesDb,'trofeos'), where('status','==','approved')));
+    const tS = await getDocs(query(collection(db,'trofeosPendientes'), where('status','==','approved')));
     const trs = tS.docs.map(d=>({id:d.id,...d.data()}));
     // Build user stats from trophies
     const byUser = {};
@@ -16856,7 +16873,7 @@ window.wkRenderRecords = async () => {
   if(!el) return;
   el.innerHTML = '<div class="wk-ld"><div class="wk-sp"></div></div>';
   try {
-    const snap = await getDocs(query(collection(trophiesDb,'trofeos'), where('status','==','approved')));
+    const snap = await getDocs(query(collection(db,'trofeosPendientes'), where('status','==','approved')));
     const trs = snap.docs.map(d=>({id:d.id,...d.data()}));
     // Group by fish species, find heaviest
     const byFish = {};
@@ -16917,11 +16934,11 @@ window.wkOpenDet = async (id) => {
   content.innerHTML = '<div class="wk-ld"><div class="wk-sp"></div></div>';
   modal.classList.add('open');
   try {
-    const snap = await getDoc(doc(trophiesDb,'trofeos',id));
+    const snap = await getDoc(doc(db,'trofeosPendientes',id));
     if(!snap.exists()){ content.innerHTML='<div class="wk-empty"><div class="wk-ei">❌</div><div class="wk-et">No encontrado</div></div>'; return; }
     const t = {id:snap.id,...snap.data()};
     // Increment views
-    try{ updateDoc(doc(trophiesDb,'trofeos',id),{views:increment(1)}); }catch(e){}
+    try{ updateDoc(doc(db,'trofeosPendientes',id),{views:increment(1)}); }catch(e){}
     const imgs = Array.isArray(t.images)&&t.images.length?t.images:[];
     content.innerHTML = `
       <div style="font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;color:#ffd700;margin-bottom:4px">${wkEsc(t.fish||'Trofeo')}</div>
@@ -16962,7 +16979,7 @@ async function wkLoadComments(tId) {
   const el = document.getElementById('wkDetCmts');
   if(!el) return;
   try {
-    const snap = await getDocs(query(collection(trophiesDb,'trofeos',tId,'comments'), orderBy('createdAt','asc'), limit(50)));
+    const snap = await getDocs(query(collection(db,'trofeosPendientes',tId,'comments'), orderBy('createdAt','asc'), limit(50)));
     const cmts = snap.docs.map(d=>({id:d.id,...d.data()}));
     if(!cmts.length){ el.innerHTML='<div style="font-size:.8rem;color:var(--muted,#567890);padding:10px 0">Sin comentarios aún · ¡Sé el primero!</div>'; return; }
     el.innerHTML = cmts.map(c=>`<div class="cmt-item">
@@ -16979,11 +16996,11 @@ window.wkPostCmt = async (tId) => {
   if(!text) return;
   inp.value = '';
   try {
-    await addDoc(collection(trophiesDb,'trofeos',tId,'comments'),{
+    await addDoc(collection(db,'trofeosPendientes',tId,'comments'),{
       userId:window.CU.id, userNick:window.CU.nick||'?', userPhoto:window.CU.av||'',
       text, createdAt:serverTimestamp()
     });
-    await updateDoc(doc(trophiesDb,'trofeos',tId),{commentCount:increment(1)});
+    await updateDoc(doc(db,'trofeosPendientes',tId),{commentCount:increment(1)});
     wkLoadComments(tId);
     toast('Comentario publicado ✅','ok');
   } catch(e){ toast('Error al comentar','err'); }
@@ -16992,7 +17009,7 @@ window.wkPostCmt = async (tId) => {
 window.wkTogLike = async (tId) => {
   if(!window.CU){ toast('Iniciá sesión para reaccionar','err'); return; }
   try {
-    const ref = doc(trophiesDb,'trofeos',tId);
+    const ref = doc(db,'trofeosPendientes',tId);
     const snap = await getDoc(ref);
     const t = snap.data();
     const reactions = t.reactions||{};
@@ -17007,6 +17024,7 @@ window.wkOpenPublish = () => {
   if(!window.CU){ toast('Iniciá sesión para publicar','err'); return; }
   wkResetForm();
   document.getElementById('wkMPublish').classList.add('open');
+  setTimeout(wkInitDropzone, 50);
 };
 window.wkCm = id => { document.getElementById(id)?.classList.remove('open'); };
 window.wkResetForm = () => {
@@ -17022,11 +17040,25 @@ window.wkResetForm = () => {
 window.wkHFiles = (files) => {
   Array.from(files).forEach(f=>{
     if(_wkImgs.length>=4) return;
+    if(!f.type.startsWith('image/')) return;
     const reader=new FileReader();
     reader.onload=e=>{ _wkImgs.push({file:f,preview:e.target.result}); wkPvRender(); };
     reader.readAsDataURL(f);
   });
 };
+
+// Init drag & drop on dropzone
+function wkInitDropzone(){
+  const dz = document.getElementById('wkDropzone');
+  if(!dz || dz._dzInited) return;
+  dz._dzInited = true;
+  dz.addEventListener('dragover', e=>{ e.preventDefault(); dz.classList.add('over'); });
+  dz.addEventListener('dragleave', e=>{ if(!dz.contains(e.relatedTarget)) dz.classList.remove('over'); });
+  dz.addEventListener('drop', e=>{
+    e.preventDefault(); dz.classList.remove('over');
+    if(e.dataTransfer?.files?.length) wkHFiles(e.dataTransfer.files);
+  });
+}
 function wkPvRender(){
   const grid=document.getElementById('wkPvGrid');
   if(!grid) return;
@@ -17071,7 +17103,7 @@ window.wkSubmitTrophy = async () => {
       userRole:window.CU.role||'novato', likes:0, views:0, commentCount:0,
       createdAt:serverTimestamp()
     };
-    await addDoc(collection(trophiesDb,'trofeos'), data);
+    await addDoc(collection(db,'trofeosPendientes'), data);
     wkCm('wkMPublish'); wkResetForm();
     toast('🏆 Trofeo enviado · pendiente de aprobación','ok');
     _wkLoaded=false; wkLoadHome();
@@ -17082,7 +17114,7 @@ window.wkSubmitTrophy = async () => {
 // Admin panel
 window.wkRenderAdmin = async () => {
   if(!window.CU||(window.CU.nick!==WK_ADMIN&&window.CU.role!=='admin')){ toast('Acceso denegado','err'); return; }
-  const tS=await getDocs(collection(trophiesDb,'trofeos'));
+  const tS=await getDocs(collection(db,'trofeosPendientes'));
   const all=tS.docs.map(d=>({id:d.id,...d.data()}));
   const pend=all.filter(t=>t.status==='pending');
   const appr=all.filter(t=>t.status==='approved');
@@ -17138,14 +17170,14 @@ window.wkSwA = (el,sec) => {
 };
 
 window.wkApproveTrophy = async (id) => {
-  try{ await updateDoc(doc(trophiesDb,'trofeos',id),{status:'approved'}); toast('Trofeo aprobado ✅','ok'); _wkLoaded=false; wkRenderAdmin(); }catch(e){ toast('Error','err'); }
+  try{ await updateDoc(doc(db,'trofeosPendientes',id),{status:'approved'}); toast('Trofeo aprobado ✅','ok'); _wkLoaded=false; wkRenderAdmin(); }catch(e){ toast('Error','err'); }
 };
 window.wkRejectTrophy = async (id) => {
-  try{ await updateDoc(doc(trophiesDb,'trofeos',id),{status:'rejected'}); toast('Trofeo rechazado','ok'); _wkLoaded=false; wkRenderAdmin(); }catch(e){ toast('Error','err'); }
+  try{ await updateDoc(doc(db,'trofeosPendientes',id),{status:'rejected'}); toast('Trofeo rechazado','ok'); _wkLoaded=false; wkRenderAdmin(); }catch(e){ toast('Error','err'); }
 };
 window.wkDeleteTrophy = async (id) => {
   if(!confirm('¿Borrar este trofeo permanentemente?')) return;
-  try{ await deleteDoc(doc(trophiesDb,'trofeos',id)); toast('Trofeo borrado','ok'); _wkLoaded=false; wkRenderAdmin(); }catch(e){ toast('Error','err'); }
+  try{ await deleteDoc(doc(db,'trofeosPendientes',id)); toast('Trofeo borrado','ok'); _wkLoaded=false; wkRenderAdmin(); }catch(e){ toast('Error','err'); }
 };
 
 // Lightbox
@@ -17381,17 +17413,13 @@ async function initMapaTrofeos(){
     maxZoom:18
   }).addTo(_mapaLeaflet);
 
-  // Cargar trofeos de Firebase (base de datos de trofeos, solo aprobados)
+  // Cargar trofeos de Firebase (base de datos local, solo aprobados)
   let trofeos = [];
   try {
-    const snap = await getDocs(query(collection(trophiesDb, 'trofeos'), where('status','==','approved')));
+    const snap = await getDocs(query(collection(db, 'trofeosPendientes'), where('status','==','approved')));
     snap.forEach(d => trofeos.push({id: d.id, ...d.data()}));
   } catch(e){ 
-    // fallback sin filtro
-    try {
-      const snap = await getDocs(collection(trophiesDb, 'trofeos'));
-      snap.forEach(d => { const data = d.data(); if(data.status === 'approved' || !data.status) trofeos.push({id: d.id, ...data}); });
-    } catch(e2){ console.error('Mapa: error cargando trofeos', e2); }
+    console.error('Mapa: error cargando trofeos', e);
   }
 
   _mapaTrofeos = trofeos;
