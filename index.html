@@ -328,8 +328,6 @@ img[title="Verificado"]:hover{
 .gif-item img{width:100%;height:100%;object-fit:cover;transition:transform .15s;}
 .gif-item:hover img{transform:scale(1.05);}
 .gif-powered{text-align:center;padding:4px;font-size:.62rem;color:var(--muted);border-top:1px solid var(--border);}
-
-/* ===== CARRETES ===== */
 .cfbtn{background:var(--bg3);border:1px solid var(--border);border-radius:100px;color:var(--muted);padding:4px 10px;font-size:.73rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;transition:all .15s;}
 .cfbtn:hover{border-color:var(--accent);color:var(--accent);}
 .cfbtn.active{background:rgba(0,198,255,.15);border-color:var(--accent);color:var(--accent);}
@@ -1654,179 +1652,6 @@ select.fi option{background:var(--bg3);color:var(--text);}
 </style>
 
 <!-- SPLASH SCREEN: shown while Firebase checks session -->
-<!-- MAINTENANCE SCREEN -->
-<div id="maintenanceScreen" style="display:none;position:fixed;inset:0;z-index:10001;background:#0a0d12;align-items:center;justify-content:center;overflow:hidden;">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap');
-    #maintenanceScreen * { box-sizing: border-box; }
-    @keyframes _mFloat { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-18px) rotate(3deg)} }
-    @keyframes _mPulse { 0%,100%{opacity:.4;transform:scale(1)} 50%{opacity:.9;transform:scale(1.05)} }
-    @keyframes _mGlow  { 0%,100%{text-shadow:0 0 20px #e8a020,0 0 40px #e8a020} 50%{text-shadow:0 0 40px #ffcc44,0 0 80px #e8a020,0 0 120px #c87010} }
-    @keyframes _mSlide { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes _mBgMove { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
-    @keyframes _mSpin   { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-    @keyframes _mBlob   { 0%,100%{border-radius:60% 40% 30% 70%/60% 30% 70% 40%} 50%{border-radius:30% 60% 70% 40%/50% 60% 30% 60%} }
-    @keyframes _mBlink  { 0%,100%{opacity:1} 50%{opacity:0} }
-    @keyframes _mCountdown { from{stroke-dashoffset:251} to{stroke-dashoffset:0} }
-    #_mCard { animation: _mSlide .8s cubic-bezier(.16,1,.3,1) both; }
-    #_mIcon { animation: _mFloat 4s ease-in-out infinite; }
-    #_mTitle { animation: _mGlow 3s ease-in-out infinite; }
-    ._mBlob1 { animation: _mBlob 8s ease-in-out infinite, _mBgMove 12s ease-in-out infinite; }
-    ._mBlob2 { animation: _mBlob 10s ease-in-out infinite reverse, _mBgMove 15s ease-in-out infinite reverse; }
-    ._mLine1 { animation: _mSlide .6s .2s cubic-bezier(.16,1,.3,1) both; }
-    ._mLine2 { animation: _mSlide .6s .35s cubic-bezier(.16,1,.3,1) both; }
-    ._mLine3 { animation: _mSlide .6s .5s cubic-bezier(.16,1,.3,1) both; }
-    ._mLine4 { animation: _mSlide .6s .65s cubic-bezier(.16,1,.3,1) both; }
-    ._mLine5 { animation: _mSlide .6s .8s cubic-bezier(.16,1,.3,1) both; }
-    #_mBlink  { animation: _mBlink 1.2s ease-in-out infinite; }
-    ._mGear   { animation: _mSpin 6s linear infinite; transform-origin:center; }
-    ._mGear2  { animation: _mSpin 4s linear infinite reverse; transform-origin:center; }
-    ._mPulseRing { animation: _mPulse 2s ease-in-out infinite; }
-  </style>
-  <!-- Blobs de fondo -->
-  <div class="_mBlob1" style="position:absolute;width:500px;height:500px;top:-100px;left:-150px;background:linear-gradient(135deg,rgba(232,160,32,.12),rgba(255,180,50,.06));filter:blur(60px);pointer-events:none;"></div>
-  <div class="_mBlob2" style="position:absolute;width:600px;height:400px;bottom:-100px;right:-150px;background:linear-gradient(135deg,rgba(232,160,32,.08),rgba(200,120,16,.05));filter:blur(80px);pointer-events:none;"></div>
-  <!-- Grid lines decorativas -->
-  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(232,160,32,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(232,160,32,.04) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;"></div>
-  <!-- Esquinas decorativas -->
-  <div style="position:absolute;top:20px;left:20px;width:40px;height:40px;border-top:2px solid rgba(232,160,32,.5);border-left:2px solid rgba(232,160,32,.5);border-radius:4px 0 0 0;"></div>
-  <div style="position:absolute;top:20px;right:20px;width:40px;height:40px;border-top:2px solid rgba(232,160,32,.5);border-right:2px solid rgba(232,160,32,.5);border-radius:0 4px 0 0;"></div>
-  <div style="position:absolute;bottom:20px;left:20px;width:40px;height:40px;border-bottom:2px solid rgba(232,160,32,.5);border-left:2px solid rgba(232,160,32,.5);border-radius:0 0 0 4px;"></div>
-  <div style="position:absolute;bottom:20px;right:20px;width:40px;height:40px;border-bottom:2px solid rgba(232,160,32,.5);border-right:2px solid rgba(232,160,32,.5);border-radius:0 0 4px 0;"></div>
-
-  <!-- Card principal -->
-  <div id="_mCard" style="position:relative;z-index:2;max-width:600px;width:90%;padding:48px 44px;background:linear-gradient(145deg,rgba(20,25,35,.95),rgba(14,18,26,.98));border:1px solid rgba(232,160,32,.25);border-radius:20px;box-shadow:0 0 0 1px rgba(232,160,32,.08),0 32px 80px rgba(0,0,0,.7),inset 0 1px 0 rgba(232,160,32,.15);text-align:center;">
-    
-    <!-- Engranajes SVG animados -->
-    <div id="_mIcon" style="margin-bottom:24px;position:relative;display:inline-block;">
-      <svg width="90" height="90" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Engranaje grande -->
-        <g class="_mGear" style="transform-box:fill-box;">
-          <path d="M45 20a25 25 0 1 0 0 50 25 25 0 0 0 0-50zm0 8a17 17 0 1 1 0 34 17 17 0 0 1 0-34z" fill="rgba(232,160,32,.15)" stroke="rgba(232,160,32,.7)" stroke-width="1.5"/>
-          <rect x="41" y="10" width="8" height="10" rx="2" fill="rgba(232,160,32,.7)"/>
-          <rect x="41" y="70" width="8" height="10" rx="2" fill="rgba(232,160,32,.7)"/>
-          <rect x="10" y="41" width="10" height="8" rx="2" fill="rgba(232,160,32,.7)"/>
-          <rect x="70" y="41" width="10" height="8" rx="2" fill="rgba(232,160,32,.7)"/>
-          <rect x="18.7" y="18.7" width="8" height="10" rx="2" transform="rotate(45 22.7 23.7)" fill="rgba(232,160,32,.7)"/>
-          <rect x="63.3" y="61.3" width="8" height="10" rx="2" transform="rotate(45 67.3 66.3)" fill="rgba(232,160,32,.7)"/>
-          <rect x="61.3" y="18.7" width="8" height="10" rx="2" transform="rotate(-45 65.3 23.7)" fill="rgba(232,160,32,.7)"/>
-          <rect x="18.7" y="61.3" width="8" height="10" rx="2" transform="rotate(-45 22.7 66.3)" fill="rgba(232,160,32,.7)"/>
-        </g>
-        <!-- Engranaje pequeño esquina -->
-        <g class="_mGear2" style="transform-box:fill-box;transform-origin:72px 72px;">
-          <circle cx="72" cy="72" r="10" fill="rgba(232,160,32,.1)" stroke="rgba(232,160,32,.5)" stroke-width="1.5"/>
-          <circle cx="72" cy="72" r="4" fill="rgba(232,160,32,.4)"/>
-          <rect x="69" y="60" width="6" height="7" rx="1.5" fill="rgba(232,160,32,.5)"/>
-          <rect x="69" y="77" width="6" height="7" rx="1.5" fill="rgba(232,160,32,.5)"/>
-          <rect x="63" y="69" width="7" height="6" rx="1.5" fill="rgba(232,160,32,.5)"/>
-          <rect x="74" y="69" width="7" height="6" rx="1.5" fill="rgba(232,160,32,.5)"/>
-        </g>
-        <!-- Círculo pulsante interior -->
-        <circle cx="45" cy="45" r="8" fill="rgba(232,160,32,.3)" class="_mPulseRing"/>
-        <circle cx="45" cy="45" r="4" fill="rgba(232,160,32,.8)"/>
-      </svg>
-    </div>
-
-    <!-- Badge estado -->
-    <div class="_mLine1" style="display:inline-flex;align-items:center;gap:8px;background:rgba(232,160,32,.1);border:1px solid rgba(232,160,32,.3);border-radius:100px;padding:5px 16px 5px 10px;margin-bottom:20px;">
-      <span id="_mBlink" style="width:8px;height:8px;background:#e8a020;border-radius:50%;display:inline-block;box-shadow:0 0 8px #e8a020;"></span>
-      <span style="font-family:'Orbitron',monospace;font-size:.62rem;font-weight:700;color:#e8a020;letter-spacing:2px;text-transform:uppercase;">EN MANTENIMIENTO</span>
-    </div>
-
-    <!-- Título principal -->
-    <div class="_mLine2">
-      <div id="_mTitle" style="font-family:'Orbitron',monospace;font-size:1.9rem;font-weight:900;color:#e8a020;line-height:1.1;margin-bottom:6px;letter-spacing:-0.5px;">WikipediaRF4</div>
-      <div style="font-family:'Exo 2',sans-serif;font-size:.8rem;font-weight:600;color:rgba(255,255,255,.55);letter-spacing:.5px;margin-bottom:12px;">Red Social Hispanohablante de Pesca Deportiva</div>
-      <div style="display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;margin-bottom:24px;">
-        <img src="https://flagcdn.com/w40/ar.png" width="28" height="19" style="border-radius:3px;box-shadow:0 1px 6px rgba(0,0,0,.5);object-fit:cover;opacity:.85;" title="Argentina">
-        <img src="https://flagcdn.com/w40/mx.png" width="28" height="19" style="border-radius:3px;box-shadow:0 1px 6px rgba(0,0,0,.5);object-fit:cover;opacity:.85;" title="Mexico">
-        <img src="https://flagcdn.com/w40/es.png" width="28" height="19" style="border-radius:3px;box-shadow:0 1px 6px rgba(0,0,0,.5);object-fit:cover;opacity:.85;" title="España">
-        <img src="https://flagcdn.com/w40/co.png" width="28" height="19" style="border-radius:3px;box-shadow:0 1px 6px rgba(0,0,0,.5);object-fit:cover;opacity:.85;" title="Colombia">
-        <img src="https://flagcdn.com/w40/cl.png" width="28" height="19" style="border-radius:3px;box-shadow:0 1px 6px rgba(0,0,0,.5);object-fit:cover;opacity:.85;" title="Chile">
-        <img src="https://flagcdn.com/w40/pe.png" width="28" height="19" style="border-radius:3px;box-shadow:0 1px 6px rgba(0,0,0,.5);object-fit:cover;opacity:.85;" title="Peru">
-        <img src="https://flagcdn.com/w40/uy.png" width="28" height="19" style="border-radius:3px;box-shadow:0 1px 6px rgba(0,0,0,.5);object-fit:cover;opacity:.85;" title="Uruguay">
-        <img src="https://flagcdn.com/w40/ve.png" width="28" height="19" style="border-radius:3px;box-shadow:0 1px 6px rgba(0,0,0,.5);object-fit:cover;opacity:.85;" title="Venezuela">
-        <img src="https://flagcdn.com/w40/br.png" width="28" height="19" style="border-radius:3px;box-shadow:0 1px 6px rgba(0,0,0,.5);object-fit:cover;opacity:.85;" title="Brasil">
-        <img src="https://flagcdn.com/w40/it.png" width="28" height="19" style="border-radius:3px;box-shadow:0 1px 6px rgba(0,0,0,.5);object-fit:cover;opacity:.85;" title="Italia">
-      </div>
-    </div>
-
-    <!-- Separador -->
-    <div class="_mLine3" style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
-      <div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(232,160,32,.3));"></div>
-      <span style="font-size:1.1rem;">🔧</span>
-      <div style="flex:1;height:1px;background:linear-gradient(90deg,rgba(232,160,32,.3),transparent);"></div>
-    </div>
-
-    <!-- Aviso principal -->
-    <div class="_mLine3" style="background:rgba(232,160,32,.07);border:1px solid rgba(232,160,32,.2);border-radius:12px;padding:20px 24px;margin-bottom:20px;text-align:left;">
-      <div style="font-family:'Orbitron',monospace;font-size:.68rem;font-weight:700;color:#e8a020;letter-spacing:1.5px;margin-bottom:12px;text-transform:uppercase;">🚧 Aviso importante</div>
-      <div style="font-family:'Exo 2',sans-serif;font-size:.88rem;color:rgba(255,255,255,.8);line-height:1.7;">
-        La comunidad se encuentra <strong style="color:#fff;">cerrada temporalmente</strong> por mantenimiento y mejoras en la plataforma. Detectamos varios errores que podrían afectar su experiencia.
-      </div>
-    </div>
-
-    <!-- Info cuentas -->
-    <div class="_mLine4" style="display:flex;gap:10px;margin-bottom:20px;">
-      <div style="flex:1;background:rgba(0,200,100,.06);border:1px solid rgba(0,200,100,.2);border-radius:10px;padding:14px 12px;text-align:center;">
-        <div style="font-size:1.3rem;margin-bottom:4px;">🔒</div>
-        <div style="font-family:'Exo 2',sans-serif;font-size:.72rem;font-weight:700;color:rgba(0,200,100,.9);margin-bottom:3px;">Cuentas seguras</div>
-        <div style="font-family:'Exo 2',sans-serif;font-size:.65rem;color:rgba(255,255,255,.45);line-height:1.4;">Todos los datos y usuarios están intactos. Nada se eliminará.</div>
-      </div>
-      <div style="flex:1;background:rgba(232,160,32,.06);border:1px solid rgba(232,160,32,.2);border-radius:10px;padding:14px 12px;text-align:center;">
-        <div style="font-size:1.3rem;margin-bottom:4px;">⏳</div>
-        <div style="font-family:'Exo 2',sans-serif;font-size:.72rem;font-weight:700;color:#e8a020;margin-bottom:3px;">Volvemos pronto</div>
-        <div style="font-family:'Exo 2',sans-serif;font-size:.65rem;color:rgba(255,255,255,.45);line-height:1.4;">Cuando esté todo arreglado reabriremos para todos.</div>
-      </div>
-    </div>
-
-    <!-- Mensaje final -->
-    <div class="_mLine5" style="font-family:'Exo 2',sans-serif;font-size:.8rem;color:rgba(255,255,255,.35);line-height:1.6;margin-bottom:24px;">
-      🙏 Gracias por la comprensión y el apoyo.<br>
-      <span style="color:rgba(232,160,32,.5);font-weight:600;">¡Volvemos pronto con una comunidad mucho mejor!</span>
-    </div>
-
-    <!-- Footer firma -->
-    <div class="_mLine5" style="border-top:1px solid rgba(232,160,32,.1);padding-top:16px;">
-      <div style="font-family:'Exo 2',sans-serif;font-size:.72rem;color:rgba(255,255,255,.35);margin-bottom:5px;">
-        Red Social creada por <strong style="color:rgba(232,160,32,.7);">ruizgustavo12</strong>
-      </div>
-      <div style="font-family:'Exo 2',sans-serif;font-size:.68rem;color:rgba(255,255,255,.22);">
-        <a href="#" onclick="gp('wiki-trofeos')" target="_blank" rel="noopener"
-           style="color:rgba(232,160,32,.5);text-decoration:none;border-bottom:1px solid rgba(232,160,32,.2);padding-bottom:1px;"
-           onmouseover="this.style.color='#e8a020'" onmouseout="this.style.color='rgba(232,160,32,.5)'">WikiPedia 2026</a>
-        &nbsp;·&nbsp; Todos los derechos reservados
-      </div>
-    </div>
-
-    <!-- Botón oculto admin - doble click en el logo -->
-    <div id="_mAdminHint" style="position:absolute;bottom:12px;right:16px;opacity:0;pointer-events:none;font-family:'Exo 2',sans-serif;font-size:.6rem;color:rgba(232,160,32,.4);">admin</div>
-  </div>
-
-  <!-- Botón admin visible en esquina inferior derecha -->
-  <div style="position:absolute;bottom:20px;right:24px;z-index:10;">
-    <button onclick="_mAdminLogin()"
-      style="background:rgba(232,160,32,.12);border:1px solid rgba(232,160,32,.35);color:rgba(232,160,32,.7);font-family:'Orbitron',monospace;font-size:.6rem;font-weight:700;letter-spacing:1.5px;padding:8px 16px;border-radius:8px;cursor:pointer;text-transform:uppercase;transition:all .2s;"
-      onmouseover="this.style.background='rgba(232,160,32,.25)';this.style.color='#e8a020';"
-      onmouseout="this.style.background='rgba(232,160,32,.12)';this.style.color='rgba(232,160,32,.7)';">
-      🔑 Admin
-    </button>
-  </div>
-
-  <script>
-    window._maintenanceBypass = false;
-    function _mAdminLogin(){
-      window._maintenanceBypass = true;
-      // Ocultar mantenimiento inmediatamente
-      document.getElementById('maintenanceScreen').style.display = 'none';
-      // Ocultar splash y mostrar login directamente — sin esperar Firebase
-      var sp = document.getElementById('splashScreen');
-      if(sp) sp.style.display = 'none';
-      var auth = document.getElementById('mAuth');
-      if(auth) auth.style.display = 'block';
-    }
-  </script>
-</div>
 
 <div id="splashScreen" style="display:flex;position:fixed;inset:0;z-index:10000;background:#0d1117;align-items:center;justify-content:center;flex-direction:column;gap:18px;">
   <img src="icon-512.png" onerror="this.style.display='none'" style="width:80px;height:80px;border-radius:16px;object-fit:contain;">
@@ -4048,17 +3873,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const storage = getStorage(app);
 
-// ===== SECOND FIREBASE APP: RF4 TROPHIES =====
-const trophiesConfig = {
-  apiKey: "AIzaSyCMVCvMbCN6XyIE_yasT4tFbwg7iANnp18",
-  authDomain: "rf4trophies-d6126.firebaseapp.com",
-  projectId: "rf4trophies-d6126",
-  storageBucket: "rf4trophies-d6126.firebasestorage.app",
-  messagingSenderId: "387415299438",
-  appId: "1:387415299438:web:f67e618c7f1f7153af1d7f"
-};
-const trophiesApp = initializeApp(trophiesConfig, 'trophies');
-const trophiesDb = getFirestore(trophiesApp);
 const auth = getAuth(app);
 // Set persistence immediately
 (async()=>{ try{ await setPersistence(auth, browserLocalPersistence); }catch(e){} })();
@@ -4287,7 +4101,6 @@ function init(){
           window.CU = {id: user.uid, ...snap.data()};
           // Pre-populate user info cache with own data
           if(window._userInfoCache) window._userInfoCache[user.uid] = {nick: window.CU.nick||'', av: window.CU.av||'', gender: window.CU.gender||''};
-          document.getElementById('maintenanceScreen').style.display = 'none';
           document.getElementById('mAuth').style.display = 'none';
           hideSplash();
           onLogin();
@@ -4369,23 +4182,6 @@ function showNotifToast(text){
   };
   ct.appendChild(t);
   setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(()=>t.remove(),400); },4000);
-}
-
-function getDemoPosts(){
-  return [
-    {id:'p1',userId:'demo1',userNick:'PescadorPro',userAv:'',text:'¡Miren esta bestia que saqué en Akhtuba River! 🎣 Un Catfish de casi 40kg en fondo con boileé. Tardé 20 minutos en subirlo 😅',fish:'Catfish',weight:39.8,map:'Akhtuba River',tech:'Fondo',images:[''],time:Date.now()-3600000,likes:24,comments:[{userId:'u2',nick:'Ruiz',text:'¡Increíble! ¿Qué anzuelo usaste?'},{userId:'u3',nick:'MarceloPesca',text:'Eso es un trofeo 🏆'}],reactions:{},reactionCounts:{'❤️':12,'🎣':8,'😮':4}},
-    {id:'p2',userId:'demo2',userNick:'IceFisher_MX',userAv:'',text:'Temporada de hielo activa en Mosquito Lake ❄️ La pesca está increíble, muchos Perch y Ruffe. Temperatura -15°C pero vale la pena cada segundo',fish:'Perch',weight:1.2,map:'Mosquito Lake',tech:'Hielo',images:[''],time:Date.now()-7200000,likes:18,comments:[],reactions:{},reactionCounts:{'❤️':8,'😮':6,'❄️':4}},
-    {id:'p3',userId:'demo3',userNick:'SpinningKing',userAv:'',text:'Tarde de spinning en Volkhov River 🎏 Pike de 8kg con señuelo Jigg 14g. El agua estaba perfecta hoy, visibilidad buena y temperatura ideal para predadores',fish:'Pike',weight:8.3,map:'Volkhov River',tech:'Spinning',images:[''],time:Date.now()-10800000,likes:31,comments:[{userId:'u1',nick:'Carlos',text:'¡Qué técnica! ¿Color del señuelo?'}],reactions:{},reactionCounts:{'❤️':15,'🎣':10,'😂':6}},
-  ];
-}
-
-function getDemoStories(){
-  return [
-    {id:'s1',userId:'demo1',userNick:'PescadorPro',userAv:'',text:'Madrugada de pesca... 4am y ya en el spot 🎣❤️',emoji:'🎣',img:'',time:Date.now()-1800000},
-    {id:'s2',userId:'demo2',userNick:'IceFisher_MX',userAv:'',text:'¡Nevando en el lago! La mejor época ❄️',emoji:'❄️',img:'',time:Date.now()-3600000},
-    {id:'s3',userId:'demo3',userNick:'SpinningKing',userAv:'',text:'Setup del día 🎏 Probando nueva caña',emoji:'🏆',img:'',time:Date.now()-5400000},
-    {id:'s4',userId:'demo4',userNick:'LagoExperto',userAv:'',text:'Belaya River en calma total 🌊',emoji:'🌊',img:'',time:Date.now()-7200000},
-  ];
 }
 
 function getDemoFriends(){
@@ -4489,7 +4285,6 @@ async function doLogin(){
     }
     window.CU = {id: cred.user.uid, ...snap.data()};
     saveAccountLocally(input, window.CU.nick);
-    document.getElementById('maintenanceScreen').style.display = 'none';
     document.getElementById('mAuth').style.display='none';
     onLogin();
     toast('¡Bienvenido '+window.CU.nick+'! 🎣','ok');
@@ -4703,7 +4498,6 @@ const ROUTES = {
   '/perfil': 'profile',
   '/buscar-trofeo': 'buscar-trofeo',
   '/publica-trofeo': 'publica-trofeo',
-  '/carretes': 'carretes',
   '/parches': 'parches',
   '/soporte': 'soporte',
   '/casitrofeo': 'casitrofeo',
@@ -4726,7 +4520,6 @@ const PAGE_TO_URL = {
   'profile':       '/perfil',
   'buscar-trofeo': '/buscar-trofeo',
   'publica-trofeo':'/publica-trofeo',
-  'carretes':      '/carretes',
   'parches':       '/parches',
   'soporte':       '/soporte',
   'casitrofeo':    '/casitrofeo',
@@ -4845,7 +4638,6 @@ window.gp = (id, pushState = true) => {
   if(id==='parches') loadParches();
   if(id==='soporte') initSoportePage();
   if(id==='torneos') loadTorneos();
-  if(id==='carretes') renderCarretesTable();
   if(id==='userprofile') {} // cargado desde _loadUserProfilePage
   if(id==='wiki-trofeos') {
     // Cargar wiki de trofeos al entrar
@@ -11531,509 +11323,6 @@ async function adminRevokeVerif(reqId, nick, userId){
   } catch(e){ toast('Error al revocar','err'); }
 }
 
-// ===== CARRETES =====
-const CARRETES_DATA = [
-  {nombre:'Turion SW 30000',marca:'Reef',capacidad:30000,tipo:'spinning',agua:'💧',rodamientos:40,ratio:4.4,recogida:1.56,freno:36.3,frenoMax:null,peso:127.94,nivel:32,precio:56799,precioReal:216.28},
-  {nombre:'Goliaf 30000',marca:'SAT',capacidad:30000,tipo:'spinning',agua:'💧',rodamientos:40,ratio:5.8,recogida:1.98,freno:33.6,frenoMax:null,peso:120,nivel:32,precio:39799,precioReal:177.02},
-  {nombre:'Turion SW 20000',marca:'Reef',capacidad:20000,tipo:'spinning',agua:'💧',rodamientos:30,ratio:4.4,recogida:1.3,freno:35.4,frenoMax:null,peso:120.19,nivel:32,precio:49799,precioReal:201.08},
-  {nombre:'Goliaf 20000',marca:'SAT',capacidad:20000,tipo:'spinning',agua:'💧',rodamientos:30,ratio:5.8,recogida:1.64,freno:31.8,frenoMax:null,peso:106,nivel:32,precio:33199,precioReal:159.34},
-  {nombre:'Turion SW 10000',marca:'Reef',capacidad:10000,tipo:'spinning',agua:'💧',rodamientos:18,ratio:4.9,recogida:1.19,freno:34.5,frenoMax:null,peso:114.29,nivel:32,precio:45800,precioReal:191.82},
-  {nombre:'Venga 10000',marca:'Beluga',capacidad:10000,tipo:'spinning',agua:'💧',rodamientos:18,ratio:5.1,recogida:1.23,freno:31.7,frenoMax:null,peso:99,nivel:30,precio:32722,precioReal:158},
-  {nombre:'Venga 10000 6 An.',marca:'Beluga',capacidad:10000,tipo:'spinning',agua:'💧',rodamientos:18,ratio:4.9,recogida:1.15,freno:31.7,frenoMax:null,peso:111.1,nivel:30,precio:0,precioReal:158},
-  {nombre:'Goliaf 10000',marca:'SAT',capacidad:10000,tipo:'spinning',agua:'💧',rodamientos:18,ratio:4.9,recogida:1.18,freno:30.8,frenoMax:null,peso:112,nivel:30,precio:31500,precioReal:154.52},
-  {nombre:'Azimut 10000',marca:'SAT',capacidad:10000,tipo:'spinning',agua:'💧',rodamientos:18,ratio:5.4,recogida:1.26,freno:27.2,frenoMax:null,peso:55,nivel:26,precio:21600,precioReal:115.61},
-  {nombre:'Tagara 10000',marca:'Beluga',capacidad:10000,tipo:'spinning',agua:'💧',rodamientos:18,ratio:4.2,recogida:1.02,freno:26.3,frenoMax:null,peso:62,nivel:26,precio:20772,precioReal:113},
-  {nombre:'Turion SW 8000',marca:'Reef',capacidad:8000,tipo:'spinning',agua:'💧',rodamientos:12,ratio:5.6,recogida:1.05,freno:30.8,frenoMax:null,peso:110.68,nivel:30,precio:32500,precioReal:157.37},
-  {nombre:'Venga 8000',marca:'Beluga',capacidad:8000,tipo:'spinning',agua:'💧',rodamientos:12,ratio:6,recogida:1.14,freno:27.2,frenoMax:null,peso:83.98,nivel:30,precio:23002,precioReal:120},
-  {nombre:'Megara 8000',marca:'Beluga',capacidad:8000,tipo:'spinning',agua:'',rodamientos:12,ratio:4.7,recogida:1.13,freno:25.4,frenoMax:null,peso:71.76,nivel:28,precio:22472,precioReal:118},
-  {nombre:'Overlord 88',marca:'Zeiman',capacidad:8000,tipo:'spinning',agua:'',rodamientos:12,ratio:4.5,recogida:1.05,freno:24.5,frenoMax:null,peso:81.46,nivel:27,precio:17889,precioReal:119},
-  {nombre:'Bestia 8000',marca:'Beluga',capacidad:8000,tipo:'spinning',agua:'💧',rodamientos:12,ratio:5.2,recogida:1.04,freno:24.5,frenoMax:null,peso:68.01,nivel:28,precio:16604,precioReal:98},
-  {nombre:'Azimut 8000',marca:'SAT',capacidad:8000,tipo:'spinning',agua:'💧',rodamientos:12,ratio:5.4,recogida:1.05,freno:23.6,frenoMax:null,peso:49.63,nivel:26,precio:15900,precioReal:95.59},
-  {nombre:'Admiral 8000s',marca:'Trident',capacidad:8000,tipo:'spinning',agua:'💧',rodamientos:12,ratio:4.8,recogida:0.94,freno:23.5,frenoMax:null,peso:58.48,nivel:28,precio:15328,precioReal:93},
-  {nombre:'Tagara 8000',marca:'Beluga',capacidad:8000,tipo:'spinning',agua:'💧',rodamientos:12,ratio:4.7,recogida:0.89,freno:22.6,frenoMax:23.7,peso:53.87,nivel:26,precio:14655,precioReal:90},
-  {nombre:'Silver 80',marca:'Tama',capacidad:8000,tipo:'spinning',agua:'',rodamientos:12,ratio:4.3,recogida:0.96,freno:23.6,frenoMax:null,peso:67.04,nivel:26,precio:13999,precioReal:87.61},
-  {nombre:'Everest II 8000s',marca:'Trident',capacidad:8000,tipo:'spinning',agua:'',rodamientos:12,ratio:3.6,recogida:0.58,freno:22,frenoMax:null,peso:44.62,nivel:26,precio:11320,precioReal:75.11},
-  {nombre:'Everest-24 8000s',marca:'Trident',capacidad:8000,tipo:'spinning',agua:'💧',rodamientos:12,ratio:4.7,recogida:0.67,freno:22.7,frenoMax:null,peso:52,nivel:26,precio:11320,precioReal:75.11},
-  {nombre:'SG8000 Ultra Power',marca:'Zeiman',capacidad:8000,tipo:'spinning',agua:'💧',rodamientos:12,ratio:5.7,recogida:1.26,freno:19.5,frenoMax:20.2,peso:51.14,nivel:25,precio:9988,precioReal:68.31},
-  {nombre:'Evia 8000',marca:'Beluga',capacidad:8000,tipo:'spinning',agua:'',rodamientos:12,ratio:4.7,recogida:1.13,freno:18.1,frenoMax:19.6,peso:41.7,nivel:24,precio:8475,precioReal:60},
-  {nombre:'Natora 8000',marca:'Beluga',capacidad:8000,tipo:'spinning',agua:'',rodamientos:12,ratio:5.3,recogida:1.05,freno:18.1,frenoMax:19.6,peso:43.76,nivel:22,precio:7085,precioReal:52},
-  {nombre:'Natora 8000 Super Seven',marca:'Beluga',capacidad:8000,tipo:'spinning',agua:'',rodamientos:12,ratio:4.8,recogida:0.94,freno:18.1,frenoMax:19.6,peso:47.39,nivel:0,precio:0,precioReal:0},
-  {nombre:'Caliber 80 SLC',marca:'Syberia',capacidad:8000,tipo:'spinning',agua:'',rodamientos:12,ratio:4.2,recogida:1.03,freno:17.2,frenoMax:19,peso:37.74,nivel:24,precio:5312,precioReal:40},
-  {nombre:'Model 827',marca:'Trident',capacidad:8000,tipo:'spinning',agua:'💧',rodamientos:12,ratio:4,recogida:0.81,freno:16.5,frenoMax:null,peso:44.36,nivel:21,precio:4499,precioReal:35.44},
-  {nombre:'Narga 8000 Super 7',marca:'Beluga',capacidad:8000,tipo:'spinning',agua:'',rodamientos:12,ratio:4.6,recogida:0.87,freno:15.4,frenoMax:null,peso:47,nivel:20,precio:3900,precioReal:28.38},
-  {nombre:'Narga 8000',marca:'Beluga',capacidad:8000,tipo:'spinning',agua:'',rodamientos:12,ratio:4.3,recogida:0.82,freno:14.5,frenoMax:null,peso:42.38,nivel:20,precio:3491,precioReal:25},
-  {nombre:'Caliber HSV 80 SLC',marca:'Syberia',capacidad:8000,tipo:'spinning',agua:'',rodamientos:12,ratio:4.7,recogida:1.15,freno:15.4,frenoMax:17,peso:30.24,nivel:20,precio:2885,precioReal:24},
-  {nombre:'Caliber HSV 80 SLC Rav.',marca:'Syberia',capacidad:8000,tipo:'spinning',agua:'',rodamientos:12,ratio:4.5,recogida:1.1,freno:15.9,frenoMax:17,peso:32,nivel:20,precio:0,precioReal:23.94},
-  {nombre:'Alfa 8000',marca:'Sputnik',capacidad:8000,tipo:'spinning',agua:'',rodamientos:12,ratio:5.2,recogida:0.91,freno:14.5,frenoMax:null,peso:37.73,nivel:20,precio:2390,precioReal:20},
-  {nombre:'Gold 80s',marca:'Syberia',capacidad:8000,tipo:'spinning',agua:'',rodamientos:12,ratio:5.7,recogida:0.88,freno:14,frenoMax:null,peso:34.58,nivel:20,precio:2186,precioReal:19},
-  {nombre:'Titan 8000',marca:'Sputnik',capacidad:8000,tipo:'spinning',agua:'',rodamientos:12,ratio:4.3,recogida:1.03,freno:12.7,frenoMax:null,peso:27.66,nivel:18,precio:1796,precioReal:16},
-  {nombre:'Venga 6000',marca:'Beluga',capacidad:6000,tipo:'spinning',agua:'💧',rodamientos:8,ratio:5.5,recogida:0.84,freno:22.6,frenoMax:23.7,peso:69.66,nivel:30,precio:18791,precioReal:106},
-  {nombre:'Admiral 6000s',marca:'Trident',capacidad:6000,tipo:'spinning',agua:'💧',rodamientos:8,ratio:5,recogida:0.77,freno:20.8,frenoMax:null,peso:47.86,nivel:28,precio:11569,precioReal:76},
-  {nombre:'Major ltd 2 6000s',marca:'Trident',capacidad:6000,tipo:'spinning',agua:'💧',rodamientos:8,ratio:4.3,recogida:0.64,freno:19,frenoMax:20.8,peso:43.52,nivel:26,precio:9199,precioReal:64},
-  {nombre:'Bestia 6000',marca:'Beluga',capacidad:6000,tipo:'spinning',agua:'💧',rodamientos:8,ratio:5.6,recogida:0.88,freno:19,frenoMax:19.6,peso:55.5,nivel:28,precio:9117,precioReal:64},
-  {nombre:'P-Series 2 GS 60S',marca:'Zeiman',capacidad:6000,tipo:'spinning',agua:'💧',rodamientos:8,ratio:3.8,recogida:0.54,freno:18.4,frenoMax:20.2,peso:47.44,nivel:28,precio:7782,precioReal:56},
-  {nombre:'Azimut 6000',marca:'SAT',capacidad:6000,tipo:'spinning',agua:'💧',rodamientos:8,ratio:5.4,recogida:0.83,freno:19,frenoMax:null,peso:43.68,nivel:24,precio:6900,precioReal:50.87},
-  {nombre:'Tagara 6000',marca:'Beluga',capacidad:6000,tipo:'spinning',agua:'💧',rodamientos:8,ratio:5.6,recogida:0.86,freno:18.1,frenoMax:19.6,peso:45.1,nivel:26,precio:6010,precioReal:45},
-  {nombre:'Z-Series 2 60S',marca:'Zeiman',capacidad:6000,tipo:'spinning',agua:'💧',rodamientos:8,ratio:4.3,recogida:0.61,freno:17.7,frenoMax:19.4,peso:45.1,nivel:26,precio:5697,precioReal:43},
-  {nombre:'Full Metal 60',marca:'Trident',capacidad:6000,tipo:'spinning',agua:'💧',rodamientos:8,ratio:4.5,recogida:0.69,freno:18.2,frenoMax:null,peso:49.15,nivel:24,precio:5499,precioReal:42.09},
-  {nombre:'Evia 6000',marca:'Beluga',capacidad:6000,tipo:'spinning',agua:'',rodamientos:8,ratio:4.9,recogida:0.94,freno:17.2,frenoMax:null,peso:38.3,nivel:22,precio:5199,precioReal:40.13},
-  {nombre:'Everest II 6000s',marca:'Trident',capacidad:6000,tipo:'spinning',agua:'',rodamientos:8,ratio:4.3,recogida:0.59,freno:16.3,frenoMax:17.9,peso:35.16,nivel:22,precio:5081,precioReal:39},
-  {nombre:'Commandor GS 60S',marca:'Zeiman',capacidad:6000,tipo:'spinning',agua:'💧',rodamientos:8,ratio:4.8,recogida:0.65,freno:14.5,frenoMax:null,peso:36.31,nivel:24,precio:3199,precioReal:26},
-  {nombre:'Natora 6000',marca:'Beluga',capacidad:6000,tipo:'spinning',agua:'',rodamientos:8,ratio:5.6,recogida:0.88,freno:15,frenoMax:16.5,peso:37.43,nivel:22,precio:3116,precioReal:26},
-  {nombre:'Narga 6000',marca:'Beluga',capacidad:6000,tipo:'spinning',agua:'',rodamientos:8,ratio:4.6,recogida:0.71,freno:13.6,frenoMax:null,peso:35.86,nivel:20,precio:1985,precioReal:17},
-  {nombre:'Commandor 2 60S',marca:'Zeiman',capacidad:6000,tipo:'spinning',agua:'',rodamientos:8,ratio:4.8,recogida:0.68,freno:13.4,frenoMax:null,peso:30.12,nivel:20,precio:1950,precioReal:17},
-  {nombre:'Alfa 6000',marca:'Sputnik',capacidad:6000,tipo:'spinning',agua:'',rodamientos:8,ratio:5.4,recogida:0.81,freno:13.5,frenoMax:null,peso:31.56,nivel:20,precio:1888,precioReal:16},
-  {nombre:'Gold 60s',marca:'Syberia',capacidad:6000,tipo:'spinning',agua:'',rodamientos:8,ratio:5.7,recogida:0.78,freno:14,frenoMax:null,peso:28.35,nivel:20,precio:1847,precioReal:16},
-  {nombre:'Pulsar 6000',marca:'Sputnik',capacidad:6000,tipo:'spinning',agua:'',rodamientos:8,ratio:5.4,recogida:0.78,freno:9.5,frenoMax:10.4,peso:24.16,nivel:16,precio:1250,precioReal:11},
-  {nombre:'Sabre 60s',marca:'Syberia',capacidad:6000,tipo:'spinning',agua:'',rodamientos:8,ratio:4.8,recogida:0.67,freno:9.9,frenoMax:null,peso:21.68,nivel:16,precio:1160,precioReal:10},
-  {nombre:'Super Cast 6000s',marca:'EF',capacidad:6000,tipo:'spinning',agua:'',rodamientos:8,ratio:4.8,recogida:0.87,freno:8.2,frenoMax:9,peso:15.79,nivel:15,precio:698,precioReal:6},
-  {nombre:'Proton 6000',marca:'Sputnik',capacidad:6000,tipo:'spinning',agua:'',rodamientos:8,ratio:4.8,recogida:0.68,freno:8.1,frenoMax:8.9,peso:17.26,nivel:12,precio:630,precioReal:6},
-  {nombre:'Pride 6000S',marca:'EF',capacidad:6000,tipo:'spinning',agua:'',rodamientos:8,ratio:5,recogida:0.75,freno:7.5,frenoMax:9,peso:17.26,nivel:14,precio:533,precioReal:5},
-  {nombre:'Adriatica 5000S',marca:'EF',capacidad:6000,tipo:'spinning',agua:'',rodamientos:8,ratio:5.4,recogida:0.78,freno:7.5,frenoMax:9,peso:14,nivel:12,precio:450,precioReal:4},
-  {nombre:'Chronica 6000',marca:'Beluga',capacidad:6000,tipo:'spinning',agua:'💧',rodamientos:8,ratio:3.8,recogida:0.6,freno:19,frenoMax:20,peso:72.1,nivel:27,precio:0,precioReal:49},
-  {nombre:'Bestia 4000',marca:'Beluga',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:6.2,recogida:0.74,freno:18.1,frenoMax:19.6,peso:45.9,nivel:28,precio:8100,precioReal:58},
-  {nombre:'Admiral 4000s',marca:'Trident',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:6.2,recogida:0.74,freno:17.2,frenoMax:null,peso:42.86,nivel:28,precio:5676,precioReal:43},
-  {nombre:'Tagara 4000',marca:'Beluga',capacidad:4000,tipo:'spinning',agua:'💧',rodamientos:4,ratio:6.2,recogida:0.72,freno:16.3,frenoMax:null,peso:39.95,nivel:26,precio:5076,precioReal:39},
-  {nombre:'P-Series 2 GS 40S',marca:'Zeiman',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:5.1,recogida:0.63,freno:16.3,frenoMax:18.7,peso:29.95,nivel:28,precio:4706,precioReal:37},
-  {nombre:'Azimut 4000',marca:'SAT',capacidad:4000,tipo:'spinning',agua:'💧',rodamientos:4,ratio:5.8,recogida:0.71,freno:15.4,frenoMax:null,peso:37.56,nivel:22,precio:4699,precioReal:36.8},
-  {nombre:'Z-Series 2 40S',marca:'Zeiman',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:5.1,recogida:0.62,freno:15.7,frenoMax:null,peso:28.18,nivel:26,precio:3998,precioReal:32},
-  {nombre:'Major ltd 2 4000s',marca:'Trident',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:6.2,recogida:0.74,freno:15.4,frenoMax:17.9,peso:34.03,nivel:26,precio:3989,precioReal:32},
-  {nombre:'Major 2 4000s',marca:'Trident',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:5.4,recogida:0.59,freno:14,frenoMax:15,peso:31.6,nivel:24,precio:3130,precioReal:26},
-  {nombre:'Everest II 4000s',marca:'Trident',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:4.3,recogida:0.51,freno:13,frenoMax:15,peso:30.16,nivel:22,precio:2719,precioReal:23},
-  {nombre:'Commandor GS 40S',marca:'Zeiman',capacidad:4000,tipo:'spinning',agua:'💧',rodamientos:4,ratio:4,recogida:0.47,freno:12.7,frenoMax:13.9,peso:23.71,nivel:22,precio:2611,precioReal:22},
-  {nombre:'Natora 4000',marca:'Beluga',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:6.2,recogida:0.74,freno:12.7,frenoMax:14,peso:35.49,nivel:22,precio:2499,precioReal:21},
-  {nombre:'Conquest II 4000s',marca:'Trident',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:5.2,recogida:0,freno:12.7,frenoMax:15,peso:29.9,nivel:20,precio:2291,precioReal:19},
-  {nombre:'Commandor 2 40S',marca:'Zeiman',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:5.8,recogida:0.7,freno:12,frenoMax:13.9,peso:21.02,nivel:20,precio:1699,precioReal:15},
-  {nombre:'Narga 4000',marca:'Beluga',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:5.2,recogida:0.62,freno:11.7,frenoMax:13.9,peso:27.33,nivel:20,precio:1621,precioReal:14},
-  {nombre:'Bird 2 GSX 40S',marca:'Zeiman',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:5.1,recogida:0.59,freno:9.5,frenoMax:null,peso:17.94,nivel:17,precio:1374,precioReal:12},
-  {nombre:'Alfa 4000',marca:'Sputnik',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:5.8,recogida:0.68,freno:9,frenoMax:null,peso:16.96,nivel:18,precio:1201,precioReal:11},
-  {nombre:'Model De Luxe 430S',marca:'Marshall',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:3.8,recogida:0.44,freno:9,frenoMax:null,peso:24.24,nivel:16,precio:790,precioReal:6.9},
-  {nombre:'Sabre 40s',marca:'Syberia',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:5,recogida:0.63,freno:9,frenoMax:null,peso:13.02,nivel:16,precio:787,precioReal:7},
-  {nombre:'Horizon 2 4000s',marca:'Trident',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:5,recogida:0,freno:8.2,frenoMax:9,peso:17.91,nivel:15,precio:769,precioReal:7},
-  {nombre:'Pulsar 4000',marca:'Sputnik',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:5.8,recogida:0.68,freno:8.6,frenoMax:10.4,peso:15.21,nivel:15,precio:745,precioReal:7},
-  {nombre:'Proton 4000',marca:'Sputnik',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:5.1,recogida:0,freno:7.8,frenoMax:8.9,peso:13.81,nivel:12,precio:529,precioReal:5},
-  {nombre:'Pride 4000S',marca:'EF',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:5.2,recogida:0,freno:7.5,frenoMax:9,peso:9.43,nivel:14,precio:480,precioReal:4},
-  {nombre:'Hercules G2 40s',marca:'Syberia',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:5,recogida:0.64,freno:6.8,frenoMax:7.8,peso:10.15,nivel:13,precio:460,precioReal:4},
-  {nombre:'Element PRO 4000',marca:'Sputnik',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:5.2,recogida:0.62,freno:6.4,frenoMax:null,peso:11.05,nivel:8,precio:380,precioReal:4},
-  {nombre:'Dragon 40s',marca:'Syberia',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:5,recogida:0.61,freno:5.8,frenoMax:7.8,peso:9.02,nivel:8,precio:363,precioReal:3},
-  {nombre:'Element 4000',marca:'Sputnik',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:5.2,recogida:0,freno:5.4,frenoMax:null,peso:9.53,nivel:6,precio:249,precioReal:2},
-  {nombre:'Lagoon-HP 2 4000S',marca:'EF',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:5.2,recogida:0,freno:5.4,frenoMax:6.5,peso:8.04,nivel:9,precio:229,precioReal:2},
-  {nombre:'Lacerti-S 2 4000S',marca:'EF',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:6.1,recogida:0.73,freno:4.2,frenoMax:6.5,peso:4.95,nivel:5,precio:138,precioReal:1},
-  {nombre:'Lacerti 2 4000S',marca:'EF',capacidad:4000,tipo:'spinning',agua:'',rodamientos:4,ratio:6.1,recogida:0,freno:3.8,frenoMax:6.5,peso:4.95,nivel:3,precio:99,precioReal:1},
-  {nombre:'Bestia 3000',marca:'Beluga',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:6.2,recogida:0.66,freno:17.2,frenoMax:null,peso:42.44,nivel:28,precio:7553,precioReal:55},
-  {nombre:'P-Series 2 GS 30S',marca:'Zeiman',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:5.8,recogida:0.68,freno:16.3,frenoMax:18.7,peso:25.32,nivel:28,precio:4628,precioReal:36},
-  {nombre:'Z-Series 2 30S',marca:'Zeiman',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:5.8,recogida:0,freno:15.7,frenoMax:null,peso:22.97,nivel:26,precio:3898,precioReal:31},
-  {nombre:'Major ltd 2 3000s',marca:'Trident',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:5.2,recogida:0,freno:13.6,frenoMax:15,peso:31.38,nivel:26,precio:2989,precioReal:25},
-  {nombre:'Natora 3000',marca:'Beluga',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:6.2,recogida:0.66,freno:11.3,frenoMax:null,peso:28.58,nivel:22,precio:2349,precioReal:20},
-  {nombre:'Corsair 30S',marca:'Zeiman',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:6.2,recogida:0.67,freno:10.8,frenoMax:11.9,peso:22.26,nivel:22,precio:1920,precioReal:17},
-  {nombre:'Commandor 2 30S',marca:'Zeiman',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:5.8,recogida:0.62,freno:10.8,frenoMax:11.9,peso:18.6,nivel:20,precio:1499,precioReal:13},
-  {nombre:'Bird 2 GSX 30S',marca:'Zeiman',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:5.1,recogida:0,freno:8.6,frenoMax:null,peso:16.57,nivel:17,precio:1099,precioReal:10},
-  {nombre:'Gold 30s',marca:'Syberia',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:6.2,recogida:0.69,freno:8,frenoMax:10,peso:16.82,nivel:18,precio:995,precioReal:9},
-  {nombre:'Bird 2 GS 30S',marca:'Zeiman',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:5.1,recogida:0.53,freno:8.2,frenoMax:null,peso:18.5,nivel:15,precio:870,precioReal:8},
-  {nombre:'Mosquito 2 3000s',marca:'Trident',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:5.2,recogida:0,freno:8.6,frenoMax:9,peso:17.06,nivel:16,precio:848,precioReal:8},
-  {nombre:'Horizon 2 3000s',marca:'Trident',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:5.2,recogida:0,freno:7.7,frenoMax:null,peso:18.8,nivel:15,precio:749,precioReal:7},
-  {nombre:'Meteor 30s',marca:'Syberia',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:6,recogida:0.65,freno:7.7,frenoMax:10,peso:15.98,nivel:16,precio:698,precioReal:6},
-  {nombre:'Pegasus 30s',marca:'Syberia',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:5,recogida:0,freno:5.8,frenoMax:7.8,peso:8.81,nivel:14,precio:399,precioReal:4},
-  {nombre:'Dragon 30s',marca:'Syberia',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:5,recogida:0,freno:5.8,frenoMax:7.8,peso:6.72,nivel:8,precio:363,precioReal:3},
-  {nombre:'Element PRO 3000',marca:'Sputnik',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:5.4,recogida:0,freno:5.4,frenoMax:null,peso:9.93,nivel:8,precio:350,precioReal:3},
-  {nombre:'Adriatica 3000S',marca:'EF',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:6.1,recogida:0.76,freno:5.4,frenoMax:6.5,peso:6.48,nivel:12,precio:249,precioReal:2},
-  {nombre:'Element 3000',marca:'Sputnik',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:5.4,recogida:0.58,freno:5.4,frenoMax:null,peso:8.04,nivel:6,precio:249,precioReal:2},
-  {nombre:'Hydra G2 30s',marca:'Syberia',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:5,recogida:0.52,freno:5.2,frenoMax:null,peso:5.88,nivel:5,precio:184,precioReal:2},
-  {nombre:'Lagoon 3000S',marca:'EF',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:6.1,recogida:0.76,freno:5.4,frenoMax:6.5,peso:5.44,nivel:7,precio:178,precioReal:2},
-  {nombre:'Libra 2 3000S',marca:'EF',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:5.4,recogida:0,freno:3.3,frenoMax:null,peso:4.5,nivel:1,precio:33,precioReal:0},
-  {nombre:'Spark 2 3000S',marca:'EF',capacidad:3000,tipo:'spinning',agua:'',rodamientos:3,ratio:5.4,recogida:0,freno:3.2,frenoMax:null,peso:3.77,nivel:1,precio:10,precioReal:0},
-  {nombre:'Overlord 3RS 20S',marca:'Zeiman',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.1,recogida:0,freno:10,frenoMax:null,peso:25.95,nivel:28,precio:11999,precioReal:0},
-  {nombre:'JSX Inferno 20S',marca:'Zeiman',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:6.2,recogida:0,freno:10,frenoMax:null,peso:22.45,nivel:30,precio:11556,precioReal:76},
-  {nombre:'Overlord 3GS 20S',marca:'Zeiman',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.1,recogida:0,freno:9.5,frenoMax:null,peso:23.06,nivel:26,precio:9600,precioReal:0},
-  {nombre:'JSX 20S',marca:'Zeiman',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:6.2,recogida:0,freno:9.5,frenoMax:null,peso:20.84,nivel:30,precio:9119,precioReal:64},
-  {nombre:'Bestia 2000',marca:'Beluga',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:6.2,recogida:0,freno:9,frenoMax:null,peso:22.49,nivel:28,precio:6685,precioReal:50},
-  {nombre:'Overlord 3BS 20S',marca:'Zeiman',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.7,recogida:0,freno:9.1,frenoMax:null,peso:20.95,nivel:25,precio:6500,precioReal:0},
-  {nombre:'Overlord 3E 20S',marca:'Zeiman',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.3,recogida:0,freno:8.4,frenoMax:null,peso:20.36,nivel:23,precio:5200,precioReal:0},
-  {nombre:'P-Series 2 GS 20S',marca:'Zeiman',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.1,recogida:0,freno:8.6,frenoMax:null,peso:17.05,nivel:28,precio:4628,precioReal:36},
-  {nombre:'Admiral 2000s',marca:'Trident',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:6.2,recogida:0,freno:8.2,frenoMax:9,peso:17.7,nivel:28,precio:4283,precioReal:34},
-  {nombre:'Z-Series 2 20S',marca:'Zeiman',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.1,recogida:0,freno:8.2,frenoMax:null,peso:16.45,nivel:26,precio:3898,precioReal:31},
-  {nombre:'Overlord 3B 20S',marca:'Zeiman',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.3,recogida:0,freno:7,frenoMax:null,peso:19.6,nivel:20,precio:3500,precioReal:0},
-  {nombre:'Major 2 2000s',marca:'Trident',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.2,recogida:0,freno:7.2,frenoMax:null,peso:17.95,nivel:24,precio:3130,precioReal:26},
-  {nombre:'Overlord 3 20S',marca:'Zeiman',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.1,recogida:0,freno:6.4,frenoMax:null,peso:18.66,nivel:19,precio:2800,precioReal:0},
-  {nombre:'Natora 2000',marca:'Beluga',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:6.2,recogida:0.62,freno:6.3,frenoMax:6.9,peso:16.24,nivel:22,precio:2349,precioReal:20},
-  {nombre:'Corsair 20S',marca:'Zeiman',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:6.2,recogida:0,freno:6.1,frenoMax:null,peso:17.62,nivel:22,precio:2099,precioReal:18},
-  {nombre:'Commandor 2 20S',marca:'Zeiman',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.8,recogida:0.52,freno:6,frenoMax:null,peso:9.7,nivel:20,precio:1981,precioReal:17},
-  {nombre:'Narga 2000',marca:'Beluga',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.6,recogida:0,freno:5.5,frenoMax:5.9,peso:16.66,nivel:20,precio:1621,precioReal:14},
-  {nombre:'Conquest II 2000',marca:'Trident',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.2,recogida:0,freno:5.5,frenoMax:null,peso:13.54,nivel:20,precio:1591,precioReal:14},
-  {nombre:'Bird 2 GSX 20S',marca:'Zeiman',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.2,recogida:0,freno:5,frenoMax:null,peso:13.13,nivel:17,precio:1511,precioReal:13},
-  {nombre:'Pelengas',marca:'SIN INFO',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:4.2,recogida:0.42,freno:5.5,frenoMax:null,peso:11.71,nivel:12,precio:1249,precioReal:11.48},
-  {nombre:'Alfa 2000',marca:'Sputnik',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.8,recogida:0,freno:4,frenoMax:null,peso:11.87,nivel:18,precio:1051,precioReal:9},
-  {nombre:'Bird 2 20S',marca:'Zeiman',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.1,recogida:0,freno:3.6,frenoMax:null,peso:13.24,nivel:14,precio:798,precioReal:7},
-  {nombre:'Horizon 2 2000s',marca:'Trident',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.2,recogida:0,freno:3.8,frenoMax:null,peso:12.51,nivel:15,precio:738,precioReal:7},
-  {nombre:'Pulsar 2000',marca:'Sputnik',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.8,recogida:0,freno:3.8,frenoMax:4.2,peso:11.05,nivel:15,precio:650,precioReal:6},
-  {nombre:'Sirius 20S',marca:'Syberia',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.4,recogida:0,freno:3.6,frenoMax:4.5,peso:8.15,nivel:15,precio:598,precioReal:6},
-  {nombre:'Proton 2000',marca:'Sputnik',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.2,recogida:0,freno:3.6,frenoMax:4.2,peso:9.55,nivel:12,precio:495,precioReal:5},
-  {nombre:'Hercules G2 20s',marca:'Syberia',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5,recogida:0.56,freno:3.7,frenoMax:null,peso:6.94,nivel:13,precio:460,precioReal:4},
-  {nombre:'Pride 2000S',marca:'EF',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.6,recogida:0,freno:4,frenoMax:null,peso:4.41,nivel:14,precio:399,precioReal:4},
-  {nombre:'Element PRO 2000',marca:'Sputnik',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.4,recogida:0.52,freno:3.6,frenoMax:4.2,peso:6.03,nivel:8,precio:300,precioReal:3},
-  {nombre:'Element 2000',marca:'Sputnik',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.4,recogida:0,freno:3.6,frenoMax:4.2,peso:5.79,nivel:6,precio:249,precioReal:2},
-  {nombre:'Lagoon-HP 2 2000S',marca:'EF',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.6,recogida:0,freno:3.5,frenoMax:null,peso:5,nivel:9,precio:162,precioReal:2},
-  {nombre:'Libra 2 2000S',marca:'EF',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.4,recogida:0,freno:3.3,frenoMax:null,peso:4.1,nivel:1,precio:32,precioReal:0},
-  {nombre:'Spark 2 2000S',marca:'EF',capacidad:2000,tipo:'spinning',agua:'',rodamientos:2,ratio:5.4,recogida:0,freno:3.2,frenoMax:null,peso:3.4,nivel:1,precio:9,precioReal:0},
-  {nombre:'Overlord 3RS 10S',marca:'Zeiman',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:5.9,recogida:0,freno:8.2,frenoMax:null,peso:12.02,nivel:28,precio:7500,precioReal:54.45},
-  {nombre:'JSX Inferno 10S',marca:'Zeiman',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:6.2,recogida:0,freno:8.2,frenoMax:null,peso:11.04,nivel:30,precio:6723,precioReal:50},
-  {nombre:'Overlord 3GS 10S',marca:'Zeiman',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:5.7,recogida:0,freno:7.7,frenoMax:null,peso:10.02,nivel:25,precio:6500,precioReal:0},
-  {nombre:'JSX 10S',marca:'Zeiman',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:6.2,recogida:0,freno:7.7,frenoMax:null,peso:9,nivel:30,precio:6144,precioReal:46},
-  {nombre:'Overlord 3BS 10S',marca:'Zeiman',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:5.9,recogida:0,freno:7.3,frenoMax:null,peso:9.55,nivel:24,precio:5600,precioReal:0},
-  {nombre:'Bestia 1000',marca:'Beluga',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:5.2,recogida:0,freno:7.2,frenoMax:null,peso:10.01,nivel:28,precio:5487,precioReal:42},
-  {nombre:'P-Series 2 GS 10S',marca:'Zeiman',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:5.2,recogida:0,freno:6.5,frenoMax:null,peso:7.19,nivel:28,precio:4628,precioReal:36},
-  {nombre:'Overlord 3E 10S',marca:'Zeiman',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:5.9,recogida:0,freno:6.4,frenoMax:null,peso:8.49,nivel:22,precio:4500,precioReal:0},
-  {nombre:'Admiral 1000s',marca:'Trident',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:5.2,recogida:0,freno:6.3,frenoMax:null,peso:9,nivel:28,precio:4054,precioReal:32},
-  {nombre:'Z-Series 2 10S',marca:'Zeiman',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:5.2,recogida:0,freno:6,frenoMax:null,peso:7.88,nivel:26,precio:3597,precioReal:29},
-  {nombre:'Overlord 3B 10S',marca:'Zeiman',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:5.7,recogida:0,freno:5.5,frenoMax:null,peso:8.49,nivel:20,precio:3000,precioReal:0},
-  {nombre:'Overlord 3 10S',marca:'Zeiman',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:5.3,recogida:0,freno:5,frenoMax:null,peso:8.51,nivel:19,precio:2500,precioReal:0},
-  {nombre:'Natora 1000',marca:'Beluga',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:5.2,recogida:0,freno:5,frenoMax:null,peso:5.8,nivel:22,precio:2349,precioReal:20},
-  {nombre:'Corsair 10S',marca:'Zeiman',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:6.2,recogida:0.6,freno:4.8,frenoMax:null,peso:7.32,nivel:22,precio:2099,precioReal:18},
-  {nombre:'Fisher MT10',marca:'Tama',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:5.1,recogida:0.5,freno:5.2,frenoMax:null,peso:7.89,nivel:0,precio:1999,precioReal:0},
-  {nombre:'Bird 2 GSX 10S',marca:'Zeiman',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:5.2,recogida:0,freno:4,frenoMax:null,peso:5.91,nivel:17,precio:1373,precioReal:12},
-  {nombre:'Alfa 1000',marca:'Sputnik',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:5.8,recogida:0,freno:3.6,frenoMax:4.2,peso:5.77,nivel:18,precio:1051,precioReal:9},
-  {nombre:'Bird 2 GS 10S',marca:'Zeiman',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:5.2,recogida:0,freno:3.4,frenoMax:null,peso:5.52,nivel:15,precio:870,precioReal:8},
-  {nombre:'EasySpin 1000s',marca:'Trident',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:5.2,recogida:0,freno:3.2,frenoMax:null,peso:5.12,nivel:12,precio:629,precioReal:6},
-  {nombre:'Pegasus 10s',marca:'Syberia',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:5,recogida:0,freno:2.3,frenoMax:null,peso:4.97,nivel:14,precio:399,precioReal:4},
-  {nombre:'Element PRO 1000',marca:'Sputnik',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:5.4,recogida:0,freno:2,frenoMax:null,peso:4.92,nivel:8,precio:300,precioReal:3},
-  {nombre:'Element 1000',marca:'Sputnik',capacidad:1000,tipo:'spinning',agua:'',rodamientos:1,ratio:5.4,recogida:0,freno:2,frenoMax:null,peso:4.04,nivel:6,precio:219,precioReal:2},
-  // ELÉCTRICOS
-  {nombre:'Electro Raptor 40',marca:'Reef',capacidad:126.5,tipo:'electrico',agua:'💧',rodamientos:2.4,ratio:null,recogida:190,freno:null,frenoMax:38.1,peso:400,nivel:34,precio:119871,precioReal:321.14},
-  {nombre:'Electro Raptor 20',marca:'Reef',capacidad:40.5,tipo:'electrico',agua:'💧',rodamientos:3.2,ratio:null,recogida:180,freno:null,frenoMax:31.7,peso:368,nivel:32,precio:71989,precioReal:245.74},
-  {nombre:'Borealica 40DS',marca:'Reef',capacidad:84,tipo:'electrico',agua:'💧',rodamientos:4,ratio:1.6,recogida:115.92,freno:46.8,frenoMax:35.4,peso:0,nivel:34,precio:86989,precioReal:271.42},
-  {nombre:'Borealica 40DS 6-An.',marca:'Reef',capacidad:84,tipo:'electrico',agua:'💧',rodamientos:4,ratio:1.6,recogida:115.92,freno:46.8,frenoMax:35.4,peso:0,nivel:34,precio:0,precioReal:271.42},
-  {nombre:'Borealica 30DS',marca:'Reef',capacidad:49.5,tipo:'electrico',agua:'💧',rodamientos:4,ratio:1.7,recogida:109.82,freno:48.05,frenoMax:34,peso:450,nivel:34,precio:78999,precioReal:258.08},
-  {nombre:'Borealica 20DS',marca:'Reef',capacidad:20,tipo:'electrico',agua:'💧',rodamientos:5,ratio:1.7,recogida:133.91,freno:45.57,frenoMax:30.8,peso:0,nivel:32,precio:68999,precioReal:240.26},
-  {nombre:'Imperial C40 2S',marca:'Beluga',capacidad:80.5,tipo:'electrico',agua:'💧',rodamientos:4.6,ratio:1.6,recogida:125.27,freno:46.33,frenoMax:32.6,peso:0,nivel:34,precio:74994,precioReal:251.11},
-  {nombre:'Imperial C40 2S 6-An.',marca:'Beluga',capacidad:86,tipo:'electrico',agua:'💧',rodamientos:4.4,ratio:1.5,recogida:121.84,freno:42.9,frenoMax:32.6,peso:0,nivel:34,precio:0,precioReal:259.8},
-  {nombre:'Triumph 30 2S',marca:'SAT',capacidad:51.5,tipo:'electrico',agua:'💧',rodamientos:3.8,ratio:1.7,recogida:133.85,freno:60.06,frenoMax:33.6,peso:400,nivel:34,precio:69987,precioReal:242.08},
-  {nombre:'Triumph 20 2S',marca:'SAT',capacidad:25.5,tipo:'electrico',agua:'💧',rodamientos:3.8,ratio:1.7,recogida:97.71,freno:43.68,frenoMax:31.8,peso:0,nivel:32,precio:62679,precioReal:228.19},
-  {nombre:'Triumph 10 2S',marca:'SAT',capacidad:15,tipo:'electrico',agua:'💧',rodamientos:4.7,ratio:2.1,recogida:112.04,freno:50.03,frenoMax:30.8,peso:0,nivel:32,precio:53589,precioReal:209.46},
-  {nombre:'Venga C 40 2S',marca:'Beluga',capacidad:70.4,tipo:'electrico',agua:'💧',rodamientos:4.8,ratio:1.6,recogida:138.7,freno:44.62,frenoMax:30.8,peso:0,nivel:32,precio:57680,precioReal:218.11},
-  {nombre:'Venga C 30 2S',marca:'Beluga',capacidad:49.5,tipo:'electrico',agua:'💧',rodamientos:5.3,ratio:1.6,recogida:137.22,freno:41.48,frenoMax:29,peso:0,nivel:32,precio:49783,precioReal:201.4},
-  {nombre:'Venga C 20 2S',marca:'Beluga',capacidad:30,tipo:'electrico',agua:'💧',rodamientos:6,ratio:2.3,recogida:134.76,freno:51.6,frenoMax:29,peso:0,nivel:32,precio:44486,precioReal:188.67},
-  {nombre:'Albacore 40 DS',marca:'Reef',capacidad:53.5,tipo:'electrico',agua:'💧',rodamientos:5.2,ratio:2.3,recogida:156.21,freno:69.06,frenoMax:30.8,peso:0,nivel:32,precio:61982,precioReal:226.82},
-  {nombre:'Albacore 20',marca:'Reef',capacidad:17.5,tipo:'electrico',agua:'💧',rodamientos:5.7,ratio:null,recogida:142.45,freno:null,frenoMax:23.6,peso:0,nivel:30,precio:44479,precioReal:188.66},
-  {nombre:'Taiga 40 2S',marca:'Beluga',capacidad:77,tipo:'electrico',agua:'💧',rodamientos:4.3,ratio:1.8,recogida:150.9,freno:63.16,frenoMax:24.5,peso:274,nivel:30,precio:42987,precioReal:185.02},
-  {nombre:'Taiga 20 2S',marca:'Beluga',capacidad:32.5,tipo:'electrico',agua:'💧',rodamientos:4.3,ratio:1.8,recogida:101.36,freno:42.54,frenoMax:22.7,peso:0,nivel:30,precio:38983,precioReal:174.92},
-  {nombre:'California 40',marca:'Trident',capacidad:120,tipo:'electrico',agua:'💧',rodamientos:4.5,ratio:2.4,recogida:134.03,freno:71.6,frenoMax:26.3,peso:290,nivel:28,precio:39951,precioReal:88.5},
-  {nombre:'Tongar 30 DS',marca:'Reef',capacidad:43.5,tipo:'electrico',agua:'💧',rodamientos:5,ratio:2,recogida:131.12,freno:52.71,frenoMax:21.8,peso:0,nivel:28,precio:37985,precioReal:172.31},
-  {nombre:'Tongar 20 DS',marca:'Reef',capacidad:20,tipo:'electrico',agua:'💧',rodamientos:5,ratio:2,recogida:115.68,freno:46.34,frenoMax:19,peso:173.25,nivel:26,precio:27982,precioReal:139.91},
-  {nombre:'Tongar 20',marca:'Reef',capacidad:20,tipo:'electrico',agua:'💧',rodamientos:5,ratio:null,recogida:115.68,freno:null,frenoMax:19,peso:173.25,nivel:26,precio:25984,precioReal:129.92},
-  {nombre:'Tera L-LD 40',marca:'Beluga',capacidad:70,tipo:'electrico',agua:'💧',rodamientos:4.3,ratio:null,recogida:116.21,freno:null,frenoMax:21.8,peso:157.72,nivel:28,precio:29988,precioReal:149.93},
-  {nombre:'Tera L-LD 30',marca:'Beluga',capacidad:49.5,tipo:'electrico',agua:'💧',rodamientos:5.1,ratio:null,recogida:119.67,freno:null,frenoMax:20.9,peso:142.77,nivel:28,precio:23984,precioReal:122.38},
-  {nombre:'Tera L-LD 20',marca:'Beluga',capacidad:29.5,tipo:'electrico',agua:'💧',rodamientos:6.1,ratio:null,recogida:125.6,freno:null,frenoMax:19,peso:121.9,nivel:26,precio:16983,precioReal:99.84},
-  {nombre:'Cardinal 30 2S',marca:'SAT',capacidad:56,tipo:'electrico',agua:'💧',rodamientos:3.8,ratio:1.7,recogida:137.26,freno:61.46,frenoMax:22.7,peso:152.5,nivel:30,precio:33980,precioReal:161.51},
-  {nombre:'Cardinal 30',marca:'SAT',capacidad:56,tipo:'electrico',agua:'💧',rodamientos:3.5,ratio:null,recogida:126.28,freno:null,frenoMax:22.7,peso:167.89,nivel:30,precio:31085,precioReal:153.32},
-  {nombre:'Cardinal 20 2S',marca:'SAT',capacidad:27,tipo:'electrico',agua:'💧',rodamientos:3.8,ratio:1.7,recogida:97.71,freno:43.68,frenoMax:21.8,peso:130.23,nivel:28,precio:25290,precioReal:126.44},
-  {nombre:'Cardinal 20',marca:'SAT',capacidad:27,tipo:'electrico',agua:'💧',rodamientos:3.5,ratio:null,recogida:89.73,freno:null,frenoMax:21.8,peso:133.84,nivel:28,precio:24588,precioReal:123.95},
-  {nombre:'Cardinal 10',marca:'SAT',capacidad:16.5,tipo:'electrico',agua:'💧',rodamientos:6,ratio:null,recogida:142.66,freno:null,frenoMax:20,peso:104.39,nivel:28,precio:16479,precioReal:97.89},
-  {nombre:'Palomar 30',marca:'Reef',capacidad:38,tipo:'electrico',agua:'💧',rodamientos:6.2,ratio:null,recogida:150.7,freno:null,frenoMax:19,peso:133.6,nivel:26,precio:18485,precioReal:105.37},
-  {nombre:'Palomar 20',marca:'Reef',capacidad:18.5,tipo:'electrico',agua:'💧',rodamientos:6.2,ratio:null,recogida:134.68,freno:null,frenoMax:18.1,peso:133.3,nivel:26,precio:16785,precioReal:99.08},
-  {nombre:'Palomar 10',marca:'Reef',capacidad:13,tipo:'electrico',agua:'💧',rodamientos:6.2,ratio:null,recogida:130.47,freno:null,frenoMax:17.2,peso:122.37,nivel:26,precio:13988,precioReal:87.56},
-  {nombre:'Tera C-LW 40',marca:'Beluga',capacidad:73,tipo:'electrico',agua:'💧',rodamientos:4,ratio:null,recogida:107.94,freno:null,frenoMax:20.9,peso:147.61,nivel:26,precio:24998,precioReal:124.99},
-  {nombre:'Tera C-LW 30LC',marca:'Beluga',capacidad:53,tipo:'electrico',agua:'💧',rodamientos:4.9,ratio:null,recogida:120.07,freno:null,frenoMax:19,peso:131.78,nivel:26,precio:17999,precioReal:103.62},
-  {nombre:'Tera C-LW 30',marca:'Beluga',capacidad:53,tipo:'electrico',agua:'💧',rodamientos:4.9,ratio:null,recogida:120.07,freno:null,frenoMax:19,peso:132.06,nivel:26,precio:17499,precioReal:101.78},
-  {nombre:'Tera C-LW 20',marca:'Beluga',capacidad:31,tipo:'electrico',agua:'💧',rodamientos:4.9,ratio:null,recogida:109.92,freno:null,frenoMax:18.1,peso:104.76,nivel:25,precio:12979,precioReal:83.02},
-  {nombre:'Billionaire CNV 30 MS',marca:'Trident',capacidad:52.5,tipo:'electrico',agua:'💧',rodamientos:4.2,ratio:2.1,recogida:105.83,freno:52.78,frenoMax:21.7,peso:88.14,nivel:28,precio:19979,precioReal:110.48},
-  {nombre:'Billionaire CNV 20',marca:'Trident',capacidad:32,tipo:'electrico',agua:'💧',rodamientos:5.1,ratio:null,recogida:115.64,freno:null,frenoMax:20,peso:79.54,nivel:26,precio:14950,precioReal:91.69},
-  {nombre:'Billionaire CNV 10',marca:'Trident',capacidad:24,tipo:'electrico',agua:'💧',rodamientos:5.1,ratio:null,recogida:101.51,freno:null,frenoMax:18,peso:78.86,nivel:26,precio:10880,precioReal:72.9},
-  {nombre:'Taiga C 40',marca:'Beluga',capacidad:77,tipo:'electrico',agua:'💧',rodamientos:2.9,ratio:null,recogida:94.62,freno:null,frenoMax:17.2,peso:136.13,nivel:26,precio:15590,precioReal:94.34},
-  {nombre:'Taiga C 30',marca:'Beluga',capacidad:54,tipo:'electrico',agua:'💧',rodamientos:3.3,ratio:null,recogida:87.54,freno:null,frenoMax:15.4,peso:109.46,nivel:24,precio:10494,precioReal:70.94},
-  {nombre:'Taiga C 30 2S 7-An.',marca:'Beluga',capacidad:54,tipo:'electrico',agua:'💧',rodamientos:4.2,ratio:2,recogida:111.27,freno:52.95,frenoMax:15.4,peso:109.5,nivel:24,precio:0,precioReal:70.94},
-  {nombre:'Taiga C 20',marca:'Beluga',capacidad:32.5,tipo:'electrico',agua:'💧',rodamientos:4,ratio:null,recogida:97.14,freno:null,frenoMax:15.4,peso:94.44,nivel:24,precio:9693,precioReal:66.75},
-  {nombre:'Rigal 20 2S',marca:'SAT',capacidad:17,tipo:'electrico',agua:'💧',rodamientos:6.4,ratio:3.8,recogida:148.28,freno:87.94,frenoMax:16.3,peso:74.33,nivel:26,precio:8799,precioReal:61.88},
-  {nombre:'Oriental 30',marca:'Reef',capacidad:40.5,tipo:'electrico',agua:'💧',rodamientos:5.2,ratio:null,recogida:116.66,freno:null,frenoMax:15.9,peso:87.1,nivel:24,precio:9388,precioReal:65.11},
-  {nombre:'Oriental 20',marca:'Reef',capacidad:19,tipo:'electrico',agua:'💧',rodamientos:5.2,ratio:null,recogida:105.33,freno:null,frenoMax:14.5,peso:87.13,nivel:24,precio:8189,precioReal:58.45},
-  {nombre:'SteelHead C-30',marca:'Syberia',capacidad:50.5,tipo:'electrico',agua:'💧',rodamientos:4.8,ratio:null,recogida:120.95,freno:null,frenoMax:17.2,peso:54.12,nivel:26,precio:8980,precioReal:62.88},
-  {nombre:'SteelHead C-20',marca:'Syberia',capacidad:30.5,tipo:'electrico',agua:'💧',rodamientos:4.8,ratio:null,recogida:106.72,freno:null,frenoMax:16,peso:49.67,nivel:24,precio:6280,precioReal:47.06},
-  {nombre:'SteelHead C-10',marca:'Syberia',capacidad:19,tipo:'electrico',agua:'💧',rodamientos:4.8,ratio:null,recogida:96.25,freno:null,frenoMax:14.5,peso:47.42,nivel:24,precio:5390,precioReal:41.38},
-  {nombre:'Isinga C-LW 30',marca:'Beluga',capacidad:47,tipo:'electrico',agua:'💧',rodamientos:3.9,ratio:null,recogida:93.88,freno:null,frenoMax:14.5,peso:63.86,nivel:24,precio:5995,precioReal:45.26},
-  {nombre:'Isinga C-LW 20',marca:'Beluga',capacidad:28,tipo:'electrico',agua:'💧',rodamientos:5.1,ratio:null,recogida:109.43,freno:null,frenoMax:12.7,peso:55,nivel:22,precio:4193,precioReal:33.34},
-  {nombre:'Isinga C-LW 10',marca:'Beluga',capacidad:17,tipo:'electrico',agua:'💧',rodamientos:5.1,ratio:null,recogida:102.18,freno:null,frenoMax:11.8,peso:48.11,nivel:22,precio:3385,precioReal:27.62},
-  {nombre:'Argus 30',marca:'Reef',capacidad:39,tipo:'electrico',agua:'💧',rodamientos:4.2,ratio:null,recogida:96.77,freno:null,frenoMax:12.7,peso:64.97,nivel:22,precio:5190,precioReal:40.07},
-  {nombre:'Argus 20',marca:'Reef',capacidad:19,tipo:'electrico',agua:'💧',rodamientos:4.2,ratio:null,recogida:86.42,freno:null,frenoMax:11.8,peso:64.49,nivel:22,precio:4591,precioReal:36.06},
-  {nombre:'Argus 10',marca:'Reef',capacidad:13.5,tipo:'electrico',agua:'💧',rodamientos:4.2,ratio:null,recogida:80.22,freno:null,frenoMax:10.9,peso:61.96,nivel:22,precio:3791,precioReal:30.52},
-  {nombre:'Halibut 20 2S',marca:'SAT',capacidad:18.5,tipo:'electrico',agua:'💧',rodamientos:6.4,ratio:3.8,recogida:148.28,freno:87.94,frenoMax:12.7,peso:40.71,nivel:24,precio:3990,precioReal:31.92},
-  {nombre:'Halibut 20',marca:'SAT',capacidad:18.5,tipo:'electrico',agua:'💧',rodamientos:6.4,ratio:null,recogida:148.28,freno:null,frenoMax:12.7,peso:41.59,nivel:24,precio:3590,precioReal:29.09},
-  {nombre:'Altitude 20 DLC',marca:'Zeiman',capacidad:30,tipo:'electrico',agua:'💧',rodamientos:4.7,ratio:null,recogida:107.16,freno:null,frenoMax:12.7,peso:53.37,nivel:22,precio:4388,precioReal:34.68},
-  {nombre:'Altitude 10 DLC',marca:'Zeiman',capacidad:17,tipo:'electrico',agua:'💧',rodamientos:5.1,ratio:null,recogida:94.62,freno:null,frenoMax:11,peso:46.12,nivel:22,precio:3190,precioReal:26.19},
-  {nombre:'Hamra C-LW 30',marca:'Beluga',capacidad:48,tipo:'electrico',agua:'💧',rodamientos:2.8,ratio:null,recogida:65.73,freno:null,frenoMax:12.7,peso:52,nivel:23,precio:4199,precioReal:33.38},
-  {nombre:'Hamra C-LW 20',marca:'Beluga',capacidad:29,tipo:'electrico',agua:'💧',rodamientos:3.2,ratio:null,recogida:69.34,freno:null,frenoMax:11.8,peso:45.93,nivel:22,precio:3099,precioReal:25.53},
-  {nombre:'Hamra C-LW 10',marca:'Beluga',capacidad:17.5,tipo:'electrico',agua:'💧',rodamientos:3.4,ratio:null,recogida:68.95,freno:null,frenoMax:10.9,peso:38.75,nivel:22,precio:2499,precioReal:21.03},
-  {nombre:'Seagull 30',marca:'SAT',capacidad:45,tipo:'electrico',agua:'💧',rodamientos:6.2,ratio:null,recogida:141.16,freno:null,frenoMax:11.8,peso:37.22,nivel:22,precio:2690,precioReal:22.48},
-  {nombre:'Seagull 20',marca:'SAT',capacidad:29,tipo:'electrico',agua:'💧',rodamientos:6.2,ratio:null,recogida:141.16,freno:null,frenoMax:10,peso:36.54,nivel:22,precio:1989,precioReal:17.08},
-  {nombre:'Narga C-LW 30',marca:'Beluga',capacidad:48,tipo:'electrico',agua:'💧',rodamientos:3.9,ratio:null,recogida:93.62,freno:null,frenoMax:10,peso:33.22,nivel:22,precio:1890,precioReal:16.3},
-  {nombre:'Narga C-LW 20',marca:'Beluga',capacidad:29,tipo:'electrico',agua:'💧',rodamientos:5.1,ratio:null,recogida:109.41,freno:null,frenoMax:9,peso:29.6,nivel:22,precio:1348,precioReal:11.91},
-  {nombre:'Narga C-LW 10',marca:'Beluga',capacidad:17.5,tipo:'electrico',agua:'💧',rodamientos:5.1,ratio:null,recogida:102.23,freno:null,frenoMax:8.2,peso:27.65,nivel:22,precio:1190,precioReal:10.59},
-  {nombre:'Simplex 400',marca:'SAT',capacidad:63.5,tipo:'electrico',agua:'💧',rodamientos:3.8,ratio:null,recogida:117.19,freno:null,frenoMax:10,peso:33.75,nivel:20,precio:1990,precioReal:17.9},
-  {nombre:'Simplex 300',marca:'SAT',capacidad:46,tipo:'electrico',agua:'💧',rodamientos:3.8,ratio:null,recogida:98.39,freno:null,frenoMax:9,peso:31.65,nivel:20,precio:1389,precioReal:12.25},
-  {nombre:'Simplex 200',marca:'SAT',capacidad:28,tipo:'electrico',agua:'💧',rodamientos:5.1,ratio:null,recogida:115.59,freno:null,frenoMax:8.2,peso:28.77,nivel:20,precio:1189,precioReal:10.59},
-  {nombre:'Zodiac С-20',marca:'Syberia',capacidad:31.5,tipo:'electrico',agua:'💧',rodamientos:5.1,ratio:null,recogida:115.58,freno:null,frenoMax:9,peso:25.32,nivel:18,precio:1290,precioReal:11.43},
-  {nombre:'Zodiac С-10',marca:'Syberia',capacidad:19,tipo:'electrico',agua:'💧',rodamientos:5.1,ratio:null,recogida:105.05,freno:null,frenoMax:8,peso:26.7,nivel:18,precio:1099,precioReal:9.83},
-  {nombre:'Winner Trolling 30',marca:'EF',capacidad:58,tipo:'electrico',agua:'',rodamientos:4.3,ratio:null,recogida:98.36,freno:null,frenoMax:7.3,peso:15.46,nivel:12,precio:779,precioReal:7.1},
-  {nombre:'Winner Trolling 20',marca:'EF',capacidad:36.5,tipo:'electrico',agua:'',rodamientos:5.1,ratio:null,recogida:107.37,freno:null,frenoMax:6.4,peso:12.52,nivel:12,precio:590,precioReal:5.44},
-  {nombre:'Winner Trolling 10',marca:'EF',capacidad:28.5,tipo:'electrico',agua:'',rodamientos:5.1,ratio:null,recogida:100,freno:null,frenoMax:5.5,peso:10.84,nivel:12,precio:350,precioReal:3.29},
-];
-
-let _carreteFiltro = 'todos';
-let _carreteBusq = '';
-let _carreteSortCol = 'capacidad';
-let _carreteSortDir = -1; // -1 = desc
-
-function renderCarretesTable(){
-  const busq = (document.getElementById('carreteBuscar')?.value||'').toLowerCase();
-  const body = document.getElementById('carretesBody');
-  const noRes = document.getElementById('carretesNoResults');
-  const countEl = document.getElementById('carretesCount');
-  if(!body) return;
-
-  let datos = CARRETES_DATA.filter(c=>{
-    const matchBusq = !busq || c.nombre.toLowerCase().includes(busq) || c.marca.toLowerCase().includes(busq);
-    let matchCap = true;
-    if(_carreteFiltro==='electrico') matchCap = c.tipo==='electrico';
-    else if(_carreteFiltro!=='todos') matchCap = c.capacidad===parseInt(_carreteFiltro) && c.tipo==='spinning';
-    return matchBusq && matchCap;
-  });
-
-  // Sort
-  datos.sort((a,b)=>{
-    let va = a[_carreteSortCol], vb = b[_carreteSortCol];
-    if(va===null) va=-999; if(vb===null) vb=-999;
-    if(typeof va==='string') return va.localeCompare(vb)*_carreteSortDir;
-    return (va-vb)*_carreteSortDir;
-  });
-
-  if(countEl) countEl.textContent = datos.length + ' carretes';
-  if(!datos.length){ body.innerHTML=''; noRes.style.display='block'; return; }
-  noRes.style.display='none';
-
-  const marcaColores = {Reef:'#00c6ff',SAT:'#ff6b35',Beluga:'#7b68ee',Zeiman:'#ffd700',Trident:'#00e676',Sputnik:'#ff4081',Syberia:'#40c4ff',EF:'#a5d6a7',Tama:'#ffab40',Beluga:'#ce93d8',Marshall:'#ef9a9a'};
-
-  body.innerHTML = datos.map(c=>{
-    const mc = marcaColores[c.marca]||'var(--accent)';
-    const esElec = c.tipo==='electrico';
-    const capStr = esElec ? c.capacidad+'m' : c.capacidad.toLocaleString();
-    const bgRow = esElec ? 'rgba(255,215,0,.03)' : '';
-    return `<tr style="background:${bgRow}">
-      <td style="font-weight:700;color:var(--text);white-space:nowrap;">
-        ${esElec?'<span style="font-size:.65rem;background:rgba(255,215,0,.2);color:gold;border-radius:100px;padding:1px 5px;margin-right:4px;font-weight:800;">⚡</span>':''}
-        ${c.agua?'<span title="Anti-salpicadura" style="font-size:.75rem;">💧</span> ':''}
-        ${esc(c.nombre)}
-      </td>
-      <td><span style="font-size:.7rem;font-weight:800;color:${mc};background:${mc}22;border-radius:100px;padding:2px 7px;white-space:nowrap;">${esc(c.marca)}</span></td>
-      <td style="text-align:center;font-weight:700;color:var(--accent);">${capStr}</td>
-      <td style="text-align:center;">${c.agua||'—'}</td>
-      <td style="text-align:center;">${c.rodamientos||'—'}</td>
-      <td style="text-align:center;">${c.ratio||'—'}</td>
-      <td style="text-align:center;font-weight:700;">${c.recogida||'—'}<span style="font-size:.65rem;color:var(--muted);">m</span></td>
-      <td style="text-align:center;">${c.freno!=null&&c.freno>0?c.freno+'<span style="font-size:.65rem;color:var(--muted);">kg</span>':'—'}</td>
-      <td style="text-align:center;">${c.frenoMax!=null&&c.frenoMax>0?c.frenoMax+'<span style="font-size:.65rem;color:var(--muted);">kg</span>':'—'}</td>
-      <td style="text-align:center;">${c.peso>0?c.peso+'<span style="font-size:.65rem;color:var(--muted);">g</span>':'—'}</td>
-      <td style="text-align:center;">
-        ${c.nivel>0?`<span style="background:rgba(0,198,255,.12);color:var(--accent);border-radius:100px;padding:2px 7px;font-size:.72rem;font-weight:800;">${c.nivel}</span>`:'—'}
-      </td>
-      <td style="text-align:center;">${c.precio>0?'<span style="font-size:.7rem;">🪙</span> '+c.precio.toLocaleString():'—'}</td>
-      <td style="text-align:center;">
-        ${c.precioReal>0?`<span style="color:gold;font-weight:800;">💰 ${c.precioReal}</span>`:'—'}
-      </td>
-    </tr>`;
-  }).join('');
-
-  // Update sort arrows
-  ['nombre','marca','capacidad','rodamientos','ratio','recogida','freno','frenoMax','peso','nivel','precio','precioReal'].forEach(col=>{
-    const el = document.getElementById('srt-'+col);
-    if(el) el.textContent = _carreteSortCol===col ? (_carreteSortDir===1?'▲':'▼') : '';
-  });
-}
-
-function filtrarCarretes(){ renderCarretesTable(); }
-
-function filtrarPorCap(btn, cap){
-  _carreteFiltro = cap;
-  document.querySelectorAll('.cfbtn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderCarretesTable();
-}
-
-function sortCarretes(col){
-  if(_carreteSortCol===col) _carreteSortDir*=-1;
-  else { _carreteSortCol=col; _carreteSortDir=-1; }
-  renderCarretesTable();
-}
-
-function resetFiltrosCarretes(){
-  _carreteFiltro='todos';
-  _carreteBusq='';
-  _carreteSortCol='capacidad';
-  _carreteSortDir=-1;
-  const input = document.getElementById('carreteBuscar');
-  if(input) input.value='';
-  document.querySelectorAll('.cfbtn').forEach((b,i)=>{ b.classList.toggle('active',i===0); });
-  renderCarretesTable();
-}
-
-async function renderMisAmigos(){
-  const el = document.getElementById('misAmigosList');
-  const cnt = document.getElementById('misAmigosCount');
-  if(!el) return;
-  const friends = window.CU?.friendsList || [];
-  if(cnt) cnt.textContent = friends.length ? `${friends.length} amigo${friends.length!==1?'s':''}` : '';
-  if(!friends.length){
-    el.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:24px;color:var(--muted);font-size:.85rem;">Todavía no tenés amigos. ¡Conectate con otros pescadores!</div>';
-    return;
-  }
-  el.innerHTML = friends.map(f=>`
-    <div onclick="openUserProfile('${f.id}','${(f.nick||'').replace(/'/g,"\\'")}');gp('userprofile')"
-         style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px 10px 14px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;transition:.15s;"
-         onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--bg3)'"
-         onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--card)'">
-      <div style="width:62px;height:62px;border-radius:50%;border:2.5px solid var(--accent);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:800;color:var(--accent);background:var(--bg3);flex-shrink:0;">
-        ${f.av?`<img src="${f.av}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.textContent='${(f.nick||'?')[0].toUpperCase()}'">`:((f.nick||'?')[0].toUpperCase())}
-      </div>
-      <div style="font-size:.82rem;font-weight:700;color:var(--text);text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;padding:0 4px;">${esc(f.nick||'')}</div>
-    </div>`).join('');
-}
-async function renderAmigosPage(){
-  if(!window.CU) return;
-  renderMisAmigos();
-  const reqList = document.getElementById('friendReqList');
-  const suggList = document.getElementById('amigosSuggList');
-  const reqCount = document.getElementById('friendReqCount');
-  if(!reqList || !suggList) return;
-
-  // --- Solicitudes pendientes (from notifications) ---
-  try {
-    const notifs = window.CU.notifs || [];
-    const requests = notifs.filter(n => n.type === 'friendRequest');
-    if(requests.length){
-      reqCount.textContent = requests.length + ' pendiente' + (requests.length>1?'s':'');
-      reqList.innerHTML = requests.map((n,i) => `
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;">
-          <div style="width:56px;height:56px;border-radius:50%;border:2px solid var(--accent);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;color:var(--accent);background:var(--bg3);cursor:pointer;" onclick="openUserProfile('${n.fromId||''}','${(n.fromNick||'').replace(/'/g,"\\'")}')">
-            ${`<img src="${n.fromAv||getDefaultAv('')}" style="width:100%;height:100%;object-fit:cover;">`}
-          </div>
-          <div style="font-size:.82rem;font-weight:700;cursor:pointer;" onclick="openUserProfile('${n.fromId||''}','${(n.fromNick||'').replace(/'/g,"\\'")}')}">${esc(n.fromNick||'')}</div>
-          <div style="display:flex;gap:6px;width:100%;">
-            <button onclick="acceptFriendRequest('${n.fromId}','${(n.fromNick||'').replace(/'/g,"\\'")}',${i})" style="flex:1;background:var(--accent);border:none;border-radius:var(--rs);color:#000;font-size:.72rem;font-weight:700;padding:6px;cursor:pointer;">✓ Aceptar</button>
-            <button onclick="rejectFriendRequest(${i})" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-size:.72rem;font-weight:700;padding:6px;cursor:pointer;">✕ Rechazar</button>
-          </div>
-        </div>`).join('');
-    } else {
-      reqCount.textContent = '';
-      reqList.innerHTML = '<div style="font-size:.8rem;color:var(--muted);padding:8px;">Sin solicitudes pendientes</div>';
-    }
-  } catch(e){}
-
-  // --- Sugerencias de amistad ---
-  try {
-    suggList.innerHTML = '<div style="font-size:.8rem;color:var(--muted);padding:8px;">Cargando...</div>';
-    const snap = await getDocs(collection(db,'users'));
-    const allUsers = snap.docs.map(d=>({id:d.id,...d.data()}));
-    const myId = window.CU?.id || window.CU?.uid || '';
-    const myNick = (window.CU?.nick || '').toLowerCase();
-    const myFriends = window.CU?.friends || [];
-    const notifs2 = window.CU.notifs || [];
-    const pendingIds = notifs2.filter(n=>n.type==='friendRequest').map(n=>n.fromId);
-    const candidates = allUsers.filter(u => {
-      if(u.id === myId || u.uid === myId) return false;
-      if(myNick && (u.nick||'').toLowerCase() === myNick) return false;
-      if(myFriends.includes(u.id)) return false;
-      if(pendingIds.includes(u.id)) return false;
-      return true;
-    });
-    const shuffled = candidates.sort(()=>Math.random()-0.5).slice(0,12);
-    if(!shuffled.length){ suggList.innerHTML='<div style="font-size:.8rem;color:var(--muted);padding:8px;">No hay sugerencias por ahora</div>'; return; }
-    suggList.innerHTML = shuffled.map(u=>`
-      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;">
-        <div style="width:64px;height:64px;border-radius:50%;border:2px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;color:var(--accent);background:var(--bg3);cursor:pointer;" onclick="openUserProfile('${u.id}','${(u.nick||'').replace(/'/g,"\\'")}')">
-          ${`<img src="${u.av||getDefaultAv(u.gender||'')}" style="width:100%;height:100%;object-fit:cover;">`}
-        </div>
-        <div>
-          <div style="font-size:.85rem;font-weight:700;cursor:pointer;" onclick="openUserProfile('${u.id}','${(u.nick||'').replace(/'/g,"\\'")}')}">${esc(u.nick||'')}</div>
-          <div style="font-size:.7rem;color:var(--muted);">${u.country||'Pescador RF4'}</div>
-        </div>
-        <button id="btnAmigo_${u.id}" onclick="sendFriendRequest('${u.id}','${(u.nick||'').replace(/'/g,"\\'")}','amigos-page');document.getElementById('btnAmigo_${u.id}').textContent='✓ Enviado';document.getElementById('btnAmigo_${u.id}').disabled=true;document.getElementById('btnAmigo_${u.id}').style.opacity='.5';"
-          style="width:100%;background:rgba(0,198,255,.12);border:1px solid rgba(0,198,255,.3);color:var(--accent);padding:7px;border-radius:var(--rs);font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;">
-          + Añadir amigo
-        </button>
-      </div>`).join('');
-  } catch(e){ suggList.innerHTML='<div style="font-size:.8rem;color:var(--muted);">Error al cargar</div>'; }
-}
-
-async function renderNewFishers(){
-  const el = document.getElementById('newFishersList');
-  if(!el) return;
-  try {
-    const snap = await getDocs(query(collection(db,'users'), orderBy('createdAt','desc'), limit(6)));
-    const myId = window.CU?.id || '';
-    const myFriends = window.CU?.friends || [];
-    const users = snap.docs.map(d=>({id:d.id,...d.data()}))
-      .filter(u => u.id !== myId);
-    function _fmt(val){
-      if(!val) return '—';
-      const ms = val?.toMillis?.() || (typeof val==='number'?val:null) || new Date(val).getTime();
-      if(!ms||isNaN(ms)) return '—';
-      const d = new Date(ms);
-      const pad = n=>String(n).padStart(2,'0');
-      return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    }
-    el.innerHTML = users.length ? users.map(u=>{
-      const isFriend = myFriends.includes(u.id);
-      return `<div style="display:flex;align-items:center;gap:7px;padding:6px 4px;border-radius:var(--rs);">
-        <div style="width:32px;height:32px;border-radius:50%;border:2px solid var(--accent);overflow:hidden;flex-shrink:0;cursor:pointer;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--accent);" onclick="openUserProfile('${u.id}','${(u.nick||'').replace(/'/g,"\'")}')">
-          <img src="${u.av||getDefaultAv(u.gender||'')}" style="width:100%;height:100%;object-fit:cover;">
-        </div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:.78rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;" onclick="openUserProfile('${u.id}','${(u.nick||'').replace(/'/g,"\'")}')">🎣 ${esc(u.nick||'')}</div>
-          <div style="font-size:.62rem;color:var(--muted);">📅 ${_fmt(u.createdAt)}</div>
-        </div>
-        ${!isFriend ? `<button onclick="sendFriendRequest('${u.id}','${(u.nick||'').replace(/'/g,"\'")}','sidebar')" style="background:rgba(0,198,255,.1);border:1px solid rgba(0,198,255,.3);color:var(--accent);padding:3px 7px;border-radius:var(--rs);font-size:.65rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;">+ Añadir</button>` : `<span style="font-size:.65rem;color:var(--muted);">✓ Amigo</span>`}
-      </div>`;
-    }).join('') : '<div style="font-size:.72rem;color:var(--muted);padding:4px;">Sin registros aún</div>';
-  } catch(e){ console.error('renderNewFishers',e); }
-}
-window.renderNewFishers = renderNewFishers;
-
-async function renderSuggestedUsers(){
-  const el = document.getElementById('suggestedUsersList');
-  if(!el) return;
-  try {
-    const snap = await getDocs(query(collection(db,'users'), orderBy('createdAt','desc'), limit(8)));
-    const allUsers = snap.docs.map(d=>({id:d.id,...d.data()}));
-    const myId = window.CU?.id || '';
-    const myFriends = window.CU?.friends || [];
-    const candidates = allUsers.filter(u => u.id !== myId && !myFriends.includes(u.id));
-    const newest = candidates.slice(0,5);
-    function _fmtDate(val){
-      if(!val) return '—';
-      let ms = val?.toMillis?.() || (typeof val==='number'?val:null) || (typeof val==='string'?new Date(val).getTime():null);
-      if(!ms) return '—';
-      const d = new Date(ms);
-      const day = String(d.getDate()).padStart(2,'0');
-      const mon = String(d.getMonth()+1).padStart(2,'0');
-      const yr = d.getFullYear();
-      const hh = String(d.getHours()).padStart(2,'0');
-      const mm = String(d.getMinutes()).padStart(2,'0');
-      return `${day}/${mon}/${yr} ${hh}:${mm}`;
-    }
-    el.innerHTML = newest.length
-      ? newest.map(u=>`
-        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r);border-bottom:1px solid var(--border);">
-          <div style="width:36px;height:36px;border-radius:50%;border:2px solid var(--accent);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:var(--accent);background:var(--bg3);flex-shrink:0;cursor:pointer;" onclick="openUserProfile('${u.id}','${(u.nick||'').replace(/'/g,"\'")}')">
-            <img src="${u.av||getDefaultAv(u.gender||'')}" style="width:100%;height:100%;object-fit:cover;">
-          </div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:.82rem;font-weight:700;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" onclick="openUserProfile('${u.id}','${(u.nick||'').replace(/'/g,"\'")}')">🎣 ${esc(u.nick||'')}</div>
-            <div style="font-size:.65rem;color:var(--muted);margin-top:1px;">📅 ${_fmtDate(u.createdAt)}</div>
-            <div style="font-size:.65rem;color:var(--muted);">${u.country||''}</div>
-          </div>
-          <button onclick="sendFriendRequest('${u.id}','${(u.nick||'').replace(/'/g,"\'")}','sidebar')"
-            style="background:rgba(0,198,255,.1);border:1px solid rgba(0,198,255,.3);color:var(--accent);padding:5px 9px;border-radius:var(--rs);font-size:.7rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;white-space:nowrap;flex-shrink:0;">+ Añadir</button>
-        </div>`).join('')
-      : '<div style="font-size:.75rem;color:var(--muted);padding:4px 10px;">No hay nuevos pescadores aún</div>';
-  } catch(e){ console.error('renderSuggestedUsers',e); }
-}
 
 // ===== MAPAS =====
 
@@ -13200,7 +12489,6 @@ const _PAGE_ACTIVITY = {
   'buscar-trofeo': {icon:'🔍', text:'buscando trofeos'},
   'casitrofeo':    {icon:'🏅', text:'casi trofeo'},
   'torneos':       {icon:'⚔️', text:'viendo torneos'},
-  'carretes':      {icon:'🎣', text:'buscando carretes'},
   'parches':       {icon:'🔧', text:'viendo novedades'},
   'soporte':       {icon:'🆘', text:'en soporte técnico'},
   'shop':          {icon:'🛍️', text:'en la tienda'},
@@ -13616,21 +12904,6 @@ let _presenceUnsub = null;
 // Chat tab state
 let _currentChatTab = 'all';
 let _chatLastMsgs = {};
-
-function switchChatTab(tab){
-  _currentChatTab = tab;
-  ['all','unread','archived'].forEach(t=>{
-    const btn = document.getElementById('chatTab-'+t);
-    if(!btn) return;
-    const active = t===tab;
-    btn.style.borderBottom = active ? '2px solid var(--accent)' : '2px solid transparent';
-    btn.style.color = active ? 'var(--accent)' : 'var(--muted)';
-    btn.style.fontWeight = active ? '700' : '600';
-  });
-  // Si no hay listeners activos todavía, iniciarlos
-  if(_unsubMsgBadgeListeners.length === 0) listenUnreadMsgsBadge();
-  renderMessengerList();
-}
 
 // Cache de IDs online para renderizar sin esperar evento de presencia
 let _messengerOnlineIds = new Set();
@@ -14461,15 +13734,6 @@ function toggleVoicePlay(btn, url){
     btn._audio.pause();
     btn.textContent='▶';
   }
-}
-
-function blobToBase64(blob){
-  return new Promise((res,rej)=>{
-    const r = new FileReader();
-    r.onload=()=>res(r.result.split(',')[1]);
-    r.onerror=rej;
-    r.readAsDataURL(blob);
-  });
 }
 
 
@@ -15847,13 +15111,6 @@ function playJamendo(trackId, title, artist, audioUrl){
 }
 
 function searchSpotify(){ searchDeezer(); }
-function renderYouTubeResults(videos){ } // legacy stub
-function renderDeezerResults(tracks){ } // legacy stub
-
-function playYouTube(videoId, title, artist){
-  // Keep for backward compat - open in YouTube
-  window.open('https://www.youtube.com/watch?v='+videoId, '_blank');
-}
 
 function playDeezer(track){ } // Deezer solo para historias
 
@@ -15922,7 +15179,6 @@ const _expose = {
   acceptFriendRequest, rejectFriendRequest, dismissFriendRequest, sendFriendRequestFromProfile, loadRealFriends, updateNotifBadge, updateMsgBadge,
   previewSpotImg, removeSpotImg, submitSpot, loadSpots, loadFriendSpots, renderFriendSpotsInHome, openEditSpot, saveEditSpot, deleteSpot, scrollToPost, loadVideos, filterVideos,
   renderSidebarFriends, renderSuggestedUsers, renderAmigosPage, renderMisAmigos, renderSuggestedPosts, playNotifSound, showNotifToast, sendNotifToUserWithPost, openMessenger,
-  filtrarCarretes, filtrarPorCap, sortCarretes, resetFiltrosCarretes,
   previewPezSemanaImg, submitPezSemana, deletePezSemana, loadPezSemana, buildPezSemanaCard, openPezSemanalModal, openReactionsModal, buildRxnLabel,
   addXP, renderXPUI, checkDailyStreak, getLevel, getXpProgress,
   loadXPLevels, saveXPLevels, addXPLevelRow, renderXPLevelsAdmin,
@@ -16618,7 +15874,7 @@ window.responderSoporte    = responderSoporte;
 
 // ============================================================
 // WIKI TROFEOS — JavaScript Integration
-// Firebase: charlasrf4 (trophiesDb) · Colección: trofeos
+// Firebase: charlasrf4 · Colección: trofeosPendientes
 // Todas las funciones prefijadas con wk_ para evitar conflictos
 // ============================================================
 
