@@ -6874,7 +6874,7 @@ function toggleComments(pid){
           </div>
           <div style="display:flex;align-items:center;gap:12px;padding:3px 4px 0;">
             <span style="font-size:.72rem;color:#8b949e;">${c.time?fmtT(c.time):''}</span>
-            <button style="background:none;border:none;font-size:.72rem;font-weight:700;color:#8b949e;cursor:pointer;padding:0;" onmouseover="this.style.color='#050505'" onmouseout="this.style.color='#65676b'">Me gusta</button>
+            <button style="background:none;border:none;font-size:.72rem;font-weight:700;color:#8b949e;cursor:pointer;padding:0;" onmouseover="this.style.color='#050505'" onmouseout="this.style.color='#65676b'" onclick="quickCmtRxn(event,'${pid}',${ci})">Me gusta</button>
             <button style="background:none;border:none;font-size:.72rem;font-weight:700;color:#8b949e;cursor:pointer;padding:0;" onmouseover="this.style.color='#050505'" onmouseout="this.style.color='#65676b'" onclick="document.getElementById('_cmtModalInp_${pid}').value='@${esc(c.nick||'')} ';document.getElementById('_cmtModalInp_${pid}').focus()">Responder</button>
           </div>
         </div>
@@ -7344,7 +7344,58 @@ async function submitComment(pid){
     }
     addXP(3,'comentario');
     const cmtsEl = document.getElementById('cmts_'+pid);
-    if(cmtsEl && !cmtsEl.classList.contains('open')) cmtsEl.classList.add('open');
+    if(cmtsEl){
+      if(!cmtsEl.classList.contains('open')) cmtsEl.classList.add('open');
+      // Re-render inline comment list so the new comment appears immediately
+      const cmt_listEl = cmtsEl.querySelector('.cmt-list');
+      if(cmt_listEl){
+        const CMT_RXNS_inline=['👍','❤️','😂','😮','😢','🔥'];
+        const rebuilt = newComments.map(function(c2,ci2){
+          if(c2.replyTo) return '';
+          const av2 = '<img src="'+(c2.av||getDefaultAv(c2.gender||''))+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+          const myRxnC2 = window.CU ? ((c2.userReactions||{})[window.CU.id]||'') : '';
+          const rxnBtns2 = CMT_RXNS_inline.map(function(em){ return '<button onclick="reactCmt(event,\''+pid+'\','+ci2+',\''+em+'\')" style="background:none;border:none;font-size:1.3rem;cursor:pointer;padding:3px;border-radius:50%;transition:transform .13s;" onmouseover="this.style.transform=\'scale(1.4) translateY(-4px)\'" onmouseout="this.style.transform=\'scale(1)\'">'+em+'</button>'; }).join('');
+          const isMine2 = window.CU && c2.userId===window.CU.id;
+          const canDel2 = window.CU && (c2.userId===window.CU.id || p.userId===window.CU.id);
+          let menuBtns2 = '';
+          if(isMine2) menuBtns2 += '<button onclick="editCmt(event,\''+pid+'\','+ci2+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:var(--text);padding:10px 14px;cursor:pointer;font-size:.85rem;">✏️ Editar</button>';
+          if(canDel2) menuBtns2 += '<button onclick="delCmt(event,\''+pid+'\','+ci2+')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#f55;padding:10px 14px;cursor:pointer;font-size:.85rem;">🗑 Eliminar</button>';
+          menuBtns2 += '<button onclick="toast(\'Comentario reportado\',\'ok\')" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#fa0;padding:10px 14px;cursor:pointer;font-size:.85rem;">⚠️ Reportar</button>';
+          const timeStr2 = c2.time ? fmtT(c2.time) : '';
+          return '<div class="comment-item">'
+            +'<div class="sl-av" style="width:32px;height:32px;font-size:.75rem;flex-shrink:0;">'+av2+'</div>'
+            +'<div style="flex:1;min-width:0;">'
+              +'<div style="position:relative;display:inline-block;max-width:100%;">'
+                +'<div class="comment-bubble">'
+                  +'<span class="comment-author">'+(c2.nick||'?')+'</span>'
+                  +(c2.gif?'<img src="'+c2.gif+'" style="max-width:180px;border-radius:8px;margin-top:4px;display:block;" loading="lazy">'
+                          :'<span class="comment-text"> '+renderCommentText(c2.text||'')+(c2.edited?' <span style="font-size:.63rem;color:#8b949e;">(editado)</span>':'')+'</span>')
+                +'</div>'
+                +'<div class="cmt-menu-wrap" style="position:absolute;top:-6px;right:-32px;">'
+                  +'<button class="cmt-dots-btn">⋯</button>'
+                  +'<div class="cmt-menu-dropdown">'+menuBtns2+'</div>'
+                +'</div>'
+              +'</div>'
+              +'<div class="cmt-meta">'
+                +'<span class="cmt-meta-time">'+timeStr2+'</span>'
+                +'<div class="cmt-rxn-wrap">'
+                  +'<button class="cmt-like-btn'+(myRxnC2?' active':'')+'" onclick="quickCmtRxn(event,\''+pid+'\','+ci2+')">'
+                  +(myRxnC2?myRxnC2+' Me gusta':'Me gusta')
+                  +'</button>'
+                  +'<div class="cmt-rxn-popup">'+rxnBtns2+'</div>'
+                +'</div>'
+                +'<button onclick="replyCmt(event,\''+pid+'\',\''+esc(c2.nick)+'\')" class="cmt-reply-btn">Responder</button>'
+              +'</div>'
+            +'</div>'
+          +'</div>';
+        }).join('');
+        cmt_listEl.innerHTML = rebuilt;
+        cmt_listEl.scrollTop = cmt_listEl.scrollHeight;
+      }
+      // Update comment count in post-stats
+      const cntEl = document.querySelector('#post_'+pid+' .post-stats [onclick*="toggleComments"]');
+      if(cntEl) cntEl.textContent = newComments.length + ' comentarios';
+    }
     const modalEl = document.getElementById('_cmtModal_'+pid);
     if(modalEl && modalEl._buildCmtHtml){
       const listEl = document.getElementById('_cmtModalList_'+pid);
