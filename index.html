@@ -4105,11 +4105,35 @@ const ROUTES = {
 };
 
 // Map page IDs to clean URLs
-const PAGE_TO_URL = {};  // URL siempre queda en /chatrf4/
+const PAGE_TO_URL = {
+  'home':          '/',
+  'amigos':        '/amigos',
+  'shop':          '/tienda',
+  'trofeos-feed':  '/trofeos',
+  'galeria':       '/galeria',
+  'videos':        '/videos',
+  'spots':         '/spots',
+  'torneos':       '/torneos',
+  'profile':       '/perfil',
+  'buscar-trofeo': '/buscar-trofeo',
+  'publica-trofeo':'/publica-trofeo',
+  'carretes':      '/carretes',
+  'parches':       '/parches',
+  'casitrofeo':    '/casitrofeo',
+  'mensajes':      '/mensajes',
+  'notificaciones':'/notificaciones',
+  'pez-semanal':   '/pez-semanal',
+  'admin':         '/admin',
+  'grupos':        '/grupos',
+  'musica':        '/musica',
+};
 
 function navigateTo(id, pushState = true) {
-  // URL siempre fija — no cambia la barra de direcciones
-  // La lógica de mostrar/ocultar páginas la hace gp()
+  if (!pushState) return;
+  const url = PAGE_TO_URL[id];
+  if (url) {
+    history.pushState({ page: id }, '', url);
+  }
 }
 
 // Handle browser back/forward
@@ -11313,9 +11337,10 @@ async function openUserProfile(uid, nick){
     } catch(e){}
   }
   if(!uid){ toast('Usuario no encontrado','err'); return; }
-  // Push URL /u/nick
+  // Push URL /<nick>
   const safeNick = (nick||'usuario').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
-  
+  history.pushState({ page: 'userprofile', uid, nick }, '', '/' + safeNick);
+
   // Navega a la página de perfil
   gp('userprofile', false);
   _loadUserProfilePage(uid, nick||'');
@@ -12443,9 +12468,9 @@ function openChatWith(uid, nick){
   // Marcar notifs de mensajes de este usuario como leídas
   if(nick) markChatNotifsRead(nick);
 
-  // Update URL to /mensajes/nick
+  // Update URL to /chat
   const safeNickUrl = (nick||'usuario').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
-  
+  history.pushState({ page: 'mensajes', chatUid: uid, chatNick: nick }, '', '/chat');
 
   // Make sure messenger modal is open
   om('mMessenger');
