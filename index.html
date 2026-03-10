@@ -1887,6 +1887,9 @@ select.fi option{background:var(--bg3);color:var(--text);}
       <label class="btn btn-s" style="font-size:.8rem;cursor:pointer;display:flex;align-items:center;gap:5px">
         📸 Fotos (máx 5) <input type="file" accept="image/*" id="postImgInput" style="display:none" multiple onchange="previewPostMedia(this,'image')">
       </label>
+      <label id="postVideoBtn" class="btn btn-s" style="font-size:.8rem;cursor:pointer;display:none;align-items:center;gap:5px;border-color:rgba(0,198,255,.4);color:var(--accent);">
+        🎬 Video <input type="file" accept="video/*" id="postVideoInput" style="display:none" onchange="previewPostVideo(this)">
+      </label>
       <button class="btn btn-s" style="font-size:.8rem" onclick="openEmojiPicker(event,'postText')">😊 Emoji</button>
       <button class="btn btn-s" style="font-size:.8rem" onclick="insertFishTag()">🎣 Etiqueta pez</button>
       <button class="btn btn-s" style="font-size:.8rem" onclick="focusPostTextAndAt()">🏷️ Etiquetar persona</button>
@@ -1966,11 +1969,18 @@ select.fi option{background:var(--bg3);color:var(--text);}
 
       <!-- MODE: photo options -->
       <div id="_scModePhoto" style="display:none;padding:0 16px 16px;flex-direction:column;gap:12px;">
-        <label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px dashed var(--border);border-radius:12px;cursor:pointer;color:var(--muted);font-size:.85rem;background:var(--bg3);">
-          📸 Subir foto
-          <input type="file" accept="image/*" id="storyImgInput" style="display:none" onchange="previewStoryImg(this);_scUpdatePreview()">
-        </label>
+        <div style="display:flex;gap:8px;">
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border:2px dashed var(--border);border-radius:12px;cursor:pointer;color:var(--muted);font-size:.85rem;background:var(--bg3);">
+            📸 Foto
+            <input type="file" accept="image/*" id="storyImgInput" style="display:none" onchange="previewStoryImg(this);_scUpdatePreview()">
+          </label>
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border:2px dashed rgba(0,198,255,.3);border-radius:12px;cursor:pointer;color:var(--accent);font-size:.85rem;background:rgba(0,198,255,.05);">
+            🎬 Video <span style="font-size:.7rem;color:var(--muted);">máx 30s</span>
+            <input type="file" accept="video/*" id="storyVideoInput" style="display:none" onchange="previewStoryVideo(this)">
+          </label>
+        </div>
         <div id="storyImgPrev" style="margin-top:4px;"></div>
+        <div id="storyVideoPrev" style="margin-top:4px;"></div>
         <div>
           <label style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block;">Texto encima</label>
           <div style="position:relative;">
@@ -3677,6 +3687,7 @@ function load(k,def){try{const v=localStorage.getItem('crf4_'+k);return v?JSON.p
 // ── Cloudinary config ──
 const CLOUDINARY_CLOUD = 'da0n5tg3g';
 const CLOUDINARY_PRESET = 'wikipediarf4';
+const CLOUDINARY_VIDEO_PRESET = 'wikipediarf4_video';
 
 async function uploadImage(fileOrBase64, folder) {
   // Convertir a blob si es base64 o URL
@@ -3727,6 +3738,22 @@ function _compressImage(blob, maxW, quality) {
     img.onerror = () => { URL.revokeObjectURL(url); resolve(blob); };
     img.src = url;
   });
+}
+
+// Upload video to Cloudinary
+async function uploadVideo(file, folder) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', CLOUDINARY_VIDEO_PRESET);
+  formData.append('folder', 'rf4/' + (folder || 'videos'));
+  formData.append('resource_type', 'video');
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/video/upload`, {
+    method: 'POST',
+    body: formData
+  });
+  const data = await res.json();
+  if(!data.secure_url) throw new Error(data.error?.message || 'Error subiendo video');
+  return data.secure_url;
 }
 
 // ===== REALTIME LISTENERS =====
@@ -4379,6 +4406,9 @@ window.gp = (id, pushState = true) => {
   navigateTo(id, pushState);
   if(id==='profile') renderProfile();
   if(id==='admin') { loadAdminData(); loadPezSemana(); loadSoporteBadge(); }
+  // Show video button in posts only for verified users
+  const pvBtn = document.getElementById('postVideoBtn');
+  if(pvBtn) pvBtn.style.display = window.CU?.verified ? 'flex' : 'none';
   if(id==='spots'){ loadSpots(); loadFriendSpots(); }
   if(id==='casitrofeo') renderMapPosts();
   if(id==='trofeos-feed') { listenTrofeosFeed(); document.getElementById('trofeoFeedBadge').style.display='inline-flex'; }
@@ -4951,7 +4981,9 @@ function renderSV(){
   const s = _stories[_svIdx];
   if(!s) return;
   const bg = document.getElementById('svBg');
-  if(s.img){
+  if(s.video){
+    bg.innerHTML = `<video src="${s.video}" style="width:100%;height:100%;object-fit:contain;background:#000;" autoplay playsinline controls loop></video>`;
+  } else if(s.img){
     bg.innerHTML = `<img src="${s.img}" style="width:100%;height:100%;object-fit:contain;background:#000;">`;
   } else {
     const bgStyle = s.bg || 'linear-gradient(135deg,#0a2a4a,#0077b6)';
@@ -5960,17 +5992,21 @@ async function submitStory(){
   if(!text && !_storyImgData && !window._storyGif){ toast('Escribe algo o sube una imagen','err'); return; }
   toast('Publicando historia...','inf');
   let imgUrl = '';
+  let videoUrl = '';
   if(_storyImgData) imgUrl = await uploadImage(_storyImgData, 'stories');
+  if(_storyVideoData) videoUrl = await uploadVideo(_storyVideoData, 'stories');
+  if(!text && !imgUrl && !videoUrl && !window._storyGif){ toast('Agregá algo a la historia','err'); return; }
   await addDoc(collection(db, 'stories'), {
     userId:window.CU.id, userNick:window.CU.nick, userAv:window.CU.av||'',
-    text, emoji:_storyEmojiPick||'🎣', img:imgUrl, yt:'', time:serverTimestamp(),
+    text, emoji:_storyEmojiPick||'🎣', img:imgUrl, video:videoUrl, yt:'', time:serverTimestamp(),
     userVerified:window.CU?.verified||false,
     music: window._storyMusic || _storyMusic || null,
     bg: window._storyBg || null,
     gif: window._storyGif || null
   });
-  _storyImgData = null; _storyEmojiPick = ''; _storyMusic = null; window._storyMusic = null;
+  _storyImgData = null; _storyVideoData = null; _storyEmojiPick = ''; _storyMusic = null; window._storyMusic = null;
   window._storyBg = null; window._storyGif = null; window._scMode = 'chooser';
+  const sv2 = document.getElementById('storyVideoPrev'); if(sv2) sv2.innerHTML='';
   const t1 = document.getElementById('storyText'); if(t1) t1.value='';
   const t2 = document.getElementById('storyTextText'); if(t2) t2.value='';
   const ip = document.getElementById('storyImgPrev'); if(ip) ip.innerHTML='';
@@ -5982,9 +6018,61 @@ async function submitStory(){
 
 function previewStoryImg(input){
   const f = input.files[0]; if(!f) return;
+  // Clear video if selecting photo
+  _storyVideoData = null;
+  document.getElementById('storyVideoPrev').innerHTML = '';
   _storyImgData = f;
   const url = URL.createObjectURL(f);
   document.getElementById('storyImgPrev').innerHTML=`<img src="${url}" style="width:100%;border-radius:var(--rs);max-height:160px;object-fit:cover">`;
+}
+
+let _storyVideoData = null;
+function previewStoryVideo(input){
+  const f = input.files[0]; if(!f) return;
+  // Validate 30 seconds max
+  const url = URL.createObjectURL(f);
+  const vid = document.createElement('video');
+  vid.preload = 'metadata';
+  vid.onloadedmetadata = () => {
+    URL.revokeObjectURL(vid.src);
+    if(vid.duration > 30){
+      toast('⚠️ El video no puede superar los 30 segundos','err');
+      input.value = '';
+      _storyVideoData = null;
+      document.getElementById('storyVideoPrev').innerHTML = '';
+      return;
+    }
+    // Clear photo if selecting video
+    _storyImgData = null;
+    document.getElementById('storyImgPrev').innerHTML = '';
+    _storyVideoData = f;
+    document.getElementById('storyVideoPrev').innerHTML =
+      `<div style="position:relative;border-radius:var(--rs);overflow:hidden;max-height:200px;background:#000;">
+        <video src="${URL.createObjectURL(f)}" style="width:100%;max-height:200px;object-fit:cover;" controls></video>
+        <div style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.65);color:#fff;font-size:.68rem;padding:2px 7px;border-radius:100px;">🎬 ${Math.round(vid.duration)}s</div>
+      </div>`;
+  };
+  vid.src = url;
+}
+
+function previewPostVideo(input){
+  const f = input.files[0]; if(!f) return;
+  if(!window.CU?.verified){ toast('Solo usuarios verificados pueden subir videos ✅','err'); input.value=''; return; }
+  const url = URL.createObjectURL(f);
+  const vid = document.createElement('video');
+  vid.preload = 'metadata';
+  vid.onloadedmetadata = () => {
+    URL.revokeObjectURL(vid.src);
+    if(vid.duration > 60){
+      toast('⚠️ El video no puede superar 1 minuto','err');
+      input.value = '';
+      return;
+    }
+    _postMediaFiles = _postMediaFiles.filter(m=>m.type!=='video');
+    _postMediaFiles.push({file:f, type:'video'});
+    renderPostMediaPreview();
+  };
+  vid.src = url;
 }
 function pickStoryEmoji(em){ _storyEmojiPick = em; toast('Emoji '+em+' seleccionado','inf'); }
 
@@ -6593,10 +6681,15 @@ async function submitPost(){
   toast('Publicando...','inf');
   if(window.CU?.verified) launchGoldConfetti();
   const mediaUrls = [];
+  let uploadedVideoUrl = videoUrl0;
   for(const m of _postMediaFiles){
     if(m.type==='image') mediaUrls.push(await uploadImage(m.file,'posts'));
+    else if(m.type==='video'){
+      if(!window.CU?.verified){ toast('Solo verificados pueden subir videos','err'); return; }
+      uploadedVideoUrl = await uploadVideo(m.file,'posts');
+    }
   }
-  const videoUrl = videoUrl0;
+  const videoUrl = uploadedVideoUrl;
 
   const postMentionEl = document.getElementById('mention_postText');
   if(postMentionEl) postMentionEl.style.display='none';
@@ -16134,6 +16227,8 @@ window.filterInsigniasPanel= filterInsigniasPanel;
 window.toggleInsignia      = toggleInsignia;
 window.setUserRole         = setUserRole;
 window.loadSoporteTickets  = loadSoporteTickets;
+window.previewStoryVideo   = previewStoryVideo;
+window.previewPostVideo    = previewPostVideo;
 window.filterSoporteBy     = filterSoporteBy;
 window.filterSoporteTickets= filterSoporteTickets;
 window.marcarSoporteLeido  = marcarSoporteLeido;
