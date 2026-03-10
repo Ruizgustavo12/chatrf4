@@ -53,10 +53,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f0f2f5;--bg2:#ffffff;--bg3:#f0f2f5;--bg4:#e4e6eb;
+  --bg:#0d1117;--bg2:#161b22;--bg3:#1c2128;--bg4:#21262d;
   --accent:#2ec4b6;--accent2:#25a99d;--gold:#d4a017;
-  --text:#050505;--muted:#65676b;--border:#ced0d4;
-  --green:#42b72a;--red:#fa3e3e;--warn:#d4a017;
+  --text:#e6edf3;--muted:#8b949e;--border:#30363d;
+  --green:#3fb950;--red:#f85149;--warn:#d29922;
   --r:8px;--rs:6px;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -66,8 +66,8 @@ a{text-decoration:none;color:inherit;}
 button{font-family:'Exo 2',sans-serif;cursor:pointer;}
 
 /* ===== TOPBAR ===== */
-.topbar{position:fixed;top:0;left:0;right:0;height:56px;background:#ffffff;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:1000;box-shadow:0 2px 4px rgba(0,0,0,.1);}
+.topbar{position:fixed;top:0;left:0;right:0;height:56px;background:#161b22;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:1000;box-shadow:0 2px 4px rgba(0,0,0,.4);}
 .tb-logo{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--accent);cursor:pointer;}
 .tb-logo span{color:var(--gold);}
 .tb-search{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:100px;
@@ -86,7 +86,7 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
 .tb-avatar{width:40px;height:40px;border-radius:50%;border:2px solid var(--border);overflow:hidden;cursor:pointer;
   display:flex;align-items:center;justify-content:center;background:var(--bg4);font-size:.9rem;font-weight:700;color:var(--accent);}
 .tb-avatar img{width:100%;height:100%;object-fit:cover;} .tb-icon-btn svg{fill:#d4e8f0;}
-.notif-dot{position:absolute;top:2px;right:2px;width:8px;height:8px;background:var(--red);border-radius:50%;border:2px solid #fff;}
+.notif-dot{position:absolute;top:2px;right:2px;width:8px;height:8px;background:var(--red);border-radius:50%;border:2px solid #161b22;}
 
 /* ===== LAYOUT ===== */
 .layout{display:grid;grid-template-columns:280px 1fr 300px;gap:0;padding-top:56px;min-height:100vh;}
@@ -102,13 +102,13 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
 /* ===== LEFT SIDEBAR ===== */
 .sidebar-left{padding:12px 8px;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;}
 .sl-profile{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r);cursor:pointer;transition:background .2s;margin-bottom:4px;}
-.sl-profile:hover{background:#f2f2f2;}
-.sl-av{width:36px;height:36px;border-radius:50%;border:2px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;color:var(--accent);background:#e4e6eb;flex-shrink:0;}
+.sl-profile:hover{background:#21262d;}
+.sl-av{width:36px;height:36px;border-radius:50%;border:2px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;color:var(--accent);background:#21262d;flex-shrink:0;}
 .sl-av img{width:100%;height:100%;object-fit:cover;}
-.sl-name{font-size:.9rem;font-weight:700;color:#050505;}
+.sl-name{font-size:.9rem;font-weight:700;color:#e6edf3;}
 .sl-divider{height:1px;background:var(--border);margin:8px 4px;}
-.sl-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r);cursor:pointer;transition:background .2s;font-size:.88rem;color:#050505;font-weight:600;}
-.sl-item:hover{background:#f2f2f2;color:var(--text);}
+.sl-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r);cursor:pointer;transition:background .2s;font-size:.88rem;color:#e6edf3;font-weight:600;}
+.sl-item:hover{background:#21262d;color:var(--text);}
 .sl-item-icon{font-size:1.1rem;width:24px;text-align:center;}
 .sl-section-title{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:8px 10px 4px;}
 
@@ -119,21 +119,21 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
 .stories-row{display:flex;gap:10px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px;}
 .stories-row::-webkit-scrollbar{height:3px;}
 .story-card{flex-shrink:0;width:80px;height:140px;border-radius:var(--r);overflow:hidden;cursor:pointer;position:relative;
-  background:#e4e6eb;border:1px solid var(--border);transition:transform .2s;}
+  background:#21262d;border:1px solid var(--border);transition:transform .2s;}
 .story-card:hover{transform:scale(1.03);}
 .story-card img{width:100%;height:100%;object-fit:cover;}
 .story-card-bg{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,#e4e6eb,#d8dadf);}
-.story-av{width:32px;height:32px;border-radius:50%;border:2px solid var(--accent);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--accent);background:#fff;flex-shrink:0;}
+  background:linear-gradient(135deg,#21262d,#161b22);}
+.story-av{width:32px;height:32px;border-radius:50%;border:2px solid var(--accent);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--accent);background:#161b22;flex-shrink:0;}
 .story-av img{width:100%;height:100%;object-fit:cover;}
-.story-name{font-size:.58rem;font-weight:700;margin-top:4px;text-align:center;padding:0 3px;}
+.story-name{font-size:.58rem;font-weight:700;margin-top:4px;text-align:center;padding:0 3px;color:#e6edf3;}
 .story-user-av{position:absolute;top:6px;left:6px;width:26px;height:26px;border-radius:50%;border:2px solid var(--accent);overflow:hidden;}
 .story-user-av img{width:100%;height:100%;object-fit:cover;}
 .story-gradient{position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(transparent,rgba(0,0,0,.8));}
-.story-bottom-name{position:absolute;bottom:8px;left:8px;font-size:.65rem;font-weight:700;}
-.story-add{background:#e4e6eb;border:2px dashed #bcc0c4;}
+.story-bottom-name{position:absolute;bottom:8px;left:8px;font-size:.65rem;font-weight:700;color:#fff;}
+.story-add{background:#161b22;border:2px dashed #30363d;}
 .story-add-icon{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));
-  display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:#000;font-weight:900;}
+  display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:#fff;font-weight:900;}
 
 /* ===== VERIFICADO ===== */
 .verified-ring{border:3px solid gold !important;box-shadow:0 0 10px rgba(255,215,0,.5);}
@@ -244,7 +244,7 @@ img[title="Verificado"]:hover{
   position:absolute;
   inset:-2px;
   border-radius:50%;
-  background:#fff;
+  background:#161b22;
   z-index:1;
 }
 .post-verified .post-av{
@@ -305,11 +305,11 @@ img[title="Verificado"]:hover{
 .gif-picker{position:absolute;bottom:calc(100% + 8px);left:0;width:320px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:9999;overflow:hidden;display:none;flex-direction:column;}
 .gif-picker.open{display:flex;}
 /* STICKER PICKER */
-.stk-picker{position:absolute;bottom:calc(100% + 8px);left:0;width:300px;background:#fff;border:1px solid #ddd;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.2);z-index:9999;overflow:hidden;display:none;flex-direction:column;max-height:360px;}
+.stk-picker{position:absolute;bottom:calc(100% + 8px);left:0;width:300px;background:#161b22;border:1px solid #30363d;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.2);z-index:9999;overflow:hidden;display:none;flex-direction:column;max-height:360px;}
 .stk-picker.open{display:flex;}
-.stk-search{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid #e4e6eb;}
-.stk-search input{flex:1;border:none;outline:none;font-size:.88rem;color:#050505;background:transparent;}
-.stk-search input::placeholder{color:#65676b;}
+.stk-search{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid #30363d;}
+.stk-search input{flex:1;border:none;outline:none;font-size:.88rem;color:#e6edf3;background:transparent;}
+.stk-search input::placeholder{color:#8b949e;}
 .stk-cats{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px;overflow-y:auto;}
 .stk-cat-btn{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:100px;border:none;cursor:pointer;font-size:.85rem;font-weight:700;color:#fff;transition:opacity .15s;}
 .stk-cat-btn:hover{opacity:.88;}
@@ -338,18 +338,18 @@ img[title="Verificado"]:hover{
 #carretesTable tbody td{padding:8px 8px;vertical-align:middle;}
 
 /* ===== POST BOX ===== */
-.post-box{background:#ffffff;border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.1);}
+.post-box{background:#161b22;border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.1);}
 .post-box-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.post-input{flex:1;background:#f0f2f5;border:1px solid transparent;border-radius:100px;padding:10px 18px;
+.post-input{flex:1;background:#0d1117;border:1px solid transparent;border-radius:100px;padding:10px 18px;
   color:var(--muted);font-family:'Exo 2',sans-serif;font-size:.9rem;cursor:pointer;transition:all .2s;}
-.post-input:hover{background:#e4e6eb;color:var(--text);}
+.post-input:hover{background:#21262d;color:var(--text);}
 .post-box-actions{display:flex;gap:4px;border-top:1px solid #dddfe2;padding-top:10px;}
 .pba{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px;border-radius:var(--rs);
   cursor:pointer;font-size:.82rem;font-weight:600;color:var(--muted);background:none;border:none;transition:all .2s;}
 .pba:hover{background:var(--bg3);color:var(--text);}
 
 /* ===== POST CARD ===== */
-.post{background:#ffffff;border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px;overflow:visible;box-shadow:0 1px 2px rgba(0,0,0,.1);}
+.post{background:#161b22;border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px;overflow:visible;box-shadow:0 1px 2px rgba(0,0,0,.1);}
 .post .post-img-grid{overflow:hidden;}
 /* ── TEMAS DE PUBLICACIÓN (tienda) ── */
 .post-theme-ocean    { background:linear-gradient(160deg,#0a1628,#0d2347) !important; border-color:rgba(0,150,255,.3) !important; box-shadow:0 0 20px rgba(0,100,255,.15) !important; }
@@ -379,7 +379,7 @@ img[title="Verificado"]:hover{
 .post-author:hover{color:var(--accent);}
 .post-time{font-size:.72rem;color:var(--muted);display:flex;align-items:center;gap:4px;}
 .post-menu{background:none;border:none;color:var(--muted);font-size:1.1rem;padding:4px 8px;border-radius:var(--rs);transition:background .2s;}
-.post-menu:hover{background:#e4e6eb;color:var(--text);}
+.post-menu:hover{background:#21262d;color:var(--text);}
 .post-text{padding:0 14px 12px;font-size:.9rem;line-height:1.6;}
 .post-img{width:100%;max-height:160px;object-fit:cover;display:block;cursor:pointer;}
 .post-img-grid{display:grid;gap:2px;}
@@ -401,7 +401,7 @@ img[title="Verificado"]:hover{
 .rxn-wrap{position:relative;padding-bottom:6px;margin-bottom:-6px;}
 /* El wrap cubre botón + popup sin gaps */
 .rxn-popup{display:none;position:absolute;bottom:0;left:0;
-  background:#fff;border:1px solid var(--border);border-radius:100px;
+  background:#161b22;border:1px solid var(--border);border-radius:100px;
   padding:6px 10px;gap:4px;align-items:center;z-index:9500;
   box-shadow:0 2px 12px rgba(0,0,0,.2);white-space:nowrap;
   transform:translateY(calc(-100% - 6px));}
@@ -417,50 +417,50 @@ img[title="Verificado"]:hover{
 
 /* Action buttons (Me gusta / Comentar / Compartir) */
 .post-actions{display:flex;gap:0;padding:0 4px;border-top:1px solid #ced0d4;}
-.act-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:8px;background:none;border:none;color:#65676b;font-size:.88rem;font-weight:700;cursor:pointer;transition:background .15s;}
-.act-btn:hover{background:#f2f2f2;color:#050505;}
+.act-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:8px;background:none;border:none;color:#8b949e;font-size:.88rem;font-weight:700;cursor:pointer;transition:background .15s;}
+.act-btn:hover{background:#1c2128;color:#e6edf3;}
 
 /* Comment input row */
 .comment-input-row{display:flex;gap:8px;align-items:center;padding:8px 0 6px;}
-.comment-input{flex:1;background:#f0f2f5;border:none;border-radius:20px;padding:9px 16px;color:#050505;font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;resize:none;}
-.comment-input::placeholder{color:#65676b;}
-.comment-input:focus{background:#e4e6eb;}
+.comment-input{flex:1;background:#0d1117;border:none;border-radius:20px;padding:9px 16px;color:#e6edf3;font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;resize:none;}
+.comment-input::placeholder{color:#8b949e;}
+.comment-input:focus{background:#21262d;}
 .comment-send{background:none;border:none;color:#1877f2;font-size:1.1rem;cursor:pointer;padding:4px 8px;opacity:.5;transition:opacity .15s;}
 .comment-send:hover{opacity:1;}
 
 /* Comment item */
 .comment-item{display:flex;gap:8px;align-items:flex-start;margin-bottom:4px;}
-.comment-bubble{background:#f0f2f5;border-radius:18px;padding:8px 12px;display:inline-block;max-width:100%;}
-.comment-author{font-size:.82rem;font-weight:700;color:#050505;display:block;margin-bottom:1px;}
-.comment-text{font-size:.88rem;line-height:1.4;color:#050505;word-break:break-word;}
+.comment-bubble{background:#0d1117;border-radius:18px;padding:8px 12px;display:inline-block;max-width:100%;}
+.comment-author{font-size:.82rem;font-weight:700;color:#e6edf3;display:block;margin-bottom:1px;}
+.comment-text{font-size:.88rem;line-height:1.4;color:#e6edf3;word-break:break-word;}
 
 /* Comment meta (time, like, reply) */
 .cmt-meta{display:flex;align-items:center;gap:10px;padding:2px 4px 0;flex-wrap:wrap;}
-.cmt-meta-time{font-size:.72rem;color:#65676b;}
-.cmt-reply-btn{background:none;border:none;font-size:.75rem;font-weight:700;color:#65676b;cursor:pointer;padding:0;transition:color .15s;}
-.cmt-reply-btn:hover{color:#050505;text-decoration:underline;}
-.cmt-like-btn{background:none;border:none;font-size:.75rem;font-weight:700;color:#65676b;cursor:pointer;padding:0;transition:color .15s;}
+.cmt-meta-time{font-size:.72rem;color:#8b949e;}
+.cmt-reply-btn{background:none;border:none;font-size:.75rem;font-weight:700;color:#8b949e;cursor:pointer;padding:0;transition:color .15s;}
+.cmt-reply-btn:hover{color:#e6edf3;text-decoration:underline;}
+.cmt-like-btn{background:none;border:none;font-size:.75rem;font-weight:700;color:#8b949e;cursor:pointer;padding:0;transition:color .15s;}
 .cmt-like-btn:hover{color:#1877f2;}
 .cmt-like-btn.active{color:#1877f2;}
 
 /* Comment menu */
 .cmt-menu-wrap{position:relative;flex-shrink:0;}
-.cmt-dots-btn{background:none;border:none;color:#65676b;font-size:1rem;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;opacity:0;transition:opacity .15s,background .15s;}
+.cmt-dots-btn{background:none;border:none;color:#8b949e;font-size:1rem;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;opacity:0;transition:opacity .15s,background .15s;}
 .comment-item:hover .cmt-dots-btn{opacity:1;}
-.cmt-dots-btn:hover{background:#e4e6eb;}
-.cmt-menu-dropdown{display:none;position:absolute;right:0;top:0;background:#fff;border:1px solid #ced0d4;border-radius:8px;min-width:160px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.15);overflow:hidden;}
+.cmt-dots-btn:hover{background:#21262d;}
+.cmt-menu-dropdown{display:none;position:absolute;right:0;top:0;background:#161b22;border:1px solid #30363d;border-radius:8px;min-width:160px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.15);overflow:hidden;}
 .cmt-menu-wrap:hover .cmt-menu-dropdown{display:block;}
 
 /* Reaction popup */
 .cmt-rxn-wrap{position:relative;}
-.cmt-rxn-popup{display:none;position:absolute;bottom:calc(100% + 6px);left:0;background:#fff;border:1px solid #ced0d4;border-radius:100px;padding:6px 8px;align-items:center;box-shadow:0 4px 16px rgba(0,0,0,.2);white-space:nowrap;z-index:9998;flex-direction:row;gap:4px;}
+.cmt-rxn-popup{display:none;position:absolute;bottom:calc(100% + 6px);left:0;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:6px 8px;align-items:center;box-shadow:0 4px 16px rgba(0,0,0,.2);white-space:nowrap;z-index:9998;flex-direction:row;gap:4px;}
 .cmt-rxn-wrap:hover .cmt-rxn-popup{display:flex;}
 
 
 
 
 /* ===== XP / LEVEL / STREAK ===== */
-.xp-bar-wrap{background:#e4e6eb;border-radius:100px;height:8px;overflow:hidden;margin-top:4px;}
+.xp-bar-wrap{background:#21262d;border-radius:100px;height:8px;overflow:hidden;margin-top:4px;}
 .xp-bar-fill{height:100%;border-radius:100px;transition:width .6s ease;background:linear-gradient(90deg,var(--accent),var(--accent2));}
 .level-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:.72rem;font-weight:700;border:1px solid;}
 .streak-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;font-size:.72rem;font-weight:700;background:rgba(255,100,0,.12);border:1px solid rgba(255,100,0,.35);color:#ff8c42;}
@@ -515,9 +515,9 @@ select.fi option{background:var(--bg3);color:var(--text);}
 .btn{padding:10px 22px;border-radius:var(--rs);font-family:'Exo 2',sans-serif;font-size:.87rem;font-weight:700;cursor:pointer;border:none;transition:all .2s;letter-spacing:.4px;}
 .btn-p{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;}
 .btn-p:hover{opacity:.9;}
-.btn-s{background:#e4e6eb;color:var(--text);border:1px solid var(--border);}
+.btn-s{background:#21262d;color:var(--text);border:1px solid var(--border);}
 .active-map{background:rgba(0,198,255,.12)!important;border-color:var(--accent)!important;color:var(--accent)!important;}
-.adm-tab{background:#e4e6eb;border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:var(--rs);font-size:.78rem;cursor:pointer;font-family:'Exo 2',sans-serif;font-weight:600;transition:all .15s;}
+.adm-tab{background:#21262d;border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:var(--rs);font-size:.78rem;cursor:pointer;font-family:'Exo 2',sans-serif;font-weight:600;transition:all .15s;}
 .adm-tab:hover{color:var(--text);border-color:var(--accent);}
 .adm-on{background:rgba(0,198,255,.1)!important;border-color:var(--accent)!important;color:var(--accent)!important;}
 .btn-s:hover{border-color:var(--accent);color:var(--accent);}
@@ -692,7 +692,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
 .sv-img{width:100%;height:100%;object-fit:cover;}
 .sv-progress{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:3px;}
 .sv-prog-bar{flex:1;height:3px;background:rgba(255,255,255,.3);border-radius:3px;overflow:hidden;}
-.sv-prog-fill{height:100%;background:#fff;width:0;transition:width linear;}
+.sv-prog-fill{height:100%;background:#161b22;width:0;transition:width linear;}
 .sv-header{position:absolute;top:52px;left:12px;right:12px;display:flex;align-items:center;gap:8px;z-index:15;}
 .sv-close{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.5);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:1rem;display:flex;align-items:center;justify-content:center;}
 .sv-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.4);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:1.2rem;display:flex;align-items:center;justify-content:center;}
@@ -1451,14 +1451,14 @@ select.fi option{background:var(--bg3);color:var(--text);}
 
 <!-- Login / Register — Pantalla completa estilo Facebook -->
 <style>
-#mAuth{background:#f0f2f5;}
+#mAuth{background:#0d1117;}
 .fb-left{flex:1;max-width:480px;display:flex;flex-direction:column;justify-content:center;padding:0 0 80px 0;}
 .fb-left h1{font-family:'Exo 2',sans-serif;font-size:3.6rem;font-weight:900;color:#1877f2;line-height:1;margin-bottom:16px;letter-spacing:-1px;}
 .fb-left h1 span{color:#f7b928;}
-.fb-left p{font-size:1.35rem;color:#1c1e21;line-height:1.5;max-width:380px;}
+.fb-left p{font-size:1.35rem;color:#e6edf3;line-height:1.5;max-width:380px;}
 .fb-right{width:100%;max-width:396px;display:flex;flex-direction:column;gap:0;}
-.fb-card{background:#fff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.1),0 8px 16px rgba(0,0,0,.1);padding:20px;}
-.fb-input{width:100%;padding:14px 16px;border:1px solid #dddfe2;border-radius:6px;font-size:1rem;font-family:'Exo 2',sans-serif;color:#1c1e21;outline:none;transition:border-color .15s;margin-bottom:12px;background:#fff;}
+.fb-card{background:#161b22;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.1),0 8px 16px rgba(0,0,0,.1);padding:20px;}
+.fb-input{width:100%;padding:14px 16px;border:1px solid #30363d;border-radius:6px;font-size:1rem;font-family:'Exo 2',sans-serif;color:#e6edf3;outline:none;transition:border-color .15s;margin-bottom:12px;background:#161b22;}
 .fb-input:focus{border-color:#1877f2;box-shadow:0 0 0 2px rgba(24,119,242,.2);}
 .fb-input::placeholder{color:#8a8d91;}
 .fb-btn-login{width:100%;padding:14px;background:#1877f2;color:#fff;border:none;border-radius:6px;font-size:1.1rem;font-weight:700;font-family:'Exo 2',sans-serif;cursor:pointer;transition:background .15s;margin-bottom:14px;}
@@ -1469,21 +1469,21 @@ select.fi option{background:var(--bg3);color:var(--text);}
 .fb-btn-create:hover{background:#36a420;}
 .fb-forgot{display:block;text-align:center;color:#1877f2;font-size:.9rem;margin-bottom:0;cursor:pointer;text-decoration:none;}
 .fb-forgot:hover{text-decoration:underline;}
-.fb-saved{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #dddfe2;border-radius:8px;cursor:pointer;transition:background .15s;margin-bottom:8px;background:#f7f8fa;}
-.fb-saved:hover{background:#e4e6eb;}
+.fb-saved{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #30363d;border-radius:8px;cursor:pointer;transition:background .15s;margin-bottom:8px;background:#f7f8fa;}
+.fb-saved:hover{background:#21262d;}
 .fb-saved-av{width:40px;height:40px;border-radius:50%;background:#1877f2;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden;}
 .fb-saved-av img{width:100%;height:100%;object-fit:cover;}
 .fb-saved-info{flex:1;}
-.fb-saved-nick{font-weight:700;font-size:.9rem;color:#1c1e21;}
-.fb-saved-email{font-size:.75rem;color:#65676b;}
+.fb-saved-nick{font-weight:700;font-size:.9rem;color:#e6edf3;}
+.fb-saved-email{font-size:.75rem;color:#8b949e;}
 @media(max-width:900px){
   .fb-left{display:none;}
   #mAuth > div{justify-content:center;align-items:center;}
   .fb-right{max-width:396px;}
 }
 /* Register card */
-.fb-reg-title{font-size:1.5rem;font-weight:700;color:#1c1e21;margin-bottom:2px;}
-.fb-reg-sub{font-size:.9rem;color:#65676b;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #dddfe2;}
+.fb-reg-title{font-size:1.5rem;font-weight:700;color:#e6edf3;margin-bottom:2px;}
+.fb-reg-sub{font-size:.9rem;color:#8b949e;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #dddfe2;}
 .fb-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 </style>
 
@@ -1662,7 +1662,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
   </script>
 </div>
 
-<div id="splashScreen" style="display:flex;position:fixed;inset:0;z-index:10000;background:#f0f2f5;align-items:center;justify-content:center;flex-direction:column;gap:18px;">
+<div id="splashScreen" style="display:flex;position:fixed;inset:0;z-index:10000;background:#0d1117;align-items:center;justify-content:center;flex-direction:column;gap:18px;">
   <img src="icon-512.png" onerror="this.style.display='none'" style="width:80px;height:80px;border-radius:16px;object-fit:contain;">
   <div style="font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:900;color:#1a73e8;">Wikipedia<span style="color:#f5a623;">RF4</span></div>
   <div style="width:40px;height:40px;border:4px solid #e0e0e0;border-top-color:#1877f2;border-radius:50%;animation:splashSpin 0.8s linear infinite;"></div>
@@ -1679,7 +1679,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
     <!-- IZQUIERDA — Logo + slogan -->
     <div class="fb-left">
       <img src="icon-512.png" alt="WikipediaRF4" style="width:220px;height:220px;object-fit:contain;margin-bottom:8px;display:block;">
-      <p style="font-size:1.25rem;color:#1c1e21;line-height:1.6;max-width:360px;">La red social de pesca para toda Latinoamérica. Compartí tus capturas, conocé otros pescadores y mejorá tu juego.</p>
+      <p style="font-size:1.25rem;color:#e6edf3;line-height:1.6;max-width:360px;">La red social de pesca para toda Latinoamérica. Compartí tus capturas, conocé otros pescadores y mejorá tu juego.</p>
 
       <!-- Banderas con imágenes reales -->
       <div style="display:flex;gap:8px;margin-top:20px;flex-wrap:wrap;align-items:center;">
@@ -1694,7 +1694,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
         <img src="https://flagcdn.com/w40/cl.png" width="32" height="22" style="border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.2);object-fit:cover;" title="Chile">
         <img src="https://flagcdn.com/w40/pe.png" width="32" height="22" style="border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.2);object-fit:cover;" title="Perú">
       </div>
-      <div style="font-size:.75rem;color:#65676b;margin-top:6px;">Comunidad hispanohablante y más 🌎</div>
+      <div style="font-size:.75rem;color:#8b949e;margin-top:6px;">Comunidad hispanohablante y más 🌎</div>
     </div>
 
     <!-- DERECHA — Formularios -->
@@ -1707,18 +1707,18 @@ select.fi option{background:var(--bg3);color:var(--text);}
         <input class="fb-input" type="text" id="lEmail" placeholder="Correo electrónico o nick" autocomplete="username">
         <div style="position:relative;margin-bottom:8px;">
           <input class="fb-input" type="password" id="lPass" placeholder="Contraseña" onkeypress="if(event.key==='Enter')doLogin()" style="margin-bottom:0;padding-right:44px;">
-          <button type="button" onclick="togglePassVis('lPass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:#65676b;padding:2px 4px;" title="Mostrar/ocultar contraseña">👁</button>
+          <button type="button" onclick="togglePassVis('lPass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:#8b949e;padding:2px 4px;" title="Mostrar/ocultar contraseña">👁</button>
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
           <input type="checkbox" id="rememberMe" style="width:15px;height:15px;accent-color:#1877f2;cursor:pointer;">
-          <label for="rememberMe" style="font-size:.83rem;color:#65676b;cursor:pointer;">Mantener sesión iniciada</label>
+          <label for="rememberMe" style="font-size:.83rem;color:#8b949e;cursor:pointer;">Mantener sesión iniciada</label>
         </div>
         <button class="fb-btn-login" onclick="doLogin()" id="loginBtn">Iniciar sesión</button>
         <div style="text-align:center;">
           <span class="fb-forgot" onclick="doForgotPassword()">¿Olvidaste tu contraseña?</span>
         </div>
         <div class="fb-divider"></div>
-        <button onclick="doGoogleLogin()" style="width:100%;padding:12px;background:#fff;color:#3c4043;border:1.5px solid #dadce0;border-radius:6px;font-size:1rem;font-weight:600;font-family:'Exo 2',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 8px #0002'" onmouseout="this.style.boxShadow='none'">
+        <button onclick="doGoogleLogin()" style="width:100%;padding:12px;background:#161b22;color:#3c4043;border:1.5px solid #dadce0;border-radius:6px;font-size:1rem;font-weight:600;font-family:'Exo 2',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 8px #0002'" onmouseout="this.style.boxShadow='none'">
           <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:22px;height:22px;">
           Continuar con Google
         </button>
@@ -1742,11 +1742,11 @@ select.fi option{background:var(--bg3);color:var(--text);}
         <input class="fb-input" type="email" id="rEmail" placeholder="Correo electrónico">
         <div style="position:relative;margin-bottom:0;">
           <input class="fb-input" type="password" id="rPass" placeholder="Contraseña nueva (mín. 6)" onkeypress="if(event.key==='Enter')doReg()" style="margin-bottom:0;padding-right:44px;">
-          <button type="button" onclick="togglePassVis('rPass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:#65676b;padding:2px 4px;" title="Mostrar/ocultar contraseña">👁</button>
+          <button type="button" onclick="togglePassVis('rPass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:#8b949e;padding:2px 4px;" title="Mostrar/ocultar contraseña">👁</button>
         </div>
         <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:14px;">
           <input type="checkbox" id="acceptTerms" style="width:15px;height:15px;accent-color:#1877f2;cursor:pointer;margin-top:3px;flex-shrink:0;">
-          <label for="acceptTerms" style="font-size:.78rem;color:#65676b;cursor:pointer;line-height:1.5;">
+          <label for="acceptTerms" style="font-size:.78rem;color:#8b949e;cursor:pointer;line-height:1.5;">
             Acepto los <span style="color:#1877f2;cursor:pointer;" onclick="showTerms()">Términos y Condiciones</span> de CharlasRF4.
           </label>
         </div>
@@ -1758,15 +1758,15 @@ select.fi option{background:var(--bg3);color:var(--text);}
       </div>
 
       <!-- Footer -->
-      <div style="margin-top:16px;text-align:center;color:#65676b;font-size:.72rem;line-height:2;">
+      <div style="margin-top:16px;text-align:center;color:#8b949e;font-size:.72rem;line-height:2;">
         <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;margin-bottom:8px;">
           <span onclick="showTerms()" style="cursor:pointer;color:#1877f2;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Términos y condiciones</span>
           <span style="color:#bcc0c4;">·</span>
           <span onclick="document.getElementById('mVerifBenefits').style.display='flex'" style="cursor:pointer;color:#f7b928;font-weight:700;display:inline-flex;align-items:center;gap:4px;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">✅ Cuenta verificada</span>
           <span style="color:#bcc0c4;">·</span>
-          <span style="color:#65676b;">Privacidad</span>
+          <span style="color:#8b949e;">Privacidad</span>
         </div>
-        <div>© 2025 CharlasRF4 · Creado por <strong style="color:#1c1e21;">ruizgustavo12</strong></div>
+        <div>© 2025 CharlasRF4 · Creado por <strong style="color:#e6edf3;">ruizgustavo12</strong></div>
       </div>
 
     </div><!-- end fb-right -->
@@ -1775,7 +1775,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
 
 <!-- Modal Beneficios Verificado -->
 <div id="mVerifBenefits" style="display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px;">
-  <div style="background:#fff;border-radius:12px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.3);position:relative;">
+  <div style="background:#161b22;border-radius:12px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.3);position:relative;">
     <!-- Header dorado -->
     <div style="background:linear-gradient(135deg,#b8860b,#ffd700,#ffec6e,#ffa500);padding:28px 24px 20px;border-radius:12px 12px 0 0;text-align:center;position:relative;overflow:hidden;">
       <div style="font-size:2.8rem;margin-bottom:6px;">👑</div>
@@ -1789,42 +1789,42 @@ select.fi option{background:var(--bg3);color:var(--text);}
 
         <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fffbf0;border:1px solid rgba(255,215,0,.3);border-radius:8px;">
           <span style="flex-shrink:0;">✅</span>
-          <div><div style="font-weight:700;font-size:.9rem;color:#1c1e21;">Insignia verificada</div><div style="font-size:.8rem;color:#65676b;margin-top:2px;">Tu perfil y publicaciones muestran el sello ✅ que distingue tu cuenta como confiable dentro de la comunidad.</div></div>
+          <div><div style="font-weight:700;font-size:.9rem;color:#e6edf3;">Insignia verificada</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Tu perfil y publicaciones muestran el sello ✅ que distingue tu cuenta como confiable dentro de la comunidad.</div></div>
         </div>
 
         <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fffbf0;border:1px solid rgba(255,215,0,.3);border-radius:8px;">
           <span style="font-size:1.4rem;flex-shrink:0;">🌟</span>
-          <div><div style="font-weight:700;font-size:.9rem;color:#1c1e21;">Publicaciones destacadas</div><div style="font-size:.8rem;color:#65676b;margin-top:2px;">Tus posts tienen un diseño especial con borde dorado animado que los diferencia del resto en el feed.</div></div>
+          <div><div style="font-weight:700;font-size:.9rem;color:#e6edf3;">Publicaciones destacadas</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Tus posts tienen un diseño especial con borde dorado animado que los diferencia del resto en el feed.</div></div>
         </div>
 
         <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fffbf0;border:1px solid rgba(255,215,0,.3);border-radius:8px;">
           <span style="font-size:1.4rem;flex-shrink:0;">📌</span>
-          <div><div style="font-weight:700;font-size:.9rem;color:#1c1e21;">Fijar post en perfil</div><div style="font-size:.8rem;color:#65676b;margin-top:2px;">Podés elegir una publicación y dejarla fija en la parte superior de tu perfil para que siempre sea lo primero que vean.</div></div>
+          <div><div style="font-weight:700;font-size:.9rem;color:#e6edf3;">Fijar post en perfil</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Podés elegir una publicación y dejarla fija en la parte superior de tu perfil para que siempre sea lo primero que vean.</div></div>
         </div>
 
         <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fffbf0;border:1px solid rgba(255,215,0,.3);border-radius:8px;">
           <span style="font-size:1.4rem;flex-shrink:0;">👁️</span>
-          <div><div style="font-weight:700;font-size:.9rem;color:#1c1e21;">Ver quién visitó tu perfil</div><div style="font-size:.8rem;color:#65676b;margin-top:2px;">Accedé a la lista de usuarios que visitaron tu perfil recientemente. Función exclusiva para verificados.</div></div>
+          <div><div style="font-weight:700;font-size:.9rem;color:#e6edf3;">Ver quién visitó tu perfil</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Accedé a la lista de usuarios que visitaron tu perfil recientemente. Función exclusiva para verificados.</div></div>
         </div>
 
         <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fffbf0;border:1px solid rgba(255,215,0,.3);border-radius:8px;">
           <span style="font-size:1.4rem;flex-shrink:0;">🎭</span>
-          <div><div style="font-weight:700;font-size:.9rem;color:#1c1e21;">Modo anónimo</div><div style="font-size:.8rem;color:#65676b;margin-top:2px;">Publicá sin que tu nombre aparezca. Ideal para compartir tips o confesiones de pesca sin revelar tu identidad.</div></div>
+          <div><div style="font-weight:700;font-size:.9rem;color:#e6edf3;">Modo anónimo</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Publicá sin que tu nombre aparezca. Ideal para compartir tips o confesiones de pesca sin revelar tu identidad.</div></div>
         </div>
 
         <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fffbf0;border:1px solid rgba(255,215,0,.3);border-radius:8px;">
           <span style="font-size:1.4rem;flex-shrink:0;">⏳</span>
-          <div><div style="font-weight:700;font-size:.9rem;color:#1c1e21;">Historias de 48 horas</div><div style="font-size:.8rem;color:#65676b;margin-top:2px;">Tus historias duran el doble que las de los usuarios normales — 48 horas en lugar de 24.</div></div>
+          <div><div style="font-weight:700;font-size:.9rem;color:#e6edf3;">Historias de 48 horas</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Tus historias duran el doble que las de los usuarios normales — 48 horas en lugar de 24.</div></div>
         </div>
 
         <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fffbf0;border:1px solid rgba(255,215,0,.3);border-radius:8px;">
           <span style="font-size:1.4rem;flex-shrink:0;">💬</span>
-          <div><div style="font-weight:700;font-size:.9rem;color:#1c1e21;">Reacciones extra en chats</div><div style="font-size:.8rem;color:#65676b;margin-top:2px;">Desbloqueás emojis adicionales para reaccionar en los mensajes privados.</div></div>
+          <div><div style="font-weight:700;font-size:.9rem;color:#e6edf3;">Reacciones extra en chats</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Desbloqueás emojis adicionales para reaccionar en los mensajes privados.</div></div>
         </div>
 
         <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fffbf0;border:1px solid rgba(255,215,0,.3);border-radius:8px;">
           <span style="font-size:1.4rem;flex-shrink:0;">👥</span>
-          <div><div style="font-weight:700;font-size:.9rem;color:#1c1e21;">Ver vistas en tus historias</div><div style="font-size:.8rem;color:#65676b;margin-top:2px;">Sabé exactamente quiénes vieron tus historias. Solo los verificados tienen acceso a esta información.</div></div>
+          <div><div style="font-weight:700;font-size:.9rem;color:#e6edf3;">Ver vistas en tus historias</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Sabé exactamente quiénes vieron tus historias. Solo los verificados tienen acceso a esta información.</div></div>
         </div>
 
       </div>
@@ -1832,13 +1832,13 @@ select.fi option{background:var(--bg3);color:var(--text);}
       <!-- Coming soon -->
       <div style="background:linear-gradient(135deg,rgba(24,119,242,.06),rgba(24,119,242,.03));border:1px solid rgba(24,119,242,.2);border-radius:8px;padding:14px;margin-bottom:20px;">
         <div style="font-weight:700;font-size:.85rem;color:#1877f2;margin-bottom:6px;">🚀 Próximamente más beneficios...</div>
-        <div style="font-size:.78rem;color:#65676b;line-height:1.6;">Estamos trabajando en nuevas funciones exclusivas para cuentas verificadas: torneos privados, insignias especiales, estadísticas avanzadas y mucho más. ¡La comunidad sigue creciendo!</div>
+        <div style="font-size:.78rem;color:#8b949e;line-height:1.6;">Estamos trabajando en nuevas funciones exclusivas para cuentas verificadas: torneos privados, insignias especiales, estadísticas avanzadas y mucho más. ¡La comunidad sigue creciendo!</div>
       </div>
 
       <!-- Cómo obtenerla -->
       <div style="background:#f0f8ff;border:1px solid rgba(24,119,242,.2);border-radius:8px;padding:14px;margin-bottom:20px;">
         <div style="font-weight:700;font-size:.85rem;color:#1877f2;margin-bottom:6px;">¿Cómo obtengo la verificación?</div>
-        <div style="font-size:.78rem;color:#65676b;line-height:1.7;">
+        <div style="font-size:.78rem;color:#8b949e;line-height:1.7;">
           1. Creá tu cuenta y participá activamente en la comunidad.<br>
           2. Desde tu perfil, solicitá la verificación con el botón correspondiente.<br>
           3. El equipo de CharlasRF4 revisará tu solicitud.<br>
@@ -6090,14 +6090,14 @@ function postHTML(p){
         +'<div style="position:relative;display:inline-block;max-width:100%;">'
           +'<div class="comment-bubble">'
             +'<span class="comment-author" style="cursor:pointer;" onclick="openUserProfile(\''+c.userId+'\',\''+esc(c.nick)+'\')">'+(c.nick||'?')+'</span>'
-            +(c.gif?'<img src="'+c.gif+'" style="max-width:180px;border-radius:8px;margin-top:4px;display:block;" loading="lazy">'  :'<span class="comment-text"> '+renderCommentText(c.text)+(c.edited?' <span style="font-size:.63rem;color:#65676b;">(editado)</span>':'')+'</span>')
+            +(c.gif?'<img src="'+c.gif+'" style="max-width:180px;border-radius:8px;margin-top:4px;display:block;" loading="lazy">'  :'<span class="comment-text"> '+renderCommentText(c.text)+(c.edited?' <span style="font-size:.63rem;color:#8b949e;">(editado)</span>':'')+'</span>')
           +'</div>'
           +'<div class="cmt-menu-wrap" style="position:absolute;top:-6px;right:-32px;">'
             +'<button class="cmt-dots-btn">⋯</button>'
             +'<div class="cmt-menu-dropdown">'+menuBtns+'</div>'
           +'</div>'
         +'</div>'
-        +(cRxnTotal>0?'<div style="display:inline-flex;align-items:center;gap:2px;background:#fff;border:1px solid #ced0d4;border-radius:100px;padding:2px 5px;font-size:.72rem;margin-top:2px;box-shadow:0 1px 3px rgba(0,0,0,.1);">'+cTopRxn+' <span style="color:#65676b;">'+cRxnTotal+'</span></div>':'')
+        +(cRxnTotal>0?'<div style="display:inline-flex;align-items:center;gap:2px;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:2px 5px;font-size:.72rem;margin-top:2px;box-shadow:0 1px 3px rgba(0,0,0,.1);">'+cTopRxn+' <span style="color:#8b949e;">'+cRxnTotal+'</span></div>':'')
         +'<div class="cmt-meta">'
           +'<span class="cmt-meta-time">'+timeStr+'</span>'
           +'<div class="cmt-rxn-wrap">'
@@ -6204,7 +6204,7 @@ function postHTML(p){
     if(p.profileAction==='cover' && p.images&&p.images[0]){
       var _imgs = p.images; var _pid = p.id;
       var _imgsJson = _imgs.map(function(x){return "'"+x+"'"}).join(',');
-      return `<div style="margin:0 0 10px;border-radius:var(--rs);overflow:hidden;position:relative;background:#f0f2f5;cursor:pointer;" onclick="(function(){window._postImgsMap=window._postImgsMap||{};window._postImgsMap['${p.id}']=[${p.images.map(x=>"'"+x+"'").join(',')}];openImgLightboxById('${p.id}',0);})()"><img src="${p.images[0]}" style="width:100%;max-height:340px;object-fit:cover;display:block;transition:opacity .2s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'" loading="lazy"><div style="position:absolute;bottom:8px;left:10px;background:rgba(0,0,0,.55);color:#fff;font-size:.72rem;padding:3px 10px;border-radius:100px;backdrop-filter:blur(6px);">📷 Nueva foto de portada</div></div>`;
+      return `<div style="margin:0 0 10px;border-radius:var(--rs);overflow:hidden;position:relative;background:#0d1117;cursor:pointer;" onclick="(function(){window._postImgsMap=window._postImgsMap||{};window._postImgsMap['${p.id}']=[${p.images.map(x=>"'"+x+"'").join(',')}];openImgLightboxById('${p.id}',0);})()"><img src="${p.images[0]}" style="width:100%;max-height:340px;object-fit:cover;display:block;transition:opacity .2s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'" loading="lazy"><div style="position:absolute;bottom:8px;left:10px;background:rgba(0,0,0,.55);color:#fff;font-size:.72rem;padding:3px 10px;border-radius:100px;backdrop-filter:blur(6px);">📷 Nueva foto de portada</div></div>`;
     }
     if(p.profileAction==='avatar' && p.images&&p.images[0]){
       return `<div style="margin:0 0 10px;display:flex;justify-content:center;"><div style="width:140px;height:140px;border-radius:50%;overflow:hidden;border:4px solid var(--accent);box-shadow:0 0 20px rgba(0,198,255,.3);cursor:pointer;" onclick="(function(){window._postImgsMap=window._postImgsMap||{};window._postImgsMap['${p.id}']=[${p.images.map(x=>"'"+x+"'").join(',')}];openImgLightboxById('${p.id}',0);})()"><img src="${p.images[0]}" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy"></div></div>`;
@@ -6236,18 +6236,18 @@ function postHTML(p){
       ${cmtsHTML}
       <div class="comment-input-row">
         <div class="sl-av" style="width:36px;height:36px;font-size:.8rem;flex-shrink:0;">${window.CU?.av?'<img src="'+window.CU.av+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">':window.CU?.nick?.[0]||'?'}</div>
-        <div style="position:relative;flex:1;display:flex;align-items:center;background:#f0f2f5;border-radius:20px;padding:0 8px 0 0;">
+        <div style="position:relative;flex:1;display:flex;align-items:center;background:#0d1117;border-radius:20px;padding:0 8px 0 0;">
           <input class="comment-input" placeholder="Escribe un comentario..." id="cinp_${p.id}" 
             onkeypress="if(event.key==='Enter'){event.preventDefault();submitComment('${p.id}');}"
             oninput="handleMentionInput(this,'${p.id}')" style="flex:1;background:transparent;border:none;padding:9px 12px;">
-          <button onclick="openEmojiPicker(event,'cinp_${p.id}')" style="background:none;border:none;font-size:1rem;cursor:pointer;padding:4px;color:#65676b;" title="Emoji">😊</button>
-          <label style="background:none;border:none;font-size:1rem;cursor:pointer;padding:4px;color:#65676b;display:flex;align-items:center;" title="Imagen">
+          <button onclick="openEmojiPicker(event,'cinp_${p.id}')" style="background:none;border:none;font-size:1rem;cursor:pointer;padding:4px;color:#8b949e;" title="Emoji">😊</button>
+          <label style="background:none;border:none;font-size:1rem;cursor:pointer;padding:4px;color:#8b949e;display:flex;align-items:center;" title="Imagen">
             🖼️<input type="file" accept="image/*" style="display:none;" onchange="submitCommentImg(this,'${p.id}')">
           </label>
-          <button onclick="toggleStickerPicker('stkpick_${p.id}','cinp_${p.id}')" style="background:none;border:none;font-size:1rem;cursor:pointer;padding:4px;color:#65676b;" title="Stickers">🎭</button>
-          <button onclick="toggleGifPicker('gifpick_${p.id}','cinp_${p.id}')" style="background:none;border:none;font-size:.6rem;font-weight:900;cursor:pointer;padding:3px 5px;color:#65676b;border:1px solid #65676b;border-radius:4px;line-height:1;" title="GIF">GIF</button>
+          <button onclick="toggleStickerPicker('stkpick_${p.id}','cinp_${p.id}')" style="background:none;border:none;font-size:1rem;cursor:pointer;padding:4px;color:#8b949e;" title="Stickers">🎭</button>
+          <button onclick="toggleGifPicker('gifpick_${p.id}','cinp_${p.id}')" style="background:none;border:none;font-size:.6rem;font-weight:900;cursor:pointer;padding:3px 5px;color:#8b949e;border:1px solid #65676b;border-radius:4px;line-height:1;" title="GIF">GIF</button>
           <div class="gif-picker" id="gifpick_${p.id}" style="bottom:calc(100% + 4px);">
-            <div class="gif-search"><input type="text" placeholder="Buscar GIF..." oninput="searchGifs(this.value,'gifpick_${p.id}','cinp_${p.id}')"><button onclick="closeGifPicker('gifpick_${p.id}')" style="background:none;border:none;color:#65676b;font-size:1rem;cursor:pointer;">✕</button></div>
+            <div class="gif-search"><input type="text" placeholder="Buscar GIF..." oninput="searchGifs(this.value,'gifpick_${p.id}','cinp_${p.id}')"><button onclick="closeGifPicker('gifpick_${p.id}')" style="background:none;border:none;color:#8b949e;font-size:1rem;cursor:pointer;">✕</button></div>
             <div class="gif-grid" id="gifgrid_${p.id}"></div>
             <div class="gif-powered">Powered by GIPHY</div>
           </div>
@@ -6255,13 +6255,13 @@ function postHTML(p){
             <div class="stk-search">
               <span style="font-size:1rem;">🔍</span>
               <input type="text" placeholder="Buscar" id="stksearch_${p.id}" oninput="searchStickers(this.value,'stkpick_${p.id}','cinp_${p.id}')">
-              <button onclick="closeStickerPicker('stkpick_${p.id}')" style="background:none;border:none;color:#65676b;font-size:1rem;cursor:pointer;padding:2px;">✕</button>
+              <button onclick="closeStickerPicker('stkpick_${p.id}')" style="background:none;border:none;color:#8b949e;font-size:1rem;cursor:pointer;padding:2px;">✕</button>
             </div>
             <div id="stkcontent_${p.id}">
               <div class="stk-cats" id="stkcats_${p.id}"></div>
             </div>
           </div>
-          <div id="mention_${p.id}" style="display:none;position:absolute;bottom:calc(100% + 4px);left:0;background:#fff;border:1px solid #ced0d4;border-radius:8px;min-width:180px;max-height:180px;overflow-y:auto;z-index:500;box-shadow:0 4px 16px rgba(0,0,0,.2);"></div>
+          <div id="mention_${p.id}" style="display:none;position:absolute;bottom:calc(100% + 4px);left:0;background:#161b22;border:1px solid #30363d;border-radius:8px;min-width:180px;max-height:180px;overflow-y:auto;z-index:500;box-shadow:0 4px 16px rgba(0,0,0,.2);"></div>
         </div>
       </div>
     </div>
@@ -6664,8 +6664,8 @@ function toggleComments(pid){
             <path d="M18 37l4 4 8-8" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <div style="font-weight:700;font-size:.95rem;color:#050505;">Todavía no hay comentarios</div>
-        <div style="font-size:.82rem;color:#65676b;">Sé la primera persona en comentar.</div>
+        <div style="font-weight:700;font-size:.95rem;color:#e6edf3;">Todavía no hay comentarios</div>
+        <div style="font-size:.82rem;color:#8b949e;">Sé la primera persona en comentar.</div>
       </div>`;
 
     return cmts.map((c,ci)=>{
@@ -6684,11 +6684,11 @@ function toggleComments(pid){
       const menuHtml = (canEdit||canDel) ? `
         <div style="position:relative;margin-left:auto;">
           <button onclick="var m=document.getElementById('${menuId}');m.style.display=m.style.display==='block'?'none':'block';event.stopPropagation();"
-            style="background:none;border:none;color:#65676b;font-size:1rem;cursor:pointer;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1;"
+            style="background:none;border:none;color:#8b949e;font-size:1rem;cursor:pointer;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1;"
             onmouseover="this.style.background='#f0f2f5'" onmouseout="this.style.background='none'">···</button>
-          <div id="${menuId}" style="display:none;position:absolute;right:0;top:100%;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.2);min-width:160px;z-index:99;overflow:hidden;">
+          <div id="${menuId}" style="display:none;position:absolute;right:0;top:100%;background:#161b22;border:1px solid #30363d;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.2);min-width:160px;z-index:99;overflow:hidden;">
             ${canEdit?`<button onclick="document.getElementById('${menuId}').style.display='none';_editModalCmt('${pid}',${ci})"
-              style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;padding:10px 14px;font-size:.88rem;color:#050505;cursor:pointer;font-family:'Exo 2',sans-serif;"
+              style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;padding:10px 14px;font-size:.88rem;color:#e6edf3;cursor:pointer;font-family:'Exo 2',sans-serif;"
               onmouseover="this.style.background='#f0f2f5'" onmouseout="this.style.background='none'">
               <span style="font-size:1rem;">✏️</span> Editar
             </button>`:''}
@@ -6701,22 +6701,22 @@ function toggleComments(pid){
         </div>` : '';
 
       return `<div id="_cmtrow_${pid}_${ci}" style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;">
-        <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:#e4e6eb;flex-shrink:0;cursor:pointer;" onclick="openUserProfile('${c.userId||''}','${esc(c.nick||'')}')">${av}</div>
+        <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:#21262d;flex-shrink:0;cursor:pointer;" onclick="openUserProfile('${c.userId||''}','${esc(c.nick||'')}')">${av}</div>
         <div style="flex:1;min-width:0;">
           <div style="display:flex;align-items:flex-start;gap:4px;">
-            <div style="background:#f0f2f5;border-radius:18px;padding:8px 12px;display:inline-block;max-width:calc(100% - 36px);">
+            <div style="background:#0d1117;border-radius:18px;padding:8px 12px;display:inline-block;max-width:calc(100% - 36px);">
               <div style="display:flex;align-items:center;gap:4px;margin-bottom:1px;">
                 <span style="font-weight:700;font-size:.82rem;color:${nameColor};cursor:pointer;" onclick="openUserProfile('${c.userId||''}','${esc(c.nick||'')}')">${esc(c.nick||'')}${verifiedBadge}</span>
                 ${isAuthor?'<span style="font-size:.62rem;color:#1877f2;font-weight:700;background:#e7f3ff;border-radius:4px;padding:1px 5px;line-height:1.4;">Autor</span>':''}
               </div>
-              ${c.gif ? `<img src="${c.gif}" style="max-width:180px;border-radius:8px;margin-top:4px;display:block;" loading="lazy">` : `<span style="font-size:.88rem;color:#050505;line-height:1.45;word-break:break-word;">${esc(c.text||'')}</span>`}
+              ${c.gif ? `<img src="${c.gif}" style="max-width:180px;border-radius:8px;margin-top:4px;display:block;" loading="lazy">` : `<span style="font-size:.88rem;color:#e6edf3;line-height:1.45;word-break:break-word;">${esc(c.text||'')}</span>`}
             </div>
             ${menuHtml}
           </div>
           <div style="display:flex;align-items:center;gap:12px;padding:3px 4px 0;">
-            <span style="font-size:.72rem;color:#65676b;">${c.time?fmtT(c.time):''}</span>
-            <button style="background:none;border:none;font-size:.72rem;font-weight:700;color:#65676b;cursor:pointer;padding:0;" onmouseover="this.style.color='#050505'" onmouseout="this.style.color='#65676b'">Me gusta</button>
-            <button style="background:none;border:none;font-size:.72rem;font-weight:700;color:#65676b;cursor:pointer;padding:0;" onmouseover="this.style.color='#050505'" onmouseout="this.style.color='#65676b'" onclick="document.getElementById('_cmtModalInp_${pid}').value='@${esc(c.nick||'')} ';document.getElementById('_cmtModalInp_${pid}').focus()">Responder</button>
+            <span style="font-size:.72rem;color:#8b949e;">${c.time?fmtT(c.time):''}</span>
+            <button style="background:none;border:none;font-size:.72rem;font-weight:700;color:#8b949e;cursor:pointer;padding:0;" onmouseover="this.style.color='#050505'" onmouseout="this.style.color='#65676b'">Me gusta</button>
+            <button style="background:none;border:none;font-size:.72rem;font-weight:700;color:#8b949e;cursor:pointer;padding:0;" onmouseover="this.style.color='#050505'" onmouseout="this.style.color='#65676b'" onclick="document.getElementById('_cmtModalInp_${pid}').value='@${esc(c.nick||'')} ';document.getElementById('_cmtModalInp_${pid}').focus()">Responder</button>
           </div>
         </div>
       </div>`;
@@ -6734,13 +6734,13 @@ function toggleComments(pid){
     #_cmtModalBox_${pid} * { box-sizing:border-box; }
     @keyframes _cmtFadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
   </style>
-  <div id="_cmtModalBox_${pid}" style="background:#fff;border-radius:12px;width:520px;max-width:96vw;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3);animation:_cmtFadeIn .18s ease;">
+  <div id="_cmtModalBox_${pid}" style="background:#161b22;border-radius:12px;width:520px;max-width:96vw;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3);animation:_cmtFadeIn .18s ease;">
 
     <!-- Header -->
-    <div style="display:flex;align-items:center;justify-content:center;padding:14px 16px;border-bottom:1px solid #e4e6eb;position:relative;flex-shrink:0;">
-      <span style="font-weight:700;font-size:1rem;color:#050505;">Publicación de ${esc(post.userNick||'')}</span>
+    <div style="display:flex;align-items:center;justify-content:center;padding:14px 16px;border-bottom:1px solid #30363d;position:relative;flex-shrink:0;">
+      <span style="font-weight:700;font-size:1rem;color:#e6edf3;">Publicación de ${esc(post.userNick||'')}</span>
       <button onclick="document.getElementById('_cmtModal_${pid}').remove()"
-        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:#e4e6eb;border:none;color:#050505;width:34px;height:34px;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1;">✕</button>
+        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:#21262d;border:none;color:#e6edf3;width:34px;height:34px;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1;">✕</button>
     </div>
 
     <!-- Image preview if exists -->
@@ -6749,16 +6749,16 @@ function toggleComments(pid){
     <!-- Reaction + share counts -->
     ${(totalRxns>0||cmts.length>0)?`
     <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;flex-shrink:0;">
-      ${totalRxns>0?`<div style="display:flex;align-items:center;gap:4px;font-size:.85rem;color:#65676b;cursor:pointer;"><span style="font-size:1rem;">${topRxns}</span>${totalRxns}</div>`:'<div></div>'}
-      ${cmts.length>0?`<div id="_cmtModalCount_${pid}" style="font-size:.85rem;color:#65676b;cursor:pointer;">${cmts.length} comentario${cmts.length!==1?'s':''}</div>`:'<div id="_cmtModalCount_'+pid+'"></div>'}
+      ${totalRxns>0?`<div style="display:flex;align-items:center;gap:4px;font-size:.85rem;color:#8b949e;cursor:pointer;"><span style="font-size:1rem;">${topRxns}</span>${totalRxns}</div>`:'<div></div>'}
+      ${cmts.length>0?`<div id="_cmtModalCount_${pid}" style="font-size:.85rem;color:#8b949e;cursor:pointer;">${cmts.length} comentario${cmts.length!==1?'s':''}</div>`:'<div id="_cmtModalCount_'+pid+'"></div>'}
     </div>`:''}
 
     <!-- Action buttons -->
-    <div style="display:flex;border-top:1px solid #e4e6eb;border-bottom:1px solid #e4e6eb;flex-shrink:0;">
+    <div style="display:flex;border-top:1px solid #30363d;border-bottom:1px solid #30363d;flex-shrink:0;">
       <div style="flex:1;position:relative;">
         <button id="_modalRxnBtn_${pid}" onclick="doReact('${pid}','👍')" 
           onmouseenter="showRxnPop('_modal_${pid}')" onmouseleave="schedHideRxnPop('_modal_${pid}')"
-          style="width:100%;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:0;cursor:pointer;font-size:.88rem;font-weight:700;color:#65676b;" 
+          style="width:100%;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:0;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;" 
           onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background='none'">👍 Me gusta</button>
         <div class="rxn-popup" id="rxnp__modal_${pid}" 
           onmouseenter="cancelHideRxnPop('_modal_${pid}')" onmouseleave="schedHideRxnPop('_modal_${pid}')"
@@ -6766,8 +6766,8 @@ function toggleComments(pid){
           ${rxnBtns}
         </div>
       </div>
-      <button onclick="document.getElementById('_cmtModalInp_${pid}').focus()" style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;cursor:pointer;font-size:.88rem;font-weight:700;color:#65676b;" onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background='none'">💬 Comentar</button>
-      <button onclick="sharePost('${pid}')" style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;cursor:pointer;font-size:.88rem;font-weight:700;color:#65676b;" onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background='none'">↗ Compartir</button>
+      <button onclick="document.getElementById('_cmtModalInp_${pid}').focus()" style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;" onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background='none'">💬 Comentar</button>
+      <button onclick="sharePost('${pid}')" style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;" onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background='none'">↗ Compartir</button>
     </div>
 
     <!-- Comments list -->
@@ -6776,11 +6776,11 @@ function toggleComments(pid){
     </div>
 
     <!-- Comment input -->
-    <div style="padding:8px 12px 10px;display:flex;gap:8px;align-items:center;flex-shrink:0;border-top:1px solid #e4e6eb;">
-      <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:#e4e6eb;flex-shrink:0;">${avHtml}</div>
-      <div style="flex:1;display:flex;align-items:center;background:#f0f2f5;border-radius:20px;gap:2px;padding-right:6px;">
+    <div style="padding:8px 12px 10px;display:flex;gap:8px;align-items:center;flex-shrink:0;border-top:1px solid #30363d;">
+      <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:#21262d;flex-shrink:0;">${avHtml}</div>
+      <div style="flex:1;display:flex;align-items:center;background:#0d1117;border-radius:20px;gap:2px;padding-right:6px;">
         <input id="_cmtModalInp_${pid}" placeholder="Escribe un comentario..."
-          style="flex:1;background:transparent;border:none;padding:9px 14px;color:#050505;font-size:.88rem;font-family:'Exo 2',sans-serif;outline:none;"
+          style="flex:1;background:transparent;border:none;padding:9px 14px;color:#e6edf3;font-size:.88rem;font-family:'Exo 2',sans-serif;outline:none;"
           onkeypress="if(event.key==='Enter'){event.preventDefault();_submitModalCmt('${pid}');}">
         <button onclick="openEmojiPicker(event,'_cmtModalInp_${pid}')" title="Emoji"
           style="background:none;border:none;font-size:1.1rem;cursor:pointer;padding:4px 5px;border-radius:50%;line-height:1;transition:background .15s;"
@@ -6792,7 +6792,7 @@ function toggleComments(pid){
           <div class="stk-search">
             <span style="font-size:1rem;">🔍</span>
             <input type="text" placeholder="Buscar" id="_modalstksearch_${pid}" oninput="searchStickers(this.value,'_modalstkpick_${pid}','_cmtModalInp_${pid}')">
-            <button onclick="closeStickerPicker('_modalstkpick_${pid}')" style="background:none;border:none;color:#65676b;font-size:1rem;cursor:pointer;padding:2px;">✕</button>
+            <button onclick="closeStickerPicker('_modalstkpick_${pid}')" style="background:none;border:none;color:#8b949e;font-size:1rem;cursor:pointer;padding:2px;">✕</button>
           </div>
           <div id="_modalstkcontent_${pid}">
             <div class="stk-cats" id="_modalstkcats_${pid}"></div>
@@ -6871,17 +6871,17 @@ function _cmtOpenGif(pid){
   const inp = document.getElementById('_cmtModalInp_'+pid);
   const wrap = document.createElement('div');
   wrap.id = '_cmtGifPicker_'+pid;
-  wrap.style.cssText = 'padding:8px 12px;border-top:1px solid #e4e6eb;background:#fff;';
+  wrap.style.cssText = 'padding:8px 12px;border-top:1px solid #30363d;background:#161b22;';
   wrap.innerHTML = `
     <div style="display:flex;gap:6px;margin-bottom:8px;">
       <input id="_cmtGifSearch_${pid}" placeholder="Buscar GIF..." 
-        style="flex:1;padding:7px 12px;border:1px solid #e4e6eb;border-radius:20px;font-size:.82rem;outline:none;font-family:'Exo 2',sans-serif;"
+        style="flex:1;padding:7px 12px;border:1px solid #30363d;border-radius:20px;font-size:.82rem;outline:none;font-family:'Exo 2',sans-serif;"
         oninput="searchCmtGifs('${pid}')" onkeypress="if(event.key==='Enter')searchCmtGifs('${pid}')">
       <button onclick="document.getElementById('_cmtGifPicker_${pid}').remove()" 
-        style="background:#e4e6eb;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:.9rem;">✕</button>
+        style="background:#21262d;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:.9rem;">✕</button>
     </div>
     <div id="_cmtGifResults_${pid}" style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;max-height:180px;overflow-y:auto;">
-      <div style="grid-column:1/-1;text-align:center;padding:16px;color:#65676b;font-size:.82rem;">Escribí algo para buscar GIFs 🎬</div>
+      <div style="grid-column:1/-1;text-align:center;padding:16px;color:#8b949e;font-size:.82rem;">Escribí algo para buscar GIFs 🎬</div>
     </div>`;
   // Insert before comment input area
   const inputArea = inp?.closest('div')?.parentElement;
@@ -6893,12 +6893,12 @@ async function searchCmtGifs(pid){
   const q = document.getElementById('_cmtGifSearch_'+pid)?.value.trim();
   const res = document.getElementById('_cmtGifResults_'+pid);
   if(!res) return;
-  if(!q){ res.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:16px;color:#65676b;font-size:.82rem;">Escribí algo para buscar GIFs 🎬</div>'; return; }
-  res.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:10px;color:#65676b;font-size:.8rem;">Buscando...</div>';
+  if(!q){ res.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:16px;color:#8b949e;font-size:.82rem;">Escribí algo para buscar GIFs 🎬</div>'; return; }
+  res.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:10px;color:#8b949e;font-size:.8rem;">Buscando...</div>';
   try {
     const r = await fetch(`https://api.tenor.com/v2/search?q=${encodeURIComponent(q)}&key=AIzaSyAyimkuYQYF_FXVALexPmHA5a7li72Bkr0&limit=12&media_filter=gif`);
     const data = await r.json();
-    if(!data.results?.length){ res.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:10px;color:#65676b;font-size:.8rem;">Sin resultados</div>'; return; }
+    if(!data.results?.length){ res.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:10px;color:#8b949e;font-size:.8rem;">Sin resultados</div>'; return; }
     res.innerHTML = data.results.map(g=>{
       const url = g.media_formats?.gif?.url || g.media_formats?.tinygif?.url || '';
       const preview = g.media_formats?.tinygif?.url || url;
@@ -6906,7 +6906,7 @@ async function searchCmtGifs(pid){
         onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'"
         onclick="sendCmtGif('${pid}','${url}')">`;
     }).join('');
-  } catch(e){ res.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:10px;color:#65676b;font-size:.8rem;">Error al buscar</div>'; }
+  } catch(e){ res.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:10px;color:#8b949e;font-size:.8rem;">Error al buscar</div>'; }
 }
 
 async function sendCmtGif(pid, gifUrl){
@@ -8674,23 +8674,23 @@ function openImgLightbox(src, allImgs, postId){
     </div>
 
     <!-- SIDEBAR: white, Facebook style -->
-    <div id="_igSidebar" style="width:340px;flex-shrink:0;display:flex;flex-direction:column;background:#fff;border-left:1px solid #ddd;max-height:100%;overflow:hidden;">
+    <div id="_igSidebar" style="width:340px;flex-shrink:0;display:flex;flex-direction:column;background:#161b22;border-left:1px solid #ddd;max-height:100%;overflow:hidden;">
 
       <!-- Reactions summary + action buttons -->
       <div style="padding:10px 14px 0;flex-shrink:0;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #e4e6eb;">
-          <div id="_igRxnSummary" style="display:flex;align-items:center;gap:4px;font-size:.82rem;color:#65676b;"></div>
-          <div id="_igCmtCount" style="font-size:.82rem;color:#65676b;cursor:pointer;" onclick="document.getElementById('_igComments').scrollTop=99999"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #30363d;">
+          <div id="_igRxnSummary" style="display:flex;align-items:center;gap:4px;font-size:.82rem;color:#8b949e;"></div>
+          <div id="_igCmtCount" style="font-size:.82rem;color:#8b949e;cursor:pointer;" onclick="document.getElementById('_igComments').scrollTop=99999"></div>
         </div>
         <!-- Me gusta / Comentar / Compartir -->
-        <div style="display:flex;border-bottom:1px solid #e4e6eb;padding:2px 0;">
+        <div style="display:flex;border-bottom:1px solid #30363d;padding:2px 0;">
           <div style="position:relative;flex:1;" id="_igRxnWrap">
             <button onclick="igReact('👍')" onmouseenter="document.getElementById('_igRxnPop').style.display='flex'" onmouseleave="setTimeout(()=>{if(!document.getElementById('_igRxnPop').matches(':hover'))document.getElementById('_igRxnPop').style.display='none'},300)"
-              style="width:100%;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:700;color:#65676b;transition:background .15s;"
+              style="width:100%;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;transition:background .15s;"
               onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background='none'">
               <span id="_igMyRxnIcon">👍</span> Me gusta
             </button>
-            <div id="_igRxnPop" style="display:none;position:absolute;bottom:calc(100% + 4px);left:0;background:#fff;border:1px solid #ddd;border-radius:100px;padding:6px 8px;align-items:center;gap:2px;box-shadow:0 4px 16px rgba(0,0,0,.2);white-space:nowrap;z-index:999;"
+            <div id="_igRxnPop" style="display:none;position:absolute;bottom:calc(100% + 4px);left:0;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:6px 8px;align-items:center;gap:2px;box-shadow:0 4px 16px rgba(0,0,0,.2);white-space:nowrap;z-index:999;"
               onmouseenter="this.style.display='flex'" onmouseleave="this.style.display='none'">
               ${FB_RXNS.map(r=>`<button onclick="igReact('${r.e}');document.getElementById('_igRxnPop').style.display='none'" title="${r.l}"
                 style="background:none;border:none;font-size:1.5rem;cursor:pointer;padding:3px;border-radius:50%;transition:transform .12s;"
@@ -8698,24 +8698,24 @@ function openImgLightbox(src, allImgs, postId){
             </div>
           </div>
           <button onclick="document.getElementById('_igCmtInp').focus()"
-            style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:700;color:#65676b;transition:background .15s;"
+            style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;transition:background .15s;"
             onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background='none'">💬 Comentar</button>
           ${_galPostId?`<button onclick="igShare()"
-            style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:700;color:#65676b;transition:background .15s;"
+            style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;transition:background .15s;"
             onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background='none'">↗ Compartir</button>`:''}
         </div>
       </div>
 
       <!-- Comments list -->
       <div id="_igComments" style="flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;">
-        <div style="text-align:center;padding:20px;color:#65676b;font-size:.82rem;">Cargando...</div>
+        <div style="text-align:center;padding:20px;color:#8b949e;font-size:.82rem;">Cargando...</div>
       </div>
 
       <!-- Comment input -->
-      <div style="padding:8px 12px 10px;display:flex;gap:8px;align-items:center;flex-shrink:0;border-top:1px solid #e4e6eb;">
-        <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:#e4e6eb;flex-shrink:0;">${avHtml}</div>
-        <div style="flex:1;display:flex;align-items:center;background:#f0f2f5;border-radius:20px;">
-          <input id="_igCmtInp" placeholder="Escribe un comentario..." style="flex:1;background:transparent;border:none;padding:9px 12px;color:#050505;font-size:.88rem;font-family:'Exo 2',sans-serif;outline:none;" onkeypress="if(event.key==='Enter'){event.preventDefault();igSubmitComment();}">
+      <div style="padding:8px 12px 10px;display:flex;gap:8px;align-items:center;flex-shrink:0;border-top:1px solid #30363d;">
+        <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:#21262d;flex-shrink:0;">${avHtml}</div>
+        <div style="flex:1;display:flex;align-items:center;background:#0d1117;border-radius:20px;">
+          <input id="_igCmtInp" placeholder="Escribe un comentario..." style="flex:1;background:transparent;border:none;padding:9px 12px;color:#e6edf3;font-size:.88rem;font-family:'Exo 2',sans-serif;outline:none;" onkeypress="if(event.key==='Enter'){event.preventDefault();igSubmitComment();}">
           <button onclick="igSubmitComment()" style="background:none;border:none;color:#1877f2;font-size:1rem;cursor:pointer;padding:4px 10px;opacity:.5;transition:opacity .15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.5'">➤</button>
         </div>
       </div>
@@ -8744,7 +8744,7 @@ function openImgLightbox(src, allImgs, postId){
   document.body.appendChild(modal);
   if(_galPostId) igLoadPostData(_galPostId);
   else {
-    document.getElementById('_igComments').innerHTML='<div style="text-align:center;padding:28px;color:#65676b;font-size:.82rem;">Sin comentarios</div>';
+    document.getElementById('_igComments').innerHTML='<div style="text-align:center;padding:28px;color:#8b949e;font-size:.82rem;">Sin comentarios</div>';
   }
 }
 
@@ -8789,24 +8789,24 @@ function igRenderComments(comments){
   const cmtCount = document.getElementById('_igCmtCount');
   if(cmtCount) cmtCount.textContent = comments.length>0 ? comments.length+' comentario'+(comments.length!==1?'s':'') : '';
   if(!comments.length){
-    el.innerHTML='<div style="text-align:center;padding:28px;color:#65676b;font-size:.82rem;">Sin comentarios. ¡Sé el primero!</div>';
+    el.innerHTML='<div style="text-align:center;padding:28px;color:#8b949e;font-size:.82rem;">Sin comentarios. ¡Sé el primero!</div>';
     return;
   }
   el.innerHTML = comments.map(c=>{
     const av = `<img src="${c.av||getDefaultAv(c.gender||'')}" style="width:100%;height:100%;object-fit:cover;">`;
     const isAuthor = _galPostId && _posts && _posts.find(p=>p.id===_galPostId)?.userId === c.userId;
     return `<div style="display:flex;gap:8px;align-items:flex-start;">
-      <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:#e4e6eb;flex-shrink:0;">${av}</div>
+      <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:#21262d;flex-shrink:0;">${av}</div>
       <div style="flex:1;min-width:0;">
-        <div style="background:#f0f2f5;border-radius:18px;padding:8px 12px;display:inline-block;max-width:100%;">
+        <div style="background:#0d1117;border-radius:18px;padding:8px 12px;display:inline-block;max-width:100%;">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
-            <span style="font-weight:700;font-size:.82rem;color:#050505;cursor:pointer;" onclick="openUserProfile('${c.userId||''}','${esc(c.nick||'')}')">${esc(c.nick||'')}</span>
+            <span style="font-weight:700;font-size:.82rem;color:#e6edf3;cursor:pointer;" onclick="openUserProfile('${c.userId||''}','${esc(c.nick||'')}')">${esc(c.nick||'')}</span>
             ${isAuthor?'<span style="font-size:.65rem;color:#1877f2;font-weight:700;background:#e7f3ff;border-radius:4px;padding:1px 5px;">Autor</span>':''}
           </div>
-          <span style="font-size:.88rem;color:#050505;line-height:1.4;">${esc(c.text||'')}</span>
+          <span style="font-size:.88rem;color:#e6edf3;line-height:1.4;">${esc(c.text||'')}</span>
         </div>
         <div class="_ig_cmt_meta" style="display:flex;align-items:center;gap:10px;padding:2px 4px 0;">
-          <span style="font-size:.72rem;color:#65676b;">${c.time?fmtT(c.time):''}</span>
+          <span style="font-size:.72rem;color:#8b949e;">${c.time?fmtT(c.time):''}</span>
           <button>Me gusta</button>
           <button>Responder</button>
         </div>
@@ -9425,7 +9425,7 @@ function loadSavedAccounts(){
   if(!el) return;
   if(accounts.length > 0){
     el.style.display = 'block';
-    el.innerHTML = `<div style="font-size:.75rem;color:#65676b;margin-bottom:8px;font-weight:600;">Cuentas guardadas:</div>`
+    el.innerHTML = `<div style="font-size:.75rem;color:#8b949e;margin-bottom:8px;font-weight:600;">Cuentas guardadas:</div>`
       + accounts.map(a=>`
         <div onclick="quickLogin('${a.email}')" class="fb-saved">
           <div class="fb-saved-av">${(a.nick||a.email)[0].toUpperCase()}</div>
@@ -10827,7 +10827,7 @@ async function sharePost(pid){
     padding:'14px 16px', borderBottom:'1px solid #e4e6eb',
     position:'relative', flexShrink:'0'
   });
-  header.innerHTML = '<span style="font-weight:800;font-size:1.05rem;color:#050505;">Compartir</span>';
+  header.innerHTML = '<span style="font-weight:800;font-size:1.05rem;color:#e6edf3;">Compartir</span>';
   const btnClose = document.createElement('button');
   Object.assign(btnClose.style, {
     position:'absolute', right:'12px', top:'50%', transform:'translateY(-50%)',
@@ -10874,10 +10874,10 @@ async function sharePost(pid){
     zIndex:'99999', overflow:'hidden'
   });
   privMenu.innerHTML = `
-    <div style="padding:8px 14px 4px;font-size:.72rem;font-weight:800;color:#65676b;text-transform:uppercase;letter-spacing:.4px;">¿Quién puede verlo?</div>
-    <div data-val="public"  style="display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;font-size:.85rem;font-weight:600;color:#050505;"><span style="font-size:1.3rem;">🌐</span><div><div>Público</div><div style="font-size:.7rem;color:#65676b;">Cualquier persona</div></div><span class="_pc" style="margin-left:auto;color:#1877f2;display:none;">✔</span></div>
-    <div data-val="friends" style="display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;font-size:.85rem;font-weight:600;color:#050505;"><span style="font-size:1.3rem;">👥</span><div><div>Amigos</div><div style="font-size:.7rem;color:#65676b;">Solo tus amigos</div></div><span class="_pc" style="margin-left:auto;color:#1877f2;display:none;">✔</span></div>
-    <div data-val="only_me" style="display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;font-size:.85rem;font-weight:600;color:#050505;"><span style="font-size:1.3rem;">🔒</span><div><div>Solo yo</div><div style="font-size:.7rem;color:#65676b;">Solo vos lo ves</div></div><span class="_pc" style="margin-left:auto;color:#1877f2;display:none;">✔</span></div>`;
+    <div style="padding:8px 14px 4px;font-size:.72rem;font-weight:800;color:#8b949e;text-transform:uppercase;letter-spacing:.4px;">¿Quién puede verlo?</div>
+    <div data-val="public"  style="display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;font-size:.85rem;font-weight:600;color:#e6edf3;"><span style="font-size:1.3rem;">🌐</span><div><div>Público</div><div style="font-size:.7rem;color:#8b949e;">Cualquier persona</div></div><span class="_pc" style="margin-left:auto;color:#1877f2;display:none;">✔</span></div>
+    <div data-val="friends" style="display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;font-size:.85rem;font-weight:600;color:#e6edf3;"><span style="font-size:1.3rem;">👥</span><div><div>Amigos</div><div style="font-size:.7rem;color:#8b949e;">Solo tus amigos</div></div><span class="_pc" style="margin-left:auto;color:#1877f2;display:none;">✔</span></div>
+    <div data-val="only_me" style="display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;font-size:.85rem;font-weight:600;color:#e6edf3;"><span style="font-size:1.3rem;">🔒</span><div><div>Solo yo</div><div style="font-size:.7rem;color:#8b949e;">Solo vos lo ves</div></div><span class="_pc" style="margin-left:auto;color:#1877f2;display:none;">✔</span></div>`;
   privMenu.querySelectorAll('[data-val]').forEach(row => {
     row.addEventListener('mouseenter', ()=> row.style.background='#f0f2f5');
     row.addEventListener('mouseleave', ()=> row.style.background='');
@@ -10998,17 +10998,17 @@ async function sharePost(pid){
   const previewUser = document.createElement('div');
   Object.assign(previewUser.style, { display:'flex', alignItems:'center', gap:'6px', marginBottom:'4px' });
   if(p.userAv){ const avImg=document.createElement('img'); avImg.src=p.userAv; Object.assign(avImg.style,{width:'20px',height:'20px',borderRadius:'50%',objectFit:'cover'}); previewUser.appendChild(avImg); }
-  const previewNick=document.createElement('span'); previewNick.style.cssText='font-size:.78rem;font-weight:700;color:#050505;'; previewNick.textContent=realNick||''; previewUser.appendChild(previewNick);
+  const previewNick=document.createElement('span'); previewNick.style.cssText='font-size:.78rem;font-weight:700;color:#e6edf3;'; previewNick.textContent=realNick||''; previewUser.appendChild(previewNick);
   previewBody.appendChild(previewUser);
-  if(p.text){ const pt=document.createElement('div'); pt.style.cssText='font-size:.8rem;color:#65676b;line-height:1.4;'; pt.textContent=(p.text||'').slice(0,100)+((p.text||'').length>100?'...':''); previewBody.appendChild(pt); }
+  if(p.text){ const pt=document.createElement('div'); pt.style.cssText='font-size:.8rem;color:#8b949e;line-height:1.4;'; pt.textContent=(p.text||'').slice(0,100)+((p.text||'').length>100?'...':''); previewBody.appendChild(pt); }
   previewInner.appendChild(previewBody);
   preview.appendChild(previewInner);
 
   // ── Compartir en ─────────────────────────────────────────────────────────
   const shareSection = document.createElement('div');
-  shareSection.style.cssText='border-top:1px solid #e4e6eb;padding:12px 16px;';
+  shareSection.style.cssText='border-top:1px solid #30363d;padding:12px 16px;';
   const shareTitle = document.createElement('div');
-  shareTitle.style.cssText='font-size:.75rem;font-weight:700;color:#65676b;margin-bottom:10px;text-transform:uppercase;letter-spacing:.4px;';
+  shareTitle.style.cssText='font-size:.75rem;font-weight:700;color:#8b949e;margin-bottom:10px;text-transform:uppercase;letter-spacing:.4px;';
   shareTitle.textContent='Compartir en';
   shareSection.appendChild(shareTitle);
 
@@ -11026,7 +11026,7 @@ async function sharePost(pid){
     else { iconDiv.style.background=color||'#e4e6eb'; }
     iconDiv.textContent = icon;
     const labelEl = document.createElement('span');
-    labelEl.style.cssText='font-size:.62rem;color:#050505;font-weight:600;';
+    labelEl.style.cssText='font-size:.62rem;color:#e6edf3;font-weight:600;';
     labelEl.textContent = label;
     b.appendChild(iconDiv); b.appendChild(labelEl);
     b.addEventListener('click', action);
@@ -11044,7 +11044,7 @@ async function sharePost(pid){
   const friends = (window.CU?.friendsList||[]).slice(0,10);
   if(friends.length){
     const frTitle = document.createElement('div');
-    frTitle.style.cssText='font-size:.75rem;font-weight:700;color:#65676b;margin:10px 0 8px;text-transform:uppercase;letter-spacing:.4px;';
+    frTitle.style.cssText='font-size:.75rem;font-weight:700;color:#8b949e;margin:10px 0 8px;text-transform:uppercase;letter-spacing:.4px;';
     frTitle.textContent='Enviar a amigo';
     shareSection.appendChild(frTitle);
     const frRow = document.createElement('div');
@@ -11058,7 +11058,7 @@ async function sharePost(pid){
       Object.assign(avDiv.style,{width:'38px',height:'38px',borderRadius:'50%',overflow:'hidden',flexShrink:'0'});
       avDiv.innerHTML = fr.av ? `<img src="${fr.av}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="width:100%;height:100%;background:#1877f2;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.85rem;">${(fr.nick||'?')[0].toUpperCase()}</div>`;
       const fnEl = document.createElement('span');
-      fnEl.style.cssText='font-size:.6rem;color:#050505;font-weight:600;text-align:center;word-break:break-word;line-height:1.2;';
+      fnEl.style.cssText='font-size:.6rem;color:#e6edf3;font-weight:600;text-align:center;word-break:break-word;line-height:1.2;';
       fnEl.textContent=(fr.nick||'').slice(0,10);
       fb.appendChild(avDiv); fb.appendChild(fnEl);
       fb.addEventListener('click', async ()=>{
@@ -11091,7 +11091,7 @@ async function sharePost(pid){
 
   // ── Botones finales ───────────────────────────────────────────────────────
   const footer = document.createElement('div');
-  footer.style.cssText='padding:12px 16px 16px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid #e4e6eb;flex-shrink:0;';
+  footer.style.cssText='padding:12px 16px 16px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid #30363d;flex-shrink:0;';
 
   const btnCancel = document.createElement('button');
   btnCancel.textContent='Cancelar';
@@ -12594,7 +12594,7 @@ function openChatWith(uid, nick){
                 <div id="mrxnbar_${m.id}" style="display:none;position:absolute;${mine?'right:0':'left:0'};bottom:calc(100% + 4px);background:rgba(12,22,34,.98);border:1px solid rgba(255,255,255,.13);border-radius:100px;padding:4px 8px;align-items:center;gap:2px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.8);white-space:nowrap;" onmouseenter="keepMsgRxnBar('${m.id}')" onmouseleave="hideMsgRxnBar('${m.id}')">${rxnBtns}</div>
                 ${sharedPostCard}
                 ${msgContent}
-                ${msgRxnTotal>0?`<div onclick="reactChatMsg('${chatId}','${m.id}','')" style="position:absolute;${mine?'left:-8px':'right:-8px'};bottom:-12px;background:#fff;border:1px solid #ced0d4;border-radius:100px;padding:1px 7px;font-size:.75rem;cursor:pointer;white-space:nowrap;">${msgTopRxns} ${msgRxnTotal}</div>`:''}
+                ${msgRxnTotal>0?`<div onclick="reactChatMsg('${chatId}','${m.id}','')" style="position:absolute;${mine?'left:-8px':'right:-8px'};bottom:-12px;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:1px 7px;font-size:.75rem;cursor:pointer;white-space:nowrap;">${msgTopRxns} ${msgRxnTotal}</div>`:''}
               </div>` : '';
             return `<div style="display:flex;flex-direction:column;align-items:${mine?'flex-end':'flex-start'};gap:2px;margin-bottom:${msgRxnTotal>0?'12px':'4px'};" onclick="toggleMsgTime('msgtime_${m.id}')">
               ${storyCard}
@@ -13168,13 +13168,13 @@ function closeStickerPicker(pickerId){
 
 function _makeStkHeader(pickerId, label){
   const div = document.createElement('div');
-  div.style.cssText = 'display:flex;align-items:center;padding:4px 8px;border-bottom:1px solid #e4e6eb;';
+  div.style.cssText = 'display:flex;align-items:center;padding:4px 8px;border-bottom:1px solid #30363d;';
   const backBtn = document.createElement('button');
   backBtn.className = 'stk-back';
   backBtn.textContent = '← Volver';
   backBtn.addEventListener('click', function(){ resetStickerCats(pickerId); });
   const title = document.createElement('span');
-  title.style.cssText = 'font-size:.82rem;font-weight:700;color:#050505;flex:1;text-align:center;';
+  title.style.cssText = 'font-size:.82rem;font-weight:700;color:#e6edf3;flex:1;text-align:center;';
   title.textContent = label;
   div.appendChild(backBtn);
   div.appendChild(title);
@@ -13191,14 +13191,14 @@ async function loadStickerCat(query, pickerId, targetId, label){
   const grid = document.createElement('div');
   grid.className = 'stk-grid';
   grid.id = 'stkgrid_'+postId;
-  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:#65676b;font-size:.82rem;">⏳ Cargando...</div>';
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:#8b949e;font-size:.82rem;">⏳ Cargando...</div>';
   contentEl.appendChild(grid);
   try {
     const res = await fetch('https://api.giphy.com/v1/stickers/search?api_key=' + STK_API_KEY + '&limit=15&rating=g&q=' + encodeURIComponent(query));
     const data = await res.json();
     renderStickerResults(data.data, postId, pickerId, targetId);
   } catch(e){
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:12px;color:#65676b;">Error cargando</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:12px;color:#8b949e;">Error cargando</div>';
   }
 }
 
@@ -13214,7 +13214,7 @@ async function searchStickers(query, pickerId, targetId){
     const grid = document.createElement('div');
     grid.className = 'stk-grid';
     grid.id = 'stkgrid_'+postId;
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:#65676b;">🔍 Buscando...</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:#8b949e;">🔍 Buscando...</div>';
     contentEl.appendChild(grid);
     try {
       const res = await fetch('https://api.giphy.com/v1/stickers/search?api_key=' + STK_API_KEY + '&limit=15&rating=g&q=' + encodeURIComponent(query));
@@ -13228,7 +13228,7 @@ function renderStickerResults(stickers, postId, pickerId, targetId){
   const grid = document.getElementById('stkgrid_'+postId);
   if(!grid) return;
   if(!stickers || !stickers.length){
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:16px;color:#65676b;">Sin resultados</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:16px;color:#8b949e;">Sin resultados</div>';
     return;
   }
   grid.innerHTML = '';
@@ -13702,7 +13702,7 @@ function buildPezSemanaCard(d){
   }
 
   return `
-  <div style="background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.25);font-family:'Exo 2',sans-serif;color:#333;">
+  <div style="background:#161b22;border-radius:var(--r);overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.25);font-family:'Exo 2',sans-serif;color:#333;">
 
     <!-- SECCIÓN 1 -->
     <div style="background:linear-gradient(135deg,#b8962e,#d4af5a);padding:12px 18px;">
