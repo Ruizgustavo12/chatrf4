@@ -3684,10 +3684,18 @@ select.fi option{background:var(--bg3);color:var(--text);}
           <div class="stitle">📊 Tabla de Trofeos</div>
           <div class="ssub" style="margin-bottom:0">Registro completo de la comunidad en tiempo real</div>
         </div>
-        <a href="https://script.google.com/macros/s/AKfycby0JItWnIJTGRhfqYYzs5zKEQirWPaW2M8AwP0et6Cj3qlAtlUkDbc7dAqA_YyuQXKe/exec" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#00d4ff,#0088cc);color:#000;font-weight:700;padding:8px 18px;border-radius:8px;font-size:.82rem;text-decoration:none;letter-spacing:.5px">🔗 Abrir en nueva pestaña</a>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input id="wkSheetSearch" type="text" placeholder="🔍 Buscar especie, mapa..." oninput="wkFilterSheet()" style="background:var(--bg3,#101820);border:1px solid var(--border,#182433);color:var(--text,#e0eaf4);border-radius:8px;padding:7px 12px;font-size:.82rem;min-width:180px">
+          <select id="wkSheetSort" onchange="wkRenderSheet()" style="background:var(--bg3,#101820);border:1px solid var(--border,#182433);color:var(--text,#e0eaf4);border-radius:8px;padding:7px 12px;font-size:.82rem">
+            <option value="date">📅 Más reciente</option>
+            <option value="weight">⚖ Mayor peso</option>
+            <option value="fish">🐟 Especie A-Z</option>
+            <option value="likes">❤ Más likes</option>
+          </select>
+        </div>
       </div>
-      <div style="background:var(--bg2,#0c1318);border:1px solid var(--border,#182433);border-radius:12px;overflow:hidden">
-        <iframe src="https://script.google.com/macros/s/AKfycby0JItWnIJTGRhfqYYzs5zKEQirWPaW2M8AwP0et6Cj3qlAtlUkDbc7dAqA_YyuQXKe/exec" style="width:100%;min-height:650px;border:none;display:block" title="Tabla de Trofeos" loading="lazy"></iframe>
+      <div id="wkSheetContent" style="background:var(--bg2,#0c1318);border:1px solid var(--border,#182433);border-radius:12px;overflow:hidden">
+        <div class="wk-ld"><div class="wk-sp"></div></div>
       </div>
     </div>
   </div>
@@ -15354,8 +15362,7 @@ async function checkDailyStreak(){
   renderXPUI();
 }
 
-// ===== FEED DE TROFEOS APROBADOS (desde rf4wikipedia.netlify.app) =====
-// La colección 'trofeos_aprobados' en Firestore es la misma que usa rf4wikipedia.netlify.app
+// ===== FEED DE TROFEOS APROBADOS =====
 // Cuando un trofeo se aprueba en la wiki, se escribe ahí con status:'aprobado'
 // Este listener escucha en tiempo real y muestra las tarjetas en el feed
 
@@ -15370,8 +15377,8 @@ function listenTrofeosFeed(){
     query(collection(db,'trofeosPendientes'), where('status','==','approved'), orderBy('createdAt','desc')),
     snap => {
       const local = snap.docs.map(d=>({id:d.id,...d.data(),_src:'local'}));
-      // Combinar con los externos ya cargados
-      const ext = _trofeosFeedData.filter(t=>t._src==='ext');
+      // Solo usamos la colección local
+      const ext = [];
       _trofeosFeedData = [...local, ...ext].sort((a,b)=>{
         const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
         const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
@@ -15381,18 +15388,6 @@ function listenTrofeosFeed(){
     },
     err => { console.warn('Trofeos local error:', err); }
   );
-  // También intentar cargar los externos de trophiesDb
-  getDocs(query(collection(trophiesDb,'trophies'), where('status','==','approved'), orderBy('createdAt','desc')))
-    .then(snap => {
-      const ext = snap.docs.map(d=>({id:d.id,...d.data(),_src:'ext'}));
-      const local = _trofeosFeedData.filter(t=>t._src==='local');
-      _trofeosFeedData = [...local, ...ext].sort((a,b)=>{
-        const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-        const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-        return tb - ta;
-      });
-      renderTrofeosFeed();
-    }).catch(e=>console.warn('Trofeos ext error:', e));
   _unsubTrofeos = unsubLocal;
 }
 
@@ -16642,6 +16637,7 @@ window.wkGp = (subId, btn) => {
   if(subId==='wk-trophies') wkRenderTrophies();
   if(subId==='wk-ranking') wkRenderRanking();
   if(subId==='wk-records') wkRenderRecords();
+  if(subId==='wk-sheet') wkRenderSheet();
   if(subId==='wk-admin') wkRenderAdmin();
   if(subId==='wk-inicio') wkLoadHome();
 };
@@ -16668,8 +16664,8 @@ async function wkUpdateBannerCounts() {
     const total = snap.size;
     const el = document.getElementById('wkTotalTrophy');
     if(el) el.textContent = total;
-    // Online count from presence
-    const presSnap = await getDocs(collection(trophiesDb,'presence'));
+    // Online count from presence (charlasrf4)
+    const presSnap = await getDocs(collection(db,'presence'));
     const online = presSnap.docs.filter(d => {
       const t = d.data().lastSeen?.toMillis?.() || 0;
       return Date.now() - t < 5*60*1000;
@@ -16927,6 +16923,88 @@ window.wkRenderRecords = async () => {
 };
 
 // Open trophy detail
+let _wkSheetAll = [];
+
+window.wkRenderSheet = async () => {
+  const el = document.getElementById('wkSheetContent');
+  if(!el) return;
+  el.innerHTML = '<div class="wk-ld"><div class="wk-sp"></div></div>';
+  try {
+    const snap = await getDocs(query(collection(db,'trofeosPendientes'), where('status','==','approved'), orderBy('createdAt','desc')));
+    _wkSheetAll = snap.docs.map(d=>({id:d.id,...d.data()}));
+    wkBuildSheetTable(_wkSheetAll);
+  } catch(e) {
+    el.innerHTML = '<div class="wk-empty"><div class="wk-ei">⚠️</div><div class="wk-et">Error al cargar tabla</div></div>';
+  }
+};
+
+window.wkFilterSheet = () => {
+  const q = (document.getElementById('wkSheetSearch')?.value||'').toLowerCase();
+  const filtered = q ? _wkSheetAll.filter(t=>
+    (t.fish||'').toLowerCase().includes(q)||
+    (t.map||'').toLowerCase().includes(q)||
+    (t.technique||'').toLowerCase().includes(q)||
+    (t.userNick||'').toLowerCase().includes(q)||
+    (t.spot||'').toLowerCase().includes(q)
+  ) : _wkSheetAll;
+  wkBuildSheetTable(filtered);
+};
+
+function wkBuildSheetTable(list) {
+  const el = document.getElementById('wkSheetContent');
+  if(!el) return;
+  const sortVal = document.getElementById('wkSheetSort')?.value||'date';
+  const sorted = [...list].sort((a,b)=>{
+    if(sortVal==='weight') return parseFloat(b.weight||0)-parseFloat(a.weight||0);
+    if(sortVal==='fish') return (a.fish||'').localeCompare(b.fish||'');
+    if(sortVal==='likes') return (b.likes||0)-(a.likes||0);
+    return (b.createdAt?.seconds||0)-(a.createdAt?.seconds||0);
+  });
+  if(!sorted.length){
+    el.innerHTML='<div class="wk-empty"><div class="wk-ei">🐟</div><div class="wk-et">Sin trofeos aún</div></div>'; return;
+  }
+  const medals = {0:'🥇',1:'🥈',2:'🥉'};
+  el.innerHTML = `<div style="overflow-x:auto">
+    <table class="records-table" style="min-width:650px">
+      <thead><tr>
+        <th style="width:42px">#</th>
+        <th>Especie</th>
+        <th>⚖ Peso</th>
+        <th>🗺 Mapa</th>
+        <th>🎣 Técnica</th>
+        <th>👤 Pescador</th>
+        <th>📅 Fecha</th>
+        <th>❤</th>
+      </tr></thead>
+      <tbody>
+        ${sorted.map((t,i)=>{
+          const medal = medals[i]||'';
+          const dateStr = t.date||(t.createdAt?.toDate?.()?.toLocaleDateString('es-AR')||'');
+          const w = parseFloat(t.weight||0).toFixed(3);
+          return `<tr style="cursor:pointer" onclick="wkOpenDet('${t.id}')">
+            <td><span style="font-family:'Orbitron',monospace;font-weight:800;font-size:.8rem;color:${i===0?'#ffd700':i===1?'#c0c8d4':i===2?'#cd7f32':'var(--text-muted,#567)'}">${medal||('#'+(i+1))}</span></td>
+            <td class="rec-fish">${wkEsc(t.fish||'?')}</td>
+            <td class="rec-weight">${w} kg</td>
+            <td style="font-size:.82rem">${wkEsc(t.map||'?')}</td>
+            <td style="font-size:.82rem;color:var(--text-muted,#567)">${wkEsc(t.technique||'?')}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:7px">
+                <div class="av" style="width:28px;height:28px;font-size:.7rem;flex-shrink:0">${t.userPhoto?`<img src="${t.userPhoto}" alt="">`:((t.userNick||'?')[0].toUpperCase())}</div>
+                <span style="font-size:.82rem;font-weight:600">${wkEsc(t.userNick||'?')}</span>
+              </div>
+            </td>
+            <td style="font-size:.78rem;color:var(--text-muted,#567)">${dateStr}</td>
+            <td style="color:#ff6688;font-weight:700">${t.likes||0}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>
+  <div style="padding:10px 16px;font-size:.75rem;color:var(--text-muted,#567);border-top:1px solid var(--border,#182433)">
+    ${sorted.length} trofeo${sorted.length!==1?'s':''} · Hacé click en una fila para ver detalles
+  </div>`;
+}
+
 window.wkOpenDet = async (id) => {
   const modal = document.getElementById('wkMDetail');
   const content = document.getElementById('wkDetailContent');
@@ -17098,14 +17176,16 @@ window.wkSubmitTrophy = async () => {
     }
     const data={
       fish, weight:parseFloat(weight), map, technique, spot, description:desc, date,
-      images:imageUrls, status:'pending',
+      images:imageUrls, status:'approved',
       userId:window.CU.id, userNick:window.CU.nick||'?', userPhoto:window.CU.av||'',
       userRole:window.CU.role||'novato', likes:0, views:0, commentCount:0,
       createdAt:serverTimestamp()
     };
     await addDoc(collection(db,'trofeosPendientes'), data);
+    // Actualizar contador de trofeos del usuario
+    try{ await updateDoc(doc(db,'users',window.CU.id),{trophyCount:increment(1)}); }catch(e){}
     wkCm('wkMPublish'); wkResetForm();
-    toast('🏆 Trofeo enviado · pendiente de aprobación','ok');
+    toast('🏆 ¡Trofeo publicado!','ok');
     _wkLoaded=false; wkLoadHome();
   } catch(e){ if(err) err.textContent='Error al publicar: '+e.message; }
   finally{ if(btn){ btn.disabled=false; btn.textContent='🏆 Publicar Trofeo'; } }
