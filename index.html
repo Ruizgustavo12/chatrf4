@@ -3674,35 +3674,59 @@ function save(k,v){try{localStorage.setItem('crf4_'+k,JSON.stringify(v));}catch(
 function load(k,def){try{const v=localStorage.getItem('crf4_'+k);return v?JSON.parse(v):def;}catch(e){return def;}}
 
 // ===== UPLOAD IMAGE TO IMGBB =====
-const IMGBB_KEY = '75c60bcb472ab597b1dee463438b18ba';
+// ── Cloudinary config ──
+const CLOUDINARY_CLOUD = 'da0n5tg3g';
+const CLOUDINARY_PRESET = 'wikipediarf4';
+
 async function uploadImage(fileOrBase64, folder) {
-  let base64;
+  // Convertir a blob si es base64 o URL
+  let blob;
   if (typeof fileOrBase64 === 'string' && fileOrBase64.startsWith('data:')) {
-    base64 = fileOrBase64.split(',')[1];
+    const res = await fetch(fileOrBase64);
+    blob = await res.blob();
   } else if (typeof fileOrBase64 === 'string') {
     const res = await fetch(fileOrBase64);
-    const blob = await res.blob();
-    base64 = await new Promise(resolve => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result.split(',')[1]);
-      reader.readAsDataURL(blob);
-    });
+    blob = await res.blob();
   } else {
-    base64 = await new Promise(resolve => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result.split(',')[1]);
-      reader.readAsDataURL(fileOrBase64);
-    });
+    blob = fileOrBase64;
   }
+
+  // Comprimir si es imagen y pesa más de 800KB
+  if (blob.type.startsWith('image/') && blob.size > 800000) {
+    blob = await _compressImage(blob, 1200, 0.82);
+  }
+
   const formData = new FormData();
-  formData.append('image', base64);
-  formData.append('key', IMGBB_KEY);
-  const res = await fetch('https://api.imgbb.com/1/upload', {
-    method: 'POST', body: formData
+  formData.append('file', blob);
+  formData.append('upload_preset', CLOUDINARY_PRESET);
+  formData.append('folder', 'rf4/' + (folder || 'general'));
+
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
+    method: 'POST',
+    body: formData
   });
   const data = await res.json();
-  if (!data.data || !data.data.url) throw new Error('Error subiendo imagen a ImgBB');
-  return data.data.url;
+  if (!data.secure_url) throw new Error(data.error?.message || 'Error subiendo imagen a Cloudinary');
+  return data.secure_url;
+}
+
+// Comprimir imagen antes de subir
+function _compressImage(blob, maxW, quality) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(blob);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      canvas.toBlob(b => resolve(b || blob), 'image/jpeg', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(blob); };
+    img.src = url;
+  });
 }
 
 // ===== REALTIME LISTENERS =====
@@ -3758,7 +3782,7 @@ function listenPosts() {
       }).catch(e2 => {
         console.error('listenPosts fallback error:', e2);
         const el2 = document.getElementById('feedPosts');
-        if(el2) el2.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:.85rem;">⚠️ Error al cargar el feed.<br><button onclick="listenPosts()" style="margin-top:12px;background:var(--accent);color:#000;border:none;border-radius:8px;padding:8px 20px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;">🔄 Reintentar</button></div>';
+        if(el2) el2.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:.85rem;">⚠️ Error al cargar el feed.<br><button onclick="listenPosts()" style="margin-top:12px;background:var(--accent);color:#000;border:none;border-radius:8px;padding:8px 20px;font-size:.82rem;font-weight:700;cursor:pointer;">🔄 Reintentar</button></div>';
       });
       // Reintentar el listener en 15 segundos
       _postsRetryTimer = setTimeout(()=>{ listenPosts(); }, 15000);
