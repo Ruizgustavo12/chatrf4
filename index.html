@@ -2275,7 +2275,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
 
 <!-- Notifications -->
 <!-- Notif Dropdown — posicionado bajo el ícono campana -->
-<div id="mNotif" style="display:none;position:fixed;z-index:3000;top:52px;right:60px;width:380px;max-width:calc(100vw - 16px);max-height:80vh;background:var(--bg2);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.55);display:none;flex-direction:column;overflow:hidden;animation:mIn .18s ease;">
+<div id="mNotif" style="display:none;position:fixed;z-index:3000;top:52px;right:60px;width:380px;max-width:calc(100vw - 16px);max-height:80vh;background:var(--bg2);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.55);flex-direction:column;overflow:hidden;animation:mIn .18s ease;">
   <!-- Header -->
   <div style="padding:16px 18px 0;background:var(--bg2);flex-shrink:0;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
@@ -3592,7 +3592,7 @@ function _stub(name){ return function(){ _q.push([name, arguments]); }; }
 // ===== FIREBASE SETUP (modular ESM — sin eval, compatible con CSP) =====
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, addDoc, deleteDoc, onSnapshot, query, orderBy, limit, serverTimestamp, increment, where, deleteField, Timestamp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, addDoc, deleteDoc, onSnapshot, query, orderBy, limit, serverTimestamp, increment, where, deleteField, Timestamp, arrayUnion } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js';
 
 const firebaseConfig = {
@@ -11700,34 +11700,48 @@ async function doLogout(){
 async function sendNotifToUserStory(uid, text, storyPreview, storyImg, storyId){
   if(!uid || uid===window.CU?.id) return;
   try {
-    const snap = await getDoc(doc(db,'users',uid));
-    if(!snap.exists()) return;
-    const notifs = snap.data().notifs || [];
-    notifs.unshift({text, time:Date.now(), read:false, storyComment:true, storyPreview: storyPreview||'', storyImg: storyImg||'', storyId: storyId||'', fromAv: window.CU?.av||'', fromNick: window.CU?.nick||''});
-    await updateDoc(doc(db,'users',uid), {notifs: notifs.slice(0,30)});
+    const notif = {text, time:Date.now(), read:false, storyComment:true,
+      storyPreview: storyPreview||'', storyImg: storyImg||'', storyId: storyId||'',
+      fromAv: window.CU?.av||'', fromNick: window.CU?.nick||''};
+    // arrayUnion agrega atómicamente sin race condition
+    await updateDoc(doc(db,'users',uid), {notifs: arrayUnion(notif)});
+    // Recortar a 30 después (best effort)
+    _trimNotifs(uid);
   } catch(e){ console.error('notif story error',e); }
 }
 
 async function sendNotifToUser(uid, text){
   if(!uid || uid===window.CU?.id) return;
   try {
-    const snap = await getDoc(doc(db,'users',uid));
-    if(!snap.exists()) return;
-    const notifs = snap.data().notifs || [];
-    notifs.unshift({text, time:Date.now(), read:false, fromAv: window.CU?.av||'', fromNick: window.CU?.nick||''});
-    await updateDoc(doc(db,'users',uid), {notifs: notifs.slice(0,30)});
+    const notif = {text, time:Date.now(), read:false,
+      fromAv: window.CU?.av||'', fromNick: window.CU?.nick||''};
+    await updateDoc(doc(db,'users',uid), {notifs: arrayUnion(notif)});
+    _trimNotifs(uid);
   } catch(e){ console.error('notif error',e); }
 }
 
 async function sendNotifToUserWithPost(uid, text, postId){
   if(!uid || uid===window.CU?.id) return;
   try {
+    const notif = {text, time:Date.now(), read:false, postId: postId||null,
+      fromAv: window.CU?.av||'', fromNick: window.CU?.nick||''};
+    await updateDoc(doc(db,'users',uid), {notifs: arrayUnion(notif)});
+    _trimNotifs(uid);
+  } catch(e){ console.error('notif error',e); }
+}
+
+// Recorta silenciosamente el array de notifs a 30 items (best effort, no bloquea)
+async function _trimNotifs(uid){
+  try {
     const snap = await getDoc(doc(db,'users',uid));
     if(!snap.exists()) return;
-    const notifs = snap.data().notifs || [];
-    notifs.unshift({text, time:Date.now(), read:false, postId: postId||null, fromAv: window.CU?.av||'', fromNick: window.CU?.nick||''});
-    await updateDoc(doc(db,'users',uid), {notifs: notifs.slice(0,30)});
-  } catch(e){ console.error('notif error',e); }
+    const arr = snap.data().notifs||[];
+    if(arr.length > 30){
+      // Ordenar por time desc, mantener 30 más recientes
+      const trimmed = arr.slice().sort((a,b)=>(b.time||0)-(a.time||0)).slice(0,30);
+      await updateDoc(doc(db,'users',uid), {notifs: trimmed});
+    }
+  } catch(e){ /* silencioso */ }
 }
 
 // ===== MENSAJE MASIVO: Anuncio Tienda Gratis =====
@@ -12144,7 +12158,6 @@ async function sendFriendRequestFromProfile(uid, nick){
 
 async function sendFriendRequest(uid, nick){
   if(!window.CU){ toast('Inicia sesión primero','err'); return; }
-  // Store full request data so recipient can accept/reject and visit profile
   try {
     const snap = await getDoc(doc(db,'users',uid));
     if(!snap.exists()) return;
@@ -12152,15 +12165,16 @@ async function sendFriendRequest(uid, nick){
     // Avoid duplicate pending requests
     const alreadySent = notifs.some(n=>n.type==='friendRequest' && n.fromId===window.CU.id);
     if(alreadySent){ toast('Ya enviaste una solicitud a este usuario','inf'); return; }
-    notifs.unshift({
+    const notif = {
       text: `👥 ${window.CU.nick} quiere ser tu amigo`,
       time: Date.now(), read: false,
       type: 'friendRequest',
       fromId: window.CU.id,
       fromNick: window.CU.nick,
       fromAv: window.CU.av || ''
-    });
-    await updateDoc(doc(db,'users',uid), {notifs: notifs.slice(0,30)});
+    };
+    await updateDoc(doc(db,'users',uid), {notifs: arrayUnion(notif)});
+    _trimNotifs(uid);
     toast(`Solicitud enviada a ${nick} 👥`,'ok');
     cm('mUserProfile');
   } catch(e){ toast('Error al enviar solicitud','err'); }
@@ -15346,15 +15360,11 @@ function openNotifDropdown(){
   const dd = document.getElementById('mNotif');
   if(!dd) return;
   const isMobile = window.innerWidth <= 768;
-  // Push URL only when opening (not closing)
-  const willOpen = dd.style.display !== 'flex';
-  if(willOpen && false) {
-    
-  } else if(!willOpen && false) {
-    
-  }
+
+  // Detectar si ya está visible antes de modificar estilos de posición
+  const isCurrentlyOpen = dd.style.display === 'flex';
+
   if(isMobile){
-    // Mobile: full screen panel from top
     dd.style.top = '0';
     dd.style.left = '0';
     dd.style.right = '0';
@@ -15365,7 +15375,6 @@ function openNotifDropdown(){
     dd.style.maxHeight = '100vh';
     dd.style.borderRadius = '0';
   } else {
-    // Desktop: posicionar bajo el ícono campana
     const bell = document.getElementById('notifBellBtn');
     if(bell){
       const rect = bell.getBoundingClientRect();
@@ -15380,11 +15389,19 @@ function openNotifDropdown(){
       dd.style.borderRadius = '14px';
     }
   }
-  const isOpen = dd.style.display === 'flex';
-  if(isOpen){ dd.style.display='none'; if(isMobile) document.body.style.overflow=''; return; }
+
+  if(isCurrentlyOpen){
+    dd.style.display = 'none';
+    if(isMobile) document.body.style.overflow = '';
+    document.removeEventListener('click', _notifOutsideClick);
+    return;
+  }
+
   dd.style.display = 'flex';
   if(isMobile) document.body.style.overflow = 'hidden';
-  // Marcar leídas al abrir
+  renderNotifs();
+
+  // Marcar leídas al abrir (con delay para que el usuario las vea primero)
   if(_notifs.some(n=>!n.read)){
     setTimeout(async ()=>{
       _notifs.forEach(n=>n.read=true);
@@ -15392,7 +15409,7 @@ function openNotifDropdown(){
       updateNotifBadge();
     }, 1500);
   }
-  renderNotifs();
+
   // Cerrar al click fuera (solo desktop)
   if(!isMobile){
     setTimeout(()=>{ document.addEventListener('click', _notifOutsideClick); }, 10);
