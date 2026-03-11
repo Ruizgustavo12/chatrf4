@@ -918,6 +918,210 @@ select.fi option{background:var(--bg3);color:var(--text);}
   from { box-shadow:0 0 0 3px #80deea, 0 0 14px rgba(128,222,234,.5); }
   to   { box-shadow:0 0 0 4px #e0f7fa, 0 0 28px rgba(224,247,250,.8), 0 0 50px rgba(0,188,212,.3); }
 }
+
+/* ════════ TEMAS ACUÁTICOS Y NUEVOS ════════ */
+
+/* ── POSEIDÓN ── */
+.tema-poseidon-active #profCover { background:linear-gradient(160deg,#000a14,#001830,#002244) !important; }
+.tema-poseidon-active #profName {
+  background:linear-gradient(90deg,#00cfff 0%,#7fffff 35%,#00cfff 65%,#0099cc 100%) !important;
+  background-size:200% auto !important;
+  -webkit-background-clip:text !important;-webkit-text-fill-color:transparent !important;background-clip:text !important;
+  animation:temaPoseidonText 2.5s linear infinite !important;
+  filter:drop-shadow(0 0 8px rgba(0,180,255,.8)) !important;
+}
+@keyframes temaPoseidonText{0%{background-position:0% center}100%{background-position:200% center}}
+.tema-poseidon-active .profile-av-wrap { animation:temaPoseidonRing 2s ease-in-out infinite alternate !important; }
+@keyframes temaPoseidonRing{
+  from{box-shadow:0 0 0 3px #00cfff,0 0 16px rgba(0,207,255,.6),0 0 0 6px rgba(0,150,200,.2);}
+  to  {box-shadow:0 0 0 4px #7fffff,0 0 32px rgba(0,255,255,.8),0 0 0 8px rgba(0,200,255,.15),0 0 60px rgba(0,180,255,.3);}
+}
+/* SVG decorativo de Poseidón sobre avatar */
+.tema-poseidon-active .profile-av-wrap::after {
+  content:''; position:absolute; inset:-18px; z-index:10; pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-50 -50 200 200'%3E%3Cg opacity='.85'%3E%3C!-- Tridente arriba --%3E%3Crect x='44' y='-46' width='12' height='55' rx='4' fill='%2300cfff' opacity='.9'/%3E%3Crect x='28' y='-46' width='8' height='22' rx='3' fill='%2300cfff' opacity='.8'/%3E%3Crect x='64' y='-46' width='8' height='22' rx='3' fill='%2300cfff' opacity='.8'/%3E%3Ccircle cx='32' cy='-24' r='5' fill='%237fffff'/%3E%3Ccircle cx='50' cy='-46' r='5' fill='%237fffff'/%3E%3Ccircle cx='68' cy='-24' r='5' fill='%237fffff'/%3E%3C!-- Ola izquierda --%3E%3Cpath d='M-48 60 Q-35 45 -22 60 Q-9 75 4 60' stroke='%2300cfff' stroke-width='4' fill='none' opacity='.7'/%3E%3Cpath d='M-48 75 Q-35 60 -22 75 Q-9 90 4 75' stroke='%237fffff' stroke-width='3' fill='none' opacity='.5'/%3E%3C!-- Ola derecha --%3E%3Cpath d='M96 60 Q109 45 122 60 Q135 75 148 60' stroke='%2300cfff' stroke-width='4' fill='none' opacity='.7'/%3E%3Cpath d='M96 75 Q109 60 122 75 Q135 90 148 75' stroke='%237fffff' stroke-width='3' fill='none' opacity='.5'/%3E%3C!-- Corona marina abajo --%3E%3Cpath d='M25 148 L35 130 L50 145 L65 130 L75 148 Z' fill='%2300cfff' opacity='.8'/%3E%3Ccircle cx='35' cy='128' r='4' fill='%237fffff'/%3E%3Ccircle cx='50' cy='143' r='4' fill='%2300cfff'/%3E%3Ccircle cx='65' cy='128' r='4' fill='%237fffff'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+/* ── SIRENA ── */
+.tema-sirena-active #profCover { background:linear-gradient(160deg,#000814,#001428,#001e3c) !important; }
+.tema-sirena-active #profName {
+  background:linear-gradient(90deg,#e91e8c 0%,#9c27b0 30%,#00bcd4 60%,#e91e8c 100%) !important;
+  background-size:250% auto !important;
+  -webkit-background-clip:text !important;-webkit-text-fill-color:transparent !important;background-clip:text !important;
+  animation:temaSirenaText 3s linear infinite !important;
+  filter:drop-shadow(0 0 6px rgba(233,30,140,.6)) !important;
+}
+@keyframes temaSirenaText{0%{background-position:0% center}100%{background-position:250% center}}
+.tema-sirena-active .profile-av-wrap { animation:temaSirenaRing 2.5s ease-in-out infinite alternate !important; }
+@keyframes temaSirenaRing{
+  from{box-shadow:0 0 0 3px #e91e8c,0 0 14px rgba(233,30,140,.5);}
+  to  {box-shadow:0 0 0 4px #00bcd4,0 0 28px rgba(0,188,212,.7),0 0 50px rgba(233,30,140,.25);}
+}
+.tema-sirena-active .profile-av-wrap::after {
+  content:''; position:absolute; inset:-18px; z-index:10; pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-50 -50 200 200'%3E%3Cg%3E%3C!-- Cola de sirena abajo --%3E%3Cellipse cx='50' cy='155' rx='22' ry='10' fill='%2300bcd4' opacity='.8'/%3E%3Cpath d='M28 145 Q50 165 72 145 L65 130 Q50 140 35 130 Z' fill='%2300897b' opacity='.85'/%3E%3Cpath d='M35 130 Q50 120 65 130 Q50 145 35 130Z' fill='%2326c6da' opacity='.7'/%3E%3C!-- Conchas izquierda --%3E%3Cellipse cx='-28' cy='50' rx='12' ry='8' fill='%23f48fb1' opacity='.8' transform='rotate(-30 -28 50)'/%3E%3Cellipse cx='-28' cy='50' rx='8' ry='5' fill='%23fce4ec' opacity='.5' transform='rotate(-30 -28 50)'/%3E%3C!-- Conchas derecha --%3E%3Cellipse cx='128' cy='50' rx='12' ry='8' fill='%23f48fb1' opacity='.8' transform='rotate(30 128 50)'/%3E%3Cellipse cx='128' cy='50' rx='8' ry='5' fill='%23fce4ec' opacity='.5' transform='rotate(30 128 50)'/%3E%3C!-- Estrella de mar --%3E%3Cpath d='M50 -38 L53 -28 L63 -28 L55 -22 L58 -12 L50 -18 L42 -12 L45 -22 L37 -28 L47 -28 Z' fill='%23ff7043' opacity='.8'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+/* ── PULPO GIGANTE ── */
+.tema-pulpo-active #profCover { background:linear-gradient(160deg,#050005,#0d0018,#120020) !important; }
+.tema-pulpo-active #profName {
+  background:linear-gradient(90deg,#7b1fa2 0%,#e040fb 40%,#311b92 70%,#7b1fa2 100%) !important;
+  background-size:200% auto !important;
+  -webkit-background-clip:text !important;-webkit-text-fill-color:transparent !important;background-clip:text !important;
+  animation:temaPulpoText 2.5s linear infinite !important;
+  filter:drop-shadow(0 0 8px rgba(224,64,251,.7)) !important;
+}
+@keyframes temaPulpoText{0%{background-position:0% center}100%{background-position:200% center}}
+.tema-pulpo-active .profile-av-wrap { animation:temaPulpoRing 1.8s ease-in-out infinite alternate !important; }
+@keyframes temaPulpoRing{
+  from{box-shadow:0 0 0 3px #7b1fa2,0 0 16px rgba(123,31,162,.6);}
+  to  {box-shadow:0 0 0 5px #e040fb,0 0 30px rgba(224,64,251,.8),0 0 60px rgba(74,20,140,.4);}
+}
+.tema-pulpo-active .profile-av-wrap::after {
+  content:''; position:absolute; inset:-22px; z-index:10; pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-55 -55 210 210'%3E%3Cg opacity='.82' stroke='%23e040fb' stroke-width='3' fill='none'%3E%3C!-- 8 tentáculos --%3E%3Cpath d='M50 85 Q15 90 -10 75 Q-25 65 -20 50' stroke-width='5'/%3E%3Cpath d='M50 85 Q10 105 -5 130 Q-15 150 5 155' stroke-width='4.5'/%3E%3Cpath d='M50 85 Q50 115 40 140 Q35 158 50 160' stroke-width='4'/%3E%3Cpath d='M50 85 Q85 110 100 135 Q110 155 100 162' stroke-width='4'/%3E%3Cpath d='M50 85 Q90 100 115 90 Q130 80 128 65' stroke-width='4.5'/%3E%3Cpath d='M50 15 Q15 10 -10 25 Q-30 38 -25 55' stroke-width='4' opacity='.7'/%3E%3Cpath d='M50 15 Q85 5 110 18 Q130 30 125 48' stroke-width='4' opacity='.7'/%3E%3Cpath d='M50 15 Q50 -15 35 -35 Q25 -48 30 -55' stroke-width='3.5' opacity='.6'/%3E%3C!-- Ojo izquierdo --%3E%3Ccircle cx='35' cy='45' r='8' fill='%23e040fb' opacity='.6' stroke='none'/%3E%3Ccircle cx='35' cy='45' r='4' fill='%23fff' opacity='.8' stroke='none'/%3E%3C!-- Ojo derecho --%3E%3Ccircle cx='65' cy='45' r='8' fill='%23e040fb' opacity='.6' stroke='none'/%3E%3Ccircle cx='65' cy='45' r='4' fill='%23fff' opacity='.8' stroke='none'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+/* ── BALLENA AZUL ── */
+.tema-ballena-active #profCover { background:linear-gradient(160deg,#000308,#000c20,#001030) !important; }
+.tema-ballena-active #profName {
+  background:linear-gradient(90deg,#0288d1 0%,#4fc3f7 40%,#e1f5fe 60%,#0288d1 100%) !important;
+  background-size:200% auto !important;
+  -webkit-background-clip:text !important;-webkit-text-fill-color:transparent !important;background-clip:text !important;
+  animation:temaBallenaText 4s linear infinite !important;
+  filter:drop-shadow(0 0 5px rgba(79,195,247,.6)) !important;
+}
+@keyframes temaBallenaText{0%{background-position:0% center}100%{background-position:200% center}}
+.tema-ballena-active .profile-av-wrap { animation:temaBallenaRing 4s ease-in-out infinite alternate !important; }
+@keyframes temaBallenaRing{
+  from{box-shadow:0 0 0 2px #0288d1,0 0 20px rgba(2,136,209,.4);}
+  to  {box-shadow:0 0 0 4px #4fc3f7,0 0 40px rgba(79,195,247,.6),0 0 70px rgba(2,136,209,.2);}
+}
+.tema-ballena-active .profile-av-wrap::after {
+  content:''; position:absolute; inset:-20px; z-index:10; pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-50 -50 200 200'%3E%3Cg opacity='.75'%3E%3C!-- Silueta ballena detrás --%3E%3Cellipse cx='50' cy='50' rx='75' ry='42' fill='%230288d1' opacity='.18'/%3E%3C!-- Aleta dorsal --%3E%3Cpath d='M60 8 Q75 -15 85 -5 Q80 8 70 12 Z' fill='%234fc3f7' opacity='.6'/%3E%3C!-- Cola --%3E%3Cpath d='M118 35 Q140 18 145 32 Q148 45 130 42 Q125 55 140 58 Q148 70 130 65 Q120 62 118 50 Z' fill='%230288d1' opacity='.65'/%3E%3C!-- Ojo --%3E%3Ccircle cx='22' cy='44' r='5' fill='%234fc3f7' opacity='.7'/%3E%3Ccircle cx='22' cy='44' r='2.5' fill='%23e1f5fe' opacity='.9'/%3E%3C!-- Puntos bioluminiscentes --%3E%3Ccircle cx='40' cy='65' r='2' fill='%2300e5ff' opacity='.8'/%3E%3Ccircle cx='60' cy='70' r='1.5' fill='%2380deea' opacity='.7'/%3E%3Ccircle cx='80' cy='60' r='2' fill='%2300e5ff' opacity='.6'/%3E%3Ccircle cx='30' cy='72' r='1.5' fill='%2300e5ff' opacity='.9'/%3E%3Ccircle cx='95' cy='55' r='1.5' fill='%2380deea' opacity='.7'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+/* ── PIRAÑA ASESINA ── */
+.tema-pirana-active #profCover { background:linear-gradient(160deg,#0d0000,#1a0000,#250000) !important; }
+.tema-pirana-active #profName {
+  background:linear-gradient(90deg,#f44336 0%,#ff8a80 35%,#b71c1c 65%,#f44336 100%) !important;
+  background-size:200% auto !important;
+  -webkit-background-clip:text !important;-webkit-text-fill-color:transparent !important;background-clip:text !important;
+  animation:temaPiranaText 1.8s linear infinite !important;
+  filter:drop-shadow(0 0 6px rgba(244,67,54,.8)) !important;
+}
+@keyframes temaPiranaText{0%{background-position:0% center}100%{background-position:200% center}}
+.tema-pirana-active .profile-av-wrap { animation:temaPiranaRing 1.2s ease-in-out infinite alternate !important; }
+@keyframes temaPiranaRing{
+  from{box-shadow:0 0 0 3px #f44336,0 0 14px rgba(244,67,54,.7);}
+  to  {box-shadow:0 0 0 5px #ff8a80,0 0 30px rgba(255,138,128,.9),0 0 55px rgba(183,28,28,.4);}
+}
+.tema-pirana-active .profile-av-wrap::after {
+  content:''; position:absolute; inset:-18px; z-index:10; pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-50 -50 200 200'%3E%3Cg%3E%3C!-- Mandíbula superior --%3E%3Cpath d='M5 -5 Q50 -30 95 -5 L90 10 Q50 -5 10 10 Z' fill='%23f44336' opacity='.75'/%3E%3C!-- Dientes arriba --%3E%3Cpolygon points='20,-4 24,12 28,-4' fill='%23fff' opacity='.9'/%3E%3Cpolygon points='34,-8 38,10 42,-8' fill='%23fff' opacity='.9'/%3E%3Cpolygon points='48,-10 52,12 56,-10' fill='%23fff' opacity='.9'/%3E%3Cpolygon points='62,-8 66,10 70,-8' fill='%23fff' opacity='.9'/%3E%3Cpolygon points='74,-4 78,10 82,-4' fill='%23fff' opacity='.85'/%3E%3C!-- Mandíbula inferior --%3E%3Cpath d='M5 105 Q50 130 95 105 L90 90 Q50 105 10 90 Z' fill='%23f44336' opacity='.75'/%3E%3C!-- Dientes abajo --%3E%3Cpolygon points='20,104 24,88 28,104' fill='%23fff' opacity='.9'/%3E%3Cpolygon points='36,108 40,90 44,108' fill='%23fff' opacity='.9'/%3E%3Cpolygon points='50,110 54,91 58,110' fill='%23fff' opacity='.9'/%3E%3Cpolygon points='64,108 68,90 72,108' fill='%23fff' opacity='.9'/%3E%3Cpolygon points='74,104 78,90 82,104' fill='%23fff' opacity='.85'/%3E%3C!-- Ojo --%3E%3Ccircle cx='20' cy='48' r='9' fill='%23ffcdd2' opacity='.8'/%3E%3Ccircle cx='20' cy='48' r='5' fill='%23b71c1c'/%3E%3Ccircle cx='22' cy='46' r='2' fill='%23fff' opacity='.8'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+/* ── CATFISH GIGANTE ── */
+.tema-catfish-active #profCover { background:linear-gradient(160deg,#080500,#120c00,#1a1000) !important; }
+.tema-catfish-active #profName {
+  background:linear-gradient(90deg,#795548 0%,#d7ccc8 40%,#a1887f 70%,#795548 100%) !important;
+  background-size:200% auto !important;
+  -webkit-background-clip:text !important;-webkit-text-fill-color:transparent !important;background-clip:text !important;
+  animation:temaCatfishText 3s linear infinite !important;
+  filter:drop-shadow(0 0 4px rgba(161,136,127,.5)) !important;
+}
+@keyframes temaCatfishText{0%{background-position:0% center}100%{background-position:200% center}}
+.tema-catfish-active .profile-av-wrap { animation:temaCatfishRing 3s ease-in-out infinite alternate !important; }
+@keyframes temaCatfishRing{
+  from{box-shadow:0 0 0 3px #795548,0 0 14px rgba(121,85,72,.6);}
+  to  {box-shadow:0 0 0 4px #d7ccc8,0 0 26px rgba(215,204,200,.7),0 0 50px rgba(121,85,72,.3);}
+}
+.tema-catfish-active .profile-av-wrap::after {
+  content:''; position:absolute; inset:-22px; z-index:10; pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-55 -55 210 210'%3E%3Cg opacity='.82'%3E%3C!-- Bigote izquierdo superior --%3E%3Cpath d='M30 48 Q-5 30 -35 38 Q-50 42 -52 50' stroke='%23d7ccc8' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C!-- Bigote izquierdo inferior --%3E%3Cpath d='M30 55 Q-5 58 -35 72 Q-48 80 -50 88' stroke='%23bcaaa4' stroke-width='3.5' fill='none' stroke-linecap='round'/%3E%3C!-- Bigote derecho superior --%3E%3Cpath d='M70 48 Q105 30 135 38 Q150 42 152 50' stroke='%23d7ccc8' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C!-- Bigote derecho inferior --%3E%3Cpath d='M70 55 Q105 58 135 72 Q148 80 150 88' stroke='%23bcaaa4' stroke-width='3.5' fill='none' stroke-linecap='round'/%3E%3C!-- Bigote central izq --%3E%3Cpath d='M42 58 Q20 65 -8 62 Q-22 60 -28 65' stroke='%23a1887f' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C!-- Bigote central der --%3E%3Cpath d='M58 58 Q80 65 108 62 Q122 60 128 65' stroke='%23a1887f' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C!-- Aleta dorsal --%3E%3Cpath d='M35 -18 Q50 -42 65 -18' stroke='%23795548' stroke-width='3' fill='%23795548' opacity='.6'/%3E%3C!-- Ojo --%3E%3Ccircle cx='32' cy='42' r='7' fill='%23d7ccc8' opacity='.7'/%3E%3Ccircle cx='32' cy='42' r='3.5' fill='%23212121'/%3E%3Ccircle cx='34' cy='40' r='1.5' fill='%23fff' opacity='.8'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+/* ── KRAKEN ── */
+.tema-kraken-active #profCover { background:linear-gradient(160deg,#020008,#050015,#080025) !important; }
+.tema-kraken-active #profName {
+  background:linear-gradient(90deg,#1a237e 0%,#7c4dff 35%,#e040fb 60%,#1a237e 100%) !important;
+  background-size:220% auto !important;
+  -webkit-background-clip:text !important;-webkit-text-fill-color:transparent !important;background-clip:text !important;
+  animation:temaKrakenText 2.5s linear infinite !important;
+  filter:drop-shadow(0 0 8px rgba(124,77,255,.8)) !important;
+}
+@keyframes temaKrakenText{0%{background-position:0% center}100%{background-position:220% center}}
+.tema-kraken-active .profile-av-wrap { animation:temaKrakenRing 2s ease-in-out infinite alternate !important; }
+@keyframes temaKrakenRing{
+  from{box-shadow:0 0 0 3px #7c4dff,0 0 18px rgba(124,77,255,.6);}
+  to  {box-shadow:0 0 0 5px #e040fb,0 0 35px rgba(224,64,251,.8),0 0 65px rgba(26,35,126,.4);}
+}
+.tema-kraken-active .profile-av-wrap::after {
+  content:''; position:absolute; inset:-24px; z-index:10; pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-58 -58 216 216'%3E%3Cg opacity='.8' stroke='%237c4dff' stroke-width='3.5' fill='none'%3E%3C!-- Tentáculos grandes --%3E%3Cpath d='M50 90 Q5 95 -20 80 Q-40 68 -38 50' stroke-width='6'/%3E%3Cpath d='M50 90 Q5 115 -12 145 Q-22 165 0 168' stroke-width='5.5'/%3E%3Cpath d='M50 90 Q50 125 35 155 Q28 172 45 175' stroke-width='5'/%3E%3Cpath d='M50 90 Q90 118 108 148 Q120 168 106 172' stroke-width='5'/%3E%3Cpath d='M50 90 Q95 98 122 85 Q140 74 138 55' stroke-width='5.5'/%3E%3C!-- Tentáculos secundarios --%3E%3Cpath d='M50 10 Q15 2 -12 18 Q-32 32 -28 50' stroke-width='4' opacity='.65'/%3E%3Cpath d='M50 10 Q88 0 115 16 Q135 30 130 50' stroke-width='4' opacity='.65'/%3E%3Cpath d='M50 10 Q50 -22 32 -45 Q20 -60 25 -68' stroke-width='3.5' opacity='.55'/%3E%3C!-- Cuerpo / cabeza ovoide --%3E%3Cellipse cx='50' cy='50' rx='35' ry='42' fill='%231a237e' opacity='.3' stroke='%237c4dff' stroke-width='2'/%3E%3C!-- Ojos --%3E%3Ccircle cx='36' cy='40' r='9' fill='%23e040fb' opacity='.5' stroke='none'/%3E%3Ccircle cx='36' cy='40' r='5' fill='%23fff' opacity='.7' stroke='none'/%3E%3Ccircle cx='64' cy='40' r='9' fill='%23e040fb' opacity='.5' stroke='none'/%3E%3Ccircle cx='64' cy='40' r='5' fill='%23fff' opacity='.7' stroke='none'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+/* ── TIBURÓN BLANCO ── */
+.tema-tiburon-active #profCover { background:linear-gradient(160deg,#050810,#0a1020,#0d1428) !important; }
+.tema-tiburon-active #profName {
+  background:linear-gradient(90deg,#90a4ae 0%,#eceff1 40%,#546e7a 70%,#90a4ae 100%) !important;
+  background-size:200% auto !important;
+  -webkit-background-clip:text !important;-webkit-text-fill-color:transparent !important;background-clip:text !important;
+  animation:temaTiburonText 2.5s linear infinite !important;
+  filter:drop-shadow(0 0 4px rgba(236,239,241,.5)) !important;
+}
+@keyframes temaTiburonText{0%{background-position:0% center}100%{background-position:200% center}}
+.tema-tiburon-active .profile-av-wrap { animation:temaTiburonRing 1.5s ease-in-out infinite alternate !important; }
+@keyframes temaTiburonRing{
+  from{box-shadow:0 0 0 3px #546e7a,0 0 14px rgba(84,110,122,.5);}
+  to  {box-shadow:0 0 0 4px #eceff1,0 0 28px rgba(236,239,241,.7),0 0 50px rgba(84,110,122,.3);}
+}
+.tema-tiburon-active .profile-av-wrap::after {
+  content:''; position:absolute; inset:-20px; z-index:10; pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-50 -50 200 200'%3E%3Cg opacity='.8'%3E%3C!-- Aleta dorsal --%3E%3Cpath d='M50 -48 Q65 -15 80 5 L20 5 Q35 -15 50 -48Z' fill='%2390a4ae' opacity='.75'/%3E%3C!-- Aleta lateral izq --%3E%3Cpath d='M-35 45 Q-15 35 5 50 Q-10 65 -30 60Z' fill='%2390a4ae' opacity='.6'/%3E%3C!-- Aleta lateral der --%3E%3Cpath d='M135 45 Q115 35 95 50 Q110 65 130 60Z' fill='%2390a4ae' opacity='.6'/%3E%3C!-- Cuerpo fondo --%3E%3Cellipse cx='50' cy='55' rx='60' ry='40' fill='%23546e7a' opacity='.15'/%3E%3C!-- Mandíbula --%3E%3Cpath d='M15 75 Q50 95 85 75' stroke='%23eceff1' stroke-width='2.5' fill='none' opacity='.6'/%3E%3C!-- Dientes --%3E%3Cpolygon points='28,75 32,90 36,75' fill='%23fff' opacity='.85'/%3E%3Cpolygon points='40,78 44,95 48,78' fill='%23fff' opacity='.85'/%3E%3Cpolygon points='52,78 56,95 60,78' fill='%23fff' opacity='.85'/%3E%3Cpolygon points='64,75 68,90 72,75' fill='%23fff' opacity='.85'/%3E%3C!-- Ojo --%3E%3Ccircle cx='25' cy='52' r='8' fill='%23eceff1' opacity='.7'/%3E%3Ccircle cx='25' cy='52' r='4' fill='%231c1c1c'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+/* ── DRAGÓN DE FUEGO ── */
+.tema-dragon-active #profCover { background:linear-gradient(160deg,#0d0200,#200500,#2d0800) !important; }
+.tema-dragon-active #profName {
+  background:linear-gradient(90deg,#ff6f00 0%,#ffca28 30%,#ff3d00 60%,#ff6f00 100%) !important;
+  background-size:220% auto !important;
+  -webkit-background-clip:text !important;-webkit-text-fill-color:transparent !important;background-clip:text !important;
+  animation:temaDragonText 2s linear infinite !important;
+  filter:drop-shadow(0 0 8px rgba(255,111,0,.8)) !important;
+}
+@keyframes temaDragonText{0%{background-position:0% center}100%{background-position:220% center}}
+.tema-dragon-active .profile-av-wrap { animation:temaDragonRing 1.6s ease-in-out infinite alternate !important; }
+@keyframes temaDragonRing{
+  from{box-shadow:0 0 0 3px #ff6f00,0 0 18px rgba(255,111,0,.7);}
+  to  {box-shadow:0 0 0 5px #ffca28,0 0 35px rgba(255,202,40,.9),0 0 65px rgba(255,61,0,.4);}
+}
+.tema-dragon-active .profile-av-wrap::after {
+  content:''; position:absolute; inset:-22px; z-index:10; pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-55 -55 210 210'%3E%3Cg opacity='.82'%3E%3C!-- Ala izquierda --%3E%3Cpath d='M30 50 Q-10 20 -45 30 Q-30 55 -10 65 Q10 70 30 65Z' fill='%23b71c1c' opacity='.7'/%3E%3Cpath d='M30 50 Q-15 10 -50 0 Q-40 25 -20 40' stroke='%23ff6f00' stroke-width='2' fill='none' opacity='.6'/%3E%3C!-- Ala derecha --%3E%3Cpath d='M70 50 Q110 20 145 30 Q130 55 110 65 Q90 70 70 65Z' fill='%23b71c1c' opacity='.7'/%3E%3Cpath d='M70 50 Q115 10 150 0 Q140 25 120 40' stroke='%23ff6f00' stroke-width='2' fill='none' opacity='.6'/%3E%3C!-- Cabeza --%3E%3Cellipse cx='50' cy='30' rx='28' ry='22' fill='%23c62828' opacity='.75'/%3E%3C!-- Cuernos --%3E%3Cpath d='M36 12 Q28 -8 22 -18' stroke='%23ff6f00' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3Cpath d='M64 12 Q72 -8 78 -18' stroke='%23ff6f00' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C!-- Ojo --%3E%3Ccircle cx='40' cy='28' r='6' fill='%23ffca28' opacity='.9'/%3E%3Ccircle cx='40' cy='28' r='3' fill='%23000'/%3E%3Ccircle cx='60' cy='28' r='6' fill='%23ffca28' opacity='.9'/%3E%3Ccircle cx='60' cy='28' r='3' fill='%23000'/%3E%3C!-- Fuego boca --%3E%3Cpath d='M38 46 Q50 60 62 46 Q56 52 50 68 Q44 52 38 46Z' fill='%23ffca28' opacity='.8'/%3E%3Cpath d='M43 46 Q50 58 57 46 Q53 52 50 62 Q47 52 43 46Z' fill='%23ff3d00' opacity='.9'/%3E%3C!-- Cola --%3E%3Cpath d='M50 100 Q80 115 100 135 Q115 150 108 158 Q95 165 88 155 Q80 145 65 135 Q55 125 50 115' fill='%23b71c1c' opacity='.65'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+/* ── LOBO ALFA ── */
+.tema-lobo-active #profCover { background:linear-gradient(160deg,#050508,#0a0a12,#0f0f18) !important; }
+.tema-lobo-active #profName {
+  background:linear-gradient(90deg,#9e9e9e 0%,#f5f5f5 40%,#616161 70%,#9e9e9e 100%) !important;
+  background-size:200% auto !important;
+  -webkit-background-clip:text !important;-webkit-text-fill-color:transparent !important;background-clip:text !important;
+  animation:temaLoboText 3s linear infinite !important;
+  filter:drop-shadow(0 0 5px rgba(245,245,245,.4)) !important;
+}
+@keyframes temaLoboText{0%{background-position:0% center}100%{background-position:200% center}}
+.tema-lobo-active .profile-av-wrap { animation:temaLoboRing 2.5s ease-in-out infinite alternate !important; }
+@keyframes temaLoboRing{
+  from{box-shadow:0 0 0 3px #616161,0 0 14px rgba(97,97,97,.5);}
+  to  {box-shadow:0 0 0 4px #f5f5f5,0 0 28px rgba(245,245,245,.6),0 0 50px rgba(97,97,97,.25);}
+}
+.tema-lobo-active .profile-av-wrap::after {
+  content:''; position:absolute; inset:-20px; z-index:10; pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-50 -50 200 200'%3E%3Cg opacity='.78'%3E%3C!-- Oreja izquierda --%3E%3Cpath d='M20 15 Q8 -18 18 -38 Q30 -20 35 5Z' fill='%239e9e9e'/%3E%3Cpath d='M22 12 Q14 -12 20 -28 Q28 -14 30 5Z' fill='%23f5f5f5' opacity='.6'/%3E%3C!-- Oreja derecha --%3E%3Cpath d='M80 15 Q92 -18 82 -38 Q70 -20 65 5Z' fill='%239e9e9e'/%3E%3Cpath d='M78 12 Q86 -12 80 -28 Q72 -14 70 5Z' fill='%23f5f5f5' opacity='.6'/%3E%3C!-- Cara --%3E%3Cellipse cx='50' cy='52' rx='32' ry='38' fill='%23757575' opacity='.65'/%3E%3C!-- Hocico --%3E%3Cellipse cx='50' cy='68' rx='16' ry='10' fill='%23bdbdbd' opacity='.7'/%3E%3Ccircle cx='50' cy='64' r='5' fill='%23424242' opacity='.9'/%3E%3C!-- Ojos --%3E%3Ccircle cx='36' cy='46' r='7' fill='%23ffd54f' opacity='.85'/%3E%3Ccircle cx='36' cy='46' r='3.5' fill='%23000'/%3E%3Ccircle cx='64' cy='46' r='7' fill='%23ffd54f' opacity='.85'/%3E%3Ccircle cx='64' cy='46' r='3.5' fill='%23000'/%3E%3C!-- Luna detrás --%3E%3Ccircle cx='50' cy='50' r='55' fill='none' stroke='%23f5f5f5' stroke-width='1.5' opacity='.15'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat;
+}
+
 .profile-layout{display:grid;grid-template-columns:360px 1fr;gap:16px;padding:16px;max-width:1080px;margin:0 auto;}
 @media(max-width:900px){.profile-layout{grid-template-columns:1fr;}}
 .profile-about-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;}
@@ -8523,6 +8727,17 @@ const SHOP_ITEMS = [
   { id:'tema_gold',     cat:'tema', name:'Oro Puro',            preview:'✨', emoji:'💛', price:1600, desc:'Borde dorado brillante rotativo, nombre con gradiente oro-platino, badge premium',                 temaCSS:'tema-gold-pure',     exclusive:true },
   { id:'tema_shadow',   cat:'tema', name:'Sombra Oscura',       preview:'🌑', emoji:'🌑', price:1000, desc:'Borde morado oscuro sutil, nombre con degradado sombrío misterioso',                              temaCSS:'tema-shadow-dark',   exclusive:false },
   { id:'tema_ice',      cat:'tema', name:'Glaciar',             preview:'❄️', emoji:'❄️', price:1100, desc:'Borde hielo cristalino, nombre con glow helado, partículas de nieve animadas',                   temaCSS:'tema-ice-glacier',   exclusive:false },
+  // ── TEMAS ACUÁTICOS RF4 ──
+  { id:'tema_poseidon', cat:'tema', name:'Poseidón',            preview:'🔱', emoji:'🔱', price:2200, desc:'Tridente y corona marina SVG sobre el avatar, borde azul profundo, olas animadas en el banner', temaCSS:'tema-poseidon', exclusive:true },
+  { id:'tema_sirena',   cat:'tema', name:'Sirena',              preview:'🧜', emoji:'🧜', price:1900, desc:'Cola de sirena y conchas SVG sobre el avatar, borde rosa/cian, gradiente mágico', temaCSS:'tema-sirena', exclusive:true },
+  { id:'tema_pulpo',    cat:'tema', name:'Pulpo Gigante',       preview:'🐙', emoji:'🐙', price:2000, desc:'8 tentáculos SVG rodeando el avatar, borde violeta pulsante, tinta en el banner', temaCSS:'tema-pulpo', exclusive:true },
+  { id:'tema_ballena',  cat:'tema', name:'Ballena Azul',        preview:'🐋', emoji:'🐋', price:1800, desc:'Silueta de ballena azul SVG con puntos bioluminiscentes, borde suave profundo', temaCSS:'tema-ballena', exclusive:false },
+  { id:'tema_pirana',   cat:'tema', name:'Piraña Asesina',      preview:'🦈', emoji:'🦷', price:1700, desc:'Mandíbulas abiertas con dientes SVG, borde rojo agresivo, salpicaduras en banner', temaCSS:'tema-pirana', exclusive:true },
+  { id:'tema_catfish',  cat:'tema', name:'Catfish Gigante',     preview:'🐟', emoji:'🎣', price:1500, desc:'Bigotes del siluro en SVG rodeando el avatar, borde marrón terroso', temaCSS:'tema-catfish', exclusive:false },
+  { id:'tema_kraken',   cat:'tema', name:'Kraken',              preview:'🦑', emoji:'🦑', price:2500, desc:'Kraken completo SVG con 8 tentáculos y ojos, borde violeta eléctrico. El más épico', temaCSS:'tema-kraken', exclusive:true },
+  { id:'tema_tiburon',  cat:'tema', name:'Tiburón Blanco',      preview:'🦈', emoji:'🦈', price:2000, desc:'Aletas y dientes SVG, borde gris metálico, mandíbulas asomando por los lados', temaCSS:'tema-tiburon', exclusive:true },
+  { id:'tema_dragon',   cat:'tema', name:'Dragón de Fuego',     preview:'🐉', emoji:'🐉', price:2800, desc:'Dragón completo SVG con alas, cuernos y fuego por la boca, borde naranja ígnea', temaCSS:'tema-dragon', exclusive:true },
+  { id:'tema_lobo',     cat:'tema', name:'Lobo Alfa',           preview:'🐺', emoji:'🐺', price:1600, desc:'Cara de lobo SVG con orejas y luna, ojos amarillos, borde gris plateado nocturno', temaCSS:'tema-lobo', exclusive:false },
 ];
 
 // Efectos de partículas activos
@@ -8761,34 +8976,64 @@ function renderShopGrid(){
     const bannerPreview = item.cat==='banner' ? `<div style="width:100%;height:60px;border-radius:8px;margin-bottom:8px;overflow:hidden;position:relative;background:${item.id==='banner_fuego'?'linear-gradient(180deg,#0a0000,#2d0800)':item.id==='banner_flores'?'linear-gradient(180deg,#0d0018,#2d0060)':item.id==='banner_ocean'?'linear-gradient(180deg,#00050f,#002050)':item.id==='banner_aurora'?'linear-gradient(180deg,#000508,#001a15)':item.id==='banner_galaxy'?'linear-gradient(180deg,#000005,#0a0020)':'linear-gradient(180deg,#050507,#101018)'};display:flex;align-items:center;justify-content:center;font-size:1.8rem;">${item.preview}</div>` : '';
     const temaPreview = item.cat==='tema' ? (()=>{
       const bgMap = {
-        'tema_admin':  'linear-gradient(135deg,#1a0300,#2d0800)',
-        'tema_aries':  'linear-gradient(135deg,#0d0000,#300008)',
-        'tema_galaxy': 'linear-gradient(135deg,#020008,#0a0025)',
-        'tema_neon':   'linear-gradient(135deg,#040008,#0a001e)',
-        'tema_ocean':  'linear-gradient(135deg,#000510,#001a40)',
-        'tema_gold':   'linear-gradient(135deg,#0a0800,#1a1200)',
-        'tema_shadow': 'linear-gradient(135deg,#050005,#100010)',
-        'tema_ice':    'linear-gradient(135deg,#000d14,#002030)',
+        'tema_admin':    'linear-gradient(135deg,#1a0300,#2d0800)',
+        'tema_aries':    'linear-gradient(135deg,#0d0000,#300008)',
+        'tema_galaxy':   'linear-gradient(135deg,#020008,#0a0025)',
+        'tema_neon':     'linear-gradient(135deg,#040008,#0a001e)',
+        'tema_ocean':    'linear-gradient(135deg,#000510,#001a40)',
+        'tema_gold':     'linear-gradient(135deg,#0a0800,#1a1200)',
+        'tema_shadow':   'linear-gradient(135deg,#050005,#100010)',
+        'tema_ice':      'linear-gradient(135deg,#000d14,#002030)',
+        'tema_poseidon': 'linear-gradient(135deg,#000a14,#002244)',
+        'tema_sirena':   'linear-gradient(135deg,#000814,#001e3c)',
+        'tema_pulpo':    'linear-gradient(135deg,#050005,#120020)',
+        'tema_ballena':  'linear-gradient(135deg,#000308,#001030)',
+        'tema_pirana':   'linear-gradient(135deg,#0d0000,#250000)',
+        'tema_catfish':  'linear-gradient(135deg,#080500,#1a1000)',
+        'tema_kraken':   'linear-gradient(135deg,#020008,#080025)',
+        'tema_tiburon':  'linear-gradient(135deg,#050810,#0d1428)',
+        'tema_dragon':   'linear-gradient(135deg,#0d0200,#2d0800)',
+        'tema_lobo':     'linear-gradient(135deg,#050508,#0f0f18)',
       };
       const ringMap = {
-        'tema_admin':  'box-shadow:0 0 0 3px rgba(255,180,0,.9),0 0 12px rgba(255,80,0,.7);',
-        'tema_aries':  'box-shadow:0 0 0 3px #ff1744,0 0 12px rgba(255,23,68,.7);',
-        'tema_galaxy': 'box-shadow:0 0 0 3px #b388ff,0 0 12px rgba(179,136,255,.6);',
-        'tema_neon':   'box-shadow:0 0 0 3px #e040fb,0 0 12px rgba(0,229,255,.6);',
-        'tema_ocean':  'box-shadow:0 0 0 3px #00b4d8,0 0 12px rgba(0,180,216,.6);',
-        'tema_gold':   'box-shadow:0 0 0 3px #ffd700,0 0 14px rgba(255,215,0,.7);',
-        'tema_shadow': 'box-shadow:0 0 0 3px #9c27b0,0 0 12px rgba(156,39,176,.6);',
-        'tema_ice':    'box-shadow:0 0 0 3px #80deea,0 0 12px rgba(128,222,234,.6);',
+        'tema_admin':    'box-shadow:0 0 0 3px rgba(255,180,0,.9),0 0 12px rgba(255,80,0,.7);',
+        'tema_aries':    'box-shadow:0 0 0 3px #ff1744,0 0 12px rgba(255,23,68,.7);',
+        'tema_galaxy':   'box-shadow:0 0 0 3px #b388ff,0 0 12px rgba(179,136,255,.6);',
+        'tema_neon':     'box-shadow:0 0 0 3px #e040fb,0 0 12px rgba(0,229,255,.6);',
+        'tema_ocean':    'box-shadow:0 0 0 3px #00b4d8,0 0 12px rgba(0,180,216,.6);',
+        'tema_gold':     'box-shadow:0 0 0 3px #ffd700,0 0 14px rgba(255,215,0,.7);',
+        'tema_shadow':   'box-shadow:0 0 0 3px #9c27b0,0 0 12px rgba(156,39,176,.6);',
+        'tema_ice':      'box-shadow:0 0 0 3px #80deea,0 0 12px rgba(128,222,234,.6);',
+        'tema_poseidon': 'box-shadow:0 0 0 3px #00cfff,0 0 14px rgba(0,207,255,.8);',
+        'tema_sirena':   'box-shadow:0 0 0 3px #e91e8c,0 0 12px rgba(233,30,140,.6);',
+        'tema_pulpo':    'box-shadow:0 0 0 4px #e040fb,0 0 14px rgba(224,64,251,.8);',
+        'tema_ballena':  'box-shadow:0 0 0 2px #0288d1,0 0 16px rgba(79,195,247,.5);',
+        'tema_pirana':   'box-shadow:0 0 0 4px #f44336,0 0 14px rgba(244,67,54,.9);',
+        'tema_catfish':  'box-shadow:0 0 0 3px #795548,0 0 12px rgba(121,85,72,.6);',
+        'tema_kraken':   'box-shadow:0 0 0 4px #7c4dff,0 0 16px rgba(124,77,255,.8);',
+        'tema_tiburon':  'box-shadow:0 0 0 3px #546e7a,0 0 12px rgba(84,110,122,.6);',
+        'tema_dragon':   'box-shadow:0 0 0 4px #ff6f00,0 0 16px rgba(255,111,0,.9);',
+        'tema_lobo':     'box-shadow:0 0 0 3px #9e9e9e,0 0 12px rgba(245,245,245,.4);',
       };
       const textMap = {
-        'tema_admin':  'background:linear-gradient(90deg,#ff4500,#ffd700,#ff8c00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
-        'tema_aries':  'background:linear-gradient(90deg,#ff1744,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
-        'tema_galaxy': 'background:linear-gradient(90deg,#b388ff,#00e5ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
-        'tema_neon':   'background:linear-gradient(90deg,#e040fb,#00e5ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
-        'tema_ocean':  'background:linear-gradient(90deg,#00b4d8,#90e0ef);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
-        'tema_gold':   'background:linear-gradient(90deg,#ffd700,#fffde7,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
-        'tema_shadow': 'background:linear-gradient(90deg,#ce93d8,#9c27b0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
-        'tema_ice':    'background:linear-gradient(90deg,#e0f7fa,#80deea);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_admin':    'background:linear-gradient(90deg,#ff4500,#ffd700,#ff8c00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_aries':    'background:linear-gradient(90deg,#ff1744,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_galaxy':   'background:linear-gradient(90deg,#b388ff,#00e5ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_neon':     'background:linear-gradient(90deg,#e040fb,#00e5ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_ocean':    'background:linear-gradient(90deg,#00b4d8,#90e0ef);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_gold':     'background:linear-gradient(90deg,#ffd700,#fffde7,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_shadow':   'background:linear-gradient(90deg,#ce93d8,#9c27b0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_ice':      'background:linear-gradient(90deg,#e0f7fa,#80deea);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_poseidon': 'background:linear-gradient(90deg,#00cfff,#7fffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_sirena':   'background:linear-gradient(90deg,#e91e8c,#00bcd4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_pulpo':    'background:linear-gradient(90deg,#e040fb,#7b1fa2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_ballena':  'background:linear-gradient(90deg,#0288d1,#4fc3f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_pirana':   'background:linear-gradient(90deg,#f44336,#ff8a80);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_catfish':  'background:linear-gradient(90deg,#795548,#d7ccc8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_kraken':   'background:linear-gradient(90deg,#7c4dff,#e040fb);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_tiburon':  'background:linear-gradient(90deg,#546e7a,#eceff1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_dragon':   'background:linear-gradient(90deg,#ff6f00,#ffca28);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_lobo':     'background:linear-gradient(90deg,#9e9e9e,#f5f5f5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
       };
       const bg = bgMap[item.id]||'linear-gradient(135deg,#111,#222)';
       const ring = ringMap[item.id]||'';
@@ -8933,9 +9178,14 @@ function applyShopEffects(){
   }
 
   // ── TEMAS DE PERFIL ──
-  const ALL_TEMA_CLASSES = ['tema-admin-fire-active','tema-aries-active','tema-galaxy-dark-active',
+  const ALL_TEMA_CLASSES = [
+    'tema-admin-fire-active','tema-aries-active','tema-galaxy-dark-active',
     'tema-neon-cyber-active','tema-ocean-abyss-active','tema-gold-pure-active',
-    'tema-shadow-dark-active','tema-ice-glacier-active'];
+    'tema-shadow-dark-active','tema-ice-glacier-active',
+    'tema-poseidon-active','tema-sirena-active','tema-pulpo-active',
+    'tema-ballena-active','tema-pirana-active','tema-catfish-active',
+    'tema-kraken-active','tema-tiburon-active','tema-dragon-active','tema-lobo-active'
+  ];
   const profPage = document.getElementById('page-profile');
   if(profPage){
     profPage.classList.remove(...ALL_TEMA_CLASSES);
