@@ -754,6 +754,170 @@ select.fi option{background:var(--bg3);color:var(--text);}
 @keyframes avfxCristal  { from{filter:brightness(1.1) drop-shadow(0 0 4px rgba(0,220,255,.5));} to{filter:brightness(1.2) drop-shadow(0 0 16px rgba(0,200,255,.9)) drop-shadow(0 0 4px rgba(100,240,255,.6));} }
 /* partículas tienda */
 @keyframes shopParticleFall { 0%{transform:translateY(0) rotate(0deg);opacity:.9;} 100%{transform:translateY(110vh) rotate(720deg);opacity:0;} }
+
+/* ════════════════════════════════════════════════
+   TEMAS DE PERFIL — Estilo Discord
+   Se aplican como clase en .profCover, #profName, etc.
+   ════════════════════════════════════════════════ */
+
+/* ── ADMIN FIRE (igual que el borde admin de posts) ── */
+@property --tema-admin-angle { syntax:'<angle>'; initial-value:0deg; inherits:false; }
+.tema-admin-fire-active #profCover {
+  background: linear-gradient(135deg,#1a0300,#2d0800,#1a0500) !important;
+}
+.tema-admin-fire-active .profCoverInner::before {
+  content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+  background: radial-gradient(ellipse at 50% 100%, rgba(255,80,0,.3) 0%, transparent 60%);
+  animation: temaAdminGlow 2s ease-in-out infinite alternate;
+}
+@keyframes temaAdminGlow { from{opacity:.5;} to{opacity:1;} }
+.tema-admin-fire-active #profName {
+  background: linear-gradient(90deg, #ff4500 0%, #ff8c00 25%, #ffd700 50%, #fff 60%, #ffd700 75%, #ff8c00 90%, #ff4500 100%) !important;
+  background-size: 250% auto !important;
+  -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; background-clip: text !important;
+  animation: adminFireText 2s linear infinite !important;
+  filter: drop-shadow(0 0 8px rgba(255,120,0,.7)) !important;
+}
+@keyframes adminFireText { 0%{background-position:0% center;} 100%{background-position:250% center;} }
+.tema-admin-fire-active .profile-av-wrap {
+  box-shadow: 0 0 0 3px rgba(255,180,0,.8), 0 0 20px rgba(255,80,0,.7), 0 0 40px rgba(255,40,0,.3) !important;
+  animation: temaAdminAvGlow 2s ease-in-out infinite alternate !important;
+}
+@keyframes temaAdminAvGlow {
+  from { box-shadow:0 0 0 3px rgba(255,100,0,.8), 0 0 16px rgba(255,60,0,.6); }
+  to   { box-shadow:0 0 0 4px rgba(255,215,0,.9), 0 0 30px rgba(255,120,0,.9), 0 0 50px rgba(255,60,0,.4); }
+}
+
+/* ── ARIES EN LLAMAS ── */
+@property --tema-aries-angle { syntax:'<angle>'; initial-value:0deg; inherits:false; }
+.tema-aries-active #profCover { background:linear-gradient(160deg,#0d0000,#1e0005,#300008) !important; }
+.tema-aries-active #profName {
+  background: linear-gradient(90deg, #ff1744 0%, #ff6b35 40%, #ff1744 80%, #ff6b35 100%) !important;
+  background-size:200% auto !important;
+  -webkit-background-clip:text !important; -webkit-text-fill-color:transparent !important; background-clip:text !important;
+  animation: temaAriesFire 1.8s linear infinite !important;
+  text-shadow: none !important;
+}
+@keyframes temaAriesFire { 0%{background-position:0% center;} 100%{background-position:200% center;} }
+.tema-aries-active .profile-av-wrap {
+  box-shadow: 0 0 0 3px #ff1744, 0 0 18px rgba(255,23,68,.7), 0 0 35px rgba(200,0,30,.3) !important;
+  animation: temaAriesRing 1.6s ease-in-out infinite alternate !important;
+}
+@keyframes temaAriesRing {
+  from { box-shadow:0 0 0 3px #ff1744, 0 0 14px rgba(255,23,68,.6); }
+  to   { box-shadow:0 0 0 4px #ff5252, 0 0 28px rgba(255,82,82,.9), 0 0 50px rgba(255,0,30,.4); }
+}
+
+/* ── GALAXIA OSCURA ── */
+@property --tema-galaxy-angle { syntax:'<angle>'; initial-value:0deg; inherits:false; }
+.tema-galaxy-dark-active #profCover { background:linear-gradient(160deg,#020008,#07001a,#0a0025) !important; }
+.tema-galaxy-dark-active #profName {
+  background: linear-gradient(90deg, #b388ff 0%, #e040fb 30%, #00e5ff 60%, #b388ff 100%) !important;
+  background-size:250% auto !important;
+  -webkit-background-clip:text !important; -webkit-text-fill-color:transparent !important; background-clip:text !important;
+  animation: temaGalaxyText 3s linear infinite !important;
+}
+@keyframes temaGalaxyText { 0%{background-position:0% center;} 100%{background-position:250% center;} }
+.tema-galaxy-dark-active .profile-av-wrap {
+  animation: temaGalaxyRing 3s linear infinite !important;
+}
+@keyframes temaGalaxyRing {
+  0%   { box-shadow:0 0 0 3px #7b2fff, 0 0 20px rgba(123,47,255,.5); }
+  33%  { box-shadow:0 0 0 3px #e040fb, 0 0 22px rgba(224,64,251,.5); }
+  66%  { box-shadow:0 0 0 3px #00e5ff, 0 0 20px rgba(0,229,255,.5); }
+  100% { box-shadow:0 0 0 3px #7b2fff, 0 0 20px rgba(123,47,255,.5); }
+}
+
+/* ── NEÓN CIBERPUNK ── */
+.tema-neon-cyber-active #profCover { background:linear-gradient(160deg,#040008,#080018,#0a001e) !important; }
+.tema-neon-cyber-active #profName {
+  background: linear-gradient(90deg, #e040fb 0%, #00e5ff 50%, #e040fb 100%) !important;
+  background-size:200% auto !important;
+  -webkit-background-clip:text !important; -webkit-text-fill-color:transparent !important; background-clip:text !important;
+  animation: temaNeonText 2s linear infinite !important;
+  filter: drop-shadow(0 0 6px rgba(224,64,251,.8)) !important;
+}
+@keyframes temaNeonText { 0%{background-position:0% center;} 100%{background-position:200% center;} }
+.tema-neon-cyber-active .profile-av-wrap {
+  animation: temaNeonRing 1.5s ease-in-out infinite alternate !important;
+}
+@keyframes temaNeonRing {
+  from { box-shadow:0 0 0 3px #e040fb, 0 0 14px rgba(224,64,251,.6); }
+  to   { box-shadow:0 0 0 4px #00e5ff, 0 0 28px rgba(0,229,255,.8), 0 0 50px rgba(224,64,251,.3); }
+}
+
+/* ── ABISMO DEL OCÉANO ── */
+.tema-ocean-abyss-active #profCover { background:linear-gradient(160deg,#000510,#001030,#001a40) !important; }
+.tema-ocean-abyss-active #profName {
+  background: linear-gradient(90deg, #00b4d8 0%, #90e0ef 40%, #00b4d8 80%, #0077b6 100%) !important;
+  background-size:200% auto !important;
+  -webkit-background-clip:text !important; -webkit-text-fill-color:transparent !important; background-clip:text !important;
+  animation: temaOceanText 3s linear infinite !important;
+}
+@keyframes temaOceanText { 0%{background-position:0% center;} 100%{background-position:200% center;} }
+.tema-ocean-abyss-active .profile-av-wrap {
+  animation: temaOceanRing 2s ease-in-out infinite alternate !important;
+}
+@keyframes temaOceanRing {
+  from { box-shadow:0 0 0 3px #00b4d8, 0 0 14px rgba(0,180,216,.5); }
+  to   { box-shadow:0 0 0 4px #90e0ef, 0 0 26px rgba(144,224,239,.8), 0 0 50px rgba(0,119,182,.3); }
+}
+
+/* ── ORO PURO ── */
+@property --tema-gold-angle { syntax:'<angle>'; initial-value:0deg; inherits:false; }
+.tema-gold-pure-active #profCover { background:linear-gradient(160deg,#0a0800,#1a1200,#0f0c00) !important; }
+.tema-gold-pure-active #profName {
+  background: linear-gradient(90deg, #ffd700 0%, #fffde7 40%, #ffd700 70%, #ff8c00 100%) !important;
+  background-size:250% auto !important;
+  -webkit-background-clip:text !important; -webkit-text-fill-color:transparent !important; background-clip:text !important;
+  animation: temaGoldText 2.5s linear infinite !important;
+  filter: drop-shadow(0 0 6px rgba(255,215,0,.6)) !important;
+}
+@keyframes temaGoldText { 0%{background-position:0% center;} 100%{background-position:250% center;} }
+.tema-gold-pure-active .profile-av-wrap {
+  box-shadow: 0 0 0 3px #ffd700, 0 0 0 6px rgba(255,215,0,.2), 0 0 24px rgba(255,215,0,.6) !important;
+  animation: temaGoldRing 2s ease-in-out infinite alternate !important;
+}
+@keyframes temaGoldRing {
+  from { box-shadow:0 0 0 3px #ffd700, 0 0 16px rgba(255,215,0,.5); }
+  to   { box-shadow:0 0 0 4px #fff3b0, 0 0 32px rgba(255,215,0,.9), 0 0 60px rgba(255,180,0,.4); }
+}
+
+/* ── SOMBRA OSCURA ── */
+.tema-shadow-dark-active #profCover { background:linear-gradient(160deg,#050005,#0d000d,#100010) !important; }
+.tema-shadow-dark-active #profName {
+  background: linear-gradient(90deg, #ce93d8 0%, #9c27b0 50%, #ce93d8 100%) !important;
+  background-size:200% auto !important;
+  -webkit-background-clip:text !important; -webkit-text-fill-color:transparent !important; background-clip:text !important;
+  animation: temaShadowText 4s linear infinite !important;
+}
+@keyframes temaShadowText { 0%{background-position:0% center;} 100%{background-position:200% center;} }
+.tema-shadow-dark-active .profile-av-wrap {
+  box-shadow: 0 0 0 3px #9c27b0, 0 0 18px rgba(156,39,176,.5) !important;
+  animation: temaShadowRing 3s ease-in-out infinite alternate !important;
+}
+@keyframes temaShadowRing {
+  from { box-shadow:0 0 0 3px #7b1fa2, 0 0 12px rgba(123,31,162,.4); }
+  to   { box-shadow:0 0 0 4px #ce93d8, 0 0 24px rgba(206,147,216,.7); }
+}
+
+/* ── GLACIAR ── */
+.tema-ice-glacier-active #profCover { background:linear-gradient(160deg,#000d14,#001a28,#002030) !important; }
+.tema-ice-glacier-active #profName {
+  background: linear-gradient(90deg, #e0f7fa 0%, #80deea 40%, #e0f7fa 80%, #b2ebf2 100%) !important;
+  background-size:200% auto !important;
+  -webkit-background-clip:text !important; -webkit-text-fill-color:transparent !important; background-clip:text !important;
+  animation: temaIceText 3s linear infinite !important;
+  filter: drop-shadow(0 0 4px rgba(178,235,242,.7)) !important;
+}
+@keyframes temaIceText { 0%{background-position:0% center;} 100%{background-position:200% center;} }
+.tema-ice-glacier-active .profile-av-wrap {
+  animation: temaIceRing 2s ease-in-out infinite alternate !important;
+}
+@keyframes temaIceRing {
+  from { box-shadow:0 0 0 3px #80deea, 0 0 14px rgba(128,222,234,.5); }
+  to   { box-shadow:0 0 0 4px #e0f7fa, 0 0 28px rgba(224,247,250,.8), 0 0 50px rgba(0,188,212,.3); }
+}
 .profile-layout{display:grid;grid-template-columns:360px 1fr;gap:16px;padding:16px;max-width:1080px;margin:0 auto;}
 @media(max-width:900px){.profile-layout{grid-template-columns:1fr;}}
 .profile-about-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;}
@@ -2978,6 +3142,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
   </div>
     <button class="shop-cat-btn" onclick="filterShopCat(this,'banner')" style="background:linear-gradient(135deg,rgba(255,80,0,.15),rgba(255,200,0,.1));border-color:rgba(255,120,0,.3);">🖼 Banners</button>
     <button class="shop-cat-btn" onclick="filterShopCat(this,'avfx')" style="background:linear-gradient(135deg,rgba(0,220,255,.15),rgba(150,0,255,.1));border-color:rgba(0,180,255,.4);">✨ Foto FX <span style="font-size:.55rem;background:linear-gradient(135deg,#00c6ff,#7b2fff);color:#fff;padding:1px 5px;border-radius:100px;margin-left:3px;font-weight:900;">✅ VIP</span></button>
+    <button class="shop-cat-btn" onclick="filterShopCat(this,'tema')" style="background:linear-gradient(135deg,rgba(255,215,0,.18),rgba(255,60,0,.12));border-color:rgba(255,180,0,.5);">🎭 Temas de Perfil <span style="font-size:.55rem;background:linear-gradient(135deg,#ffd700,#ff4500);color:#000;padding:1px 6px;border-radius:100px;margin-left:3px;font-weight:900;">✦ NUEVO</span></button>
   <!-- Grid de ítems -->
   <div id="shopItemsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;"></div>
 </div>
@@ -8349,6 +8514,15 @@ const SHOP_ITEMS = [
   { id:'banner_aurora', cat:'banner', name:'Aurora Boreal',      preview:'🌌', emoji:'🌠', price:1100, desc:'Luces polares danzando en el cielo',         exclusive:true,  bannerFn:'bannerAurora' },
   { id:'banner_galaxy', cat:'banner', name:'Galaxia',            preview:'⭐', emoji:'✨', price:1300, desc:'Miles de estrellas y nebulosas',             exclusive:true,  bannerFn:'bannerGalaxy' },
   { id:'banner_storm',  cat:'banner', name:'Tormenta Eléctrica', preview:'⚡', emoji:'⚡', price:1400, desc:'Rayos y tormenta en tu portada',             exclusive:true,  bannerFn:'bannerStorm'  },
+  // ── TEMAS DE PERFIL (estilo Discord) ──
+  { id:'tema_admin',    cat:'tema', name:'Fuego del Admin',     preview:'👑', emoji:'👑', price:0,    desc:'Borde giratorio rojo→naranja→dorado, nombre con fuego animado, corona con rebote y glow pulsante', temaCSS:'tema-admin-fire',    exclusive:true, soloAdmin:true },
+  { id:'tema_aries',    cat:'tema', name:'Aries en Llamas',     preview:'♈', emoji:'♈', price:2000, desc:'Borde rojo escarlata pulsante, fondo oscuro rojo, nombre con gradiente carmesí animado',           temaCSS:'tema-aries',         exclusive:true },
+  { id:'tema_galaxy',   cat:'tema', name:'Galaxia Oscura',      preview:'🌌', emoji:'🌌', price:1800, desc:'Borde cósmico con nebulosas, partículas de estrellas, nombre con efecto estelar',                 temaCSS:'tema-galaxy-dark',   exclusive:true },
+  { id:'tema_neon',     cat:'tema', name:'Neón Ciberpunk',      preview:'🟣', emoji:'💜', price:1500, desc:'Borde neón violeta eléctrico parpadeante, fondo oscuro, nombre con glow violeta/cian',            temaCSS:'tema-neon-cyber',    exclusive:false },
+  { id:'tema_ocean',    cat:'tema', name:'Abismo del Océano',   preview:'🌊', emoji:'🌊', price:1200, desc:'Borde azul profundo con olas animadas, nombre con shimmer acuático',                              temaCSS:'tema-ocean-abyss',   exclusive:false },
+  { id:'tema_gold',     cat:'tema', name:'Oro Puro',            preview:'✨', emoji:'💛', price:1600, desc:'Borde dorado brillante rotativo, nombre con gradiente oro-platino, badge premium',                 temaCSS:'tema-gold-pure',     exclusive:true },
+  { id:'tema_shadow',   cat:'tema', name:'Sombra Oscura',       preview:'🌑', emoji:'🌑', price:1000, desc:'Borde morado oscuro sutil, nombre con degradado sombrío misterioso',                              temaCSS:'tema-shadow-dark',   exclusive:false },
+  { id:'tema_ice',      cat:'tema', name:'Glaciar',             preview:'❄️', emoji:'❄️', price:1100, desc:'Borde hielo cristalino, nombre con glow helado, partículas de nieve animadas',                   temaCSS:'tema-ice-glacier',   exclusive:false },
 ];
 
 // Efectos de partículas activos
@@ -8580,11 +8754,51 @@ function renderShopGrid(){
   const gridProfile = document.getElementById('shopItemsGridProfile');
   if(!grid && !gridProfile) return;
   const items = _shopFilter === 'all' ? SHOP_ITEMS : SHOP_ITEMS.filter(i=>i.cat===_shopFilter);
-  const CAT_LABEL = {marco:'🖼 Marco',badge:'🏅 Badge',efecto:'✨ Efecto',titulo:'📛 Título',postcolor:'🎨 Color de Post',banner:'🖼 Banner Animado'};
+  const CAT_LABEL = {marco:'🖼 Marco',badge:'🏅 Badge',efecto:'✨ Efecto',titulo:'📛 Título',postcolor:'🎨 Color de Post',banner:'🖼 Banner Animado',tema:'🎭 Tema de Perfil'};
   const _shopHTML = items.map(item => {
     const isEquipped = _equippedItems[item.cat] === item.id;
     const postPreview = item.cat==='postcolor' ? `<div class="${item.theme}" style="border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:.63rem;color:#ddd;line-height:1.5;text-align:left;"><div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;"><div style="width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.2);flex-shrink:0;"></div><span style="font-weight:700;">ruizgustavo12</span></div><div>🎣 ¡Gran pesca hoy!</div></div>` : '';
     const bannerPreview = item.cat==='banner' ? `<div style="width:100%;height:60px;border-radius:8px;margin-bottom:8px;overflow:hidden;position:relative;background:${item.id==='banner_fuego'?'linear-gradient(180deg,#0a0000,#2d0800)':item.id==='banner_flores'?'linear-gradient(180deg,#0d0018,#2d0060)':item.id==='banner_ocean'?'linear-gradient(180deg,#00050f,#002050)':item.id==='banner_aurora'?'linear-gradient(180deg,#000508,#001a15)':item.id==='banner_galaxy'?'linear-gradient(180deg,#000005,#0a0020)':'linear-gradient(180deg,#050507,#101018)'};display:flex;align-items:center;justify-content:center;font-size:1.8rem;">${item.preview}</div>` : '';
+    const temaPreview = item.cat==='tema' ? (()=>{
+      const bgMap = {
+        'tema_admin':  'linear-gradient(135deg,#1a0300,#2d0800)',
+        'tema_aries':  'linear-gradient(135deg,#0d0000,#300008)',
+        'tema_galaxy': 'linear-gradient(135deg,#020008,#0a0025)',
+        'tema_neon':   'linear-gradient(135deg,#040008,#0a001e)',
+        'tema_ocean':  'linear-gradient(135deg,#000510,#001a40)',
+        'tema_gold':   'linear-gradient(135deg,#0a0800,#1a1200)',
+        'tema_shadow': 'linear-gradient(135deg,#050005,#100010)',
+        'tema_ice':    'linear-gradient(135deg,#000d14,#002030)',
+      };
+      const ringMap = {
+        'tema_admin':  'box-shadow:0 0 0 3px rgba(255,180,0,.9),0 0 12px rgba(255,80,0,.7);',
+        'tema_aries':  'box-shadow:0 0 0 3px #ff1744,0 0 12px rgba(255,23,68,.7);',
+        'tema_galaxy': 'box-shadow:0 0 0 3px #b388ff,0 0 12px rgba(179,136,255,.6);',
+        'tema_neon':   'box-shadow:0 0 0 3px #e040fb,0 0 12px rgba(0,229,255,.6);',
+        'tema_ocean':  'box-shadow:0 0 0 3px #00b4d8,0 0 12px rgba(0,180,216,.6);',
+        'tema_gold':   'box-shadow:0 0 0 3px #ffd700,0 0 14px rgba(255,215,0,.7);',
+        'tema_shadow': 'box-shadow:0 0 0 3px #9c27b0,0 0 12px rgba(156,39,176,.6);',
+        'tema_ice':    'box-shadow:0 0 0 3px #80deea,0 0 12px rgba(128,222,234,.6);',
+      };
+      const textMap = {
+        'tema_admin':  'background:linear-gradient(90deg,#ff4500,#ffd700,#ff8c00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_aries':  'background:linear-gradient(90deg,#ff1744,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_galaxy': 'background:linear-gradient(90deg,#b388ff,#00e5ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_neon':   'background:linear-gradient(90deg,#e040fb,#00e5ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_ocean':  'background:linear-gradient(90deg,#00b4d8,#90e0ef);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_gold':   'background:linear-gradient(90deg,#ffd700,#fffde7,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_shadow': 'background:linear-gradient(90deg,#ce93d8,#9c27b0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+        'tema_ice':    'background:linear-gradient(90deg,#e0f7fa,#80deea);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;',
+      };
+      const bg = bgMap[item.id]||'linear-gradient(135deg,#111,#222)';
+      const ring = ringMap[item.id]||'';
+      const txt = textMap[item.id]||'color:#fff;';
+      return `<div style="width:100%;height:70px;border-radius:10px;margin-bottom:8px;overflow:hidden;position:relative;background:${bg};display:flex;align-items:center;justify-content:center;gap:8px;padding:0 8px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.15);flex-shrink:0;${ring}"></div>
+        <div style="font-size:.78rem;font-weight:800;font-family:'Exo 2',sans-serif;${txt}">${item.id==='tema_admin'?'ruizgustavo12':'ruizgustav…'}</div>
+        ${item.id==='tema_admin'?'<span style="font-size:.8rem;filter:drop-shadow(0 0 4px gold);">👑</span>':''}
+      </div>`;
+    })() : '';
     return `
     <div class="shop-item${isEquipped?' equipped':''}${item.soloVerificado&&!window.CU?.verified?' shop-item-locked':''}" id="sitem_${item.id}">
       ${isEquipped ? '<div class="shop-item-equipped-badge">✓ ACTIVO</div>' : ''}
@@ -8592,7 +8806,8 @@ function renderShopGrid(){
       ${item.soloVerificado ? '<div style="position:absolute;top:6px;left:6px;background:linear-gradient(135deg,#00c6ff,#0072ff);color:#fff;font-size:.5rem;font-weight:900;border-radius:100px;padding:2px 6px;">✅ SOLO VERIFICADOS</div>' : ''}
       ${postPreview}
       ${bannerPreview}
-      ${!item.theme && !item.bannerFn ? `<span style="font-size:2.2rem;display:block;margin-bottom:6px;">${item.preview}</span>` : ''}
+      ${temaPreview}
+      ${!item.theme && !item.bannerFn && !item.temaCSS ? `<span style="font-size:2.2rem;display:block;margin-bottom:6px;">${item.preview}</span>` : ''}
       <div class="shop-item-name">${item.name}</div>
       <div class="shop-item-type">${CAT_LABEL[item.cat]||item.cat}</div>
       <div style="font-size:.62rem;color:var(--muted);margin-bottom:8px;line-height:1.35;">${item.desc}</div>
@@ -8601,7 +8816,9 @@ function renderShopGrid(){
         <span style="background:linear-gradient(135deg,#00c853,#00e676);color:#000;font-size:.65rem;font-weight:900;padding:2px 8px;border-radius:100px;">✦ GRATIS</span>
         <span style="font-size:.58rem;color:var(--muted);">30 días</span>
       </div>
-      ${item.soloVerificado && !window.CU?.verified
+      ${item.soloAdmin && !(window.CU?.nick==='ruizgustavo12'||window.CU?.role==='admin')
+        ? `<button class="shop-item-btn" style="background:rgba(255,180,0,.1);border:1px solid rgba(255,180,0,.3);color:#ffd700;" onclick="toast('👑 Este tema es exclusivo para administradores','err')">👑 Solo Admins</button>`
+        : item.soloVerificado && !window.CU?.verified
         ? `<button class="shop-item-btn" style="background:rgba(0,114,255,.12);border:1px solid rgba(0,114,255,.3);color:#0072ff;" onclick="toast('🔒 Este efecto es solo para usuarios verificados ✅','err')">🔒 Solo Verificados</button>`
         : `<button class="shop-item-btn ${isEquipped?'unequip':'equip'}" onclick="toggleEquipItem('${item.id}')">${isEquipped ? '✕ Desequipar' : '▶ Equipar'}</button>`
       }
@@ -8712,6 +8929,20 @@ function applyShopEffects(){
     if(bItem?.bannerFn && typeof window[bItem.bannerFn]==='function'){
       // pequeño delay para que el DOM esté listo
       setTimeout(()=>startBannerAnim(bItem.bannerFn), 100);
+    }
+  }
+
+  // ── TEMAS DE PERFIL ──
+  const ALL_TEMA_CLASSES = ['tema-admin-fire-active','tema-aries-active','tema-galaxy-dark-active',
+    'tema-neon-cyber-active','tema-ocean-abyss-active','tema-gold-pure-active',
+    'tema-shadow-dark-active','tema-ice-glacier-active'];
+  const profPage = document.getElementById('page-profile');
+  if(profPage){
+    profPage.classList.remove(...ALL_TEMA_CLASSES);
+    const temaId = _equippedItems.tema;
+    if(temaId){
+      const tItem = SHOP_ITEMS.find(i=>i.id===temaId);
+      if(tItem?.temaCSS) profPage.classList.add(tItem.temaCSS+'-active');
     }
   }
 }
