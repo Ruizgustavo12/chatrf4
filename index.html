@@ -12700,10 +12700,19 @@ async function _loadUserProfilePage(uid, nick){
   const nameEl = document.getElementById('upName');
   if(nameEl) nameEl.textContent = nick || '...';
   document.getElementById('upAv').innerHTML = '👤';
-  document.getElementById('upTabPosts').innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);">Cargando...</div>';
+  // Solo limpiar contenido interior, NO destruir la estructura del grid de 2 columnas
+  const upPostsList = document.getElementById('upPostsList');
+  if(upPostsList) upPostsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);">Cargando...</div>';
+  const upInfoItems2 = document.getElementById('upInfoItems');
+  if(upInfoItems2) upInfoItems2.innerHTML = '';
   document.getElementById('upTabInfo').innerHTML = '';
   document.getElementById('upTabFotos').innerHTML = '';
   document.getElementById('upTabAmigos').innerHTML = '';
+  // Ocultar cards de fotos y amigos del sidebar hasta que se carguen
+  const _lfc = document.getElementById('upLeftFotosCard');
+  const _lac = document.getElementById('upLeftAmigosCard');
+  if(_lfc) _lfc.style.display='none';
+  if(_lac) _lac.style.display='none';
   // Activa tab posts
   swUpTab(document.querySelector('#upTabs .ptab'), 'upTabPosts');
 
@@ -13065,7 +13074,8 @@ async function _loadUserProfilePage(uid, nick){
     document.getElementById('upTabInfo').innerHTML = infoRows || '<div style="color:var(--muted);padding:20px;text-align:center;font-size:.85rem;">Sin información disponible</div>';
 
   } catch(e){
-    document.getElementById('upTabPosts').innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);">No se pudo cargar el perfil</div>';
+    const _epl = document.getElementById('upPostsList');
+    if(_epl) _epl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);">No se pudo cargar el perfil</div>';
   }
 }
 
