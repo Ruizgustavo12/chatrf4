@@ -1040,7 +1040,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
       <!-- Nuevos Pescadores -->
       <div style="padding:0 6px 8px;">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 4px 6px;">
-          <span style="font-size:.72rem;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;">🆕 Nuevos Pescadores</span>
+          <span style="font-size:.72rem;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;">🆕 Personas que quizá conozcas</span>
           <span style="font-size:.65rem;color:var(--muted);cursor:pointer;font-weight:600;" onclick="renderNewFishers()">↻</span>
         </div>
         <div id="newFishersList"><div style="font-size:.72rem;color:var(--muted);padding:4px;">Cargando...</div></div>
@@ -11123,28 +11123,57 @@ async function renderSuggestedUsers(){
   }
 }
 
+// IDs descartados de sugerencias (solo en sesión)
+window._dismissedFishers = window._dismissedFishers || new Set();
+
 async function renderNewFishers(){
   const el = document.getElementById('newFishersList');
   if(!el) return;
   try {
-    const snap = await getDocs(query(collection(db,'users'), orderBy('createdAt','desc'), limit(15)));
+    const snap = await getDocs(query(collection(db,'users'), orderBy('createdAt','desc'), limit(30)));
     const myId = window.CU?.id;
     const myFriends = window.CU?.friends || [];
     const users = snap.docs
       .map(d=>({id:d.id,...d.data()}))
-      .filter(u => u.id !== myId)
-      .slice(0, 5);
-    if(!users.length){ el.innerHTML = '<div style="font-size:.72rem;color:var(--muted);padding:4px;">Sin nuevos pescadores</div>'; return; }
-    el.innerHTML = users.map(u=>`
-      <div onclick="openUserProfile('${u.id}','${(u.nick||'').replace(/'/g,"\'")}');" style="display:flex;align-items:center;gap:8px;padding:5px 4px;cursor:pointer;border-radius:var(--rs);transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='transparent'">
-        <div style="width:30px;height:30px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1.5px solid var(--border);">
-          <img src="${u.av||getDefaultAv(u.gender||'')}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
-        </div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:.75rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(u.nick||'?')}${u.verified?' ✅':''}</div>
-        </div>
-        ${!myFriends.includes(u.id) && u.id!==myId ? `<button onclick="sendFriendRequest('${u.id}','${(u.nick||'').replace(/'/g,"\'")}','sidebar');event.stopPropagation();" style="font-size:.6rem;padding:2px 7px;background:var(--accent);border:none;border-radius:100px;color:#000;font-weight:700;cursor:pointer;flex-shrink:0;">+</button>` : ''}
-      </div>`).join('');
+      .filter(u => u.id !== myId && !window._dismissedFishers.has(u.id))
+      .slice(0, 6);
+    if(!users.length){ el.innerHTML = '<div style="font-size:.72rem;color:var(--muted);padding:8px 4px;text-align:center;">Sin sugerencias por ahora</div>'; return; }
+
+    // Grid de tarjetas estilo Facebook
+    el.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:2px 0 4px;">
+      ${users.map(u=>{
+        const isFriend = myFriends.includes(u.id);
+        const nick = esc(u.nick||'?');
+        const safenick = (u.nick||'').replace(/'/g,"\\'");
+        return `
+        <div id="fisher-card-${u.id}" style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+          <!-- Foto grande -->
+          <div onclick="openUserProfile('${u.id}','${safenick}')" style="width:100%;aspect-ratio:1/1;overflow:hidden;cursor:pointer;background:var(--bg3);">
+            <img src="${u.av||getDefaultAv(u.gender||'')}" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(u.nick||'?')}&background=21262d&color=2ec4b6&size=120'">
+          </div>
+          <!-- Info -->
+          <div style="padding:7px 7px 8px;display:flex;flex-direction:column;gap:5px;flex:1;">
+            <div onclick="openUserProfile('${u.id}','${safenick}')" style="font-size:.75rem;font-weight:700;color:var(--text);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${nick}">${nick}${u.verified?' ✅':''}</div>
+            ${u.mutualFriends ? `<div style="font-size:.62rem;color:var(--muted);">👥 ${u.mutualFriends} amigos en común</div>` : ''}
+            <!-- Botón Agregar -->
+            ${!isFriend
+              ? `<button onclick="sendFriendRequest('${u.id}','${safenick}','sidebar');this.textContent='✓ Enviado';this.style.background='var(--bg4)';this.style.color='var(--muted)';this.style.cursor='default';this.disabled=true;event.stopPropagation();"
+                  style="width:100%;padding:5px 0;background:rgba(46,196,182,.15);border:1px solid rgba(46,196,182,.4);border-radius:var(--rs);color:var(--accent);font-size:.7rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;transition:all .18s;"
+                  onmouseover="if(!this.disabled)this.style.background='rgba(46,196,182,.28)'" onmouseout="if(!this.disabled)this.style.background='rgba(46,196,182,.15)'">
+                  + Agregar
+                </button>`
+              : `<div style="font-size:.68rem;color:var(--green);text-align:center;font-weight:700;">✓ Ya son amigos</div>`
+            }
+            <!-- Botón Eliminar sugerencia -->
+            <button onclick="window._dismissedFishers.add('${u.id}');const c=document.getElementById('fisher-card-${u.id}');if(c){c.style.opacity='0';c.style.transform='scale(.92)';c.style.transition='all .2s';setTimeout(()=>{c.remove();const g=document.querySelector('#newFishersList > div');if(g&&g.children.length===0)renderNewFishers();},200);}event.stopPropagation();"
+              style="width:100%;padding:4px 0;background:transparent;border:1px solid var(--border);border-radius:var(--rs);color:var(--muted);font-size:.68rem;font-weight:600;cursor:pointer;font-family:'Exo 2',sans-serif;transition:all .18s;"
+              onmouseover="this.style.background='var(--bg3)';this.style.color='var(--text)'" onmouseout="this.style.background='transparent';this.style.color='var(--muted)'">
+              Eliminar
+            </button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
   } catch(e){ el.innerHTML = '<div style="font-size:.72rem;color:var(--muted);padding:4px;"></div>'; }
 }
 
