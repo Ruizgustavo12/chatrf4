@@ -12808,9 +12808,9 @@ async function _loadUserProfilePage(uid, nick){
   if(upPostsList) upPostsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);">Cargando publicaciones...</div>';
   const upInfoItems2 = document.getElementById('upInfoItems');
   if(upInfoItems2) upInfoItems2.innerHTML = '';
-  document.getElementById('upTabInfo').innerHTML = '';
-  document.getElementById('upTabFotos').innerHTML = '';
-  document.getElementById('upTabAmigos').innerHTML = '';
+  document.getElementById('upTabInfo').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);">⏳ Cargando información...</div>';
+  document.getElementById('upTabFotos').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);">⏳ Cargando fotos...</div>';
+  document.getElementById('upTabAmigos').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);">⏳ Cargando amigos...</div>';
   // Ocultar cards de fotos y amigos del sidebar hasta que se carguen
   const _lfc = document.getElementById('upLeftFotosCard');
   const _lac = document.getElementById('upLeftAmigosCard');
@@ -13205,16 +13205,10 @@ async function _loadUserProfilePage(uid, nick){
 function swUpTab(btn, tabId){
   document.querySelectorAll('#upTabs .ptab').forEach(t=>t.classList.remove('on'));
   if(btn) btn.classList.add('on');
-  // upTabPosts contains the 2-col grid — show it but swap visibility inside
-  const postsGrid = document.getElementById('upPostsGrid');
   ['upTabPosts','upTabInfo','upTabFotos','upTabAmigos'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el) return;
-    if(id==='upTabPosts'){
-      el.style.display = tabId==='upTabPosts' ? 'block' : 'none';
-    } else {
-      el.style.display = id===tabId?'block':'none';
-    }
+    el.style.display = id===tabId ? 'block' : 'none';
   });
 }
 
