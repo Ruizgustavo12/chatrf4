@@ -9599,7 +9599,8 @@ async function addNotif(text){
   _notifs.unshift(notif);
   try { await updateDoc(doc(db,'users',window.CU.id), {notifs:_notifs.slice(0,30)}); }
   catch(e){ console.error('addNotif',e); }
-  renderNotifs(); updateNotifBadge(); playNotifSound();
+  renderNotifs(); updateNotifBadge();
+  // NO reproducir sonido en notifs propias (acciones del propio usuario)
 }
 
 // ── AUDIO GLOBAL — se desbloquea en el primer click del usuario ──
@@ -9884,7 +9885,37 @@ function listenNotifs(){
       const newMsgs    = brandNew.filter(n =>  n.text?.startsWith('💬'));
       const newNonMsgs = brandNew.filter(n => !n.text?.startsWith('💬'));
       if(newMsgs.length > 0){
+        // Actualizar _chatLastMsgs INMEDIATAMENTE para que el messenger muestre el badge
+        // sin esperar al próximo poll de 8s
+        newMsgs.forEach(n => {
+          const fromUid = n.fromUid || null;
+          const fromNick = n.fromNick || '';
+          // Buscar el uid del remitente en friendsList por nick si no viene fromUid
+          const senderFriend = (window.CU?.friendsList||[]).find(f =>
+            (fromUid && f.id === fromUid) || f.nick === fromNick
+          );
+          const senderUid = fromUid || senderFriend?.id;
+          if(senderUid){
+            const existing = _chatLastMsgs[senderUid] || {};
+            // Extraer texto del mensaje de la notif (formato: "💬 nick: texto")
+            const colonIdx = n.text.indexOf(': ');
+            const msgPreview = colonIdx > -1 ? n.text.slice(colonIdx + 2) : n.text;
+            _chatLastMsgs[senderUid] = {
+              ...existing,
+              text: msgPreview,
+              time: n.time || Date.now(),
+              mine: false,
+              unread: true,
+              unreadCount: (existing.unreadCount || 0) + 1
+            };
+          }
+        });
         updateMsgBadge();
+        // Re-render messenger list si está abierto para mostrar el contacto destacado
+        if(_messengerOpen){
+          const _ml = document.getElementById('messengerList');
+          if(_ml && _ml.style.display !== 'none') _ml.innerHTML = _buildMessengerHTML();
+        }
         const latest = newMsgs.sort((a,b)=>(b.time||0)-(a.time||0))[0];
         playMsgSound();
         showNotifToast(latest.text||'Nuevo mensaje');
@@ -13006,7 +13037,9 @@ async function sendNotifToUserStory(uid, text, storyPreview, storyImg, storyId){
 async function sendNotifToUser(uid, text){
   if(!uid || uid===window.CU?.id) return;
   try {
+    // fromUid incluido para que el receptor pueda identificar al remitente en _chatLastMsgs
     const notif = {text, time:Date.now(), read:false,
+      fromUid: window.CU?.id||'',
       fromAv: window.CU?.av||'', fromNick: window.CU?.nick||''};
     await updateDoc(doc(db,'users',uid), {notifs: arrayUnion(notif)});
   } catch(e){ console.error('[notif ERROR]', e.code, e.message); }
@@ -14791,17 +14824,27 @@ function setChatTyping(){
 }
 // Marcar notifs 💬 de un remitente específico como leídas
 function markChatNotifsRead(nick){
-  if(!nick || !window.CU) return;
+  if(!window.CU) return;
+  // Limpiar badge de _chatLastMsgs por uid (si está disponible)
+  if(_chatUserId && _chatLastMsgs[_chatUserId]){
+    _chatLastMsgs[_chatUserId].unread = false;
+    _chatLastMsgs[_chatUserId].unreadCount = 0;
+  }
+  // También marcar notifs locales como leídas por nick (compatibilidad)
   let changed = false;
   _notifs.forEach(n=>{
-    if(!n.read && n.text?.startsWith('💬') && n.text.includes(nick+':')){
-      n.read=true; changed=true;
+    if(!n.read && n.text?.startsWith('💬')){
+      // Marcar todas las notifs de mensajes de este uid o nick como leídas
+      const matchUid = n.fromUid && n.fromUid === _chatUserId;
+      const matchNick = nick && n.text.includes(nick+':');
+      if(matchUid || matchNick){ n.read=true; changed=true; }
     }
   });
   if(changed){
     updateDoc(doc(db,'users',window.CU.id),{notifs:_notifs.slice(0,30)}).catch(()=>{});
-    updateMsgBadge();
   }
+  updateMsgBadge();
+  updateNotifBadge();
 }
 
 let _chatSending = false; // Evitar envíos duplicados
