@@ -10126,11 +10126,22 @@ function openImgLightbox(src, allImgs, postId){
       </div>
 
       <!-- Comment input -->
-      <div style="padding:8px 12px 10px;display:flex;gap:8px;align-items:flex-end;flex-shrink:0;border-top:1px solid #30363d;">
+      <div style="padding:8px 12px 10px;display:flex;gap:8px;align-items:flex-end;flex-shrink:0;border-top:1px solid #30363d;position:relative;">
         <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:#21262d;flex-shrink:0;">${avHtml}</div>
         <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+          <!-- Sticker picker del lightbox -->
+          <div id="_igStkPick" class="stk-picker" style="bottom:70px;left:50px;right:12px;top:auto;">
+            <div style="display:flex;align-items:center;padding:7px 10px;border-bottom:1px solid #30363d;gap:6px;">
+              <input id="_igStkSearch" class="stk-search" placeholder="🔍 Buscar sticker..."
+                oninput="igSearchSticker(this.value)" style="flex:1;">
+              <button onclick="document.getElementById('_igStkPick').classList.remove('open')" style="background:none;border:none;color:#8b949e;font-size:1rem;cursor:pointer;">✕</button>
+            </div>
+            <div class="stk-cats" id="_igStkCats"></div>
+            <div id="_igStkContent"></div>
+          </div>
           <div style="display:flex;align-items:center;background:#0d1117;border-radius:20px;border:1px solid #30363d;">
             <button onclick="igToggleGifPicker()" title="GIF" style="background:none;border:none;color:#8b949e;font-size:.75rem;font-weight:800;cursor:pointer;padding:6px 8px;border-radius:20px 0 0 20px;transition:color .15s;flex-shrink:0;" onmouseover="this.style.color='#2ec4b6'" onmouseout="this.style.color='#8b949e'">GIF</button>
+            <button onclick="igToggleStkPicker()" title="Stickers" style="background:none;border:none;color:#8b949e;font-size:1rem;cursor:pointer;padding:4px 6px;transition:color .15s;flex-shrink:0;" onmouseover="this.style.color='#2ec4b6'" onmouseout="this.style.color='#8b949e'">🎭</button>
             <input id="_igCmtInp" placeholder="Escribe un comentario..."
               style="flex:1;background:transparent;border:none;padding:9px 8px;color:#e6edf3;font-size:.88rem;font-family:'Exo 2',sans-serif;outline:none;"
               onkeypress="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();igSubmitComment();}">
@@ -10520,6 +10531,112 @@ async function igSendGifComment(gifUrl){
 
 window.igShowRxnPop=igShowRxnPop; window.igHideRxnPop=igHideRxnPop;
 window.igToggleGifPicker=igToggleGifPicker; window.igSearchGif=igSearchGif; window.igSendGifComment=igSendGifComment;
+
+// ── Sticker picker del lightbox ──
+function igToggleStkPicker(){
+  const p = document.getElementById('_igStkPick');
+  if(!p) return;
+  // Cerrar GIF picker si está abierto
+  const gp = document.getElementById('_igGifPicker');
+  if(gp) gp.style.display='none';
+  const isOpen = p.classList.contains('open');
+  if(isOpen){ p.classList.remove('open'); return; }
+  p.classList.add('open');
+  // Renderizar categorías si no están
+  const catsEl = document.getElementById('_igStkCats');
+  if(catsEl && !catsEl.children.length){
+    catsEl.innerHTML = '';
+    STK_CATS.forEach(c=>{
+      const btn = document.createElement('button');
+      btn.className = 'stk-cat-btn';
+      btn.style.background = c.color;
+      btn.innerHTML = '<span style="font-size:1.3rem;">'+c.emoji+'</span>'+c.label;
+      btn.addEventListener('click', ()=>igLoadStkCat(c.q, c.label));
+      catsEl.appendChild(btn);
+    });
+  }
+  setTimeout(()=>{ const s=document.getElementById('_igStkSearch'); if(s) s.focus(); },100);
+}
+
+async function igLoadStkCat(query, label){
+  const contentEl = document.getElementById('_igStkContent');
+  if(!contentEl) return;
+  contentEl.innerHTML = '';
+  const header = document.createElement('div');
+  header.style.cssText = 'display:flex;align-items:center;padding:4px 8px;border-bottom:1px solid #30363d;';
+  const back = document.createElement('button');
+  back.className = 'stk-back'; back.textContent = '← Volver';
+  back.addEventListener('click', ()=>{ contentEl.innerHTML=''; });
+  const title = document.createElement('span');
+  title.style.cssText = 'font-size:.82rem;font-weight:700;color:#e6edf3;flex:1;text-align:center;';
+  title.textContent = label;
+  header.appendChild(back); header.appendChild(title);
+  contentEl.appendChild(header);
+  const grid = document.createElement('div');
+  grid.className = 'stk-grid';
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:#8b949e;font-size:.82rem;">⏳ Cargando...</div>';
+  contentEl.appendChild(grid);
+  try {
+    const res = await fetch('https://api.giphy.com/v1/stickers/search?api_key='+STK_API_KEY+'&limit=15&rating=g&q='+encodeURIComponent(query));
+    const data = await res.json();
+    _igRenderStickers(data.data, grid);
+  } catch(e){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:12px;color:#8b949e;">Error cargando</div>'; }
+}
+
+function _igRenderStickers(stickers, grid){
+  if(!stickers||!stickers.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:16px;color:#8b949e;">Sin resultados</div>'; return; }
+  grid.innerHTML='';
+  stickers.forEach(s=>{
+    const url=(s.images?.fixed_height_small?.url)||(s.images?.original?.url)||'';
+    const orig=(s.images?.original?.url)||url;
+    const item=document.createElement('div'); item.className='stk-item';
+    const img=document.createElement('img'); img.src=url; img.loading='lazy'; img.alt='sticker';
+    item.appendChild(img);
+    item.addEventListener('click',()=>igSendSticker(orig));
+    grid.appendChild(item);
+  });
+}
+
+let _igStkDebounce=null;
+function igSearchSticker(q){
+  clearTimeout(_igStkDebounce);
+  const contentEl=document.getElementById('_igStkContent');
+  if(!q.trim()){ if(contentEl) contentEl.innerHTML=''; return; }
+  _igStkDebounce=setTimeout(async()=>{
+    if(!contentEl) return;
+    contentEl.innerHTML='';
+    const header=document.createElement('div');
+    header.style.cssText='display:flex;align-items:center;padding:4px 8px;border-bottom:1px solid #30363d;';
+    const back=document.createElement('button'); back.className='stk-back'; back.textContent='← Volver';
+    back.addEventListener('click',()=>{ contentEl.innerHTML=''; const s=document.getElementById('_igStkSearch'); if(s) s.value=''; });
+    const title=document.createElement('span'); title.style.cssText='font-size:.82rem;font-weight:700;color:#e6edf3;flex:1;text-align:center;'; title.textContent=q;
+    header.appendChild(back); header.appendChild(title); contentEl.appendChild(header);
+    const grid=document.createElement('div'); grid.className='stk-grid';
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:20px;color:#8b949e;">🔍 Buscando...</div>';
+    contentEl.appendChild(grid);
+    try {
+      const res=await fetch('https://api.giphy.com/v1/stickers/search?api_key='+STK_API_KEY+'&limit=15&rating=g&q='+encodeURIComponent(q));
+      const data=await res.json();
+      _igRenderStickers(data.data,grid);
+    } catch(e){}
+  },400);
+}
+
+async function igSendSticker(gifUrl){
+  if(!_galPostId){ toast('Sin post asociado','inf'); return; }
+  if(!window.CU){ toast('Iniciá sesión','err'); return; }
+  document.getElementById('_igStkPick')?.classList.remove('open');
+  const isTrofeo=_galPostId.startsWith('trofeo_');
+  const realId=isTrofeo?_galPostId.replace('trofeo_',''):_galPostId;
+  const colName=isTrofeo?'trofeosPendientes':'posts';
+  let p=(_posts||[]).find(p=>p.id===_galPostId);
+  if(!p){ try{ const s=await getDoc(doc(db,colName,realId)); if(s.exists()){p={id:_galPostId,...s.data()};(_posts||[]).push(p);} }catch(e){} }
+  if(!p){ toast('No se pudo cargar el post','err'); return; }
+  const nc=[...(p.comments||[]),{userId:window.CU.id,nick:window.CU.nick,av:window.CU.av||'',gender:window.CU.gender||'',gif:gifUrl,sticker:true,text:'',time:Date.now()}];
+  p.comments=nc;
+  await updateDoc(doc(db,colName,realId),{comments:nc});
+}
+window.igToggleStkPicker=igToggleStkPicker; window.igLoadStkCat=igLoadStkCat; window.igSearchSticker=igSearchSticker; window.igSendSticker=igSendSticker;
 window.igNav=igNav; window.igNavTo=igNavTo; window.igReact=igReact;
 window.igReactCmt=igReactCmt; window.igQuickRxnCmt=igQuickRxnCmt;
 window.igEditCmt=igEditCmt; window.igDelCmt=igDelCmt; window.igReplyCmt=igReplyCmt;
@@ -13052,7 +13169,9 @@ async function _loadUserProfilePage(uid, nick){
     document.getElementById('upPostCount').textContent = userPosts.length;
     document.getElementById('upFriendCount').textContent = (u.friends||[]).length;
     const myFriends = window.CU?.friends || [];
-    const mutualFriends = (window.CU?.friendsList||[]).filter(f=>(u.friends||[]).includes(f.id));
+    // friendsList puede no estar cargado aun — usar array vacío como fallback
+    const _fl = Array.isArray(window.CU?.friendsList) ? window.CU.friendsList : [];
+    const mutualFriends = _fl.filter(f=>(u.friends||[]).includes(f.id));
     document.getElementById('upMutualCount').textContent = mutualFriends.length;
     const upMutualPill = document.getElementById('upMutualPill');
     if(upMutualPill) upMutualPill.style.display = mutualFriends.length > 0 ? 'flex' : 'none';
@@ -13304,8 +13423,19 @@ async function _loadUserProfilePage(uid, nick){
     document.getElementById('upTabInfo').innerHTML = infoRows || '<div style="color:var(--muted);padding:20px;text-align:center;font-size:.85rem;">Sin información disponible</div>';
 
   } catch(e){
+    console.error('[_loadUserProfilePage] Error:', e);
+    // Mostrar error solo en posts, NO bloquear tabs
     const _epl = document.getElementById('upPostsList');
-    if(_epl) _epl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);">No se pudo cargar el perfil</div>';
+    if(_epl) _epl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);">⚠️ Error al cargar publicaciones</div>';
+    // Intentar mostrar al menos la info básica en los tabs
+    try {
+      const _ti = document.getElementById('upTabInfo');
+      if(_ti && !_ti.innerHTML.includes('<div')) _ti.innerHTML = '<div style="color:var(--muted);padding:20px;text-align:center;">Sin información disponible</div>';
+      const _tf = document.getElementById('upTabFotos');
+      if(_tf && !_tf.innerHTML.includes('<div')) _tf.innerHTML = '<div style="color:var(--muted);padding:40px;text-align:center;">Sin fotos</div>';
+      const _ta = document.getElementById('upTabAmigos');
+      if(_ta && !_ta.innerHTML.includes('<div')) _ta.innerHTML = '<div style="color:var(--muted);padding:40px;text-align:center;">Sin amigos</div>';
+    } catch(_){}
   }
 }
 
