@@ -1796,14 +1796,11 @@ select.fi option{background:var(--bg3);color:var(--text);}
     <!-- Left -->
     <div id="profileLeftCol">
       <div id="profVisitorsCard" class="visitors-card" style="display:none;">
-        <div onclick="toggleVisitorsPanel()" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;padding:2px 0 2px;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-size:.78rem;font-weight:800;color:gold;">👁 Quién visitó tu perfil</span>
-            <span style="font-size:.58rem;color:rgba(255,215,0,.5);font-weight:700;">SOLO ✅</span>
-          </div>
-          <span id="visitorsChevron" style="font-size:.75rem;color:gold;transition:transform .25s;">▼</span>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <span style="font-size:.78rem;font-weight:800;color:gold;">👁 Últimas visitas</span>
+          <span style="font-size:.58rem;color:rgba(255,215,0,.5);font-weight:700;">SOLO ✅</span>
         </div>
-        <div id="profVisitorsList" style="display:block;margin-top:8px;"><div style="font-size:.72rem;color:var(--muted);">Cargando...</div></div>
+        <div id="profVisitorsList"><div style="font-size:.72rem;color:var(--muted);">Cargando...</div></div>
       </div>
       <div class="profile-about-card">
         <div class="pac-title" style="display:flex;align-items:center;justify-content:space-between">Fotos <span style="font-size:.72rem;color:var(--accent);cursor:pointer">Ver todas</span></div>
@@ -7297,7 +7294,7 @@ async function submitPost(){
   document.getElementById('postMediaPreview').style.display='none';
   document.getElementById('linkInputRow').style.display='none';
   cm('mCreatePost');
-  addNotif('📝 Publicaste una nueva captura'+(fish?`: ${fish} ${weight?weight+'kg':''}`:''));
+  addNotif('📝 Publicaste una nueva captura'+(fish?`: ${fish} ${weight?fmtKg(weight):''}`:''));
   addXP(10,'publicación');
   toast('¡Publicado! 🎣 +10 XP','ok');
 }
@@ -15410,7 +15407,7 @@ function showTrophyBanner(t){
   const bar = document.getElementById('trophyBannerBar');
   if(imgEl) imgEl.innerHTML = imgUrl ? `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;">` : '🏆';
   if(fishEl) fishEl.textContent = fish;
-  if(weightEl) weightEl.textContent = weight ? weight + ' kg' : '';
+  if(weightEl) weightEl.textContent = weight ? fmtKg(weight) : '';
   if(nickEl) nickEl.textContent = '👤 ' + nick;
   banner.style.display = 'block';
   // Arrancar barra de progreso
@@ -15519,7 +15516,7 @@ function trofeoFeedCardHTML(t){
       <div style="font-size:2.4rem;">🏆</div>
       <div style="flex:1;min-width:120px;">
         <div style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:900;color:var(--gold);">${fish}</div>
-        ${weight?`<div style="font-size:1.3rem;font-weight:800;color:var(--text);margin-top:2px;">${weight} <span style="font-size:.8rem;font-weight:400;color:var(--muted);">kg</span></div>`:''}
+        ${weight?`<div style="font-size:1.3rem;font-weight:800;color:var(--text);margin-top:2px;">${fmtKg(weight)}</div>`:''}
         ${map?`<div style="font-size:.75rem;color:var(--muted);margin-top:2px;">📍 ${map}</div>`:''}
       </div>
       ${technique?`<div style="font-size:.72rem;background:rgba(0,198,255,.1);color:var(--accent);padding:3px 10px;border-radius:100px;white-space:nowrap;">🎣 ${technique}</div>`:''}
@@ -15560,7 +15557,7 @@ function renderTrofeoSidebar(items){
     return `<div style="cursor:pointer;border-radius:var(--r);overflow:hidden;margin-bottom:8px;border:1px solid rgba(255,215,0,.15);background:var(--bg3);transition:border-color .2s;" onclick="gp('trofeos-feed');setTimeout(()=>{const el=document.getElementById('trofeo_${tid}');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.borderColor='var(--gold)';}},400);" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='rgba(255,215,0,.15)'">
       ${imgUrl?`<div style="width:100%;height:90px;overflow:hidden;"><img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>`:`<div style="width:100%;height:60px;background:linear-gradient(135deg,rgba(255,215,0,.12),rgba(255,165,0,.06));display:flex;align-items:center;justify-content:center;font-size:2rem;">🏆</div>`}
       <div style="padding:7px 10px;">
-        <div style="font-size:.8rem;font-weight:700;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${fish}${weight?' · '+weight+'kg':''}</div>
+        <div style="font-size:.8rem;font-weight:700;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${fish}${weight?' · '+fmtKg(weight):''}</div>
         <div style="font-size:.68rem;color:var(--muted);margin-top:2px;">${nick} · ${fmtT(approvedAt)}</div>
       </div>
     </div>`;
@@ -16031,7 +16028,7 @@ async function loadProfileVisitors(){
     const snap=await getDocs(q);
     const visitors=snap.docs.map(d=>d.data())
       .filter(v=>v.visitorId!==window.CU.id)
-      .sort((a,b)=>(b.time||0)-(a.time||0)).slice(0,10);
+      .sort((a,b)=>(b.time||0)-(a.time||0)).slice(0,3);
     if(!visitors.length){list.innerHTML='<span style="font-size:.75rem;color:var(--muted);">Nadie visitó tu perfil aún 👀</span>';return;}
     list.innerHTML=visitors.map(v=>{
       const av=v.visitorAv
