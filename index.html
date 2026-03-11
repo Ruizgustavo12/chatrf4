@@ -1109,6 +1109,9 @@ select.fi option{background:var(--bg3);color:var(--text);}
       <!-- Spots de amigos en inicio -->
       <div id="friendSpotsHome"></div>
 
+      <!-- ✨ RECUERDOS -->
+      <div id="memoriesWidget" style="display:none;"></div>
+
       <!-- Posts -->
       <div id="feedPosts"><div style="text-align:center;padding:40px;color:var(--muted);font-size:.85rem;">🎣 Cargando feed...</div></div>
     </div>
@@ -4299,6 +4302,8 @@ function onLogin(){
     renderSuggestedPosts();
     renderFriendSpotsInHome();
     checkDailyStreak();
+    // Cargar recuerdos
+    if(typeof loadMemories === 'function') setTimeout(loadMemories, 1500);
   });
   loadSavedAccounts();
   // Navigate to initial URL route after login
@@ -16811,6 +16816,306 @@ window.addEventListener('DOMContentLoaded', ()=>{ setTimeout(applySidebarOrder, 
   tabDiv.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:.85rem;">Hacé click en la tab 🗂️ Sidebar para cargar.</div>';
   pageAdmin.appendChild(tabDiv);
 })();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     SISTEMA DE RECUERDOS — "En este día"
+     ═══════════════════════════════════════════════════════ -->
+<style>
+.memories-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:14px;
+  overflow:hidden;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.25);
+  animation:fadeInUp .4s ease forwards;
+}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.memories-header{
+  background:linear-gradient(135deg,#1a1030,#0d1a2e);
+  padding:14px 16px 12px;display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid var(--border);position:relative;overflow:hidden;
+}
+.memories-header::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 30% 50%,rgba(100,60,220,.18),transparent 65%),
+             radial-gradient(ellipse at 80% 50%,rgba(46,196,182,.1),transparent 65%);
+  pointer-events:none;
+}
+.memories-title{font-family:'Orbitron',monospace;font-size:.85rem;font-weight:900;color:#c8a0ff;}
+.memories-subtitle{font-size:.7rem;color:var(--muted);margin-top:1px;}
+.memories-icon{font-size:1.8rem;flex-shrink:0;}
+.memories-close{margin-left:auto;background:rgba(255,255,255,.07);border:none;color:var(--muted);
+  width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:.85rem;flex-shrink:0;transition:background .15s;}
+.memories-close:hover{background:rgba(255,255,255,.15);color:var(--text);}
+.memories-nav{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,.02);border-bottom:1px solid rgba(255,255,255,.06);}
+.memories-nav-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:100px;font-size:.7rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;transition:all .15s;}
+.memories-nav-btn:hover{background:var(--bg3);color:var(--text);}
+.memories-counter{font-size:.72rem;color:var(--muted);font-weight:600;}
+.memory-item{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.04);}
+.memory-item:last-child{border-bottom:none;}
+/* Tipo: amistad */
+.memory-friend{display:flex;align-items:center;gap:12px;}
+.memory-friend-avs{display:flex;flex-shrink:0;}
+.memory-friend-avs .mav{width:42px;height:42px;border-radius:50%;overflow:hidden;border:2px solid #c8a0ff;background:var(--bg3);}
+.memory-friend-avs .mav:last-child{margin-left:-14px;border-color:var(--accent);}
+.memory-friend-avs .mav img{width:100%;height:100%;object-fit:cover;}
+.memory-badge{display:inline-block;background:linear-gradient(135deg,#6030c0,#2ec4b6);color:#fff;font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:100px;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;}
+/* Tipo: post */
+.memory-post{display:flex;gap:12px;cursor:pointer;transition:background .15s;border-radius:10px;padding:4px;}
+.memory-post:hover{background:rgba(255,255,255,.04);}
+.memory-post-thumb{width:72px;height:72px;border-radius:10px;overflow:hidden;flex-shrink:0;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1.8rem;}
+.memory-post-thumb img{width:100%;height:100%;object-fit:cover;}
+.memory-post-info{flex:1;min-width:0;}
+.memory-post-year{font-size:.68rem;color:#c8a0ff;font-weight:700;margin-bottom:3px;}
+.memory-post-text{font-size:.8rem;color:var(--text);line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-overflow:hidden;overflow:hidden;}
+.memory-post-meta{font-size:.68rem;color:var(--muted);margin-top:5px;}
+/* Tipo: trofeo */
+.memory-trophy{display:flex;gap:12px;align-items:center;}
+.memory-trophy-img{width:64px;height:64px;border-radius:10px;overflow:hidden;flex-shrink:0;border:2px solid rgba(255,215,0,.4);}
+.memory-trophy-img img{width:100%;height:100%;object-fit:cover;}
+/* No hay recuerdos */
+.memories-empty{padding:28px 20px;text-align:center;}
+.memories-empty-img{font-size:4rem;margin-bottom:10px;opacity:.7;}
+</style>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// SISTEMA DE RECUERDOS
+// ═══════════════════════════════════════════════════════
+let _memoriesData = [];
+let _memoriesIdx  = 0;
+const _MEMORIES_DISMISSED_KEY = 'memoriesDismissed_';
+
+function _memoriesDismissedToday(){
+  const key = _MEMORIES_DISMISSED_KEY + new Date().toDateString();
+  return !!localStorage.getItem(key);
+}
+function _memoriesDismiss(){
+  const key = _MEMORIES_DISMISSED_KEY + new Date().toDateString();
+  localStorage.setItem(key, '1');
+  const w = document.getElementById('memoriesWidget');
+  if(w){ w.style.opacity='0'; w.style.transform='scale(.97)'; w.style.transition='all .25s'; setTimeout(()=>w.style.display='none',250); }
+}
+
+async function loadMemories(){
+  const w = document.getElementById('memoriesWidget');
+  if(!w || !window.CU?.id) return;
+  if(_memoriesDismissedToday()) return;
+
+  const myId  = window.CU.id;
+  const myNick = window.CU.nick || 'Vos';
+  const myAv   = window.CU.av   || getDefaultAv(window.CU.gender||'');
+  const now    = new Date();
+  const memories = [];
+
+  // ── 1. Posts propios en este día hace N años ──────────────
+  try {
+    const postsSnap = await getDocs(
+      query(collection(db,'posts'), where('userId','==',myId), orderBy('createdAt','desc'), limit(200))
+    );
+    postsSnap.docs.forEach(d=>{
+      const p = {id:d.id,...d.data()};
+      if(!p.createdAt) return;
+      const pDate = p.createdAt.toDate ? p.createdAt.toDate() : new Date(p.createdAt);
+      const years = now.getFullYear() - pDate.getFullYear();
+      if(years < 1) return;
+      // mismo mes y día ±2 días
+      const samePeriod = Math.abs(
+        (now.getMonth()*31+now.getDate()) - (pDate.getMonth()*31+pDate.getDate())
+      ) <= 2;
+      if(!samePeriod) return;
+      memories.push({
+        type:'post', years,
+        post: p,
+        date: pDate,
+        label: years === 1 ? 'Hace 1 año publicaste esto' : `Hace ${years} años publicaste esto`
+      });
+    });
+  } catch(e){}
+
+  // ── 2. Amigos: cuando se agregaron en esta fecha hace N años ──
+  // Los amigos no guardan fecha directamente, pero podemos buscar
+  // en las notificaciones históricas o usar friendsList con joinDate
+  try {
+    const friends = window.CU.friendsList || [];
+    for(const f of friends.slice(0,20)){
+      if(!f.id) continue;
+      // Buscar en la colección de notificaciones del amigo si existe registro
+      // Como fallback: comparar el año de creación del amigo con el nuestro
+      const fSnap = await getDoc(doc(db,'users',f.id));
+      if(!fSnap.exists()) continue;
+      const fData = fSnap.data();
+      // Si el amigo tiene friendedAt guardado
+      const friendedAt = fData.friendedAt?.[myId] || window.CU.friendedAt?.[f.id];
+      if(friendedAt){
+        const fDate = friendedAt.toDate ? friendedAt.toDate() : new Date(friendedAt);
+        const years = now.getFullYear() - fDate.getFullYear();
+        if(years < 1) continue;
+        const samePeriod = Math.abs(
+          (now.getMonth()*31+now.getDate()) - (fDate.getMonth()*31+fDate.getDate())
+        ) <= 2;
+        if(!samePeriod) continue;
+        memories.push({
+          type:'friend', years,
+          friend: { id:f.id, nick:f.nick||fData.nick||'?', av:f.av||fData.av||getDefaultAv(fData.gender||'') },
+          date: fDate,
+          label: years===1 ? `Hace 1 año te hiciste amigo de ${f.nick||fData.nick||'?'}` : `Hace ${years} años te hiciste amigo de ${f.nick||fData.nick||'?'}`
+        });
+      }
+    }
+  } catch(e){}
+
+  // ── 3. Trofeos propios en esta fecha hace N años ──────────
+  try {
+    const tSnap = await getDocs(
+      query(collection(db,'trofeos'), where('userId','==',myId), orderBy('createdAt','desc'), limit(50))
+    );
+    tSnap.docs.forEach(d=>{
+      const t = {id:d.id,...d.data()};
+      if(!t.createdAt) return;
+      const tDate = t.createdAt.toDate ? t.createdAt.toDate() : new Date(t.createdAt);
+      const years = now.getFullYear() - tDate.getFullYear();
+      if(years < 1) return;
+      const samePeriod = Math.abs(
+        (now.getMonth()*31+now.getDate()) - (tDate.getMonth()*31+tDate.getDate())
+      ) <= 2;
+      if(!samePeriod) return;
+      memories.push({
+        type:'trophy', years,
+        trophy: t,
+        date: tDate,
+        label: years===1 ? `Hace 1 año publicaste este trofeo 🏆` : `Hace ${years} años publicaste este trofeo 🏆`
+      });
+    });
+  } catch(e){}
+
+  // Ordenar por años desc
+  memories.sort((a,b)=>b.years-a.years);
+  _memoriesData = memories;
+  _memoriesIdx  = 0;
+
+  if(!memories.length){
+    // Mostrar el card vacío igual que Facebook
+    _renderMemoriesEmpty(w);
+    return;
+  }
+  _renderMemoriesCard(w);
+}
+
+function _renderMemoriesEmpty(w){
+  w.style.display = 'block';
+  w.innerHTML = `
+  <div class="memories-card">
+    <div class="memories-header">
+      <div class="memories-icon">🕰️</div>
+      <div style="flex:1;">
+        <div class="memories-title">Recuerdos</div>
+        <div class="memories-subtitle">Hoy en el pasado</div>
+      </div>
+      <button class="memories-close" onclick="_memoriesDismiss()" title="Cerrar">✕</button>
+    </div>
+    <div class="memories-empty">
+      <div class="memories-empty-img">📸</div>
+      <div style="font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:6px;">Hoy no hay recuerdos</div>
+      <div style="font-size:.77rem;color:var(--muted);line-height:1.6;">Hoy no hay ningún recuerdo para ver o compartir,<br>pero te avisaremos cuando haya alguno.</div>
+    </div>
+  </div>`;
+}
+
+function _renderMemoriesCard(w){
+  if(!_memoriesData.length){ _renderMemoriesEmpty(w); return; }
+  w.style.display = 'block';
+  const m = _memoriesData[_memoriesIdx];
+  const total = _memoriesData.length;
+  const hasMultiple = total > 1;
+
+  let innerHtml = '';
+
+  if(m.type === 'post'){
+    const p = m.post;
+    const img = (p.images||[])[0] || p.imageUrl || '';
+    const txt = esc((p.text||'').slice(0,180)) + ((p.text||'').length>180?'…':'');
+    const totalRxns = Object.values(p.reactions||{}).reduce((a,v)=>a+(Array.isArray(v)?v.length:0),0)+(p.likes||0);
+    innerHtml = `
+      <div class="memory-item">
+        <div class="memory-post" onclick="scrollToPost&&scrollToPost('${p.id}');gp('home')">
+          <div class="memory-post-thumb">
+            ${img ? `<img src="${img}" loading="lazy" onerror="this.parentNode.innerHTML='📝'">` : '📝'}
+          </div>
+          <div class="memory-post-info">
+            <div class="memory-post-year">📅 ${m.label}</div>
+            <div class="memory-post-text">${txt||'<span style="color:var(--muted);font-style:italic;">Sin texto</span>'}</div>
+            <div class="memory-post-meta">❤️ ${totalRxns} reacciones · 💬 ${p.commentCount||0} comentarios</div>
+          </div>
+        </div>
+      </div>`;
+  } else if(m.type === 'friend'){
+    const f = m.friend;
+    const myAv = window.CU?.av || getDefaultAv(window.CU?.gender||'');
+    innerHtml = `
+      <div class="memory-item">
+        <div class="memory-friend">
+          <div class="memory-friend-avs">
+            <div class="mav"><img src="${myAv}" onerror="this.src=''" loading="lazy"></div>
+            <div class="mav"><img src="${f.av}" onerror="this.src=''" loading="lazy"></div>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div class="memory-badge">🤝 Amistad</div>
+            <div style="font-size:.82rem;font-weight:700;color:var(--text);line-height:1.4;">${m.label}</div>
+            <div style="font-size:.7rem;color:var(--muted);margin-top:3px;">${m.date.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})}</div>
+          </div>
+          <button onclick="openUserProfile('${f.id}','${f.nick.replace(/'/g,"\\'")}');event.stopPropagation();"
+            style="flex-shrink:0;padding:5px 11px;background:rgba(46,196,182,.12);border:1px solid rgba(46,196,182,.3);border-radius:100px;color:var(--accent);font-size:.68rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;">
+            Ver perfil
+          </button>
+        </div>
+      </div>`;
+  } else if(m.type === 'trophy'){
+    const t = m.trophy;
+    const img = (t.images||[])[0] || t.imageUrl || '';
+    innerHtml = `
+      <div class="memory-item">
+        <div class="memory-trophy">
+          <div class="memory-trophy-img">
+            ${img ? `<img src="${img}" loading="lazy" onerror="this.parentNode.innerHTML='🏆'" style="width:100%;height:100%;object-fit:cover;">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem;background:rgba(255,215,0,.08);">🏆</div>'}
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div class="memory-badge" style="background:linear-gradient(135deg,#7a5200,#d4a017);">🏆 Trofeo</div>
+            <div style="font-size:.82rem;font-weight:700;color:var(--text);line-height:1.4;">${m.label}</div>
+            <div style="font-size:.72rem;color:var(--gold);margin-top:3px;">${esc(t.fish||'')} ${t.weight?'· '+t.weight+'kg':''}</div>
+            <div style="font-size:.68rem;color:var(--muted);margin-top:2px;">${m.date.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})}</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  w.innerHTML = `
+  <div class="memories-card">
+    <div class="memories-header">
+      <div class="memories-icon">🕰️</div>
+      <div style="flex:1;position:relative;z-index:1;">
+        <div class="memories-title">Recuerdos</div>
+        <div class="memories-subtitle">Hoy, hace ${m.years} año${m.years>1?'s':''}</div>
+      </div>
+      <button class="memories-close" onclick="_memoriesDismiss()" title="Cerrar hoy">✕</button>
+    </div>
+    ${hasMultiple ? `
+    <div class="memories-nav">
+      <button class="memories-nav-btn" onclick="_memoriesGo(-1)" ${_memoriesIdx===0?'disabled style="opacity:.4;cursor:default;"':''}>← Anterior</button>
+      <span class="memories-counter">${_memoriesIdx+1} / ${total}</span>
+      <button class="memories-nav-btn" onclick="_memoriesGo(1)" ${_memoriesIdx===total-1?'disabled style="opacity:.4;cursor:default;"':''}>Siguiente →</button>
+    </div>` : ''}
+    ${innerHtml}
+  </div>`;
+}
+
+function _memoriesGo(dir){
+  const w = document.getElementById('memoriesWidget');
+  if(!w) return;
+  _memoriesIdx = Math.max(0, Math.min(_memoriesData.length-1, _memoriesIdx+dir));
+  _renderMemoriesCard(w);
+}
+
+// Llamar al cargar el home
+window._loadMemories = loadMemories;
 </script>
 
 <!-- CHANGELOG ADMIN NOTIFICATION -->
