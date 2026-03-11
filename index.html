@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RF4 Latam</title>
-<link rel="icon" href="icon-512.png" type="image/png">
-<link rel="shortcut icon" href="icon-512.png" type="image/png">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9IiMwZDExMTciLz4KICA8dGV4dCB4PSIzMiIgeT0iNDQiIGZvbnQtc2l6ZT0iMzYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPvCfjqM8L3RleHQ+Cjwvc3ZnPg==" type="image/svg+xml">
+<link rel="shortcut icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9IiMwZDExMTciLz4KIVA8dGV4dCB4PSIzMiIgeT0iNDQiIGZvbnQtc2l6ZT0iMzYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPvCfjqM8L3RleHQ+Cjwvc3ZnPg==" type="image/svg+xml">
 
   <meta name="theme-color" content="#1877f2">
   <meta name="mobile-web-app-capable" content="yes">
@@ -14,44 +14,7 @@
   <meta name="apple-mobile-web-app-title" content="RF4 Latam">
   <!-- apple icon removed -->
   <!-- manifest removed -->
-  <script>
-    if('serviceWorker' in navigator){
-      window.addEventListener('load', ()=>{
-        navigator.serviceWorker.register('/sw.js',{scope:'/'})
-          .then(reg => {
-            reg.addEventListener('updatefound', () => {
-              const nw = reg.installing;
-              if(!nw) return;
-              nw.addEventListener('statechange', () => {
-                if(nw.state === 'installed' && navigator.serviceWorker.controller) {
-                  const toast = document.getElementById('swUpdateToast');
-                  if(toast) toast.style.display = 'flex';
-                  window._pendingSW = nw;
-                }
-              });
-            });
-          }).catch(err=>{}); // sw.js optional
-      });
-    }
-    let _deferredPrompt;
-    window.addEventListener('beforeinstallprompt', e => {
-      e.preventDefault();
-      _deferredPrompt = e;
-      const btn = document.getElementById('installPwaBtn');
-      if(btn) btn.style.display = 'flex';
-    });
-    window.addEventListener('appinstalled', () => {
-      const btn = document.getElementById('installPwaBtn');
-      if(btn) btn.style.display = 'none';
-      _deferredPrompt = null;
-    });
-    function installPwa(){
-      if(_deferredPrompt){
-        _deferredPrompt.prompt();
-        _deferredPrompt.userChoice.then(()=>{ _deferredPrompt=null; });
-      }
-    }
-  </script>
+  <!-- service worker removed -->
   <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -2182,7 +2145,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
 <!-- SPLASH SCREEN: shown while Firebase checks session -->
 
 <div id="splashScreen" style="display:flex;position:fixed;inset:0;z-index:10000;background:#0d1117;align-items:center;justify-content:center;flex-direction:column;gap:18px;">
-  <img src="icon-512.png" onerror="this.style.display='none'" style="width:80px;height:80px;border-radius:16px;object-fit:contain;">
+  <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9IiMwZDExMTciLz48dGV4dCB4PSIzMiIgeT0iNDQiIGZvbnQtc2l6ZT0iMzYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPvCfjqM8L3RleHQ+PC9zdmc+" onerror="this.style.display='none'" style="width:80px;height:80px;border-radius:16px;object-fit:contain;">
   <div style="font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:900;color:#1a73e8;">Wikipedia<span style="color:#f5a623;">RF4</span></div>
   <div style="width:40px;height:40px;border:4px solid #e0e0e0;border-top-color:#1877f2;border-radius:50%;animation:splashSpin 0.8s linear infinite;"></div>
 </div>
@@ -2197,7 +2160,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
 
     <!-- IZQUIERDA — Logo + slogan -->
     <div class="fb-left">
-      <img src="icon-512.png" alt="WikipediaRF4" style="width:220px;height:220px;object-fit:contain;margin-bottom:8px;display:block;">
+      <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9IiMwZDExMTciLz48dGV4dCB4PSIzMiIgeT0iNDQiIGZvbnQtc2l6ZT0iMzYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPvCfjqM8L3RleHQ+PC9zdmc+" alt="WikipediaRF4" style="width:220px;height:220px;object-fit:contain;margin-bottom:8px;display:block;">
       <p style="font-size:1.25rem;color:#e6edf3;line-height:1.6;max-width:360px;">La red social de pesca para toda Latinoamérica. Compartí tus capturas, conocé otros pescadores y mejorá tu juego.</p>
 
       <!-- Banderas con imágenes reales -->
@@ -4833,6 +4796,25 @@ function onLogin(){
   window._initialRoute = null;
   if (_initPath && _initPath !== '/' && _initPath !== '/home') {
     setTimeout(() => {
+      // Handle /<nick> -> user profile (URL legacy sin /u/)
+      if (!_initPath.startsWith('/u/') && !_initPath.startsWith('/mensajes') && !_initPath.startsWith('/notif') && ROUTES[_initPath] === undefined && _initPath.length > 1 && !_initPath.includes('.')) {
+        const nickSlugLegacy = _initPath.slice(1);
+        window.gp('userprofile', false);
+        getDocs(collection(db,'users')).then(snap => {
+          const found = snap.docs.find(d => {
+            const n = (d.data().nick||'').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+            return n === nickSlugLegacy;
+          });
+          if(found){ 
+            _loadUserProfilePage(found.id, found.data().nick||nickSlugLegacy);
+            // Actualizar URL a formato correcto
+            history.replaceState({page:'userprofile',uid:found.id,nick:found.data().nick}, '', '/u/'+nickSlugLegacy);
+          } else {
+            window.gp('home', false);
+          }
+        }).catch(()=>{ window.gp('home', false); });
+        return;
+      }
       // Handle /u/nick -> user profile
       if (_initPath.startsWith('/u/')) {
         const nickSlug = _initPath.slice(3);
@@ -5036,8 +5018,22 @@ window.addEventListener('popstate', (e) => {
     openNotifDropdown();
     return;
   }
-  const pageId = ROUTES[path] || 'home';
-  window.gp(pageId, false);
+  // Intentar como perfil de usuario (URL legacy sin /u/)
+  const pageId = ROUTES[path];
+  if(pageId){
+    window.gp(pageId, false);
+  } else if(path.length > 1 && !path.includes('.')){
+    // Path desconocido sin extension = probablemente perfil usuario legacy
+    const nickSlug = path.slice(1);
+    if(window.CU && e.state && e.state.uid){
+      window.gp('userprofile', false);
+      _loadUserProfilePage(e.state.uid, e.state.nick||nickSlug);
+    } else {
+      window.gp('home', false);
+    }
+  } else {
+    window.gp('home', false);
+  }
 });
 
 // On page load, navigate to the correct page based on URL
@@ -13013,7 +13009,7 @@ async function openUserProfile(uid, nick){
   if(!uid){ toast('Usuario no encontrado','err'); return; }
   // Push URL /<nick>
   const safeNick = (nick||'usuario').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
-  history.pushState({ page: 'userprofile', uid, nick }, '', '/' + safeNick);
+  history.pushState({ page: 'userprofile', uid, nick }, '', '/u/' + safeNick);
 
   // Navega a la página de perfil
   gp('userprofile', false);
