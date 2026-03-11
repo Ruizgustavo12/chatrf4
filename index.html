@@ -1421,7 +1421,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
     <button class="tb-nav-btn on" onclick="gp('home');setNav(this)" title="Inicio">🏠</button>
     <button class="tb-nav-btn" onclick="gp('amigos');setNav(this);renderAmigosPage();" title="Amigos">👥</button>
     <button class="tb-nav-btn" id="shopNavBtn" onclick="gp('shop');setNav(this);renderShopPage();" title="Tienda" style="font-size:.75rem;font-weight:700;">🛒 Tienda</button>
-    <button class="tb-nav-btn" onclick="gp('trofeos-feed');setNav(this)" title="Trofeos Recientes" style="font-size:.75rem;font-weight:700;">🥇 <span style="font-style:italic;">Está</span> en trofeos</button>
+    <button class="tb-nav-btn" onclick="gp('trofeos-feed');setNav(this)" title="Trofeos Recientes" style="font-size:.75rem;font-weight:700;">🥇 Trofeos Recientes</button>
     <button class="tb-nav-btn" id="pezSemanalNavBtn" onclick="openPezSemanalModal();setNav(this)" title="Pez de la Semana" style="font-size:.75rem;font-weight:700;">🐟 Pez Semanal</button>
     <button class="tb-nav-btn" onclick="gp('peso-del-trofeo');setNav(this)" title="Peso del Trofeo" style="font-size:.75rem;font-weight:700;">🏆 Peso del Trofeo</button>
 
@@ -7512,13 +7512,18 @@ function cancelHideRxnPop(id){ if(_rxnPops[id]){clearTimeout(_rxnPops[id]);delet
 
 async function doReact(pid, emoji){
   if(!window.CU){ toast('Inicia sesión para reaccionar','err'); return; }
+  // Determine Firestore collection
+  const isTrofeo = pid.startsWith('trofeo_');
+  const realId = isTrofeo ? pid.replace('trofeo_','') : pid;
+  const colName = isTrofeo ? 'trofeosPendientes' : 'posts';
+
   let p = _posts.find(p=>p.id===pid);
   if(!p){
     try {
-      const snap = await getDoc(doc(db,'posts',pid));
+      const snap = await getDoc(doc(db, colName, realId));
       if(!snap.exists()){ toast('Publicación no encontrada','err'); return; }
-      p = {id:snap.id,...snap.data()};
-      _posts.push(p); // add to local cache
+      p = {id:pid,...snap.data()};
+      _posts.push(p);
     } catch(e){ toast('Error al cargar publicación','err'); return; }
   }
   const prev = p.reactions?.[window.CU.id] || null;
@@ -7534,26 +7539,34 @@ async function doReact(pid, emoji){
       const msg = preview
         ? `${emoji} ${window.CU.nick} reaccionó a tu publicación: "${preview}"`
         : `${emoji} ${window.CU.nick} reaccionó a tu publicación`;
-      sendNotifToUserWithPost(p.userId, msg, p.id);
+      sendNotifToUserWithPost(p.userId, msg, pid);
     }
   }
   document.getElementById('rxnp_'+pid)?.classList.remove('show');
-  // Optimistic UI: update local state instantly
+  // Optimistic UI
   if(!p.reactions) p.reactions = {};
   if(!p.reactionCounts) p.reactionCounts = {};
   if(prev){ p.reactionCounts[prev] = Math.max(0,(p.reactionCounts[prev]||1)-1); }
   if(prev === emoji){ delete p.reactions[window.CU.id]; }
   else { p.reactions[window.CU.id] = emoji; p.reactionCounts[emoji] = (p.reactionCounts[emoji]||0)+1; }
-  // Update reaction button in feed immediately
+
+  const myNewRxn = prev===emoji ? null : emoji;
+  const rxnDef = REACTIONS?.find(r=>r.emoji===myNewRxn);
+
+  // Update reaction button — normal posts
   const rxnBtn = document.getElementById('rxnt_'+pid);
   if(rxnBtn){
-    const myNewRxn = prev===emoji ? null : emoji;
-    const rxnDef = REACTIONS.find(r=>r.emoji===myNewRxn);
     rxnBtn.innerHTML = (myNewRxn||'👍') + ' <span style="font-size:.82rem;">' + (rxnDef?.label||'Me gusta') + '</span>';
     rxnBtn.style.color = myNewRxn ? (rxnDef?.color||'var(--accent)') : '';
     rxnBtn.classList.toggle('active', !!myNewRxn);
   }
-  // Update reaction count in feed
+  // Update reaction button — trofeo cards
+  const trofeoRxnIcon = document.getElementById('trofeoRxnIcon_'+realId);
+  const trofeoRxnLbl = document.getElementById('trofeoRxnLbl_'+realId);
+  if(trofeoRxnIcon) trofeoRxnIcon.textContent = myNewRxn||'👍';
+  if(trofeoRxnLbl){ trofeoRxnLbl.textContent = rxnDef?.label||'Me gusta'; trofeoRxnLbl.closest('button').style.color = myNewRxn ? (rxnDef?.color||'var(--accent)') : ''; }
+
+  // Update reaction summary
   const rxnSummary = document.getElementById('rxns_'+pid);
   if(rxnSummary){
     const total = Object.values(p.reactionCounts).reduce((a,b)=>a+(b||0),0);
@@ -7563,17 +7576,15 @@ async function doReact(pid, emoji){
   // Update modal reaction button if open
   const modalRxnBtn = document.getElementById('_modalRxnBtn_'+pid);
   if(modalRxnBtn){
-    const myNewRxn2 = prev===emoji ? null : emoji;
-    const rxnDef2 = REACTIONS.find(r=>r.emoji===myNewRxn2);
-    modalRxnBtn.innerHTML = (myNewRxn2||'👍') + ' Me gusta';
-    modalRxnBtn.style.color = myNewRxn2 ? (rxnDef2?.color||'var(--accent)') : '#65676b';
+    const rxnDef2 = REACTIONS?.find(r=>r.emoji===myNewRxn);
+    modalRxnBtn.innerHTML = (myNewRxn||'👍') + ' Me gusta';
+    modalRxnBtn.style.color = myNewRxn ? (rxnDef2?.color||'var(--accent)') : '#65676b';
   }
   try {
-    await updateDoc(doc(db, 'posts', pid), updates);
+    await updateDoc(doc(db, colName, realId), updates);
   } catch(e){
     console.error('doReact error:', e);
     toast('Error al reaccionar — intenta de nuevo','err');
-    // Revert optimistic UI
     if(prev === emoji){ p.reactions[window.CU.id] = prev; }
     else { delete p.reactions[window.CU.id]; }
   }
@@ -8252,22 +8263,26 @@ async function submitComment(pid){
   if(mentionEl) mentionEl.style.display='none';
   inp.disabled = true;
   const savedTxt = txt;
+  // Determine collection
+  const isTrofeo = pid.startsWith('trofeo_');
+  const realId = isTrofeo ? pid.replace('trofeo_','') : pid;
+  const colName = isTrofeo ? 'trofeosPendientes' : 'posts';
   try {
     let p = _posts.find(p=>p.id===pid);
     if(!p){
-      const snap = await getDoc(doc(db,'posts',pid));
+      const snap = await getDoc(doc(db, colName, realId));
       if(!snap.exists()){ toast('Post no encontrado','err'); inp.disabled=false; return; }
-      p = {id:snap.id,...snap.data()};
+      p = {id:pid,...snap.data()};
       _posts.push(p);
     }
     const replyToNick = txt.startsWith('@') ? (txt.match(/^@(\S+)/)||[])[1]||'' : '';
     const newC = {userId:window.CU.id,nick:window.CU.nick,av:window.CU.av||'',verified:window.CU.verified||false,text:txt,time:Date.now(),replyTo:replyToNick};
     const newComments = [...(p.comments||[]), newC];
-    await updateDoc(doc(db, 'posts', pid), {comments: newComments});
+    await updateDoc(doc(db, colName, realId), {comments: newComments});
     p.comments = newComments;
     inp.value='';
     if(p.userId && p.userId !== window.CU.id){
-      sendNotifToUserWithPost(p.userId, `💬 ${window.CU.nick} comentó: "${txt.slice(0,40)}"`, p.id);
+      sendNotifToUserWithPost(p.userId, `💬 ${window.CU.nick} comentó: "${txt.slice(0,40)}"`, pid);
     }
     const mentions = txt.match(/@([\w\d_]+)/g);
     if(mentions){
@@ -8284,7 +8299,7 @@ async function submitComment(pid){
             const notifTxt = isReply
               ? `↩️ ${window.CU.nick} respondió tu comentario: "${txt.slice(0,50)}"`
               : `🏷️ ${window.CU.nick} te mencionó en un comentario: "${txt.slice(0,50)}"`;
-            sendNotifToUserWithPost(user.id, notifTxt, p.id);
+            sendNotifToUserWithPost(user.id, notifTxt, pid);
           }
         }
       } catch(e){}
@@ -15612,7 +15627,33 @@ function renderTrofeosFeed(){
     </div>`;
     return;
   }
+  // Inyectar trofeos en el caché _posts para que reacciones/comentarios funcionen
+  if(!window._posts) window._posts = [];
+  data.forEach(t => {
+    const fakeId = 'trofeo_' + (t.id||'');
+    if(!window._posts.find(p=>p.id===fakeId)){
+      window._posts.unshift({
+        id: fakeId,
+        userId: t.userId||'',
+        userNick: t.userNick||t.submittedBy||t.nick||'Anónimo',
+        userAv: t.userPhoto||t.userAv||t.av||'',
+        text: `🥇 Trofeo: ${t.fish||t.especie||'?'} · ${t.weight||t.peso?fmtKg(t.weight||t.peso):''}`,
+        images: t.images||[t.imageUrl||t.img||''].filter(Boolean),
+        reactions: t.reactions||{},
+        comments: t.comments||[],
+        createdAt: t.createdAt||null,
+        _isTrofeo: true,
+        _trofeoRef: t.id,
+      });
+    }
+  });
   el.innerHTML = data.map(t=>trofeoFeedCardHTML(t)).join('');
+  // Actualizar summaries de reacciones después de renderizar
+  data.forEach(t => {
+    const fakeId = 'trofeo_' + (t.id||'');
+    const p = window._posts.find(x=>x.id===fakeId);
+    if(p) setTimeout(()=>{ try{ updateRxnSummary(fakeId); } catch(e){} },0);
+  });
 }
 
 function trofeoFeedCardHTML(t){
@@ -15671,8 +15712,34 @@ function trofeoFeedCardHTML(t){
       ${spot?`<span style="background:rgba(0,198,255,.08);color:var(--accent);padding:3px 10px;border-radius:100px;font-size:.72rem;">📐 ${spot}</span>`:''}
     </div>`:''}
     ${description?`<div style="padding:4px 14px 12px;font-size:.85rem;color:var(--muted);line-height:1.5;">${description}</div>`:''}
+    <!-- Reaction summary -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 14px;border-top:1px solid rgba(255,215,0,.08);">
+      <div class="post-rxn-summary" id="rxns_trofeo_${t.id||''}" onclick="openReactionsModal('trofeo_${t.id||''}')" style="min-height:22px;"></div>
+      <div style="font-size:.72rem;color:var(--muted);cursor:pointer;" id="trofeo_cmtcount_${t.id||''}"></div>
+    </div>
+    <!-- Action bar: Reaccionar / Comentar / Compartir -->
+    <div style="display:flex;border-top:1px solid rgba(255,215,0,.12);padding:0 4px;">
+      <div class="rxn-wrap" style="flex:1;">
+        <button class="act-btn" id="trofeoRxnBtn_${t.id||''}"
+          onmouseenter="showRxnPop('trofeo_${t.id||''}')"
+          onmouseleave="schedHideRxnPop('trofeo_${t.id||''}')"
+          onclick="doReact('trofeo_${t.id||''}',null,'trofeo')"
+          style="width:100%;justify-content:center;gap:6px;">
+          <span id="trofeoRxnIcon_${t.id||''}">👍</span> <span id="trofeoRxnLbl_${t.id||''}">Me gusta</span>
+        </button>
+        <div class="rxn-popup" id="rxnp_trofeo_${t.id||''}"
+          onmouseenter="cancelHideRxnPop('trofeo_${t.id||''}')"
+          onmouseleave="schedHideRxnPop('trofeo_${t.id||''}')">
+          ${['👍','❤️','😲','😂','😢','😡'].map(e=>`<button class="rxn-btn" onclick="doReact('trofeo_${t.id||''}','${e}','trofeo');schedHideRxnPop('trofeo_${t.id||''}')" title="${e}">${e}</button>`).join('')}
+        </div>
+      </div>
+      <button class="act-btn" style="flex:1;justify-content:center;" onclick="toggleComments('trofeo_${t.id||''}')">💬 Comentar</button>
+      <button class="act-btn" style="flex:1;justify-content:center;" onclick="sharePost('trofeo_${t.id||''}')">↗️ Compartir</button>
+    </div>
+    <!-- Comments section -->
+    <div class="comments-section" id="cmts_trofeo_${t.id||''}"></div>
     <!-- Footer -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-top:1px solid rgba(255,215,0,.12);">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-top:1px solid rgba(255,215,0,.08);">
       <div style="font-size:.72rem;color:var(--muted);">Verificado en WikipediaRF4</div>
       <a href="#" onclick="gp('wiki-trofeos')" target="_blank" style="font-size:.72rem;color:var(--accent);text-decoration:none;font-weight:600;">Ver registro completo ↗</a>
     </div>
