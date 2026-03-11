@@ -1028,7 +1028,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
       <div class="sl-item" onclick="gp('casitrofeo')"><span class="sl-item-icon">🏅</span> Casi Trofeo</div>
       <div class="sl-item" onclick="gp('trofeos-feed');setNav(document.querySelector('.tb-nav-btn'))"><span class="sl-item-icon">🥇</span> Feed de Trofeos</div>
       <div class="sl-item" onclick="gp('publica-trofeo')"><span class="sl-item-icon">🏆</span> Publica tu Trofeo</div>
-      <div class="sl-item" onclick="gp('buscar-trofeo')"><span class="sl-item-icon">🔍</span> Buscar Trofeo</div>
+      <div class="sl-item" onclick="gp('peso-del-trofeo')"><span class="sl-item-icon">🏆</span> Peso del Trofeo</div>
       <div class="sl-item" onclick="gp('skill')"><span class="sl-item-icon">📈</span> Subir Skill</div>
       <div class="sl-item" onclick="gp('wiki-trofeos')" id="slWikiTrofeosBtn" style="background:linear-gradient(90deg,rgba(255,215,0,.08),transparent);border-left:3px solid #ffd700;"><span class="sl-item-icon">🏆</span> Wiki Trofeos</div>
       <div class="sl-item" onclick="gp('mapa-trofeos');closeSidebar();" id="slMapaTrofeosBtn" style="display:none;background:linear-gradient(90deg,rgba(0,180,120,.08),transparent);border-left:3px solid #00b478;"><span class="sl-item-icon">🗺️</span> Mapa de Trofeos <span style="font-size:.6rem;background:#00b478;color:#000;padding:1px 6px;border-radius:20px;font-weight:800;margin-left:4px;">NUEVO</span></div>
@@ -2987,7 +2987,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
 
   <!-- Accesos rápidos -->
   <div style="display:flex;gap:8px;flex-wrap:wrap;">
-    <button class="btn btn-s" style="font-size:.8rem;flex:1;" onclick="gp('buscar-trofeo')">🔍 Ver pesos mínimos</button>
+    <button class="btn btn-s" style="font-size:.8rem;flex:1;" onclick="gp('peso-del-trofeo')">🔍 Ver pesos mínimos</button>
     <button class="btn btn-s" style="font-size:.8rem;flex:1;" onclick="gp('trofeos-feed')">🥇 Feed de Trofeos</button>
   </div>
 
@@ -2995,26 +2995,54 @@ select.fi option{background:var(--bg3);color:var(--text);}
 
 
 <!-- ===== BUSCAR TROFEO ===== -->
-<div class="page" id="page-buscar-trofeo" style="max-width:900px;margin:0 auto;padding:20px 12px 80px;">
+<div class="page" id="page-peso-del-trofeo" style="max-width:900px;margin:0 auto;padding:20px 12px 80px;">
 
   <!-- Header -->
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
     <div>
-      <div style="font-family:'Orbitron',monospace;font-size:1.15rem;font-weight:900;color:var(--gold);">🔍 Buscar Trofeo</div>
+      <div style="font-family:'Orbitron',monospace;font-size:1.15rem;font-weight:900;color:var(--gold);">🏆 Peso del Trofeo</div>
       <div style="font-size:.76rem;color:var(--muted);margin-top:3px;">Pesos mínimos para trofeo en RF4 · <span id="fishCount" style="color:var(--accent);font-weight:700;"></span> especies</div>
     </div>
     <button class="btn btn-s" style="font-size:.8rem;" onclick="gp('publica-trofeo')">🏆 Publicar mi Trofeo</button>
   </div>
 
   <!-- Search bar -->
-  <div style="position:relative;margin-bottom:14px;">
-    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:1rem;pointer-events:none;">🔍</span>
-    <input id="trofeoSearch" type="text" placeholder="Buscar pez... ej: carpa, siluro, trucha"
-      style="width:100%;box-sizing:border-box;padding:11px 14px 11px 38px;border-radius:var(--r);border:1.5px solid var(--border);background:var(--card);color:var(--text);font-size:.9rem;font-family:'Exo 2',sans-serif;outline:none;"
-      oninput="filterTrofeos(this.value)"
-      onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
-    <button onclick="document.getElementById('trofeoSearch').value='';filterTrofeos('');"
-      style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:2px 6px;">✕</button>
+  <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+    <div style="position:relative;flex:1;min-width:200px;">
+      <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:1rem;pointer-events:none;">🐟</span>
+      <input id="trofeoSearch" type="text" placeholder="Buscar pez... ej: carpa, siluro, trucha"
+        style="width:100%;box-sizing:border-box;padding:11px 14px 11px 38px;border-radius:var(--r);border:1.5px solid var(--border);background:var(--card);color:var(--text);font-size:.9rem;font-family:'Exo 2',sans-serif;outline:none;"
+        oninput="filterTrofeos(this.value)"
+        onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+      <button onclick="document.getElementById('trofeoSearch').value='';filterTrofeos('');"
+        style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:2px 6px;">✕</button>
+    </div>
+    <div style="position:relative;flex:1;min-width:200px;">
+      <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:1rem;pointer-events:none;">🌊</span>
+      <select id="trofeoMapSelect"
+        style="width:100%;box-sizing:border-box;padding:11px 14px 11px 38px;border-radius:var(--r);border:1.5px solid var(--border);background:var(--card);color:var(--text);font-size:.88rem;font-family:'Exo 2',sans-serif;outline:none;cursor:pointer;appearance:none;"
+        onchange="filterTrofeosByMap(this.value)"
+        onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+        <option value="">🗺️ Filtrar por mapa...</option>
+        <option value="Belaya River">Belaya River</option>
+        <option value="Volkhov River">Volkhov River</option>
+        <option value="Akhtuba River">Akhtuba River</option>
+        <option value="Winding Rivulet">Winding Rivulet</option>
+        <option value="Old Burg Lake">Old Burg Lake</option>
+        <option value="Sura River">Sura River</option>
+        <option value="Ladoga Lake">Ladoga Lake</option>
+        <option value="Ladoga archipelago">Archipiélago Ladoga</option>
+        <option value="Amber Lake">Amber Lake</option>
+        <option value="Bear Lake">Bear Lake</option>
+        <option value="Mosquito Lake">Mosquito Lake</option>
+        <option value="Seversky Donets River">Seversky Donets</option>
+        <option value="Yama River">Yama River</option>
+        <option value="Norwegian Sea">Mar de Noruega</option>
+        <option value="Kuori Lake">Kuori Lake</option>
+        <option value="Copper lake">Cooper Lake</option>
+        <option value="Lower Tunguska River">Lower Tunguska River</option>
+      </select>
+    </div>
   </div>
 
   <!-- Filter chips -->
@@ -3367,7 +3395,37 @@ select.fi option{background:var(--bg3);color:var(--text);}
      ====================================================== -->
 <div class="page" id="page-wiki-trofeos" style="min-height:100vh;padding-bottom:80px;">
 
-
+  <!-- Banner online fishing -->
+  <div id="wkOnlineBanner" style="width:100%;background:linear-gradient(90deg,rgba(0,15,28,.97),rgba(0,30,50,.95),rgba(0,15,28,.97));border-bottom:1px solid rgba(0,212,255,.18);padding:10px 20px;display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;position:sticky;top:62px;z-index:900;backdrop-filter:blur(12px);">
+    <div style="display:flex;align-items:center;gap:6px">
+      <div style="width:7px;height:7px;border-radius:50%;background:#00ff88;box-shadow:0 0 8px #00ff88;animation:pulse 2s infinite;flex-shrink:0"></div>
+      <span style="font-family:'Orbitron',monospace;font-size:.58rem;font-weight:700;color:#00ff88;letter-spacing:2px;text-transform:uppercase">En Vivo</span>
+    </div>
+    <div style="width:1px;height:22px;background:rgba(0,212,255,.2)"></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-family:'Orbitron',monospace;font-size:.78rem;font-weight:800;color:#ffd700;letter-spacing:2px;text-transform:uppercase;text-shadow:0 0 10px rgba(255,215,0,.5)">🔍 Buscando Trofeos</span>
+      <div style="display:flex;align-items:baseline;gap:7px">
+        <div style="position:relative;padding:3px 10px;border-radius:8px;animation:borderBlink 1.4s linear infinite;">
+          <span id="wkOnlineCount" style="font-family:'Orbitron',monospace;font-size:1.65rem;font-weight:900;color:#ff4dff;text-shadow:0 0 18px rgba(255,77,255,.8);line-height:1;transition:all .35s ease">—</span>
+        </div>
+        <div style="display:flex;flex-direction:column;line-height:1.2">
+          <span style="font-family:'Orbitron',monospace;font-size:.56rem;font-weight:800;color:#ff9900;letter-spacing:1.5px">PESCADORES</span>
+          <span style="font-family:'Orbitron',monospace;font-size:.56rem;font-weight:800;color:#ff9900;letter-spacing:1.5px">ONLINE</span>
+        </div>
+      </div>
+    </div>
+    <div style="width:1px;height:22px;background:rgba(0,212,255,.2)"></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:1.1rem;">🏆</span>
+      <div style="display:flex;align-items:baseline;gap:7px">
+        <span id="wkTotalTrophy" style="font-family:'Orbitron',monospace;font-size:1.65rem;font-weight:900;color:#ffd700;text-shadow:0 0 18px rgba(255,215,0,.8);line-height:1;transition:all .35s ease">—</span>
+        <div style="display:flex;flex-direction:column;line-height:1.2">
+          <span style="font-family:'Orbitron',monospace;font-size:.56rem;font-weight:800;color:#ffd700;letter-spacing:1.5px">TROFEOS</span>
+          <span style="font-family:'Orbitron',monospace;font-size:.56rem;font-weight:800;color:#ffd700;letter-spacing:1.5px">PUBLICADOS</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Sub-navegación Wiki -->
   <div class="wk-nav">
@@ -4468,7 +4526,7 @@ const ROUTES = {
   '/spots': 'spots',
   '/torneos': 'torneos',
   '/perfil': 'profile',
-  '/buscar-trofeo': 'buscar-trofeo',
+  '/peso-del-trofeo': 'peso-del-trofeo',
   '/publica-trofeo': 'publica-trofeo',
   '/parches': 'parches',
   '/soporte': 'soporte',
@@ -4490,7 +4548,7 @@ const PAGE_TO_URL = {
   'spots':         '/spots',
   'torneos':       '/torneos',
   'profile':       '/perfil',
-  'buscar-trofeo': '/buscar-trofeo',
+  'peso-del-trofeo': '/peso-del-trofeo',
   'publica-trofeo':'/publica-trofeo',
   'parches':       '/parches',
   'soporte':       '/soporte',
@@ -4594,7 +4652,7 @@ window.gp = (id, pushState = true) => {
   if(id==='spots'){ loadSpots(); loadFriendSpots(); }
   if(id==='casitrofeo') renderMapPosts();
   if(id==='trofeos-feed') { listenTrofeosFeed(); document.getElementById('trofeoFeedBadge').style.display='inline-flex'; }
-  if(id==='buscar-trofeo') { renderTrofeos(FISH_DB); }
+  if(id==='peso-del-trofeo') { renderTrofeos(FISH_DB); }
   if(id==='shop') { loadShopDiscount(); }
   if(id==='publica-trofeo') {
     const frame = document.getElementById('wikiTrofeoFrame');
@@ -4874,6 +4932,7 @@ let FISH_DB = [
 
 
 let _trofChip = '';
+let _trofMap = '';
 function _mapImg(f){
   if(!f.maps||!f.maps.length) return '';
   return f.maps.map(function(m){
@@ -4914,8 +4973,13 @@ function filterTrofeos(q) {
   const kw = _norm(q).trim();
   let data = FISH_DB;
   if(_trofChip) data = data.filter(f => _norm(f.n).includes(_trofChip));
+  if(_trofMap) data = data.filter(f => f.maps && f.maps.some(m => m.n === _trofMap));
   if(kw) data = data.filter(f => _norm(f.n).includes(kw));
   renderTrofeos(data);
+}
+function filterTrofeosByMap(mapName) {
+  _trofMap = mapName;
+  filterTrofeos(document.getElementById('trofeoSearch')?.value||'');
 }
 function setTrofChip(el, kw) {
   document.querySelectorAll('.trof-chip').forEach(c=>c.classList.remove('on'));
@@ -4924,6 +4988,7 @@ function setTrofChip(el, kw) {
   filterTrofeos(document.getElementById('trofeoSearch')?.value||'');
 }
 window.filterTrofeos = filterTrofeos;
+window.filterTrofeosByMap = filterTrofeosByMap;
 window.setTrofChip = setTrofChip;
 // ====== FIN BUSCAR TROFEO ======
 
@@ -12565,7 +12630,7 @@ const _PAGE_ACTIVITY = {
   'spots':         {icon:'📍', text:'explorando spots'},
   'trofeos-feed':  {icon:'🥇', text:'viendo trofeos'},
   'publica-trofeo':{icon:'🏆', text:'publicando trofeo'},
-  'buscar-trofeo': {icon:'🔍', text:'buscando trofeos'},
+  'peso-del-trofeo': {icon:'🔍', text:'buscando trofeos'},
   'casitrofeo':    {icon:'🏅', text:'casi trofeo'},
   'torneos':       {icon:'⚔️', text:'viendo torneos'},
   'parches':       {icon:'🔧', text:'viendo novedades'},
