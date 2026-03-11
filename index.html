@@ -9669,7 +9669,7 @@ function switchNotifTab(tab){
   if(unread){ unread.style.background = tab==='unread'?'var(--accent)':'transparent'; unread.style.color = tab==='unread'?'#000':'var(--muted)'; }
   renderNotifs();
 }
-async async function markAllNotifsRead(){
+async function markAllNotifsRead(){
   if(!window.CU||!_notifs.length) return;
   // Leer array fresco de Firestore, marcar todo como leído sin pisar notifs nuevas
   try {
