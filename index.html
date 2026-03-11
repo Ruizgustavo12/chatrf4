@@ -4475,10 +4475,15 @@ function listenStories() {
       const expiredIds = [];
       _stories = snap.docs.filter(d => {
         const raw = d.data().time;
-        // Firestore Timestamp o número directo
+        // serverTimestamp() puede llegar como null la primera vez (pending write) — no descartar
+        if(raw === null || raw === undefined){
+          // Si el doc es muy reciente en el snapshot local, no lo consideramos expirado
+          return true;
+        }
         const t = raw?.toMillis ? raw.toMillis() : (typeof raw === 'number' ? raw : 0);
+        if(!t) return true; // tiempo 0 = pendiente, no descartar
         const ttl = d.data().userVerified ? 172800000 : 86400000;
-        if(!t || (now - t) > ttl){ expiredIds.push(d.id); return false; }
+        if((now - t) > ttl){ expiredIds.push(d.id); return false; }
         return true;
       }).map(d => {
         const raw = d.data().time;
@@ -4488,7 +4493,10 @@ function listenStories() {
       expiredIds.forEach(id => deleteDoc(doc(db, 'stories', id)).catch(()=>{}));
       renderStories();
     },
-    err => { console.warn('listenStories error:', err); }
+    err => {
+      console.error('[listenStories] error:', err.code, err.message);
+      if(err.code==='permission-denied') toast('⚠️ Sin permisos para leer historias — revisá reglas Firestore','err');
+    }
   );
 }
 
@@ -6669,25 +6677,39 @@ async function _scSubmit(){ return submitStory(); }
 async function submitStory(){
   if(!window.CU){ toast('Inicia sesión primero','err'); return; }
   const mode = window._scMode || 'photo';
-  // In text mode, music is stored in window._storyMusic (set by _txtSelectTrack)
-  // In photo mode, music comes from storyMusicSearch flow (same window._storyMusic)
   const textEl = mode==='text' ? document.getElementById('storyTextText') : document.getElementById('storyText');
   const text = textEl?.value.trim() || '';
   if(!text && !_storyImgData && !window._storyGif){ toast('Escribe algo o sube una imagen','err'); return; }
   toast('Publicando historia...','inf');
   let imgUrl = '';
   let videoUrl = '';
-  if(_storyImgData) imgUrl = await uploadImage(_storyImgData, 'stories');
-  if(_storyVideoData) videoUrl = await uploadVideo(_storyVideoData, 'stories');
+  try {
+    if(_storyImgData){
+      imgUrl = await uploadImage(_storyImgData, 'stories');
+      console.log('[story] imagen subida OK:', imgUrl.slice(0,60));
+    }
+    if(_storyVideoData) videoUrl = await uploadVideo(_storyVideoData, 'stories');
+  } catch(uploadErr){
+    console.error('[story] ERROR subiendo imagen:', uploadErr);
+    toast('❌ Error al subir la imagen: ' + (uploadErr.message||'intenta de nuevo'), 'err');
+    return;
+  }
   if(!text && !imgUrl && !videoUrl && !window._storyGif){ toast('Agregá algo a la historia','err'); return; }
-  await addDoc(collection(db, 'stories'), {
-    userId:window.CU.id, userNick:window.CU.nick, userAv:window.CU.av||'',
-    text, emoji:_storyEmojiPick||'🎣', img:imgUrl, video:videoUrl, yt:'', time:serverTimestamp(),
-    userVerified:window.CU?.verified||false,
-    music: window._storyMusic || _storyMusic || null,
-    bg: window._storyBg || null,
-    gif: window._storyGif || null
-  });
+  try {
+    await addDoc(collection(db, 'stories'), {
+      userId:window.CU.id, userNick:window.CU.nick, userAv:window.CU.av||'',
+      text, emoji:_storyEmojiPick||'🎣', img:imgUrl, video:videoUrl, yt:'', time:serverTimestamp(),
+      userVerified:window.CU?.verified||false,
+      music: window._storyMusic || _storyMusic || null,
+      bg: window._storyBg || null,
+      gif: window._storyGif || null
+    });
+    console.log('[story] guardada en Firestore OK');
+  } catch(dbErr){
+    console.error('[story] ERROR guardando en Firestore:', dbErr);
+    toast('❌ Error al publicar historia: ' + (dbErr.message||''), 'err');
+    return;
+  }
   _storyImgData = null; _storyVideoData = null; _storyEmojiPick = ''; _storyMusic = null; window._storyMusic = null;
   window._storyBg = null; window._storyGif = null; window._scMode = 'chooser';
   const sv2 = document.getElementById('storyVideoPrev'); if(sv2) sv2.innerHTML='';
