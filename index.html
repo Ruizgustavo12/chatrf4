@@ -5041,6 +5041,16 @@ window.addEventListener('popstate', (e) => {
 
 // On page load, navigate to the correct page based on URL
 window.addEventListener('DOMContentLoaded', () => {
+  // Recuperar ruta guardada por 404.html (GitHub Pages SPA trick)
+  const redirectPath = sessionStorage.getItem('__rf4_redirect');
+  if (redirectPath) {
+    sessionStorage.removeItem('__rf4_redirect');
+    // Reemplazar la URL sin recargar la página
+    if (redirectPath !== '/' && redirectPath !== '/home') {
+      history.replaceState(null, '', redirectPath);
+    }
+  }
+
   const path = window.location.pathname;
   // Save full path for after login (handles /u/nick, /mensajes/nick, etc.)
   if (path && path !== '/' && path !== '/home' && path !== '/') {

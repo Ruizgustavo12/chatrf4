@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RF4 Latam</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0d1117;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Exo 2', sans-serif;
+      color: #e6edf3;
+    }
+    .loader {
+      text-align: center;
+    }
+    .loader-icon {
+      font-size: 3rem;
+      animation: pulse 1s ease-in-out infinite;
+    }
+    .loader-text {
+      margin-top: 12px;
+      font-size: .9rem;
+      color: #8b949e;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .5; transform: scale(.9); }
+    }
+  </style>
+</head>
+<body>
+  <div class="loader">
+    <div class="loader-icon">🎣</div>
+    <div class="loader-text">Cargando RF4 Latam...</div>
+  </div>
+  <script>
+    // GitHub Pages SPA redirect trick
+    // Guardamos la ruta completa en sessionStorage y redirigimos al index
+    var path = window.location.pathname;
+    var search = window.location.search;
+    var hash = window.location.hash;
+
+    // Guardamos la ruta para que index.html la recupere y navegue ahí
+    sessionStorage.setItem('__rf4_redirect', path + search + hash);
+
+    // Redirigir al index (raíz del sitio)
+    window.location.replace('/');
+  </script>
+</body>
+</html>
