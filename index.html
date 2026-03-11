@@ -9599,41 +9599,51 @@ async function addNotif(text){
 
 // ── AUDIO GLOBAL — se desbloquea en el primer click del usuario ──
 let _sharedACtx = null;
-function _getACtx(){
-  if(!_sharedACtx || _sharedACtx.state==='closed'){
-    try{ _sharedACtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; }
-  }
-  if(_sharedACtx.state==='suspended') _sharedACtx.resume().catch(()=>{});
-  return _sharedACtx;
-}
-// Desbloquear en primera interacción — CRÍTICO para que el sonido funcione
-document.addEventListener('click',   ()=>{ try{ _getACtx(); }catch(e){} }, {passive:true});
-document.addEventListener('keydown',  ()=>{ try{ _getACtx(); }catch(e){} }, {passive:true});
-document.addEventListener('touchstart',()=>{ try{ _getACtx(); }catch(e){} }, {passive:true});
+let _audioReady = false;
 
-function playNotifSound(){
+async function _ensureAudio(){
+  if(!_sharedACtx || _sharedACtx.state==='closed'){
+    try{ _sharedACtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return false; }
+  }
+  if(_sharedACtx.state==='suspended'){
+    try{ await _sharedACtx.resume(); }catch(e){ return false; }
+  }
+  return _sharedACtx.state==='running';
+}
+
+// Desbloquear en primera interacción del usuario — sin esto el navegador bloquea el audio
+function _unlockAudio(){
+  _ensureAudio().then(ok=>{ if(ok) _audioReady=true; });
+}
+document.addEventListener('click',     _unlockAudio, {passive:true});
+document.addEventListener('keydown',   _unlockAudio, {passive:true});
+document.addEventListener('touchstart',_unlockAudio, {passive:true});
+
+async function playNotifSound(){
   try{
-    const ctx = _getACtx(); if(!ctx) return;
+    const ok = await _ensureAudio(); if(!ok) return;
+    const ctx = _sharedACtx;
     const o=ctx.createOscillator(), g=ctx.createGain();
     o.connect(g); g.connect(ctx.destination);
     o.type='sine';
     o.frequency.setValueAtTime(660, ctx.currentTime);
     o.frequency.setValueAtTime(880, ctx.currentTime+0.08);
-    g.gain.setValueAtTime(0.2, ctx.currentTime);
+    g.gain.setValueAtTime(0.25, ctx.currentTime);
     g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.3);
     o.start(ctx.currentTime); o.stop(ctx.currentTime+0.3);
   }catch(e){}
 }
 
-function playMsgSound(){
+async function playMsgSound(){
   try{
-    const ctx = _getACtx(); if(!ctx) return;
+    const ok = await _ensureAudio(); if(!ok) return;
+    const ctx = _sharedACtx;
     const o=ctx.createOscillator(), g=ctx.createGain();
     o.connect(g); g.connect(ctx.destination);
     o.type='sine';
     o.frequency.setValueAtTime(880, ctx.currentTime);
     o.frequency.setValueAtTime(1100, ctx.currentTime+0.1);
-    g.gain.setValueAtTime(0.22, ctx.currentTime);
+    g.gain.setValueAtTime(0.28, ctx.currentTime);
     g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.35);
     o.start(ctx.currentTime); o.stop(ctx.currentTime+0.35);
   }catch(e){}
@@ -9841,36 +9851,30 @@ function listenNotifs(){
     }
     const newNotifs = d.notifs || [];
 
-    // Guardar conteos ANTES de reemplazar — si se hace después prev==new siempre
-    const prevNonMsgUnread = _notifs.filter(n=>!n.read && !n.text?.startsWith('💬')).length;
-    const prevMsgUnread    = _notifs.filter(n=>!n.read &&  n.text?.startsWith('💬')).length;
-    const prevLen          = _notifs.length;
+    // ── Detección 100% confiable por clave única (time+nick+texto) ──
+    // Funciona aunque el onSnapshot se dispare por otro campo del documento
+    const knownKeys = new Set(
+      _notifs.map(n => `${n.time||0}_${n.fromNick||''}_${(n.text||'').slice(0,30)}`)
+    );
+    const brandNew = newNotifs.filter(n => {
+      const k = `${n.time||0}_${n.fromNick||''}_${(n.text||'').slice(0,30)}`;
+      return !knownKeys.has(k);
+    });
 
     _notifs = newNotifs;
 
-    const newNonMsgUnread = _notifs.filter(n=>!n.read && !n.text?.startsWith('💬')).length;
-    const newMsgUnread    = _notifs.filter(n=>!n.read &&  n.text?.startsWith('💬')).length;
+    if(brandNew.length > 0){
+      const newMsgs    = brandNew.filter(n =>  n.text?.startsWith('💬'));
+      const newNonMsgs = brandNew.filter(n => !n.text?.startsWith('💬'));
 
-    // Detectar notif nueva por tiempo (más confiable que contar — arrayUnion no garantiza orden)
-    const maxTime = _notifs.reduce((m,n)=>Math.max(m,n.time||0), 0);
-    const isNew = _notifs.length > prevLen || maxTime > (window._lastNotifMaxTime||0);
-    if(maxTime) window._lastNotifMaxTime = maxTime;
-
-    // Badge + sonido mensajes
-    if(newMsgUnread > prevMsgUnread || (isNew && newMsgUnread > 0 && prevLen===0)){
-      updateMsgBadge();
-      const latest = [..._notifs].filter(n=>!n.read && n.text?.startsWith('💬')).sort((a,b)=>(b.time||0)-(a.time||0))[0];
-      if(latest && (latest.time||0) > (window._lastMsgSoundTime||0)){
-        window._lastMsgSoundTime = latest.time||0;
+      if(newMsgs.length > 0){
+        updateMsgBadge();
+        const latest = newMsgs.sort((a,b)=>(b.time||0)-(a.time||0))[0];
         playMsgSound();
-        showNotifToast(latest.text);
+        showNotifToast(latest.text||'Nuevo mensaje');
       }
-    }
-    // Badge + sonido notifs normales
-    if(newNonMsgUnread > prevNonMsgUnread || (isNew && newNonMsgUnread > 0 && prevLen===0)){
-      const latest = [..._notifs].filter(n=>!n.read && !n.text?.startsWith('💬')).sort((a,b)=>(b.time||0)-(a.time||0))[0];
-      if(latest && (latest.time||0) > (window._lastNotifSoundTime||0)){
-        window._lastNotifSoundTime = latest.time||0;
+      if(newNonMsgs.length > 0){
+        const latest = newNonMsgs.sort((a,b)=>(b.time||0)-(a.time||0))[0];
         playNotifSound();
         showNotifToast(latest.text||'Nueva notificación');
       }
