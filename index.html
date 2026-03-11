@@ -8617,11 +8617,14 @@ function renderProfile(){
     friendsGrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:16px;color:var(--muted);font-size:.82rem;">Sin amigos aún. ¡Conectate con otros pescadores!</div>';
   } else {
     friendsGrid.innerHTML = friends.slice(0,9).map(f=>`
-      <div style="text-align:center;cursor:pointer;" onclick="openUserProfile('${f.id}','${(f.nick||'').replace(/'/g,"\\'")}')">
-        <div style="width:100%;aspect-ratio:1;border-radius:var(--rs);background:var(--bg3);border:1px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:800;color:var(--accent);margin-bottom:4px">
-          ${`<img src="${f.av||getDefaultAv(f.gender||'')}" style="width:100%;height:100%;object-fit:cover;">`}
+      <div style="text-align:center;position:relative;">
+        <div onclick="openUserProfile('${f.id}','${(f.nick||'').replace(/'/g,"\\'")}')" style="cursor:pointer;">
+          <div style="width:100%;aspect-ratio:1;border-radius:var(--rs);background:var(--bg3);border:1px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:800;color:var(--accent);margin-bottom:4px">
+            ${`<img src="${f.av||getDefaultAv(f.gender||'')}" style="width:100%;height:100%;object-fit:cover;">`}
+          </div>
+          <div style="font-size:.68rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.nick}</div>
         </div>
-        <div style="font-size:.68rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.nick}</div>
+        <button onclick="event.stopPropagation();removeFriend('${f.id}','${(f.nick||'').replace(/'/g,"\\'")}')" title="Eliminar amigo" style="margin-top:3px;width:100%;padding:2px 0;background:transparent;border:1px solid rgba(248,81,73,.35);border-radius:var(--rs);color:var(--red);font-size:.6rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;transition:all .18s;" onmouseover="this.style.background='rgba(248,81,73,.12)'" onmouseout="this.style.background='transparent'">✕ Eliminar</button>
       </div>`).join('');
   }
   renderXPUI();
@@ -9592,10 +9595,13 @@ async function renderProfileFriendsList(userId) {
       const isMe = window.CU?.id === fid;
       const alreadyFriend = myFriends.includes(fid);
       const lvl = getLevel(f.xp||0);
+      const isOwnProfile = uid === window.CU?.id;
       const addBtn = (!isMe && !alreadyFriend)
         ? `<button onclick="sendFriendRequest('${fid}','${(f.nick||'').replace(/'/g,"\'")}','profile')" style="margin-top:6px;width:100%;padding:5px;background:var(--accent);border:none;border-radius:var(--rs);color:#000;font-size:.72rem;font-weight:700;cursor:pointer;">+ Agregar</button>`
-        : alreadyFriend && !isMe ? `<div style="margin-top:6px;font-size:.7rem;color:var(--green);text-align:center;font-weight:700;">✓ Amigos</div>` : '';
-      return `<div onclick="openUserProfile('${fid}','${(f.nick||'').replace(/'/g,"\'")}');event.stopPropagation();" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center;cursor:pointer;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        : (alreadyFriend && !isMe && isOwnProfile)
+          ? `<button onclick="event.stopPropagation();removeFriend('${fid}','${(f.nick||'').replace(/'/g,"\'")}');this.closest('[data-fid]').remove();" data-rmv="${fid}" style="margin-top:6px;width:100%;padding:4px;background:transparent;border:1px solid rgba(248,81,73,.35);border-radius:var(--rs);color:var(--red);font-size:.68rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;transition:all .18s;" onmouseover="this.style.background='rgba(248,81,73,.12)'" onmouseout="this.style.background='transparent'">✕ Eliminar amigo</button>`
+          : alreadyFriend && !isMe ? `<div style="margin-top:6px;font-size:.7rem;color:var(--green);text-align:center;font-weight:700;">✓ Amigos</div>` : '';
+      return `<div data-fid="${fid}" onclick="openUserProfile('${fid}','${(f.nick||'').replace(/'/g,"\'")}');event.stopPropagation();" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center;cursor:pointer;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
         <div style="width:48px;height:48px;border-radius:50%;background:var(--bg4);border:2px solid var(--accent);margin:0 auto 8px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;">
           ${`<img src="${f.av||getDefaultAv(f.gender||'')}" style="width:100%;height:100%;object-fit:cover;">`}
         </div>
@@ -16777,7 +16783,7 @@ const _expose = {
   swAdminTab, loadAdminData, previewAdminMedia, saveSiteConfig,
   submitPatch, submitTorneo, submitAdminGroup, submitAd, toggleAd,
   banUser, deleteAdminContent, deleteAdminPost, resolveReport,
-  openUserProfile, sendFriendRequest, togglePostMenu, renderProfileFriendsList, openEditPost, saveEditPost, deleteMyPost,
+  openUserProfile, sendFriendRequest, togglePostMenu, renderProfileFriendsList, openEditPost, saveEditPost, deleteMyPost, removeFriend,
   toggleMessenger, sendChatMsg, openChatWith, backToMessengerList, closeMessenger, minimizeMessenger, maximizeMessenger, toggleVoiceRecord, cancelVoiceRecord, stopAndSendVoice, toggleVoicePlay, toggleVoiceBtn, openPostWithYt, reactChatMsg, showMsgRxnBar, hideMsgRxnBar, keepMsgRxnBar, showCmtMenu, hideCmtMenu, setChatTyping, toggleGifPicker, closeGifPicker, searchGifs, sendGif, toggleMsgTime,
   joinGroup, leaveGroup, openGroupPost, showGroupWelcome, previewGroupPostImg, removeGroupPostImg, submitGroupPost,
   acceptFriendRequest, rejectFriendRequest, dismissFriendRequest, sendFriendRequestFromProfile, loadRealFriends, updateNotifBadge, updateMsgBadge,
@@ -17382,6 +17388,51 @@ async function toggleFollow(targetUid, targetNick, btn){
   }catch(e){ console.error(e); toast('Error al actualizar seguidores','err'); }
 }
 window.toggleFollow = toggleFollow;
+
+// ── ELIMINAR AMIGO ──
+async function removeFriend(targetUid, targetNick){
+  if(!window.CU?.id) return;
+  const myId = window.CU.id;
+  // Confirmación simple
+  const confirmed = await new Promise(res => {
+    const m = document.createElement('div');
+    m.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;';
+    m.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px 24px;width:320px;max-width:92vw;text-align:center;">
+      <div style="font-size:1.5rem;margin-bottom:10px;">👥</div>
+      <div style="font-size:1rem;font-weight:800;margin-bottom:8px;">¿Eliminar a ${targetNick}?</div>
+      <div style="font-size:.82rem;color:var(--muted);margin-bottom:20px;">Ya no serán amigos y no podrán enviarse mensajes.</div>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button id="_rmvCancel" style="padding:9px 22px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;">Cancelar</button>
+        <button id="_rmvConfirm" style="padding:9px 22px;background:var(--red);border:none;color:#fff;border-radius:8px;font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;">Eliminar</button>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+    m.querySelector('#_rmvCancel').onclick = () => { m.remove(); res(false); };
+    m.querySelector('#_rmvConfirm').onclick = () => { m.remove(); res(true); };
+    m.addEventListener('click', e => { if(e.target===m){ m.remove(); res(false); } });
+  });
+  if(!confirmed) return;
+  try {
+    const myRef = doc(db,'users',myId);
+    const theirRef = doc(db,'users',targetUid);
+    await updateDoc(myRef, { friends: arrayRemove(targetUid) });
+    await updateDoc(theirRef, { friends: arrayRemove(myId) });
+    // Actualizar cache local
+    if(window.CU.friends) window.CU.friends = window.CU.friends.filter(id=>id!==targetUid);
+    if(window.CU.friendsList) window.CU.friendsList = window.CU.friendsList.filter(f=>f.id!==targetUid);
+    toast(`${targetNick} eliminado de tus amigos`,'ok');
+    // Refrescar UI
+    const card = document.querySelector(`[data-fid="${targetUid}"]`);
+    if(card){ card.style.opacity='0'; card.style.transform='scale(.92)'; card.style.transition='all .2s'; setTimeout(()=>card.remove(),200); }
+    // Actualizar contador
+    const fc = document.getElementById('profFriendCount');
+    if(fc) fc.textContent = (window.CU.friends||[]).length;
+    // Refrescar sidebar
+    setTimeout(()=>{ renderSidebarFriends?.(); renderProfileFriendsList?.(); }, 300);
+  } catch(e){ console.error(e); toast('Error al eliminar amigo','err'); }
+}
+window.removeFriend = removeFriend;
+
 
 // ── LISTA DE SEGUIDORES ──
 async function openFollowersList(uid){
