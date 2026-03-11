@@ -9834,9 +9834,13 @@ function updateMsgBadge(){
     return !!lm.unread;
   }).length;
 
-  if(unread > 0){
+  // Contar mensajes individuales no leídos (suma de unreadCount por chat)
+  const totalMsgs = Object.entries(_chatLastMsgs).filter(([uid])=>!archived.includes(uid)&&!deleted.includes(uid))
+    .reduce((acc,[,lm])=> acc + (lm.unreadCount||0), 0);
+  const displayCount = totalMsgs > 0 ? totalMsgs : unread;
+  if(displayCount > 0){
     el.style.display='flex';
-    el.textContent = unread > 9 ? '9+' : String(unread);
+    el.textContent = displayCount > 99 ? '99+' : String(displayCount);
   } else {
     el.style.display='none';
   }
@@ -9915,9 +9919,9 @@ function listenUnreadMsgsBadge(){
   _unsubMsgBadgeListeners = [];
   if(_msgBadgePollInterval){ clearInterval(_msgBadgePollInterval); _msgBadgePollInterval=null; }
 
-  // Correr inmediatamente y luego cada 30 segundos
+  // Correr inmediatamente y luego cada 8 segundos para badge más responsivo
   _pollMsgBadge();
-  _msgBadgePollInterval = setInterval(_pollMsgBadge, 30000);
+  _msgBadgePollInterval = setInterval(_pollMsgBadge, 8000);
 }
 
 async function _pollMsgBadge(){
@@ -9926,8 +9930,8 @@ async function _pollMsgBadge(){
   if(!myId || !friends.length) return;
 
   let totalUnread = 0;
-  // Limitar a 15 amigos más recientes para no saturar Firebase
-  const toCheck = friends.slice(0,15);
+  // Revisar todos los amigos para no perder mensajes sin leer
+  const toCheck = friends;
   await Promise.all(toCheck.map(async f=>{
     try{
       const chatId = [myId, f.id].sort().join('_');
@@ -14800,12 +14804,17 @@ function markChatNotifsRead(nick){
   }
 }
 
+let _chatSending = false; // Evitar envíos duplicados
 async function sendChatMsg(gifUrl){
   if(!window.CU){ toast('Iniciá sesión primero','err'); return; }
+  if(_chatSending) return; // Bloqueo anti-doble envío
   const inp = document.getElementById('chatInput');
   if(!inp) return;
   const text = gifUrl || inp.value.trim();
   if(!text || !_chatUserId) return;
+  _chatSending = true;
+  const sendBtn = document.getElementById('chatSendBtn');
+  if(sendBtn) sendBtn.disabled = true;
   inp.value='';
   try{ setDoc(doc(db,'presence',window.CU.id),{typingTo:'',typingAt:serverTimestamp()},{merge:true}); }catch(e2){}
   const chatId = [window.CU.id, _chatUserId].sort().join('_');
@@ -14814,11 +14823,18 @@ async function sendChatMsg(gifUrl){
   else { msgData.text = text; }
   try {
     await addDoc(collection(db,'chats',chatId,'messages'), msgData);
-    // ✅ Enviar notificación al destinatario (solo si no está ya en este chat)
-    // Nota: el destinatario marcará como leído si está en el chat, así que la notif llegará pero el badge no sumará
+    // Notif desacoplada: NO bloqueamos el envío si falla la notif
     const previewText = gifUrl ? '🖼️ GIF' : text.slice(0,60);
-    await sendNotifToUser(_chatUserId, `💬 ${window.CU.nick}: ${previewText}`);
+    sendNotifToUser(_chatUserId, `💬 ${window.CU.nick}: ${previewText}`).catch(()=>{});
+    // Actualizar badge local inmediatamente sin esperar el poll de 30s
+    if(_chatLastMsgs[_chatUserId]) {
+      _chatLastMsgs[_chatUserId].mine = true;
+    }
   } catch(e){ toast('Error al enviar mensaje','err'); inp.value=text; }
+  finally {
+    _chatSending = false;
+    if(sendBtn) sendBtn.disabled = false;
+  }
 }
 
 // ===== MSG TIME TOGGLE =====
