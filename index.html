@@ -9599,7 +9599,6 @@ async function addNotif(text){
 
 // ── AUDIO GLOBAL — se desbloquea en el primer click del usuario ──
 let _sharedACtx = null;
-let _audioReady = false;
 
 async function _ensureAudio(){
   if(!_sharedACtx || _sharedACtx.state==='closed'){
@@ -9610,14 +9609,9 @@ async function _ensureAudio(){
   }
   return _sharedACtx.state==='running';
 }
-
-// Desbloquear en primera interacción del usuario — sin esto el navegador bloquea el audio
-function _unlockAudio(){
-  _ensureAudio().then(ok=>{ if(ok) _audioReady=true; });
-}
-document.addEventListener('click',     _unlockAudio, {passive:true});
-document.addEventListener('keydown',   _unlockAudio, {passive:true});
-document.addEventListener('touchstart',_unlockAudio, {passive:true});
+['click','keydown','touchstart'].forEach(ev=>{
+  document.addEventListener(ev, ()=>{ _ensureAudio(); }, {passive:true});
+});
 
 async function playNotifSound(){
   try{
@@ -9851,22 +9845,20 @@ function listenNotifs(){
     }
     const newNotifs = d.notifs || [];
 
-    // ── Detección 100% confiable por clave única (time+nick+texto) ──
-    // Funciona aunque el onSnapshot se dispare por otro campo del documento
+    // Detección 100% confiable por clave única — funciona aunque el snapshot
+    // se dispare por otro campo del documento (presencia, chats, etc.)
     const knownKeys = new Set(
       _notifs.map(n => `${n.time||0}_${n.fromNick||''}_${(n.text||'').slice(0,30)}`)
     );
-    const brandNew = newNotifs.filter(n => {
-      const k = `${n.time||0}_${n.fromNick||''}_${(n.text||'').slice(0,30)}`;
-      return !knownKeys.has(k);
-    });
+    const brandNew = newNotifs.filter(n =>
+      !knownKeys.has(`${n.time||0}_${n.fromNick||''}_${(n.text||'').slice(0,30)}`)
+    );
 
     _notifs = newNotifs;
 
     if(brandNew.length > 0){
       const newMsgs    = brandNew.filter(n =>  n.text?.startsWith('💬'));
       const newNonMsgs = brandNew.filter(n => !n.text?.startsWith('💬'));
-
       if(newMsgs.length > 0){
         updateMsgBadge();
         const latest = newMsgs.sort((a,b)=>(b.time||0)-(a.time||0))[0];
@@ -9893,21 +9885,35 @@ function listenNotifs(){
   listenUnreadMsgsBadge();
 }
 
-// Escucha mensajes no leídos — onSnapshot en tiempo real por cada amigo
+// Badge de mensajes — polling cada 30s en vez de onSnapshot por cada amigo
+// (N onSnapshots = N conexiones permanentes → barra de carga constante)
 let _unsubMsgBadgeListeners = [];
+let _msgBadgePollInterval = null;
+
 function listenUnreadMsgsBadge(){
-  // Limpiar listeners anteriores
+  // Cancelar listeners anteriores
   _unsubMsgBadgeListeners.forEach(u=>{ if(typeof u==='function') u(); });
   _unsubMsgBadgeListeners = [];
+  if(_msgBadgePollInterval){ clearInterval(_msgBadgePollInterval); _msgBadgePollInterval=null; }
 
-  const friends = window.CU?.friendsList || window.CU?.friends?.map?.(id=>({id})) || [];
+  // Correr inmediatamente y luego cada 30 segundos
+  _pollMsgBadge();
+  _msgBadgePollInterval = setInterval(_pollMsgBadge, 30000);
+}
+
+async function _pollMsgBadge(){
+  const friends = window.CU?.friendsList || [];
   const myId = window.CU?.id;
   if(!myId || !friends.length) return;
 
-  friends.forEach(f=>{
-    const chatId = [myId, f.id].sort().join('_');
-    const q = query(collection(db,'chats',chatId,'messages'), orderBy('time','desc'), limit(15));
-    const unsub = onSnapshot(q, snap=>{
+  let totalUnread = 0;
+  // Limitar a 15 amigos más recientes para no saturar Firebase
+  const toCheck = friends.slice(0,15);
+  await Promise.all(toCheck.map(async f=>{
+    try{
+      const chatId = [myId, f.id].sort().join('_');
+      const q = query(collection(db,'chats',chatId,'messages'), orderBy('time','desc'), limit(20));
+      const snap = await getDocs(q);
       const unreadCount = snap.docs.filter(d=>{
         const m = d.data();
         return m.uid !== myId && !m.read && !(m.deletedFor||{})[myId];
@@ -9925,16 +9931,12 @@ function listenUnreadMsgsBadge(){
           unreadCount
         };
       } else {
-        _chatLastMsgs[f.id] = { ...lm, unread: false, unreadCount: 0 };
+        _chatLastMsgs[f.id] = {...lm, unread:false, unreadCount:0};
       }
-      updateMsgBadge();
-      if(_messengerOpen){
-        const _ub_list = document.getElementById('messengerList');
-        if(_ub_list && _ub_list.style.display !== 'none') _ub_list.innerHTML = _buildMessengerHTML();
-      }
-    }, ()=>{});
-    _unsubMsgBadgeListeners.push(unsub);
-  });
+      if(unreadCount > 0) totalUnread += unreadCount;
+    }catch(e){}
+  }));
+  updateMsgBadge();
 }
 
 // ===== MESSENGER =====
