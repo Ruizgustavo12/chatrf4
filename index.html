@@ -10036,12 +10036,32 @@ function openImgLightbox(src, allImgs, postId){
     #_igComments::-webkit-scrollbar-thumb{background:#444;border-radius:4px;}
     .ig-act-btn{flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;transition:background .15s;}
     .ig-act-btn:hover{background:#1c2128;}
+    #_igRxnPop{display:none;position:fixed;background:#1c2128;border:1px solid #30363d;border-radius:100px;padding:8px 10px;flex-direction:row;align-items:center;gap:3px;box-shadow:0 8px 28px rgba(0,0,0,.7);white-space:nowrap;z-index:999999;}
+    #_igGifPicker{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:320px;max-height:320px;background:#161b22;border:1px solid #30363d;border-radius:12px;overflow:hidden;z-index:999999;box-shadow:0 8px 32px rgba(0,0,0,.6);}
     @media(max-width:768px){
       #_igMainRow{flex-direction:column!important;}
       #_igSidebar{width:100%!important;max-height:45vh!important;border-left:none!important;border-top:1px solid #3e4042!important;}
       #_igImgCol{flex:none!important;height:55vh!important;}
     }
   </style>
+
+  <!-- REACTION POPUP (fixed, fuera del overflow) -->
+  <div id="_igRxnPop"
+    onmouseenter="this.style.display='flex'" onmouseleave="this.style.display='none'">
+    ${RXNS.map(r=>`<button onclick="igReact('${r.e}');document.getElementById('_igRxnPop').style.display='none'" title="${r.l}"
+      style="background:none;border:none;font-size:1.6rem;cursor:pointer;padding:4px;border-radius:50%;transition:transform .12s;"
+      onmouseover="this.style.transform='scale(1.5) translateY(-5px)'" onmouseout="this.style.transform='scale(1)'">${r.e}</button>`).join('')}
+  </div>
+
+  <!-- GIF PICKER (fixed) -->
+  <div id="_igGifPicker">
+    <div style="padding:8px;border-bottom:1px solid #30363d;display:flex;gap:6px;align-items:center;">
+      <input id="_igGifSearch" placeholder="Buscar GIF..." style="flex:1;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:6px 10px;color:#e6edf3;font-size:.82rem;font-family:'Exo 2',sans-serif;outline:none;"
+        oninput="igSearchGif(this.value)">
+      <button onclick="document.getElementById('_igGifPicker').style.display='none'" style="background:none;border:none;color:#8b949e;font-size:1.1rem;cursor:pointer;">✕</button>
+    </div>
+    <div id="_igGifGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:6px;overflow-y:auto;max-height:260px;"></div>
+  </div>
 
   <!-- TOP BAR -->
   <div style="display:flex;align-items:center;padding:8px 12px;flex-shrink:0;background:#242526;border-bottom:1px solid #3e4042;">
@@ -10088,19 +10108,12 @@ function openImgLightbox(src, allImgs, postId){
         </div>
         <!-- Action buttons -->
         <div style="display:flex;border-bottom:1px solid #30363d;padding:2px 0;gap:2px;">
-          <!-- Me gusta con popup -->
+          <!-- Me gusta con popup FIXED -->
           <div style="position:relative;flex:1;">
             <button class="ig-act-btn" id="_igMyRxnBtn" onclick="igReact('👍')"
-              onmouseenter="document.getElementById('_igRxnPop').style.display='flex'"
-              onmouseleave="setTimeout(()=>{const p=document.getElementById('_igRxnPop');if(p&&!p.matches(':hover'))p.style.display='none'},300)">
+              onmouseenter="igShowRxnPop(this)" onmouseleave="igHideRxnPop()">
               <span id="_igMyRxnIcon">👍</span> <span id="_igMyRxnLabel">Me gusta</span>
             </button>
-            <div id="_igRxnPop" style="display:none;position:absolute;bottom:calc(100% + 4px);left:0;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:6px 8px;flex-direction:row;align-items:center;gap:2px;box-shadow:0 4px 20px rgba(0,0,0,.5);white-space:nowrap;z-index:999;"
-              onmouseenter="this.style.display='flex'" onmouseleave="this.style.display='none'">
-              ${RXNS.map(r=>`<button onclick="igReact('${r.e}');document.getElementById('_igRxnPop').style.display='none'" title="${r.l}"
-                style="background:none;border:none;font-size:1.5rem;cursor:pointer;padding:3px;border-radius:50%;transition:transform .12s;"
-                onmouseover="this.style.transform='scale(1.4) translateY(-4px)'" onmouseout="this.style.transform='scale(1)'">${r.e}</button>`).join('')}
-            </div>
           </div>
           <button class="ig-act-btn" onclick="document.getElementById('_igCmtInp').focus()">💬 Comentar</button>
           ${_galPostId?`<button class="ig-act-btn" onclick="igShare()">↗ Compartir</button>`:''}
@@ -10113,13 +10126,16 @@ function openImgLightbox(src, allImgs, postId){
       </div>
 
       <!-- Comment input -->
-      <div style="padding:8px 12px 10px;display:flex;gap:8px;align-items:center;flex-shrink:0;border-top:1px solid #30363d;">
+      <div style="padding:8px 12px 10px;display:flex;gap:8px;align-items:flex-end;flex-shrink:0;border-top:1px solid #30363d;">
         <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:#21262d;flex-shrink:0;">${avHtml}</div>
-        <div style="flex:1;display:flex;align-items:center;background:#0d1117;border-radius:20px;">
-          <input id="_igCmtInp" placeholder="Escribe un comentario..."
-            style="flex:1;background:transparent;border:none;padding:9px 12px;color:#e6edf3;font-size:.88rem;font-family:'Exo 2',sans-serif;outline:none;"
-            onkeypress="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();igSubmitComment();}">
-          <button onclick="igSubmitComment()" style="background:none;border:none;color:#1877f2;font-size:1rem;cursor:pointer;padding:4px 10px;opacity:.6;transition:opacity .15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.6'">➤</button>
+        <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+          <div style="display:flex;align-items:center;background:#0d1117;border-radius:20px;border:1px solid #30363d;">
+            <button onclick="igToggleGifPicker()" title="GIF" style="background:none;border:none;color:#8b949e;font-size:.75rem;font-weight:800;cursor:pointer;padding:6px 8px;border-radius:20px 0 0 20px;transition:color .15s;flex-shrink:0;" onmouseover="this.style.color='#2ec4b6'" onmouseout="this.style.color='#8b949e'">GIF</button>
+            <input id="_igCmtInp" placeholder="Escribe un comentario..."
+              style="flex:1;background:transparent;border:none;padding:9px 8px;color:#e6edf3;font-size:.88rem;font-family:'Exo 2',sans-serif;outline:none;"
+              onkeypress="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();igSubmitComment();}">
+            <button onclick="igSubmitComment()" style="background:none;border:none;color:#1877f2;font-size:1rem;cursor:pointer;padding:4px 10px;opacity:.6;transition:opacity .15s;flex-shrink:0;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.6'">➤</button>
+          </div>
         </div>
       </div>
     </div>
@@ -10253,9 +10269,12 @@ function igRenderComments(comments, imgIdx){
               <span style="font-weight:700;font-size:.82rem;color:#e6edf3;cursor:pointer;" onclick="openUserProfile('${uid}','${safeN}')">${esc(nick)}</span>
               ${isAuthor?'<span style="font-size:.62rem;color:var(--accent);font-weight:700;background:rgba(0,198,255,.12);border-radius:4px;padding:1px 5px;">Autor</span>':''}
             </div>
-            <span style="font-size:.88rem;color:#e6edf3;line-height:1.45;word-break:break-word;">${esc(c.text||'')}${c.edited?' <span style="font-size:.62rem;color:#8b949e;">(editado)</span>':''}</span>
+            ${c.gif
+              ? `<img src="${c.gif}" style="max-width:200px;border-radius:10px;display:block;margin-top:4px;" loading="lazy">`
+              : `<span style="font-size:.88rem;color:#e6edf3;line-height:1.45;word-break:break-word;">${esc(c.text||'')}${c.edited?' <span style="font-size:.62rem;color:#8b949e;">(editado)</span>':''}</span>`
+            }
           </div>
-          ${(canEdit||canDel)?`<div style="position:absolute;top:-2px;right:-30px;">
+          ${(canEdit||canDel||!isMine)?`<div style="position:absolute;top:-2px;right:-30px;">
             <button onclick="const m=document.getElementById('${menuId}');m.style.display=m.style.display==='block'?'none':'block'"
               style="background:rgba(255,255,255,.08);border:none;color:#8b949e;width:24px;height:24px;border-radius:50%;font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">⋯</button>
             <div id="${menuId}" style="display:none;position:absolute;right:0;top:28px;background:#161b22;border:1px solid #30363d;border-radius:8px;min-width:130px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.4);overflow:hidden;">
@@ -10265,6 +10284,9 @@ function igRenderComments(comments, imgIdx){
               ${canDel?`<button onclick="document.getElementById('${menuId}').style.display='none';igDelCmt(${ci})"
                 style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#f55;padding:9px 13px;cursor:pointer;font-size:.82rem;font-family:'Exo 2',sans-serif;"
                 onmouseover="this.style.background='#21262d'" onmouseout="this.style.background='none'">🗑 Eliminar</button>`:''}
+              ${!isMine?`<button onclick="document.getElementById('${menuId}').style.display='none';toast('Comentario reportado ✅','ok')"
+                style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#fa0;padding:9px 13px;cursor:pointer;font-size:.82rem;font-family:'Exo 2',sans-serif;"
+                onmouseover="this.style.background='#21262d'" onmouseout="this.style.background='none'">⚠️ Reportar</button>`:''}
             </div>
           </div>`:''}
         </div>
@@ -10413,6 +10435,91 @@ function igReport(){
   if(window._galUnsub){ window._galUnsub(); window._galUnsub=null; }
   reportPost(_galPostId, nick);
 }
+// ── Reaction popup posicionado con fixed (evita overflow:hidden del sidebar) ──
+let _igRxnPopTimer = null;
+function igShowRxnPop(btn){
+  clearTimeout(_igRxnPopTimer);
+  const pop = document.getElementById('_igRxnPop');
+  if(!pop) return;
+  const r = btn.getBoundingClientRect();
+  pop.style.left = r.left + 'px';
+  pop.style.top = (r.top - 72) + 'px';
+  pop.style.display = 'flex';
+}
+function igHideRxnPop(){
+  _igRxnPopTimer = setTimeout(()=>{
+    const pop = document.getElementById('_igRxnPop');
+    if(pop && !pop.matches(':hover')) pop.style.display = 'none';
+  }, 300);
+}
+
+// ── GIF picker en lightbox ──
+let _igGifDebounce = null;
+function igToggleGifPicker(){
+  const p = document.getElementById('_igGifPicker');
+  if(!p) return;
+  if(p.style.display === 'flex'){
+    p.style.display = 'none';
+    return;
+  }
+  // Posicionar sobre el input
+  const inp = document.getElementById('_igCmtInp');
+  if(inp){
+    const r = inp.getBoundingClientRect();
+    p.style.bottom = (window.innerHeight - r.top + 6) + 'px';
+    p.style.left = Math.max(8, r.left - 40) + 'px';
+    p.style.transform = 'none';
+  }
+  p.style.display = 'flex';
+  p.style.flexDirection = 'column';
+  igSearchGif('');
+  setTimeout(()=>{ const s=document.getElementById('_igGifSearch'); if(s) s.focus(); },50);
+}
+
+async function igSearchGif(q){
+  clearTimeout(_igGifDebounce);
+  _igGifDebounce = setTimeout(async ()=>{
+    const grid = document.getElementById('_igGifGrid');
+    if(!grid) return;
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:16px;color:#8b949e;font-size:.8rem;">⏳ Buscando...</div>';
+    try {
+      const query = q.trim() || 'fishing';
+      const url = `https://api.tenor.com/v2/search?q=${encodeURIComponent(query)}&key=AIzaSyAyimkuYQYF_FXVALexPmHA5a7li72Bkr0&limit=15&media_filter=gif`;
+      const r = await fetch(url);
+      const data = await r.json();
+      const results = data.results || [];
+      if(!results.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:16px;color:#8b949e;font-size:.8rem;">Sin resultados</div>'; return; }
+      window._igGifs = results.map(g=> g.media_formats?.gif?.url || g.media_formats?.tinygif?.url || '').filter(Boolean);
+      grid.innerHTML = window._igGifs.map((url,i)=>
+        `<img src="${url}" style="width:100%;aspect-ratio:1;object-fit:cover;cursor:pointer;border-radius:4px;transition:opacity .15s;"
+          onclick="igSendGifComment(window._igGifs[${i}])"
+          onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'"
+          loading="lazy">`
+      ).join('');
+    } catch(e){
+      const grid2 = document.getElementById('_igGifGrid');
+      if(grid2) grid2.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:16px;color:#f55;font-size:.8rem;">Error cargando GIFs</div>';
+    }
+  }, q ? 500 : 0);
+}
+
+async function igSendGifComment(gifUrl){
+  if(!_galPostId){ toast('Sin post asociado','inf'); return; }
+  if(!window.CU){ toast('Iniciá sesión para comentar','err'); return; }
+  document.getElementById('_igGifPicker').style.display='none';
+  const isTrofeo = _galPostId.startsWith('trofeo_');
+  const realId = isTrofeo ? _galPostId.replace('trofeo_','') : _galPostId;
+  const colName = isTrofeo ? 'trofeosPendientes' : 'posts';
+  let p = (_posts||[]).find(p=>p.id===_galPostId);
+  if(!p){ try{ const s=await getDoc(doc(db, colName, realId)); if(s.exists()){p={id:_galPostId,...s.data()};(_posts||[]).push(p);} }catch(e){} }
+  if(!p){ toast('No se pudo cargar el post','err'); return; }
+  const nc = [...(p.comments||[]), {userId:window.CU.id, nick:window.CU.nick, av:window.CU.av||'', gender:window.CU.gender||'', gif:gifUrl, text:'', time:Date.now()}];
+  p.comments = nc;
+  await updateDoc(doc(db, colName, realId), {comments:nc});
+}
+
+window.igShowRxnPop=igShowRxnPop; window.igHideRxnPop=igHideRxnPop;
+window.igToggleGifPicker=igToggleGifPicker; window.igSearchGif=igSearchGif; window.igSendGifComment=igSendGifComment;
 window.igNav=igNav; window.igNavTo=igNavTo; window.igReact=igReact;
 window.igReactCmt=igReactCmt; window.igQuickRxnCmt=igQuickRxnCmt;
 window.igEditCmt=igEditCmt; window.igDelCmt=igDelCmt; window.igReplyCmt=igReplyCmt;
