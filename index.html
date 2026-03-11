@@ -1665,6 +1665,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
           <div class="profile-stats-row">
             <div class="profile-stat-pill">👥 <strong id="upFriendCount">0</strong><span>amigos</span></div>
             <div class="profile-stat-pill">📝 <strong id="upPostCount">0</strong><span>posts</span></div>
+            <div class="profile-stat-pill" id="upFollowersPill" style="cursor:pointer;" onclick="openFollowersList(window._viewingUserId)" title="Ver seguidores">⭐ <strong id="upFollowersCount">0</strong><span>seguidores</span></div>
             <div class="profile-stat-pill" id="upMutualPill" style="display:none;">🤝 <strong id="upMutualCount">0</strong><span id="upMutualLbl">en común</span></div>
           </div>
 
@@ -4277,7 +4278,7 @@ function _stub(name){ return function(){ _q.push([name, arguments]); }; }
 // ===== FIREBASE SETUP (modular ESM — sin eval, compatible con CSP) =====
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, addDoc, deleteDoc, onSnapshot, query, orderBy, limit, serverTimestamp, increment, where, deleteField, Timestamp, arrayUnion } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, addDoc, deleteDoc, onSnapshot, query, orderBy, limit, serverTimestamp, increment, where, deleteField, Timestamp, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js';
 
 const firebaseConfig = {
@@ -12344,11 +12345,11 @@ async function renderNewFishers(){
             ${u.mutualFriends ? `<div style="font-size:.62rem;color:var(--muted);">👥 ${u.mutualFriends} amigos en común</div>` : ''}
             <!-- Botón Agregar -->
             ${!isFriend
-              ? (isAdminUser(u) ? '' : `<button onclick="sendFriendRequest('${u.id}','${safenick}','sidebar');this.textContent='✓ Enviado';this.style.background='var(--bg4)';this.style.color='var(--muted)';this.style.cursor='default';this.disabled=true;event.stopPropagation();"`)
+              ? (isAdminUser(u) ? '' : `<button onclick="sendFriendRequest('${u.id}','${safenick}','sidebar');this.textContent='✓ Enviado';this.style.background='var(--bg4)';this.style.color='var(--muted)';this.style.cursor='default';this.disabled=true;event.stopPropagation();"
                   style="width:100%;padding:5px 0;background:rgba(46,196,182,.15);border:1px solid rgba(46,196,182,.4);border-radius:var(--rs);color:var(--accent);font-size:.7rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;transition:all .18s;"
                   onmouseover="if(!this.disabled)this.style.background='rgba(46,196,182,.28)'" onmouseout="if(!this.disabled)this.style.background='rgba(46,196,182,.15)'">
                   + Agregar
-                </button>`
+                </button>`)
               : `<div style="font-size:.68rem;color:var(--green);text-align:center;font-weight:700;">✓ Ya son amigos</div>`
             }
             <!-- Botón Eliminar sugerencia -->
@@ -13459,7 +13460,37 @@ async function _loadUserProfilePage(uid, nick){
       : `<div style="display:flex;align-items:center;gap:7px;padding:9px 18px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-size:.85rem;font-weight:700;color:var(--muted);">
           🎣 Buen pescador <span style="display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;border-radius:100px;background:var(--bg4);color:var(--muted);font-size:.72rem;font-weight:800;padding:0 5px;" id="pescaCount_${uid}">${pescaCount}</span>
         </div>`;
-    document.getElementById('upActions').innerHTML = msgBtn + pescaBtn + friendBtn;
+    // ── SEGUIR ──
+    const isFollowing = myId && (u.followers||[]).includes(myId);
+    const followBtn = (myId && myId !== uid && !isViewingAdmin)
+      ? `<button id="btnFollow_${uid}" onclick="toggleFollow('${uid}','${uNick.replace(/'/g,"\\'")}',this)" style="display:flex;align-items:center;gap:7px;padding:9px 18px;background:${isFollowing?'rgba(46,196,182,.15)':'var(--accent)'};border:1px solid ${isFollowing?'var(--accent)':'transparent'};color:${isFollowing?'var(--accent)':'#000'};border-radius:8px;font-size:.85rem;font-weight:800;font-family:'Exo 2',sans-serif;cursor:pointer;transition:all .2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">${isFollowing?'✓ Siguiendo':'⭐ Seguir'}</button>`
+      : '';
+    document.getElementById('upActions').innerHTML = msgBtn + followBtn + pescaBtn + friendBtn;
+
+    // Listener en tiempo real para seguidores
+    if(window._followersUnsub) window._followersUnsub();
+    window._followersUnsub = onSnapshot(doc(db,'users',uid), fsnap=>{
+      if(!fsnap.exists()) return;
+      const fdata = fsnap.data();
+      const followers = fdata.followers || [];
+      const fcount = followers.length;
+      const felEl = document.getElementById('upFollowersCount');
+      if(felEl) felEl.textContent = fcount;
+      const myIdNow = window.CU?.id;
+      if(myIdNow && myIdNow !== uid){
+        const amI = followers.includes(myIdNow);
+        const fbtn = document.getElementById('btnFollow_'+uid);
+        if(fbtn){
+          fbtn.innerHTML = amI ? '✓ Siguiendo' : '⭐ Seguir';
+          fbtn.style.background = amI ? 'rgba(46,196,182,.15)' : 'var(--accent)';
+          fbtn.style.borderColor = amI ? 'var(--accent)' : 'transparent';
+          fbtn.style.color = amI ? 'var(--accent)' : '#000';
+        }
+      }
+    });
+    const initFollowers = (u.followers||[]).length;
+    const followersCountEl = document.getElementById('upFollowersCount');
+    if(followersCountEl) followersCountEl.textContent = initFollowers;
 
     // Listener en tiempo real para el contador
     if(window._pescaUnsub) window._pescaUnsub();
@@ -17314,6 +17345,81 @@ async function togglePescaLike(targetUid){
   } catch(e){ console.error(e); toast('Error','err'); }
 }
 window.togglePescaLike = togglePescaLike;
+
+// ── SEGUIR / DEJAR DE SEGUIR ──
+async function toggleFollow(targetUid, targetNick, btn){
+  const myId = window.CU?.id;
+  if(!myId){ toast('Iniciá sesión para seguir','err'); return; }
+  if(!targetUid) return;
+  try{
+    const targetRef = doc(db,'users',targetUid);
+    const myRef = doc(db,'users',myId);
+    const snap = await getDoc(targetRef);
+    if(!snap.exists()) return;
+    const followers = snap.data().followers || [];
+    const isFollowing = followers.includes(myId);
+    if(isFollowing){
+      // Dejar de seguir
+      await updateDoc(targetRef, { followers: arrayRemove(myId) });
+      await updateDoc(myRef, { following: arrayRemove(targetUid) });
+      if(window.CU) window.CU.following = (window.CU.following||[]).filter(x=>x!==targetUid);
+      toast('Dejaste de seguir a '+targetNick,'ok');
+    } else {
+      // Seguir
+      await updateDoc(targetRef, { followers: arrayUnion(myId) });
+      await updateDoc(myRef, { following: arrayUnion(targetUid) });
+      if(window.CU){ if(!window.CU.following) window.CU.following=[]; window.CU.following.push(targetUid); }
+      toast('Ahora seguís a '+targetNick+' ⭐','suc');
+      // Notificación al seguido
+      try{
+        await addDoc(collection(db,'notifications'),{
+          toUid: targetUid, fromId: myId, fromNick: window.CU.nick||'',
+          type:'follow', text:(window.CU.nick||'alguien')+' comenzó a seguirte ⭐',
+          time: serverTimestamp(), read:false
+        });
+      }catch(e){}
+    }
+  }catch(e){ console.error(e); toast('Error al actualizar seguidores','err'); }
+}
+window.toggleFollow = toggleFollow;
+
+// ── LISTA DE SEGUIDORES ──
+async function openFollowersList(uid){
+  if(!uid) return;
+  const m = document.createElement('div');
+  m.id = '_followersModal';
+  m.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;';
+  m.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:0;width:360px;max-width:95vw;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
+      <span style="font-size:1rem;font-weight:800;">⭐ Seguidores</span>
+      <button onclick="document.getElementById('_followersModal').remove()" style="background:rgba(255,255,255,.1);border:none;color:var(--text);width:30px;height:30px;border-radius:50%;cursor:pointer;">✕</button>
+    </div>
+    <div id="_followersList" style="overflow-y:auto;padding:12px 16px;flex:1;">
+      <div style="text-align:center;padding:20px;color:var(--muted);">⏳ Cargando...</div>
+    </div>
+  </div>`;
+  m.addEventListener('click',e=>{ if(e.target===m) m.remove(); });
+  document.body.appendChild(m);
+  try{
+    const snap = await getDoc(doc(db,'users',uid));
+    if(!snap.exists()){ document.getElementById('_followersList').innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);">Sin datos</div>'; return; }
+    const followers = snap.data().followers || [];
+    if(!followers.length){ document.getElementById('_followersList').innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);">Nadie sigue este perfil aún.</div>'; return; }
+    const snaps = await Promise.all(followers.map(fid=>getDoc(doc(db,'users',fid))));
+    const listEl = document.getElementById('_followersList');
+    if(!listEl) return;
+    listEl.innerHTML = snaps.filter(s=>s.exists()).map(s=>{
+      const fd = s.data(); const fid = s.id;
+      const av = fd.av ? `<img src="${fd.av}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : `<span style="font-size:.9rem;font-weight:700;color:var(--accent);">${(fd.nick||'?')[0].toUpperCase()}</span>`;
+      return `<div onclick="document.getElementById('_followersModal').remove();openUserProfile('${fid}','${(fd.nick||'').replace(/'/g,"\'")}');" style="display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--border);cursor:pointer;border-radius:8px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.04)'" onmouseout="this.style.background=''">
+        <div style="width:40px;height:40px;border-radius:50%;overflow:hidden;background:var(--bg3);border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;">${av}</div>
+        <div><div style="font-size:.88rem;font-weight:700;">${fd.nick||'?'}</div><div style="font-size:.72rem;color:var(--muted);">${fd.country||''}</div></div>
+      </div>`;
+    }).join('');
+  }catch(e){ const le=document.getElementById('_followersList'); if(le) le.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);">Error al cargar</div>'; }
+}
+window.openFollowersList = openFollowersList;
+
 
 // ============================================================
 // ===== PANEL INSIGNIAS & ROLES (admin) ======================
