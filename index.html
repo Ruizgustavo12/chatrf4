@@ -2214,7 +2214,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
           <span style="color:#bcc0c4;">·</span>
           <span onclick="document.getElementById('mVerifBenefits').style.display='flex'" style="cursor:pointer;color:#f7b928;font-weight:700;display:inline-flex;align-items:center;gap:4px;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">✅ Cuenta verificada</span>
           <span style="color:#bcc0c4;">·</span>
-          <span style="color:#8b949e;">Privacidad</span>
+          <span onclick="openPrivacyModal()" style="cursor:pointer;color:#8b949e;" onmouseover="this.style.textDecoration='underline';this.style.color='var(--accent)'" onmouseout="this.style.textDecoration='none';this.style.color='#8b949e'">🔒 Privacidad</span>
         </div>
         <div>© 2025 CharlasRF4 · Creado por <strong style="color:#e6edf3;">ruizgustavo12</strong></div>
       </div>
@@ -17469,6 +17469,95 @@ async function openFollowersList(uid){
     }).join('');
   }catch(e){ const le=document.getElementById('_followersList'); if(le) le.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);">Error al cargar</div>'; }
 }
+
+// ── MODAL PRIVACIDAD ──
+window.openPrivacyModal = function(){
+  const old = document.getElementById('_privacyModal');
+  if(old) old.remove();
+  const m = document.createElement('div');
+  m.id = '_privacyModal';
+  m.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;animation:_igFadeIn .15s ease;padding:16px;';
+  m.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:0;width:480px;max-width:100%;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.6);">
+      <!-- Header -->
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--border);background:var(--bg3);">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:1.5rem;">🔒</span>
+          <div>
+            <div style="font-size:1rem;font-weight:800;color:var(--text);">Política de Privacidad</div>
+            <div style="font-size:.7rem;color:var(--accent);font-weight:600;">Tu privacidad está protegida</div>
+          </div>
+        </div>
+        <button onclick="document.getElementById('_privacyModal').remove()" style="background:rgba(255,255,255,.08);border:none;color:var(--text);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;">✕</button>
+      </div>
+      <!-- Content -->
+      <div style="overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:20px;">
+
+        <!-- Bloque protección de datos -->
+        <div style="background:linear-gradient(135deg,rgba(46,196,182,.08),rgba(46,196,182,.03));border:1px solid rgba(46,196,182,.25);border-radius:12px;padding:16px 18px;display:flex;gap:14px;align-items:flex-start;">
+          <span style="font-size:1.8rem;flex-shrink:0;">🛡️</span>
+          <div>
+            <div style="font-size:.88rem;font-weight:800;color:var(--accent);margin-bottom:4px;">Datos protegidos al 100%</div>
+            <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">Tu información personal está almacenada de forma segura en Firebase (Google Cloud). Nunca compartimos ni vendemos tus datos a terceros bajo ninguna circunstancia.</div>
+          </div>
+        </div>
+
+        <!-- Contraseña -->
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px 18px;display:flex;gap:14px;align-items:flex-start;">
+          <span style="font-size:1.8rem;flex-shrink:0;">🔑</span>
+          <div>
+            <div style="font-size:.88rem;font-weight:800;color:var(--text);margin-bottom:4px;">Tu contraseña es privada</div>
+            <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">Las contraseñas se almacenan con encriptación estándar de Firebase Authentication. <strong style="color:var(--text);">Nadie — ni siquiera los administradores — puede ver tu contraseña.</strong> Nunca se guarda en texto plano.</div>
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px 18px;display:flex;gap:14px;align-items:flex-start;">
+          <span style="font-size:1.8rem;flex-shrink:0;">📧</span>
+          <div>
+            <div style="font-size:.88rem;font-weight:800;color:var(--text);margin-bottom:4px;">Tu correo electrónico</div>
+            <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">Tu email se usa únicamente para iniciar sesión y recuperar tu cuenta. No te enviamos spam ni publicidad. No se muestra públicamente a otros usuarios.</div>
+          </div>
+        </div>
+
+        <!-- Datos que guardamos -->
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px 18px;display:flex;gap:14px;align-items:flex-start;">
+          <span style="font-size:1.8rem;flex-shrink:0;">📋</span>
+          <div>
+            <div style="font-size:.88rem;font-weight:800;color:var(--text);margin-bottom:6px;">¿Qué información guardamos?</div>
+            <div style="font-size:.78rem;color:var(--muted);line-height:1.8;">
+              ✅ Nick, avatar y bio que vos configurás<br>
+              ✅ Tus publicaciones, fotos y comentarios<br>
+              ✅ Lista de amigos y seguidores<br>
+              ✅ Actividad dentro de la plataforma<br>
+              ❌ <strong style="color:var(--text);">No guardamos</strong> contraseñas en texto plano<br>
+              ❌ <strong style="color:var(--text);">No vendemos</strong> tus datos a nadie<br>
+              ❌ <strong style="color:var(--text);">No mostramos</strong> publicidad de terceros
+            </div>
+          </div>
+        </div>
+
+        <!-- Control de cuenta -->
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px 18px;display:flex;gap:14px;align-items:flex-start;">
+          <span style="font-size:1.8rem;flex-shrink:0;">⚙️</span>
+          <div>
+            <div style="font-size:.88rem;font-weight:800;color:var(--text);margin-bottom:4px;">Vos tenés el control</div>
+            <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">Podés editar o eliminar tu perfil en cualquier momento. Al eliminar tu cuenta, todos tus datos son borrados de nuestros servidores de forma permanente.</div>
+          </div>
+        </div>
+
+        <!-- Footer del modal -->
+        <div style="text-align:center;font-size:.7rem;color:var(--muted);padding-top:4px;border-top:1px solid var(--border);">
+          RF4 Latam — CharlasRF4 · Plataforma segura para la comunidad pesquera 🎣<br>
+          <span style="color:var(--accent);font-weight:700;">Firebase Auth & Firestore</span> — Google Cloud Platform
+        </div>
+
+      </div>
+    </div>`;
+  m.addEventListener('click', e => { if(e.target === m) m.remove(); });
+  document.body.appendChild(m);
+};
+
 window.openFollowersList = openFollowersList;
 
 
