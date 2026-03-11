@@ -4571,7 +4571,7 @@ function fmtT(ts){
   return Math.floor(diff/86400000)+'d';
 }
 
-function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function esc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function fmtKg(w){ var n=parseFloat(w)||0; return n>=1 ? n.toFixed(3)+' kg' : Math.round(n*1000)+' g'; }
 
 function renderCommentText(text){
@@ -13340,7 +13340,8 @@ async function _loadUserProfilePage(uid, nick){
       const infoLines = [];
       if(u.city||u.country) infoLines.push(`<div style="display:flex;align-items:flex-start;gap:10px;"><span style="font-size:1.1rem;flex-shrink:0;margin-top:1px;">📍</span><span>Vive en <strong style="color:var(--text);">${esc((u.city?u.city+', ':'')+u.country||'')}</strong></span></div>`);
       if(u.origin) infoLines.push(`<div style="display:flex;align-items:flex-start;gap:10px;"><span style="font-size:1.1rem;flex-shrink:0;margin-top:1px;">🏠</span><span>De <strong style="color:var(--text);">${esc(u.origin)}</strong></span></div>`);
-      if(u.joined) infoLines.push(`<div style="display:flex;align-items:flex-start;gap:10px;"><span style="font-size:1.1rem;flex-shrink:0;margin-top:1px;">📅</span><span>Se unió en <strong style="color:var(--text);">${esc(u.joined)}</strong></span></div>`);
+      const _joinedStr = u.joined ? (u.joined?.toDate ? u.joined.toDate().toLocaleDateString('es-AR',{month:'long',year:'numeric'}) : String(u.joined)) : null;
+      if(_joinedStr) infoLines.push(`<div style="display:flex;align-items:flex-start;gap:10px;"><span style="font-size:1.1rem;flex-shrink:0;margin-top:1px;">📅</span><span>Se unió en <strong style="color:var(--text);">${esc(_joinedStr)}</strong></span></div>`);
       if(u.favFish) infoLines.push(`<div style="display:flex;align-items:flex-start;gap:10px;"><span style="font-size:1.1rem;flex-shrink:0;margin-top:1px;">🎣</span><span>Pez favorito: <strong style="color:var(--text);">${esc(u.favFish)}</strong></span></div>`);
       if(u.favMap) infoLines.push(`<div style="display:flex;align-items:flex-start;gap:10px;"><span style="font-size:1.1rem;flex-shrink:0;margin-top:1px;">🗺️</span><span>Mapa favorito: <strong style="color:var(--text);">${esc(u.favMap)}</strong></span></div>`);
       if(mutualFriends.length) infoLines.push(`<div style="display:flex;align-items:flex-start;gap:10px;"><span style="font-size:1.1rem;flex-shrink:0;margin-top:1px;">🤝</span><span style="color:var(--accent);">${mutualFriends.length} amigo${mutualFriends.length>1?'s':''} en común</span></div>`);
@@ -13417,7 +13418,7 @@ async function _loadUserProfilePage(uid, nick){
       u.favFish ? `<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);min-width:100px;font-size:.8rem;">Pez favorito</span><span style="font-size:.82rem;">🎣 ${esc(u.favFish)}</span></div>` : '',
       u.favMap  ? `<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);min-width:100px;font-size:.8rem;">Mapa favorito</span><span style="font-size:.82rem;">📍 ${esc(u.favMap)}</span></div>` : '',
       u.favTech ? `<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);min-width:100px;font-size:.8rem;">Técnica</span><span style="font-size:.82rem;">${esc(u.favTech)}</span></div>` : '',
-      u.joined  ? `<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);min-width:100px;font-size:.8rem;">Miembro desde</span><span style="font-size:.82rem;">${u.joined}</span></div>` : '',
+      u.joined  ? `<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);min-width:100px;font-size:.8rem;">Miembro desde</span><span style="font-size:.82rem;">${u.joined?.toDate ? u.joined.toDate().toLocaleDateString('es-AR',{month:'long',year:'numeric'}) : String(u.joined)}</span></div>` : '',
       (()=>{
         const ep = u.emailPrivacy || 'only';
         const myId = window.CU && window.CU.id;
