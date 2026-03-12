@@ -2788,7 +2788,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
 
 <!-- Notifications -->
 <!-- Notif Dropdown — posicionado bajo el ícono campana -->
-<div id="mNotif" style="display:none;position:fixed;z-index:3000;top:52px;right:60px;width:380px;max-width:calc(100vw - 16px);max-height:80vh;background:var(--bg2);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.55);flex-direction:column;overflow:hidden;animation:mIn .18s ease;">
+<div id="mNotif" style="display:none;position:fixed;z-index:9999;top:56px;right:8px;width:380px;max-width:calc(100vw - 16px);max-height:80vh;background:var(--bg2);border:1px solid var(--border);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.05);flex-direction:column;overflow:hidden;animation:mIn .18s ease;">
   <!-- Header -->
   <div style="padding:16px 18px 0;background:var(--bg2);flex-shrink:0;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
@@ -10131,40 +10131,33 @@ function renderNotifs(){
   function renderItem(n, i){
     const isRead = !!n.read;
     const {bg, icon} = _notifIcon(n);
+    const unreadBg = isRead ? '' : 'rgba(0,198,255,.05)';
+    const rowBg = isRead ? '' : 'background:rgba(0,198,255,.05);';
 
     // Avatar del que generó la notif
     const fromAv = n.fromAv || n.visitorAv || '';
-    const fromNick = n.fromNick || n.visitorNick || 'RF4';
-    const avInner = `<img src="${fromAv||getDefaultAv()}" style="width:100%;height:100%;object-fit:cover;">`;
+    const avInner = `<img src="${fromAv||getDefaultAv()}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`;
 
     if(n.type==='friendRequest'){
       const safeNick = (n.fromNick||'').replace(/['"<>&]/g,'');
-      const unreadBg = isRead ? '' : 'rgba(0,198,255,.05)';
-      return `<div style="display:flex;align-items:flex-start;gap:12px;padding:10px 16px;transition:background .15s;${isRead?'':'background:rgba(0,198,255,.05);'};cursor:pointer;"
-        onmouseover="this.style.background='var(--bg3)';const xb=this.querySelector('[title=\'Borrar notificación\']');if(xb)xb.style.opacity='1';"
+      return `<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 16px;transition:background .15s;${rowBg}cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);"
+        onmouseover="this.style.background='var(--bg3)'"
         onmouseout="this.style.background='${unreadBg}'">
         <div style="position:relative;flex-shrink:0;">
-          <div style="width:52px;height:52px;border-radius:50%;background:var(--bg3);overflow:hidden;display:flex;align-items:center;justify-content:center;">${avInner}</div>
-          <div style="position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;font-size:.7rem;border:2px solid var(--bg2);">${icon}</div>
+          <div style="width:48px;height:48px;border-radius:50%;background:var(--bg3);overflow:hidden;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">${avInner}</div>
+          <div style="position:absolute;bottom:-2px;right:-2px;width:18px;height:18px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;font-size:.65rem;border:2px solid var(--bg2);">${icon}</div>
         </div>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:.83rem;line-height:1.4;margin-bottom:8px;"><strong>${esc(n.fromNick||'')}</strong> <span style="color:var(--muted);">quiere ser tu amigo/a</span></div>
+          <div style="font-size:.84rem;line-height:1.4;margin-bottom:6px;color:var(--text);"><strong>${esc(n.fromNick||'')}</strong> <span style="color:var(--muted);">quiere ser tu amigo/a</span></div>
           <div style="font-size:.7rem;color:var(--accent);margin-bottom:10px;">${fmtT(n.time)}</div>
           <div style="display:flex;gap:8px;">
-            <button data-action="accept-friend" data-idx="${i}" data-uid="${n.fromId}" data-nick="${safeNick}"
-              style="flex:1;padding:8px;background:var(--accent);border:none;color:#000;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;transition:opacity .15s;"
-              onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Confirmar</button>
+            <button data-action="accept-friend" data-idx="${i}" data-uid="${n.fromId||''}" data-nick="${safeNick}"
+              style="flex:1;padding:8px;background:var(--accent);border:none;color:#000;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;">Confirmar</button>
             <button data-action="reject-friend" data-idx="${i}"
-              style="flex:1;padding:8px;background:var(--bg3);border:none;color:var(--text);border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;transition:background .15s;"
-              onmouseover="this.style.background='var(--bg4)'" onmouseout="this.style.background='var(--bg3)'">Eliminar</button>
+              style="flex:1;padding:8px;background:var(--bg4);border:1px solid var(--border);color:var(--text);border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;">Eliminar</button>
           </div>
         </div>
-        <button data-action="delete-notif" data-idx="${i}" onclick="event.stopPropagation()"
-          style="opacity:0;transition:opacity .15s;background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;padding:2px 6px;border-radius:50%;flex-shrink:0;"
-          title="Borrar notificación"
-          onmouseover="this.style.opacity='1';this.style.color='var(--red)'"
-          onmouseout="this.style.opacity='0';this.style.color='var(--muted)'">✕</button>
-        ${!isRead?`<div style="width:10px;height:10px;background:var(--accent);border-radius:50%;flex-shrink:0;margin-top:4px;"></div>`:''}
+        ${!isRead?`<div style="width:8px;height:8px;background:var(--accent);border-radius:50%;flex-shrink:0;margin-top:6px;"></div>`:''}
       </div>`;
     }
 
@@ -10174,32 +10167,28 @@ function renderNotifs(){
     const storyId = n.storyId||'';
     const clickable = !!(postId || bdayUid || storyId);
     return `<div data-action="notif-click" data-postid="${postId}" data-bdayuid="${bdayUid}" data-bdaynick="${n.bdayNick||''}" data-storyid="${storyId}"
-      style="display:flex;align-items:flex-start;gap:12px;padding:10px 16px;transition:background .15s;${isRead?'':'background:rgba(0,198,255,.05);'}cursor:${clickable?'pointer':'default'};"
-      onmouseover="this.style.background='var(--bg3)'" 
+      style="display:flex;align-items:flex-start;gap:12px;padding:12px 16px;transition:background .15s;${rowBg}cursor:${clickable?'pointer':'default'};border-bottom:1px solid rgba(255,255,255,.04);"
+      onmouseover="this.style.background='var(--bg3)'"
       onmouseout="this.style.background='${unreadBg}'">
       <div style="position:relative;flex-shrink:0;">
-        <div style="width:52px;height:52px;border-radius:50%;background:var(--bg3);overflow:hidden;display:flex;align-items:center;justify-content:center;">${avInner}</div>
-        <div style="position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;font-size:.7rem;border:2px solid var(--bg2);">${icon}</div>
+        <div style="width:48px;height:48px;border-radius:50%;background:var(--bg3);overflow:hidden;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">${avInner}</div>
+        <div style="position:absolute;bottom:-2px;right:-2px;width:18px;height:18px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;font-size:.65rem;border:2px solid var(--bg2);">${icon}</div>
       </div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:.83rem;line-height:1.45;">${n.text||''}</div>
-        ${n.storyId ? `
-        <div style="margin-top:6px;border-radius:10px;overflow:hidden;border:1px solid rgba(0,198,255,.3);background:rgba(0,198,255,.06);cursor:pointer;">
-          ${n.storyImg ? `<img src="${n.storyImg}" style="width:100%;max-height:100px;object-fit:cover;display:block;">` : '<div style="width:100%;height:48px;background:linear-gradient(135deg,#0a2a4a,#0077b6);display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🎣</div>'}
-          <div style="padding:5px 8px;display:flex;align-items:center;gap:5px;">
-            <span style="font-size:.65rem;color:var(--accent);font-weight:700;">📖 Historia</span>
-            ${n.storyPreview?`<span style="font-size:.65rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">"${esc(n.storyPreview)}"</span>`:''}
-            <span style="font-size:.62rem;color:rgba(0,198,255,.7);margin-left:auto;flex-shrink:0;">Ver →</span>
-          </div>
-        </div>` : n.storyPreview ? `<div style="font-size:.72rem;color:var(--accent);margin-top:3px;padding:3px 8px;border-radius:6px;border-left:2px solid var(--accent);background:rgba(0,198,255,.06);">📖 "${esc(n.storyPreview)}"</div>` : ''}
-        <div style="font-size:.72rem;color:${isRead?'var(--muted)':'var(--accent)'};margin-top:4px;font-weight:${isRead?'400':'700'};">${fmtT(n.time)}</div>
+      <div style="flex:1;min-width:0;overflow:hidden;">
+        <div style="font-size:.84rem;line-height:1.45;color:var(--text);word-break:break-word;">${n.text||''}</div>
+        ${storyId ? `<div style="margin-top:6px;border-radius:8px;overflow:hidden;border:1px solid rgba(46,196,182,.3);background:rgba(46,196,182,.06);">
+          ${n.storyImg ? `<img src="${n.storyImg}" style="width:100%;max-height:80px;object-fit:cover;display:block;">` : '<div style="width:100%;height:40px;background:linear-gradient(135deg,#0a2a4a,#0077b6);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">🎣</div>'}
+          <div style="padding:4px 8px;font-size:.65rem;color:var(--accent);font-weight:700;">📖 Ver historia →</div>
+        </div>` : ''}
+        <div style="font-size:.72rem;color:${isRead?'var(--muted)':'var(--accent)'};margin-top:5px;font-weight:${isRead?'400':'600'};">${fmtT(n.time)}</div>
       </div>
-      <button data-action="delete-notif" data-idx="${i}" onclick="event.stopPropagation()"
-        style="opacity:0;transition:opacity .15s;background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;padding:2px 6px;border-radius:50%;flex-shrink:0;line-height:1;"
-        title="Borrar notificación"
-        onmouseover="this.style.opacity='1';this.style.color='var(--red)'" 
-        onmouseout="this.style.opacity='0';this.style.color='var(--muted)'">✕</button>
-      ${!isRead?`<div style="width:10px;height:10px;background:var(--accent);border-radius:50%;flex-shrink:0;margin-top:4px;"></div>`:''}
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;">
+        ${!isRead?`<div style="width:8px;height:8px;background:var(--accent);border-radius:50%;"></div>`:''}
+        <button data-action="delete-notif" data-idx="${i}" onclick="event.stopPropagation()"
+          style="opacity:0;transition:opacity .2s;background:none;border:none;color:var(--muted);font-size:.9rem;cursor:pointer;padding:4px;border-radius:50%;line-height:1;width:24px;height:24px;display:flex;align-items:center;justify-content:center;"
+          onmouseover="this.style.opacity='1';this.style.color='var(--red)';this.style.background='var(--bg4)'"
+          onmouseout="this.style.opacity='0';this.style.color='var(--muted)';this.style.background='none'">✕</button>
+      </div>
     </div>`;
   }
 
@@ -17530,16 +17519,18 @@ function openNotifDropdown(){
     const bell = document.getElementById('notifBellBtn');
     if(bell){
       const rect = bell.getBoundingClientRect();
-      dd.style.top = (rect.bottom + 8) + 'px';
-      dd.style.right = Math.max(8, window.innerWidth - rect.right - 10) + 'px';
+      dd.style.top = (rect.bottom + 6) + 'px';
+      const rightSpace = window.innerWidth - rect.right;
+      dd.style.right = Math.max(6, rightSpace - 6) + 'px';
       dd.style.left = 'auto';
       dd.style.bottom = 'auto';
       dd.style.width = '380px';
-      dd.style.maxWidth = 'calc(100vw - 16px)';
+      dd.style.maxWidth = 'calc(100vw - 12px)';
       dd.style.height = 'auto';
-      dd.style.maxHeight = '80vh';
+      dd.style.maxHeight = 'calc(100vh - ' + (rect.bottom + 16) + 'px)';
       dd.style.borderRadius = '14px';
     }
+    dd.style.zIndex = '9999';
   }
 
   if(isCurrentlyOpen){
