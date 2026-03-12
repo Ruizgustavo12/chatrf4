@@ -17187,6 +17187,38 @@ async function loadReelsPage(){
   }
 }
 
+async function _reelsHandleClick(e){
+  const btn = e.target.closest('[data-action]');
+  if(!btn) return;
+  e.stopPropagation();
+  const action = btn.dataset.action;
+  const pid = btn.dataset.pid;
+
+  if(action==='profile'){
+    const uid = btn.dataset.uid, nick = btn.dataset.nick;
+    if(uid) openUserProfile(uid, nick);
+    return;
+  }
+  if(action==='share' && pid){ sharePost(pid); return; }
+
+  if(!pid) return;
+
+  // Ensure post is in _posts cache before calling react/comment
+  if(!(_posts||[]).find(p=>p.id===pid)){
+    try {
+      const snap = await getDoc(doc(db,'posts',pid));
+      if(snap.exists()){
+        const p = {id:pid,...snap.data()};
+        if(!window._posts) window._posts = [];
+        _posts.push(p);
+      }
+    } catch(err){ console.warn('reel fetch err',err); }
+  }
+
+  if(action==='like'){ doReact(pid,'❤️'); }
+  if(action==='comment'){ toggleComments(pid); }
+}
+
 function _renderReelsFeed(el, H){
   H = H || window.innerHeight;
   el.style.cssText = 'width:100%;height:'+H+'px;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;';
@@ -17195,6 +17227,9 @@ function _renderReelsFeed(el, H){
     return;
   }
   el.innerHTML = _reelsData.map(p=>_reelCard(p,H)).join('');
+  // Use event delegation — no onclick needed, works even inside fixed overlays
+  el.removeEventListener('click', _reelsHandleClick);
+  el.addEventListener('click', _reelsHandleClick);
   requestAnimationFrame(()=>{ el.scrollTop=0; });
 }
 
@@ -17205,14 +17240,14 @@ function _reelCard(p, H){
   const isCloudVideo = !ytId && !ttId && p.video;
   const nick = p.userNick||'Usuario';
   const av   = p.userAv||getDefaultAv(p.userGender||'');
-  const text = (p.text||'').slice(0,100);
+  const text = (p.text||'').slice(0,90);
   const likes    = p.likes||0;
   const cmtCount = p.commentCount||0;
   const fmtN = n=>n>999?(n/1000).toFixed(1)+'K':(n||'0');
   const safeNick = nick.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+  const pid = p.id;
 
-  // Panel height = 110px fixed bottom strip
-  const PANEL = 110;
+  const PANEL = 112;
   const videoH = H - PANEL;
 
   let videoInner='';
@@ -17227,56 +17262,47 @@ function _reelCard(p, H){
   }
 
   const badge = ytId
-    ? `<span style="background:#FF0000;color:#fff;font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:100px;">▶ YouTube</span>`
-    : `<span style="background:#010101;color:#fff;font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:100px;border:1px solid #555;"><span style="color:#69C9D0;">♪</span> TikTok</span>`;
+    ? `<span style="background:#FF0000;color:#fff;font-size:.58rem;font-weight:800;padding:1px 6px;border-radius:100px;flex-shrink:0;">YT</span>`
+    : `<span style="background:#010101;color:#69C9D0;font-size:.58rem;font-weight:800;padding:1px 6px;border-radius:100px;border:1px solid #555;flex-shrink:0;">TT</span>`;
 
-  return `<div data-reel-pid="${p.id}" style="width:100%;height:${H}px;flex-shrink:0;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;background:#0d1117;overflow:hidden;">
+  // Use data-pid attribute and event delegation to avoid onclick scope issues
+  return `<div data-reel-pid="${pid}" style="width:100%;height:${H}px;flex-shrink:0;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;background:#0d1117;overflow:hidden;">
 
-    <!-- VIDEO -->
-    <div style="width:100%;height:${videoH}px;flex-shrink:0;overflow:hidden;background:#000;position:relative;">
+    <!-- VIDEO — pointer-events isolated -->
+    <div style="width:100%;height:${videoH}px;flex-shrink:0;overflow:hidden;background:#000;">
       ${videoInner}
     </div>
 
-    <!-- PANEL INFERIOR — fuera del video, no recibe clicks del iframe -->
-    <div style="width:100%;height:${PANEL}px;flex-shrink:0;background:#161b22;border-top:1px solid #30363d;display:flex;flex-direction:row;align-items:center;padding:0 14px;gap:10px;box-sizing:border-box;overflow:hidden;">
+    <!-- PANEL INFERIOR — completely separate from iframe, pointer-events:auto garantizado -->
+    <div style="width:100%;height:${PANEL}px;flex-shrink:0;background:#161b22;border-top:2px solid #30363d;display:flex;flex-direction:row;align-items:center;padding:0 12px;gap:8px;box-sizing:border-box;position:relative;z-index:10;pointer-events:auto;">
 
-      <!-- Avatar + info -->
-      <img src="${av}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #30363d;flex-shrink:0;cursor:pointer;" onclick="openUserProfile('${p.userId||''}','${safeNick}')">
+      <!-- Avatar -->
+      <img src="${av}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid #444;flex-shrink:0;cursor:pointer;" data-action="profile" data-uid="${p.userId||''}" data-nick="${safeNick}">
+
+      <!-- Info -->
       <div style="flex:1;min-width:0;overflow:hidden;">
-        <div style="font-size:.8rem;font-weight:800;color:#e6edf3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(nick)}${p.userVerified?' ✅':''} ${badge}</div>
-        ${text?`<div style="font-size:.72rem;color:#8b949e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(text)}</div>`:''}
-        ${p.fish?`<div style="font-size:.7rem;color:#ffd700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🐟 ${esc(p.fish)}${p.map?' · 📍'+esc(p.map):''}</div>`:''}
+        <div style="font-size:.78rem;font-weight:800;color:#e6edf3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(nick)}${p.userVerified?' ✅':''} ${badge}</div>
+        ${text?`<div style="font-size:.68rem;color:#8b949e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(text)}</div>`:''}
       </div>
 
-      <!-- BOTONES -->
-      <div style="display:flex;flex-direction:row;align-items:center;gap:6px;flex-shrink:0;">
+      <!-- BOTÓN LIKE -->
+      <button data-action="like" data-pid="${pid}"
+        style="background:#21262d;border:1px solid #30363d;color:#e6edf3;padding:8px 12px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;flex-shrink:0;pointer-events:auto;">
+        ❤️ ${fmtN(likes)}
+      </button>
 
-        <!-- ❤️ reaccionar -->
-        <div style="position:relative;" onmouseenter="showRxnPop('${p.id}')" onmouseleave="schedHideRxnPop('${p.id}')">
-          <button id="rxnt_${p.id}" onclick="quickReact('${p.id}')"
-            style="background:#21262d;border:1px solid #30363d;color:#e6edf3;padding:7px 10px;border-radius:8px;font-size:.78rem;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;">
-            ❤️ <span>${fmtN(likes)}</span>
-          </button>
-          <div class="rxn-popup" id="rxnp_${p.id}"
-            onmouseenter="cancelHideRxnPop('${p.id}')" onmouseleave="schedHideRxnPop('${p.id}')"
-            style="bottom:calc(100% + 6px);left:0;right:auto;z-index:6000;">
-            ${REACTIONS.map(r=>`<button class="rxn-btn" onclick="doReact('${p.id}','${r.emoji}')" title="${r.label}">${r.emoji}</button>`).join('')}
-          </div>
-        </div>
+      <!-- BOTÓN COMENTAR -->
+      <button data-action="comment" data-pid="${pid}"
+        style="background:#21262d;border:1px solid #30363d;color:#e6edf3;padding:8px 12px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;flex-shrink:0;pointer-events:auto;">
+        💬 ${fmtN(cmtCount)}
+      </button>
 
-        <!-- 💬 comentar -->
-        <button onclick="toggleComments('${p.id}')"
-          style="background:#21262d;border:1px solid #30363d;color:#e6edf3;padding:7px 10px;border-radius:8px;font-size:.78rem;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;">
-          💬 <span>${fmtN(cmtCount)}</span>
-        </button>
+      <!-- BOTÓN COMPARTIR -->
+      <button data-action="share" data-pid="${pid}"
+        style="background:#21262d;border:1px solid #30363d;color:#e6edf3;padding:8px 12px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;flex-shrink:0;pointer-events:auto;">
+        ↗️
+      </button>
 
-        <!-- ↗️ compartir -->
-        <button onclick="sharePost('${p.id}')"
-          style="background:#21262d;border:1px solid #30363d;color:#e6edf3;padding:7px 10px;border-radius:8px;font-size:.78rem;cursor:pointer;display:flex;align-items:center;gap:5px;">
-          ↗️
-        </button>
-
-      </div>
     </div>
   </div>`;
 }
