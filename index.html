@@ -5489,38 +5489,125 @@ window.cm = id => {
 document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); }));
 
 // ===== STORIES =====
+// Grupos de historias por usuario: [{userId, userNick, userAv, stories:[...]}]
+window._storyGroups = [];
+
+function _buildStoryGroups(){
+  const map = new Map();
+  // _stories viene ordenado desc por tiempo — invertimos para mostrar la más reciente como portada
+  // pero preservamos el orden de usuarios (primer historia de cada user define su posición)
+  const ordered = [..._stories].reverse(); // asc: más antigua primero
+  ordered.forEach(s => {
+    if(!map.has(s.userId)){
+      map.set(s.userId, { userId:s.userId, userNick:s.userNick, userAv:s.userAv, stories:[] });
+    }
+    map.get(s.userId).stories.push(s);
+  });
+  // Convertir a array; el propio usuario primero si está logueado
+  let groups = Array.from(map.values());
+  if(window.CU){
+    const myIdx = groups.findIndex(g=>g.userId===window.CU.id);
+    if(myIdx>0){ const [mine]=groups.splice(myIdx,1); groups.unshift(mine); }
+  }
+  window._storyGroups = groups;
+}
+
 function renderStories(){
+  _buildStoryGroups();
   const row = document.getElementById('storiesRow');
-  // keep add button
   const addBtn = row.children[0];
   row.innerHTML = '';
   row.appendChild(addBtn);
-  _stories.forEach((s,i)=>{
+  window._storyGroups.forEach((g, gi)=>{
+    // Usar la última historia (más reciente) como portada
+    const s = g.stories[g.stories.length-1];
     const div = document.createElement('div');
     div.className = 'story-card';
-    div.onclick = () => openSV(i);
+    div.onclick = () => openSVGroup(gi, 0);
     const bg = s.img
       ? `<img src="${s.img}" style="width:100%;height:100%;object-fit:cover">`
       : `<div style="width:100%;height:100%;background:linear-gradient(135deg,#0a2a4a,#0077b6);display:flex;align-items:center;justify-content:center;font-size:3.5rem">${s.emoji||'🎣'}</div>`;
+    // Mostrar contador si tiene más de 1 historia
+    const countBadge = g.stories.length > 1
+      ? `<div style="position:absolute;top:6px;right:6px;background:var(--accent);color:#fff;font-size:.6rem;font-weight:800;border-radius:100px;padding:1px 5px;min-width:16px;text-align:center;line-height:16px;">${g.stories.length}</div>`
+      : '';
     div.innerHTML = `
       ${bg}
       <div class="sv-gradient"></div>
-      <div class="story-user-av">${s.userAv ? `<img src="${s.userAv}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--accent),#0077b6);font-size:.9rem;border-radius:50%;">${(s.userNick||'?')[0].toUpperCase()}</div>`}</div>
+      <div class="story-user-av">${s.userAv ? `<img src="${s.userAv}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--accent),#0077b6);font-size:.9rem;border-radius:50%;">${(g.userNick||'?')[0].toUpperCase()}</div>`}</div>
+      ${countBadge}
       <div class="story-gradient"></div>
-      <div class="story-bottom-name">${s.userNick}</div>`;
+      <div class="story-bottom-name">${g.userNick}</div>`;
     row.appendChild(div);
   });
   setTimeout(applyVerifStoryRings,60);
 }
 
+// Abrir historia por grupo y posición dentro del grupo
+function openSVGroup(groupIdx, storyInGroupIdx){
+  // Aplanar: construir _svGroupIdx y _svGroupStoryIdx para navegación
+  window._svGroupIdx = groupIdx;
+  window._svGroupStoryIdx = storyInGroupIdx || 0;
+  const g = window._storyGroups[groupIdx];
+  if(!g) return;
+  const s = g.stories[window._svGroupStoryIdx];
+  if(!s) return;
+  // Mapear al índice global en _stories para compatibilidad con renderSV
+  const globalIdx = _stories.findIndex(st=>st.id===s.id);
+  _svIdx = globalIdx >= 0 ? globalIdx : 0;
+  renderSV();
+  document.getElementById('storyViewer').classList.add('open');
+  _svStartTimer();
+  _svRegisterView();
+}
+
 let _svAutoTimer=null; const SV_DURATION=10000;
+
+// Helpers de navegacion por grupos
+function _svCurrentGroup(){
+  if(!window._storyGroups || !window._storyGroups.length) return null;
+  const gi = window._svGroupIdx || 0;
+  return window._storyGroups[gi] || null;
+}
+function _svNavInGroup(dir){
+  const groups = window._storyGroups;
+  if(!groups || !groups.length){ closeSV(); return; }
+  let gi = window._svGroupIdx || 0;
+  let si = window._svGroupStoryIdx || 0;
+  const g = groups[gi];
+  si += dir;
+  if(si >= 0 && si < g.stories.length){
+    // Siguiente/anterior historia dentro del mismo usuario
+    window._svGroupStoryIdx = si;
+    const s = g.stories[si];
+    const globalIdx = _stories.findIndex(st=>st.id===s.id);
+    _svIdx = globalIdx >= 0 ? globalIdx : _svIdx;
+    renderSV(); _svStartTimer(); _svRegisterView();
+  } else if(dir > 0 && gi < groups.length-1){
+    // Pasar al siguiente usuario
+    window._svGroupIdx = gi+1;
+    window._svGroupStoryIdx = 0;
+    const ns = groups[gi+1].stories[0];
+    const globalIdx = _stories.findIndex(st=>st.id===ns.id);
+    _svIdx = globalIdx >= 0 ? globalIdx : _svIdx;
+    renderSV(); _svStartTimer(); _svRegisterView();
+  } else if(dir < 0 && gi > 0){
+    // Volver al usuario anterior (ultima historia suya)
+    window._svGroupIdx = gi-1;
+    const prevG = groups[gi-1];
+    window._svGroupStoryIdx = prevG.stories.length-1;
+    const ps = prevG.stories[window._svGroupStoryIdx];
+    const globalIdx = _stories.findIndex(st=>st.id===ps.id);
+    _svIdx = globalIdx >= 0 ? globalIdx : _svIdx;
+    renderSV(); _svStartTimer(); _svRegisterView();
+  } else {
+    closeSV();
+  }
+}
+
 function _svStartTimer(){
   if(_svAutoTimer) clearTimeout(_svAutoTimer);
-  _svAutoTimer=setTimeout(()=>{
-    if(_svIdx<_stories.length-1){
-      _svIdx++;renderSV();_svStartTimer();
-    }else{closeSV();}
-  },SV_DURATION);
+  _svAutoTimer=setTimeout(()=>{ _svNavInGroup(1); },SV_DURATION);
 }
 function openStoryById(storyId, preferUserId){
   // Buscar la historia en _stories por id
@@ -5546,7 +5633,20 @@ function openStoryById(storyId, preferUserId){
 }
 
 function openSV(idx){
-  _svIdx=idx; renderSV();
+  _svIdx=idx;
+  // Sincronizar grupo y posicion dentro del grupo
+  if(window._storyGroups && window._storyGroups.length){
+    const s = _stories[idx];
+    if(s){
+      const gi = window._storyGroups.findIndex(g=>g.userId===s.userId);
+      if(gi>=0){
+        window._svGroupIdx = gi;
+        window._svGroupStoryIdx = window._storyGroups[gi].stories.findIndex(st=>st.id===s.id);
+        if(window._svGroupStoryIdx<0) window._svGroupStoryIdx=0;
+      }
+    }
+  }
+  renderSV();
   document.getElementById('storyViewer').classList.add('open');
   _svStartTimer();
   _svRegisterView();
@@ -5678,8 +5778,7 @@ document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){ const sv=document.getElementById('storyViewer'); if(sv&&sv.classList.contains('open')) closeSV(); }
 });
 function svNav(dir){
-  _svIdx=Math.max(0,Math.min(_stories.length-1,_svIdx+dir));
-  renderSV(); _svStartTimer(); _svRegisterView();
+  _svNavInGroup(dir);
 }
 function renderSV(){
   const s = _stories[_svIdx];
@@ -5858,9 +5957,13 @@ function renderSV(){
   }
 
   // progress bars
+  // Barras de progreso: una por historia del grupo actual
   const prog = document.getElementById('svProgress');
-  prog.innerHTML = _stories.map((_,i)=>`<div class="sv-prog-bar"><div class="sv-prog-fill" id="svFill${i}" style="width:${i<_svIdx?100:0}%;transition:${i===_svIdx?'width '+SV_DURATION/1000+'s linear':'none'}"></div></div>`).join('');
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{ const f=document.getElementById('svFill'+_svIdx); if(f)f.style.width='100%'; }));
+  const _curG = window._storyGroups && window._storyGroups[window._svGroupIdx||0];
+  const _curSI = window._svGroupStoryIdx || 0;
+  const _groupLen = _curG ? _curG.stories.length : 1;
+  prog.innerHTML = Array.from({length:_groupLen},(_,i)=>`<div class="sv-prog-bar"><div class="sv-prog-fill" id="svFill${i}" style="width:${i<_curSI?100:0}%;transition:${i===_curSI?'width '+SV_DURATION/1000+'s linear':'none'}"></div></div>`).join('');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ const f=document.getElementById('svFill'+_curSI); if(f)f.style.width='100%'; }));
 }
 function _svToggleRxnPop(){
   var pop = document.getElementById('svReactPopFixed');
@@ -6280,7 +6383,34 @@ function _stopStoryPreview(){
 }
 
 async function _fetchDeezer(q){
-  // Intentar los primeros 3 proxies en paralelo — gana el mas rapido
+  // Usar iTunes Search API como fuente principal — no necesita proxy CORS
+  const _tryItunes = async () => {
+    const ctrl = new AbortController();
+    const tId = setTimeout(()=>ctrl.abort(), 6000);
+    try {
+      const url = `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&entity=song&limit=12&country=AR`;
+      const r = await fetch(url, {signal: ctrl.signal});
+      clearTimeout(tId);
+      if(!r || !r.ok) return null;
+      const data = await r.json();
+      if(!data.results) return null;
+      if(!data.results.length) return [];
+      return data.results
+        .filter(t => t.previewUrl)
+        .map(t => ({
+          id: t.trackId,
+          title: t.trackName || '',
+          artist: t.artistName || '',
+          cover: (t.artworkUrl100 || t.artworkUrl60 || '').replace('100x100bb','300x300bb'),
+          preview: t.previewUrl || ''
+        }));
+    } catch(e){ clearTimeout(tId); return null; }
+  };
+
+  const itunesResult = await _tryItunes();
+  if(itunesResult !== null) return itunesResult;
+
+  // Fallback: proxies Deezer en paralelo
   const _tryProxy = async (proxyFn) => {
     const url = proxyFn(q);
     const ctrl = new AbortController();
@@ -6307,27 +6437,20 @@ async function _fetchDeezer(q){
     } catch(e){ clearTimeout(tId); return null; }
   };
 
-  // Carrera paralela entre los primeros 3 proxies
   const raceResult = await new Promise(resolve => {
     let done = false;
-    let pending = 3;
+    let pending = Math.min(3, _DEEZER_PROXIES.length);
+    if(!pending){ resolve(null); return; }
     _DEEZER_PROXIES.slice(0,3).forEach(fn => {
       _tryProxy(fn).then(res => {
         if(done) return;
         if(res !== null){ done = true; resolve(res); }
-        else if(--pending === 0) resolve(null); // los 3 fallaron
+        else if(--pending === 0) resolve(null);
       });
     });
   });
 
-  if(raceResult !== null) return raceResult;
-
-  // Fallback secuencial con los proxies restantes
-  for(const proxyFn of _DEEZER_PROXIES.slice(3)){
-    const res = await _tryProxy(proxyFn);
-    if(res !== null) return res;
-  }
-  return null; // todos fallaron = error de red
+  return raceResult;
 }
 
 async function searchStoryMusic(){
