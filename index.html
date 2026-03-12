@@ -14496,29 +14496,24 @@ async function _fetchPresence(){
     const now = Date.now();
     const online = onlineSnap.docs.map(d=>{
       const data = d.data();
-      // Si no tiene country en presence, intentar sacarlo del caché de usuarios
-      const cachedUser = window._userInfoCache?.[d.id];
-      const country = data.country || cachedUser?.country || '';
-      return {id:d.id, ...data, country, ts:data.last?.toMillis?.()||0};
+      return {id:d.id, ...data, ts:data.last?.toMillis?.()||0};
     });
-    // Enriquecer country de usuarios que no lo tienen en presence via cache
-    const missingCountry = online.filter(u => !u.country);
-    if(missingCountry.length){
-      await Promise.all(missingCountry.map(async u=>{
-        try {
-          const cached = window._userInfoCache?.[u.id];
-          if(cached?.country){ u.country = cached.country; return; }
-          const snap = await getDoc(doc(db,'users',u.id));
-          if(snap.exists()){
-            const country = snap.data().country||'';
-            u.country = country;
-            if(window._userInfoCache) window._userInfoCache[u.id] = {...(window._userInfoCache[u.id]||{}), country};
-            // Actualizar presence para la próxima vez
-            if(country) setDoc(doc(db,'presence',u.id),{country},{merge:true}).catch(()=>{});
-          }
-        } catch(e){}
-      }));
-    }
+    // Enriquecer country desde caché o Firestore para TODOS los usuarios
+    await Promise.all(online.map(async u=>{
+      try {
+        // Primero intentar del caché
+        const cached = window._userInfoCache?.[u.id];
+        if(cached?.country){ u.country = cached.country; return; }
+        // Si no hay en caché, buscar en Firestore users
+        const snap = await getDoc(doc(db,'users',u.id));
+        if(snap.exists()){
+          const country = snap.data().country||'';
+          u.country = country;
+          if(!window._userInfoCache) window._userInfoCache = {};
+          window._userInfoCache[u.id] = {...(window._userInfoCache[u.id]||{}), country};
+        }
+      } catch(e){}
+    }));
     // offline: usamos cache local para no hacer otra query
     const offline = Object.values(window._presenceCache||{})
       .filter(u=> now - u.ts >= 300000 && now - u.ts < 3600000)
