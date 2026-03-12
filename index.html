@@ -4490,22 +4490,25 @@ function listenStories() {
     query(collection(db, 'stories'), orderBy('time', 'desc'), limit(50)),
     { includeMetadataChanges: false },
     snap => {
-      if(snap.metadata.fromCache) return;
       const now = Date.now();
       const expiredIds = [];
       _stories = snap.docs.filter(d => {
         const raw = d.data().time;
-        // Firestore Timestamp o número directo
         const t = raw?.toMillis ? raw.toMillis() : (typeof raw === 'number' ? raw : 0);
         const ttl = d.data().userVerified ? 172800000 : 86400000;
-        if(!t || (now - t) > ttl){ expiredIds.push(d.id); return false; }
+        // Si t===0 es un serverTimestamp pendiente (historia recien publicada) — incluirla
+        if(t && (now - t) > ttl){ expiredIds.push(d.id); return false; }
         return true;
       }).map(d => {
         const raw = d.data().time;
+        // Si el timestamp aun no llego del servidor, usar tiempo actual para mostrarla
         const t = raw?.toMillis ? raw.toMillis() : (typeof raw === 'number' ? raw : Date.now());
         return { id: d.id, ...d.data(), time: t };
       });
-      expiredIds.forEach(id => deleteDoc(doc(db, 'stories', id)).catch(()=>{}));
+      // Solo borrar expiradas en snapshots del servidor (no pendientes)
+      if(!snap.metadata.hasPendingWrites){
+        expiredIds.forEach(id => deleteDoc(doc(db, 'stories', id)).catch(()=>{}));
+      }
       renderStories();
     },
     err => { console.warn('listenStories error:', err); }
@@ -6384,18 +6387,19 @@ function _stopStoryPreview(){
 
 async function _fetchDeezer(q){
   // Usar iTunes Search API como fuente principal — no necesita proxy CORS
+  // iTunes via fetch directo (sin CORS issues porque itunes.apple.com tiene CORS abierto)
   const _tryItunes = async () => {
     const ctrl = new AbortController();
     const tId = setTimeout(()=>ctrl.abort(), 6000);
     try {
-      const url = `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&entity=song&limit=12&country=AR`;
+      const url = `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&entity=song&limit=12`;
       const r = await fetch(url, {signal: ctrl.signal});
       clearTimeout(tId);
       if(!r || !r.ok) return null;
       const data = await r.json();
-      if(!data.results) return null;
+      if(!data || !data.results) return null;
       if(!data.results.length) return [];
-      return data.results
+      const mapped = data.results
         .filter(t => t.previewUrl)
         .map(t => ({
           id: t.trackId,
@@ -6404,10 +6408,47 @@ async function _fetchDeezer(q){
           cover: (t.artworkUrl100 || t.artworkUrl60 || '').replace('100x100bb','300x300bb'),
           preview: t.previewUrl || ''
         }));
+      return mapped.length ? mapped : [];
     } catch(e){ clearTimeout(tId); return null; }
   };
 
-  const itunesResult = await _tryItunes();
+  // También intentar iTunes via allorigins (por si hay bloqueo de red)
+  const _tryItunesProxy = async () => {
+    try {
+      const itunesUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&entity=song&limit=12`;
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(itunesUrl)}`;
+      const ctrl = new AbortController();
+      const tId = setTimeout(()=>ctrl.abort(), 7000);
+      const r = await fetch(proxyUrl, {signal: ctrl.signal});
+      clearTimeout(tId);
+      if(!r || !r.ok) return null;
+      const raw = await r.json();
+      const data = raw.contents ? JSON.parse(raw.contents) : null;
+      if(!data || !data.results || !data.results.length) return null;
+      return data.results
+        .filter(t => t.previewUrl)
+        .map(t => ({
+          id: t.trackId,
+          title: t.trackName || '',
+          artist: t.artistName || '',
+          cover: (t.artworkUrl100 || '').replace('100x100bb','300x300bb'),
+          preview: t.previewUrl || ''
+        }));
+    } catch(e){ return null; }
+  };
+
+  // Correr iTunes directo y via proxy en paralelo — gana el primero
+  const itunesResult = await new Promise(resolve => {
+    let done = false;
+    let pending = 2;
+    const tryOne = (fn) => fn().then(res => {
+      if(done) return;
+      if(res !== null && res !== undefined){ done = true; resolve(res); }
+      else if(--pending === 0) resolve(null);
+    }).catch(()=>{ if(--pending === 0 && !done) resolve(null); });
+    tryOne(_tryItunes);
+    tryOne(_tryItunesProxy);
+  });
   if(itunesResult !== null) return itunesResult;
 
   // Fallback: proxies Deezer en paralelo
@@ -6481,21 +6522,22 @@ async function searchStoryMusic(){
   window._deezerTracks = tracks;
 
   res.innerHTML = tracks.map((t,i) => {
-    const dur = t.duration ? Math.floor(t.duration/60)+':'+String(t.duration%60).padStart(2,'0') : '';
+    // Normalizar: iTunes devuelve artist como string, Deezer como objeto
+    const artistName = typeof t.artist === 'string' ? t.artist : (t.artist?.name || '');
+    const coverUrl = t.cover || (t.album?.cover_small) || '';
     return `<div data-ti="${i}"
       style="display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s;position:relative;"
       onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
       <div style="position:relative;flex-shrink:0;">
-        <img src="${t.album.cover_small}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;display:block;" loading="lazy">
+        <img src="${coverUrl}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;display:block;" loading="lazy" onerror="this.style.background='var(--bg4)'">
         <div class="sm-play-overlay" style="position:absolute;inset:0;background:rgba(0,0,0,.55);border-radius:6px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;font-size:1.1rem;pointer-events:none;">▶</div>
       </div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:.82rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(t.title)}</div>
-        <div style="font-size:.7rem;color:var(--muted);margin-top:1px;">${esc(t.artist.name)} · ${esc(t.album.title||'')}</div>
+        <div style="font-size:.7rem;color:var(--muted);margin-top:1px;">${esc(artistName)}</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;">
         <span style="font-size:.6rem;color:var(--accent);font-weight:700;">▶ 30s</span>
-        ${dur?`<span style="font-size:.6rem;color:var(--muted);">${dur}</span>`:''}
       </div>
     </div>`;
   }).join('');
@@ -6505,8 +6547,10 @@ async function searchStoryMusic(){
     const i = parseInt(el.dataset.ti);
     const t = window._deezerTracks[i];
     if(!t) return;
+    const artistName = typeof t.artist === 'string' ? t.artist : (t.artist?.name || '');
+    const coverUrl = t.cover || (t.album?.cover_small) || '';
     const overlay = el.querySelector('.sm-play-overlay');
-    el.addEventListener('click', ()=> selectStoryMusic({preview:t.preview, title:t.title, artist:t.artist.name, cover:t.album.cover_small}));
+    el.addEventListener('click', ()=> selectStoryMusic({preview:t.preview, title:t.title, artist:artistName, cover:coverUrl}));
     el.addEventListener('mouseenter', ()=>{
       if(overlay) overlay.style.opacity='1';
       _hoverStoryPreview(t.preview, el);
@@ -6658,13 +6702,13 @@ async function _txtMusicSearch(){
   if(!res) return;
   if(spin){ spin.style.display='block'; }
   res.style.display = 'block';
-  res.innerHTML = '<div style="text-align:center;padding:14px;color:var(--muted);font-size:.8rem;">⏳ Buscando en Deezer...</div>';
+  res.innerHTML = '<div style="text-align:center;padding:14px;color:var(--muted);font-size:.8rem;">🎵 Buscando música...</div>';
 
   const tracks = await _fetchDeezer(q);
   if(spin) spin.style.display='none';
 
   if(tracks === null){
-    res.innerHTML = '<div style="text-align:center;padding:14px;"><div style="font-size:1.2rem;margin-bottom:6px;">😕</div><div style="font-size:.8rem;color:var(--muted);">No se pudo conectar. Verifícate que tengas internet.</div><div onclick="_txtMusicSearch()" style="margin-top:8px;background:var(--accent);border:none;border-radius:8px;color:#fff;padding:6px 16px;font-weight:700;cursor:pointer;display:inline-block;font-size:.78rem;">🔄 Reintentar</div></div>';
+    res.innerHTML = '<div style="text-align:center;padding:14px;"><div style="font-size:1.2rem;margin-bottom:6px;">😕</div><div style="font-size:.8rem;color:var(--muted);">Sin resultados. Intentá con otro nombre.</div><div onclick="_txtMusicSearch()" style="margin-top:8px;background:var(--accent);border:none;border-radius:8px;color:#fff;padding:6px 16px;font-weight:700;cursor:pointer;display:inline-block;font-size:.78rem;">🔄 Reintentar</div></div>';
     return;
   }
   if(!tracks.length){
@@ -6812,11 +6856,11 @@ async function _fotoMusicSearch(){
   if(!res) return;
   if(spin) spin.style.display='block';
   res.style.display = 'block';
-  res.innerHTML = '<div style="text-align:center;padding:14px;color:var(--muted);font-size:.8rem;">⏳ Buscando en Deezer...</div>';
+  res.innerHTML = '<div style="text-align:center;padding:14px;color:var(--muted);font-size:.8rem;">🎵 Buscando música...</div>';
   const tracks = await _fetchDeezer(q);
   if(spin) spin.style.display='none';
   if(tracks === null){
-    res.innerHTML = '<div style="text-align:center;padding:14px;"><div style="font-size:1.2rem;margin-bottom:6px;">😕</div><div style="font-size:.8rem;color:var(--muted);">No se pudo conectar. Verifícate que tengas internet.</div><div onclick="_fotoMusicSearch()" style="margin-top:8px;background:var(--accent);border:none;border-radius:8px;color:#fff;padding:6px 16px;font-weight:700;cursor:pointer;display:inline-block;font-size:.78rem;">🔄 Reintentar</div></div>';
+    res.innerHTML = '<div style="text-align:center;padding:14px;"><div style="font-size:1.2rem;margin-bottom:6px;">😕</div><div style="font-size:.8rem;color:var(--muted);">Sin resultados. Intentá con otro nombre.</div><div onclick="_fotoMusicSearch()" style="margin-top:8px;background:var(--accent);border:none;border-radius:8px;color:#fff;padding:6px 16px;font-weight:700;cursor:pointer;display:inline-block;font-size:.78rem;">🔄 Reintentar</div></div>';
     return;
   }
   if(!tracks.length){
