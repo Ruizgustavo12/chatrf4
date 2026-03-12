@@ -20032,6 +20032,9 @@ window.I18N = {
   window._lang = map[browserLang] || map[browserLang.split('-')[0]] || 'es';
 })();
 
+// Auto-apply detected language on load
+document.addEventListener('DOMContentLoaded', function(){ if(typeof applyLang==='function') applyLang(); });
+
 // ── t() — función de traducción ──
 window.t = function(key){ return (window.I18N[window._lang]||window.I18N.es)[key] || window.I18N.es[key] || key; };
 
