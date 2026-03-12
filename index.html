@@ -5586,9 +5586,22 @@ function renderStories(){
     const div = document.createElement('div');
     div.className = 'story-card';
     div.onclick = () => openSVGroup(gi, 0);
-    const bg = s.img
-      ? `<img src="${s.img}" style="width:100%;height:100%;object-fit:cover">`
-      : `<div style="width:100%;height:100%;background:linear-gradient(135deg,#0a2a4a,#0077b6);display:flex;align-items:center;justify-content:center;font-size:3.5rem">${s.emoji||'🎣'}</div>`;
+    // Card background: imagen > texto sobre fondo > emoji
+    let bg;
+    if(s.img){
+      bg = `<img src="${s.img}" style="width:100%;height:100%;object-fit:cover">`;
+    } else if(s.text){
+      // Historia de texto: mostrar el fondo y el texto encima
+      const cardBg = s.bg || 'linear-gradient(135deg,#0a2a4a,#0077b6)';
+      const cardColor = s.textColor || '#ffffff';
+      const shortText = s.text.length > 60 ? s.text.slice(0,57)+'...' : s.text;
+      bg = `<div style="width:100%;height:100%;background:${cardBg};display:flex;align-items:center;justify-content:center;padding:10px;box-sizing:border-box;">
+        <span style="color:${cardColor};font-size:.72rem;font-weight:700;text-align:center;line-height:1.35;word-break:break-word;text-shadow:0 1px 4px rgba(0,0,0,.6);max-height:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;">${esc(shortText)}</span>
+      </div>`;
+    } else {
+      const cardBg = s.bg || 'linear-gradient(135deg,#0a2a4a,#0077b6)';
+      bg = `<div style="width:100%;height:100%;background:${cardBg};display:flex;align-items:center;justify-content:center;font-size:3rem">${s.emoji||'🎣'}</div>`;
+    }
     // Mostrar contador si tiene más de 1 historia
     const countBadge = g.stories.length > 1
       ? `<div style="position:absolute;top:6px;right:6px;background:var(--accent);color:#fff;font-size:.6rem;font-weight:800;border-radius:100px;padding:1px 5px;min-width:16px;text-align:center;line-height:16px;">${g.stories.length}</div>`
