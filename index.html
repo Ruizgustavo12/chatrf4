@@ -17217,6 +17217,8 @@ function _reelCard(p){
   const ytId = extractYtId(p.video || '');
   const ttId = extractTikTokId(p.video || '');
   const isCloudVideo = !ytId && !ttId && p.video;
+  const isYT = !!ytId;
+  const isTT = !ytId && isTikTok(p.video||'');
   const nick = p.userNick || 'Usuario';
   const av   = p.userAv || getDefaultAv(p.userGender||'');
   const text = (p.text||'').slice(0,160);
@@ -17226,7 +17228,14 @@ function _reelCard(p){
   const fmtN = n => n>999?(n/1000).toFixed(1)+'K':(n||'0');
   const safeNick = nick.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
 
-  // VIDEO EMBED
+  // TikTok es 9:16, YouTube es 16:9
+  // Calculamos el ancho del video para que quepa en altura 100vh
+  // TikTok: width = 100vh * 9/16
+  // YouTube: width = 100vh * 16/9  → demasiado ancho, cap a 65vw
+  const videoStyle = isTT
+    ? 'flex-shrink:0;height:100%;aspect-ratio:9/16;position:relative;background:#000;'
+    : 'flex:1;height:100%;position:relative;background:#000;min-width:0;';
+
   let videoInner = '';
   if(ytId){
     videoInner = `<iframe src="https://www.youtube.com/embed/${ytId}?rel=0" frameborder="0" allowfullscreen allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" style="position:absolute;inset:0;width:100%;height:100%;border:none;" loading="lazy"></iframe>`;
@@ -17238,90 +17247,69 @@ function _reelCard(p){
     videoInner = `<video src="${p.video}" controls playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;"></video>`;
   }
 
-  const badge = ytId
+  const badge = isYT
     ? `<div style="display:inline-flex;align-items:center;gap:5px;background:#FF0000;color:#fff;font-size:.65rem;font-weight:800;padding:3px 10px;border-radius:100px;">▶ YouTube</div>`
-    : isTikTok(p.video||'')
-    ? `<div style="display:inline-flex;align-items:center;gap:5px;background:#010101;color:#fff;font-size:.65rem;font-weight:800;padding:3px 10px;border-radius:100px;border:1px solid #333;"><span style="color:#69C9D0;">♪</span> TikTok</div>`
-    : `<div style="display:inline-flex;align-items:center;gap:5px;background:var(--accent);color:#fff;font-size:.65rem;font-weight:800;padding:3px 10px;border-radius:100px;">🎬 Video</div>`;
+    : `<div style="display:inline-flex;align-items:center;gap:5px;background:#010101;color:#fff;font-size:.65rem;font-weight:800;padding:3px 10px;border-radius:100px;border:1px solid #333;"><span style="color:#69C9D0;">♪</span> TikTok</div>`;
 
   return `
   <div data-reel-pid="${p.id}" style="
-    width:100%;
-    height:100vh;
-    scroll-snap-align:start;
-    scroll-snap-stop:always;
-    display:flex;
-    flex-direction:row;
-    align-items:stretch;
-    background:#111;
-    overflow:hidden;
+    width:100%;height:100vh;
+    scroll-snap-align:start;scroll-snap-stop:always;
+    display:flex;flex-direction:row;align-items:stretch;
+    background:#0d1117;overflow:hidden;
   ">
+    <!-- VIDEO — ancho natural según ratio -->
+    <div style="${videoStyle}">${videoInner}</div>
 
-    <!-- COLUMNA IZQUIERDA: VIDEO -->
-    <div style="flex:1;position:relative;background:#000;min-width:0;">
-      ${videoInner}
-    </div>
-
-    <!-- COLUMNA DERECHA: INFO + ACCIONES -->
+    <!-- PANEL DERECHO — pegado al video -->
     <div style="
-      width:220px;
-      flex-shrink:0;
+      width:200px;flex-shrink:0;
       background:#161b22;
       border-left:1px solid #30363d;
-      display:flex;
-      flex-direction:column;
-      padding:16px 14px 16px;
+      display:flex;flex-direction:column;
+      padding:16px 12px;gap:12px;
       overflow-y:auto;
-      gap:14px;
     ">
-
-      <!-- Badge plataforma -->
-      <div>${badge}</div>
+      ${badge}
 
       <!-- Usuario -->
-      <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="openUserProfile('${p.userId||''}','${safeNick}')">
-        <img src="${av}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid #30363d;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:9px;cursor:pointer;padding:6px 0;" onclick="openUserProfile('${p.userId||''}','${safeNick}')">
+        <img src="${av}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #30363d;flex-shrink:0;">
         <div>
-          <div style="font-size:.85rem;font-weight:800;color:#e6edf3;">${esc(nick)}${p.userVerified?' ✅':''}</div>
-          <div style="font-size:.7rem;color:#8b949e;margin-top:1px;">Ver perfil →</div>
+          <div style="font-size:.82rem;font-weight:800;color:#e6edf3;line-height:1.2;">${esc(nick)}${p.userVerified?' ✅':''}</div>
+          <div style="font-size:.68rem;color:#58a6ff;margin-top:2px;">Ver perfil →</div>
         </div>
       </div>
 
       <div style="height:1px;background:#30363d;"></div>
 
-      <!-- Texto del post -->
-      ${text ? `<div style="font-size:.8rem;color:#c9d1d9;line-height:1.5;">${esc(text)}${(p.text||'').length>160?'<span style="color:#8b949e"> …más</span>':''}</div>` : ''}
-      ${p.fish ? `<div style="font-size:.78rem;color:#ffd700;font-weight:700;">🐟 ${esc(p.fish)}${p.map?' · 📍'+esc(p.map):''}</div>` : ''}
+      ${text ? `<div style="font-size:.78rem;color:#c9d1d9;line-height:1.5;">${esc(text)}${(p.text||'').length>160?'<span style="color:#8b949e"> …más</span>':''}</div>` : ''}
+      ${p.fish ? `<div style="font-size:.76rem;color:#ffd700;font-weight:700;">🐟 ${esc(p.fish)}${p.map?' · 📍'+esc(p.map):''}</div>` : ''}
 
       <div style="height:1px;background:#30363d;"></div>
 
-      <!-- ACCIONES -->
-      <!-- Like con reacciones -->
-      <div>
-        <div class="rxn-wrap" onmouseenter="showRxnPop('${p.id}')" onmouseleave="schedHideRxnPop('${p.id}')" style="position:relative;">
-          <button id="rxnt_${p.id}" onclick="quickReact('${p.id}')"
-            style="width:100%;background:#21262d;border:1px solid #30363d;color:#e6edf3;padding:9px 12px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s;"
-            onmouseover="this.style.background='#30363d'" onmouseout="this.style.background='#21262d'">
-            ❤️ <span>Me gusta</span> <span style="margin-left:auto;color:#8b949e;">${fmtN(likes)}</span>
-          </button>
-          <div class="rxn-pop" id="rxnp_${p.id}" onmouseenter="cancelHideRxnPop('${p.id}')" onmouseleave="schedHideRxnPop('${p.id}')" style="bottom:calc(100% + 6px);left:0;right:auto;">
-            ${REACTIONS.map(r=>`<button class="rxn-btn" onclick="doReact('${p.id}','${r.emoji}')" title="${r.label}">${r.emoji}</button>`).join('')}
-          </div>
+      <!-- Reacciones -->
+      <div class="rxn-wrap" onmouseenter="showRxnPop('${p.id}')" onmouseleave="schedHideRxnPop('${p.id}')" style="position:relative;">
+        <button id="rxnt_${p.id}" onclick="quickReact('${p.id}')"
+          style="width:100%;background:#21262d;border:1px solid #30363d;color:#e6edf3;padding:8px 10px;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;"
+          onmouseover="this.style.background='#30363d'" onmouseout="this.style.background='#21262d'">
+          ❤️ Me gusta <span style="margin-left:auto;color:#8b949e;font-size:.72rem;">${fmtN(likes)}</span>
+        </button>
+        <div class="rxn-pop" id="rxnp_${p.id}" onmouseenter="cancelHideRxnPop('${p.id}')" onmouseleave="schedHideRxnPop('${p.id}')" style="bottom:calc(100% + 6px);left:0;right:auto;min-width:0;">
+          ${REACTIONS.map(r=>`<button class="rxn-btn" onclick="doReact('${p.id}','${r.emoji}')" title="${r.label}">${r.emoji}</button>`).join('')}
         </div>
       </div>
 
-      <!-- Comentar -->
       <button onclick="toggleComments('${p.id}')"
-        style="width:100%;background:#21262d;border:1px solid #30363d;color:#e6edf3;padding:9px 12px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s;"
+        style="width:100%;background:#21262d;border:1px solid #30363d;color:#e6edf3;padding:8px 10px;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;"
         onmouseover="this.style.background='#30363d'" onmouseout="this.style.background='#21262d'">
-        💬 <span>Comentar</span> <span style="margin-left:auto;color:#8b949e;">${fmtN(cmtCount)}</span>
+        💬 Comentar <span style="margin-left:auto;color:#8b949e;font-size:.72rem;">${fmtN(cmtCount)}</span>
       </button>
 
-      <!-- Compartir -->
       <button onclick="sharePost('${p.id}')"
-        style="width:100%;background:#21262d;border:1px solid #30363d;color:#e6edf3;padding:9px 12px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s;"
+        style="width:100%;background:#21262d;border:1px solid #30363d;color:#e6edf3;padding:8px 10px;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;"
         onmouseover="this.style.background='#30363d'" onmouseout="this.style.background='#21262d'">
-        ↗️ <span>Compartir</span>
+        ↗️ Compartir
       </button>
 
     </div>
