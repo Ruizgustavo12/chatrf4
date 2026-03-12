@@ -17187,6 +17187,12 @@ async function loadReelsPage(){
         return tb - ta;
       });
 
+    // Agregar al cache _posts para que toggleComments/quickReact/sharePost los encuentren
+    if(window._posts){
+      _reelsData.forEach(rp => {
+        if(!_posts.find(p => p.id === rp.id)) _posts.unshift(rp);
+      });
+    }
     _reelsLoaded = true;
     _renderReelsFeed(el);
   } catch(e) {
@@ -17217,104 +17223,93 @@ function _reelCard(p){
   const ytId = extractYtId(p.video || '');
   const ttId = extractTikTokId(p.video || '');
   const isCloudVideo = !ytId && !ttId && p.video;
+  const nick = p.userNick || 'Usuario';
+  const av   = p.userAv || getDefaultAv(p.userGender||'');
+  const text = (p.text||'').slice(0,120);
+  const likes    = p.likes || 0;
+  const cmtCount = p.commentCount || 0;
+  const shares   = p.shares || 0;
 
-  let embedHTML = '';
-  let badgeHTML = '';
-  let isVertical = false;
-
+  // VIDEO EMBED
+  let videoInner = '';
   if(ytId){
-    badgeHTML = '<span style="background:#FF0000;color:#fff;font-size:.65rem;font-weight:800;padding:2px 8px;border-radius:100px;display:flex;align-items:center;gap:4px;">▶ YouTube</span>';
-    isVertical = false;
-    embedHTML = `<div style="width:100%;aspect-ratio:16/9;background:#000;border-radius:0;">
-      <iframe src="https://www.youtube.com/embed/${ytId}?rel=0&autoplay=0" frameborder="0" allowfullscreen
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        style="width:100%;height:100%;display:block;border:none;" loading="lazy"></iframe>
-    </div>`;
-  } else if(ttId || isTikTok(p.video)){
-    badgeHTML = '<span style="background:#010101;color:#fff;font-size:.65rem;font-weight:800;padding:2px 8px;border-radius:100px;display:flex;align-items:center;gap:4px;"><span style="color:#69C9D0;">♪</span> TikTok</span>';
-    isVertical = true;
-    // Si es URL corta vm.tiktok, mostrar link directo en vez de embed (TikTok bloquea iframes de short links)
-    if(!ttId || isTikTokShortLink(p.video)){
-      embedHTML = `<div style="width:100%;max-width:340px;margin:0 auto;background:#010101;border-radius:0;aspect-ratio:9/16;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px;">
-        <div style="font-size:3rem;">🎵</div>
-        <div style="color:#fff;font-size:.9rem;font-weight:700;text-align:center;">Video de TikTok</div>
-        <a href="${p.video}" target="_blank" rel="noopener"
-          style="background:linear-gradient(135deg,#69C9D0,#EE1D52);color:#fff;padding:10px 24px;border-radius:100px;font-weight:800;font-size:.85rem;text-decoration:none;">
-          Ver en TikTok ↗
-        </a>
-      </div>`;
-    } else {
-      embedHTML = `<div style="width:100%;max-width:340px;margin:0 auto;aspect-ratio:9/16;background:#000;border-radius:0;">
-        <iframe src="https://www.tiktok.com/embed/v2/${ttId}" frameborder="0" allowfullscreen
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          style="width:100%;height:100%;display:block;border:none;" loading="lazy"></iframe>
-      </div>`;
-    }
+    videoInner = `<iframe src="https://www.youtube.com/embed/${ytId}?rel=0&autoplay=0" frameborder="0" allowfullscreen allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" style="position:absolute;inset:0;width:100%;height:100%;border:none;" loading="lazy"></iframe>`;
+  } else if(ttId && !isTikTokShortLink(p.video)){
+    videoInner = `<iframe src="https://www.tiktok.com/embed/v2/${ttId}" frameborder="0" allowfullscreen allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" style="position:absolute;inset:0;width:100%;height:100%;border:none;" loading="lazy"></iframe>`;
+  } else if(isTikTok(p.video)){
+    videoInner = `<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#010101;"><div style="font-size:3rem;">🎵</div><div style="color:#fff;font-size:.9rem;font-weight:700;">Video de TikTok</div><a href="${p.video}" target="_blank" rel="noopener" style="background:linear-gradient(135deg,#69C9D0,#EE1D52);color:#fff;padding:10px 28px;border-radius:100px;font-weight:800;font-size:.85rem;text-decoration:none;">Ver en TikTok ↗</a></div>`;
   } else if(isCloudVideo){
-    badgeHTML = '<span style="background:var(--accent);color:#fff;font-size:.65rem;font-weight:800;padding:2px 8px;border-radius:100px;">🎬 Video</span>';
-    embedHTML = `<video src="${p.video}" controls playsinline style="width:100%;max-height:520px;background:#000;display:block;"></video>`;
+    videoInner = `<video src="${p.video}" controls playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;"></video>`;
   }
 
-  const av = p.userAv || getDefaultAv(p.userGender||'');
-  const nick = p.userNick || 'Usuario';
-  const text = (p.text||'').slice(0,140);
-  const likes = p.likes || 0;
-  const comments = p.commentCount || 0;
-  const shares = p.shares || 0;
-  const timeAgo = p.createdAt?.toDate ? _timeAgo(p.createdAt.toDate()) : '';
+  const badge = ytId
+    ? `<span style="background:rgba(255,0,0,.85);color:#fff;font-size:.6rem;font-weight:800;padding:2px 8px;border-radius:100px;">▶ YouTube</span>`
+    : isTikTok(p.video||'')
+    ? `<span style="background:rgba(0,0,0,.75);color:#fff;font-size:.6rem;font-weight:800;padding:2px 8px;border-radius:100px;"><span style="color:#69C9D0;">♪</span> TikTok</span>`
+    : `<span style="background:rgba(46,196,182,.85);color:#fff;font-size:.6rem;font-weight:800;padding:2px 8px;border-radius:100px;">🎬 Video</span>`;
+
+  const fmtN = n => n>999?(n/1000).toFixed(1)+'K':n||'';
+  const safeNick = nick.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
 
   return `
-  <div style="background:var(--bg1);border-bottom:1px solid var(--border);padding-bottom:0;margin-bottom:0;" data-reel-pid="${p.id}">
+  <div data-reel-pid="${p.id}" style="position:relative;width:100%;height:100vh;background:#000;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;display:flex;align-items:center;justify-content:center;">
 
-    <!-- Video embed -->
-    <div style="background:#000;position:relative;">
-      ${embedHTML}
-      <!-- Badge plataforma -->
-      <div style="position:absolute;top:10px;left:10px;display:flex;gap:6px;">
-        ${badgeHTML}
+    <!-- VIDEO -->
+    <div style="position:absolute;inset:0;">${videoInner}</div>
+
+    <!-- GRADIENTE INFERIOR -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:55%;background:linear-gradient(transparent,rgba(0,0,0,.8));pointer-events:none;z-index:1;"></div>
+
+    <!-- BADGE TOP LEFT -->
+    <div style="position:absolute;top:60px;left:12px;z-index:10;">${badge}</div>
+
+    <!-- BOTONES DERECHA -->
+    <div style="position:absolute;right:10px;bottom:120px;z-index:10;display:flex;flex-direction:column;align-items:center;gap:20px;">
+
+      <!-- Avatar -->
+      <div style="position:relative;margin-bottom:6px;">
+        <img src="${av}" style="width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid #fff;cursor:pointer;display:block;"
+          onclick="openUserProfile('${p.userId||''}','${safeNick}')">
+        <div style="position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:18px;height:18px;border-radius:50%;background:#EE1D52;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:900;color:#fff;">+</div>
       </div>
-    </div>
 
-    <!-- Info del post -->
-    <div style="padding:12px 14px 4px;">
-      <!-- Usuario -->
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-        <img src="${av}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid var(--border);cursor:pointer;flex-shrink:0;"
-          onclick="openUserProfile('${p.userId||''}','${(nick).replace(/'/g,"\\'")}')">
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:.88rem;font-weight:800;color:var(--text);cursor:pointer;"
-            onclick="openUserProfile('${p.userId||''}','${(nick).replace(/'/g,"\\'")}')">
-            ${esc(nick)} ${p.userVerified?'✅':''}
+      <!-- Like -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+        <div class="rxn-wrap" onmouseenter="showRxnPop('${p.id}')" onmouseleave="schedHideRxnPop('${p.id}')" style="position:relative;">
+          <button id="rxnt_${p.id}" onclick="quickReact('${p.id}')" style="background:none;border:none;cursor:pointer;padding:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:2rem;filter:drop-shadow(0 1px 4px rgba(0,0,0,.9));">❤️</button>
+          <div class="rxn-pop" id="rxnp_${p.id}" onmouseenter="cancelHideRxnPop('${p.id}')" onmouseleave="schedHideRxnPop('${p.id}')" style="bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);right:auto;">
+            ${REACTIONS.map(r=>`<button class="rxn-btn" onclick="doReact('${p.id}','${r.emoji}')" title="${r.label}">${r.emoji}</button>`).join('')}
           </div>
-          <div style="font-size:.7rem;color:var(--muted);">${timeAgo}</div>
         </div>
-        <button onclick="gp('home');setTimeout(()=>{const el=document.querySelector('[data-pid=\'${p.id}\']');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});}},400);"
-          style="background:rgba(46,196,182,.12);border:1px solid rgba(46,196,182,.3);color:var(--accent);padding:5px 12px;border-radius:100px;font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap;">
-          Ver post →
-        </button>
+        <span style="color:#fff;font-size:.72rem;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.9);">${fmtN(likes)}</span>
       </div>
 
-      <!-- Texto -->
-      ${text ? `<div style="font-size:.84rem;color:var(--text);margin-bottom:10px;line-height:1.5;">${esc(text)}${(p.text||'').length>140?'…':''}</div>` : ''}
-      ${p.fish ? `<div style="font-size:.78rem;color:var(--gold);margin-bottom:8px;">🐟 ${esc(p.fish)}${p.map?' · 📍'+esc(p.map):''}</div>` : ''}
-
-      <!-- Acciones -->
-      <div style="display:flex;align-items:center;gap:0;border-top:1px solid var(--border);margin:0 -14px;padding:2px 0;">
-        <button onclick="likePost('${p.id}',this)" style="flex:1;background:none;border:none;color:var(--muted);padding:10px 0;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:color .15s;"
-          onmouseover="this.style.color='#E0245E'" onmouseout="this.style.color='var(--muted)'">
-          <span style="font-size:1.1rem;">👍</span> <span>${likes}</span>
-        </button>
-        <button onclick="gp('home');setTimeout(()=>{const el=document.querySelector('[data-pid=\'${p.id}\']');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});}},400);"
-          style="flex:1;background:none;border:none;color:var(--muted);padding:10px 0;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:color .15s;"
-          onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">
-          <span style="font-size:1.1rem;">💬</span> <span>${comments}</span>
-        </button>
-        <button onclick="sharePost('${p.id}')" style="flex:1;background:none;border:none;color:var(--muted);padding:10px 0;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:color .15s;"
-          onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">
-          <span style="font-size:1.1rem;">↗️</span> <span>${shares||''}</span>
-        </button>
+      <!-- Comentar -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+        <button onclick="toggleComments('${p.id}')" style="background:none;border:none;cursor:pointer;padding:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:2rem;filter:drop-shadow(0 1px 4px rgba(0,0,0,.9));">💬</button>
+        <span style="color:#fff;font-size:.72rem;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.9);">${fmtN(cmtCount)}</span>
       </div>
+
+      <!-- Compartir -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+        <button onclick="sharePost('${p.id}')" style="background:none;border:none;cursor:pointer;padding:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:2rem;filter:drop-shadow(0 1px 4px rgba(0,0,0,.9));">↗️</button>
+        <span style="color:#fff;font-size:.72rem;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.9);">${fmtN(shares)}</span>
+      </div>
+
     </div>
+
+    <!-- INFO INFERIOR IZQUIERDA -->
+    <div style="position:absolute;bottom:30px;left:12px;right:72px;z-index:10;">
+      <div style="margin-bottom:6px;">
+        <span style="color:#fff;font-size:.92rem;font-weight:800;text-shadow:0 1px 4px rgba(0,0,0,.9);cursor:pointer;"
+          onclick="openUserProfile('${p.userId||''}','${safeNick}')">
+          ${esc(nick)}${p.userVerified?' ✅':''}
+        </span>
+      </div>
+      ${text ? `<div style="color:rgba(255,255,255,.9);font-size:.82rem;line-height:1.45;text-shadow:0 1px 3px rgba(0,0,0,.8);">${esc(text)}${(p.text||'').length>120?'<span style="opacity:.6"> más</span>':''}</div>` : ''}
+      ${p.fish ? `<div style="color:#ffd700;font-size:.76rem;margin-top:5px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.8);">🐟 ${esc(p.fish)}${p.map?' · 📍'+esc(p.map):''}</div>` : ''}
+    </div>
+
   </div>`;
 }
 window.loadReelsPage = loadReelsPage;
