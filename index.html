@@ -1385,6 +1385,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
     <button class="tb-nav-btn" onclick="gp('amigos');setNav(this);renderAmigosPage();" title="Amigos">👥</button>
     <button class="tb-nav-btn" id="shopNavBtn" onclick="gp('shop');setNav(this);renderShopPage();" title="Tienda" style="font-size:.75rem;font-weight:700;">🛒 Tienda</button>
     <button class="tb-nav-btn" onclick="gp('trofeos-feed');setNav(this)" title="Trofeos Recientes" style="font-size:.75rem;font-weight:700;">🥇 Trofeos Recientes</button>
+    <button class="tb-nav-btn" onclick="gp('reels');setNav(this)" title="Reels" style="font-size:.75rem;font-weight:700;">🎬 Reels</button>
     <button class="tb-nav-btn" id="pezSemanalNavBtn" onclick="openPezSemanalModal();setNav(this)" title="Pez de la Semana" style="font-size:.75rem;font-weight:700;">🐟 Pez Semanal</button>
     <button class="tb-nav-btn" onclick="gp('peso-del-trofeo');setNav(this)" title="Peso del Trofeo" style="font-size:.75rem;font-weight:700;">🏆 Peso del Trofeo</button>
 
@@ -1463,6 +1464,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
       <div class="sl-item"><span class="sl-item-icon">👥</span> Amigos</div>
       <div class="sl-item"><span class="sl-item-icon">📸</span> Fotos</div>
 
+      <div class="sl-item" onclick="gp('reels');setNav(document.querySelectorAll('.tb-nav-btn')[4])"><span class="sl-item-icon">🎬</span> Reels</div>
       <div class="sl-item" onclick="gp('torneos')"><span class="sl-item-icon">🏆</span> Torneos</div>
       <div class="sl-item" onclick="gp('casitrofeo')"><span class="sl-item-icon">🏅</span> Casi Trofeo</div>
       <div class="sl-item" onclick="gp('trofeos-feed');setNav(document.querySelector('.tb-nav-btn'))"><span class="sl-item-icon">🥇</span> Trofeos Recientes</div>
@@ -3729,6 +3731,23 @@ select.fi option{background:var(--bg3);color:var(--text);}
 </div>
 
 
+
+<!-- PAGE: REELS -->
+<div class="page" id="page-reels" style="background:var(--bg1);min-height:100vh;padding:0;">
+  <!-- Header -->
+  <div style="position:sticky;top:0;z-index:100;background:linear-gradient(180deg,var(--bg1) 80%,transparent);padding:16px 16px 8px;display:flex;align-items:center;gap:12px;">
+    <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--text);">🎬 Reels</div>
+    <div style="font-size:.75rem;color:var(--muted);">Videos de YouTube y TikTok</div>
+  </div>
+  <!-- Feed -->
+  <div id="reelsFeed" style="max-width:480px;margin:0 auto;padding:0 0 100px;display:flex;flex-direction:column;gap:0;">
+    <div style="text-align:center;padding:60px 20px;color:var(--muted);">
+      <div style="font-size:2.5rem;margin-bottom:12px;">🎬</div>
+      <div style="font-size:.9rem;">Cargando reels...</div>
+    </div>
+  </div>
+</div>
+
 <!-- PAGE: MÚSICA -->
 <!-- ===== SUBIR SKILL PAGE ===== -->
 <div class="page" id="page-skill" style="max-width:760px;margin:0 auto;padding:24px 16px 80px;">
@@ -5135,6 +5154,7 @@ const ROUTES = {
   '/amigos': 'amigos',
   '/tienda': 'shop',
   '/trofeos-resientes': 'trofeos-feed',
+  '/reels': 'reels',
   '/galeria': 'galeria',
   '/videos': 'videos',
   '/skill': 'skill',
@@ -5158,6 +5178,7 @@ const PAGE_TO_URL = {
   'amigos':        '/amigos',
   'shop':          '/tienda',
   'trofeos-feed':  '/trofeos-resientes',
+  'reels':          '/reels',
   'galeria':       '/galeria',
   'videos':        '/videos',
   'skill':         '/skill',
@@ -5291,6 +5312,7 @@ window.gp = (id, pushState = true) => {
   if(id==='spots'){ loadSpots(); loadFriendSpots(); }
   if(id==='casitrofeo') renderMapPosts();
   if(id==='trofeos-feed') { listenTrofeosFeed(); document.getElementById('trofeoFeedBadge').style.display='inline-flex'; }
+  if(id==='reels') { loadReelsPage(); }
   if(id==='peso-del-trofeo') { renderTrofeos(FISH_DB); }
   if(id==='shop') { loadShopDiscount(); }
   if(id==='publica-trofeo') {
@@ -14769,6 +14791,7 @@ const _PAGE_ACTIVITY = {
   'videos':        {icon:'📹', text:'viendo videos'},
   'spots':         {icon:'📍', text:'explorando spots'},
   'trofeos-feed':  {icon:'🥇', text:'viendo trofeos'},
+  'reels':          {icon:'🎬', text:'viendo reels'},
   'publica-trofeo':{icon:'🏆', text:'publicando trofeo'},
   'peso-del-trofeo': {icon:'🏆', text:'Peso del Trofeo'},
   'casitrofeo':    {icon:'🏅', text:'casi trofeo'},
@@ -17112,6 +17135,153 @@ async function checkDailyStreak(){
 // ===== FEED DE TROFEOS APROBADOS =====
 // Cuando un trofeo se aprueba en la wiki, se escribe ahí con status:'aprobado'
 // Este listener escucha en tiempo real y muestra las tarjetas en el feed
+
+
+// ===== REELS PAGE =====
+let _reelsData = [];
+let _reelsLoaded = false;
+
+async function loadReelsPage(){
+  const el = document.getElementById('reelsFeed');
+  if(!el) return;
+
+  // Si ya cargamos, solo re-renderizamos (para cuando el usuario navega de vuelta)
+  if(_reelsLoaded && _reelsData.length){
+    _renderReelsFeed(el);
+    return;
+  }
+
+  el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--muted);"><div style="font-size:2rem;margin-bottom:10px;animation:pulse 1s infinite;">🎬</div><div>Cargando reels...</div></div>';
+
+  try {
+    // Buscar posts con video de YT/TikTok en Firestore
+    const snap = await getDocs(query(
+      collection(db, 'posts'),
+      orderBy('createdAt', 'desc'),
+      limit(200)
+    ));
+
+    _reelsData = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(p => {
+        if(!p.video) return false;
+        return extractYtId(p.video) || extractTikTokId(p.video) || (p.video.includes('cloudinary') && p.video.match(/\.(mp4|webm|mov)/i));
+      });
+
+    _reelsLoaded = true;
+    _renderReelsFeed(el);
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);">⚠️ Error al cargar reels</div>';
+  }
+}
+
+function _renderReelsFeed(el){
+  if(!_reelsData.length){
+    el.innerHTML = `
+      <div style="text-align:center;padding:80px 20px;color:var(--muted);">
+        <div style="font-size:3rem;margin-bottom:16px;">🎬</div>
+        <div style="font-size:1rem;font-weight:700;color:var(--text);margin-bottom:8px;">Sin reels aún</div>
+        <div style="font-size:.82rem;">Las publicaciones con YouTube o TikTok aparecerán acá</div>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = _reelsData.map(p => _reelCard(p)).join('');
+}
+
+function _reelCard(p){
+  const ytId = extractYtId(p.video || '');
+  const ttId = extractTikTokId(p.video || '');
+  const isCloudVideo = !ytId && !ttId && p.video;
+
+  let embedHTML = '';
+  let badgeHTML = '';
+  let isVertical = false;
+
+  if(ytId){
+    badgeHTML = '<span style="background:#FF0000;color:#fff;font-size:.65rem;font-weight:800;padding:2px 8px;border-radius:100px;display:flex;align-items:center;gap:4px;">▶ YouTube</span>';
+    isVertical = false;
+    embedHTML = `<div style="width:100%;aspect-ratio:16/9;background:#000;border-radius:0;">
+      <iframe src="https://www.youtube.com/embed/${ytId}?rel=0&autoplay=0" frameborder="0" allowfullscreen
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        style="width:100%;height:100%;display:block;border:none;" loading="lazy"></iframe>
+    </div>`;
+  } else if(ttId){
+    badgeHTML = '<span style="background:#010101;color:#fff;font-size:.65rem;font-weight:800;padding:2px 8px;border-radius:100px;display:flex;align-items:center;gap:4px;"><span style="color:#69C9D0;">♪</span> TikTok</span>';
+    isVertical = true;
+    embedHTML = `<div style="width:100%;max-width:340px;margin:0 auto;aspect-ratio:9/16;background:#000;border-radius:0;">
+      <iframe src="https://www.tiktok.com/embed/v2/${ttId}" frameborder="0" allowfullscreen
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        style="width:100%;height:100%;display:block;border:none;" loading="lazy"></iframe>
+    </div>`;
+  } else if(isCloudVideo){
+    badgeHTML = '<span style="background:var(--accent);color:#fff;font-size:.65rem;font-weight:800;padding:2px 8px;border-radius:100px;">🎬 Video</span>';
+    embedHTML = `<video src="${p.video}" controls playsinline style="width:100%;max-height:520px;background:#000;display:block;"></video>`;
+  }
+
+  const av = p.userAv || getDefaultAv(p.userGender||'');
+  const nick = p.userNick || 'Usuario';
+  const text = (p.text||'').slice(0,140);
+  const likes = p.likes || 0;
+  const comments = p.commentCount || 0;
+  const shares = p.shares || 0;
+  const timeAgo = p.createdAt?.toDate ? _timeAgo(p.createdAt.toDate()) : '';
+
+  return `
+  <div style="background:var(--bg1);border-bottom:1px solid var(--border);padding-bottom:0;margin-bottom:0;" data-reel-pid="${p.id}">
+
+    <!-- Video embed -->
+    <div style="background:#000;position:relative;">
+      ${embedHTML}
+      <!-- Badge plataforma -->
+      <div style="position:absolute;top:10px;left:10px;display:flex;gap:6px;">
+        ${badgeHTML}
+      </div>
+    </div>
+
+    <!-- Info del post -->
+    <div style="padding:12px 14px 4px;">
+      <!-- Usuario -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <img src="${av}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid var(--border);cursor:pointer;flex-shrink:0;"
+          onclick="openUserProfile('${p.userId||''}','${(nick).replace(/'/g,"\\'")}')">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:.88rem;font-weight:800;color:var(--text);cursor:pointer;"
+            onclick="openUserProfile('${p.userId||''}','${(nick).replace(/'/g,"\\'")}')">
+            ${esc(nick)} ${p.userVerified?'✅':''}
+          </div>
+          <div style="font-size:.7rem;color:var(--muted);">${timeAgo}</div>
+        </div>
+        <button onclick="gp('home');setTimeout(()=>{const el=document.querySelector('[data-pid=\'${p.id}\']');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});}},400);"
+          style="background:rgba(46,196,182,.12);border:1px solid rgba(46,196,182,.3);color:var(--accent);padding:5px 12px;border-radius:100px;font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap;">
+          Ver post →
+        </button>
+      </div>
+
+      <!-- Texto -->
+      ${text ? `<div style="font-size:.84rem;color:var(--text);margin-bottom:10px;line-height:1.5;">${esc(text)}${(p.text||'').length>140?'…':''}</div>` : ''}
+      ${p.fish ? `<div style="font-size:.78rem;color:var(--gold);margin-bottom:8px;">🐟 ${esc(p.fish)}${p.map?' · 📍'+esc(p.map):''}</div>` : ''}
+
+      <!-- Acciones -->
+      <div style="display:flex;align-items:center;gap:0;border-top:1px solid var(--border);margin:0 -14px;padding:2px 0;">
+        <button onclick="likePost('${p.id}',this)" style="flex:1;background:none;border:none;color:var(--muted);padding:10px 0;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:color .15s;"
+          onmouseover="this.style.color='#E0245E'" onmouseout="this.style.color='var(--muted)'">
+          <span style="font-size:1.1rem;">👍</span> <span>${likes}</span>
+        </button>
+        <button onclick="gp('home');setTimeout(()=>{const el=document.querySelector('[data-pid=\'${p.id}\']');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});}},400);"
+          style="flex:1;background:none;border:none;color:var(--muted);padding:10px 0;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:color .15s;"
+          onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">
+          <span style="font-size:1.1rem;">💬</span> <span>${comments}</span>
+        </button>
+        <button onclick="sharePost('${p.id}')" style="flex:1;background:none;border:none;color:var(--muted);padding:10px 0;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:color .15s;"
+          onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">
+          <span style="font-size:1.1rem;">↗️</span> <span>${shares||''}</span>
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+window.loadReelsPage = loadReelsPage;
 
 let _unsubTrofeos = null;
 let _trofeosFeedData = [];
