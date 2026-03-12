@@ -3732,21 +3732,8 @@ select.fi option{background:var(--bg3);color:var(--text);}
 
 
 
-<!-- PAGE: REELS -->
-<div class="page" id="page-reels" style="background:var(--bg1);min-height:100vh;padding:0;">
-  <!-- Header -->
-  <div style="position:sticky;top:0;z-index:100;background:linear-gradient(180deg,var(--bg1) 80%,transparent);padding:16px 16px 8px;display:flex;align-items:center;gap:12px;">
-    <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--text);">🎬 Reels</div>
-    <div style="font-size:.75rem;color:var(--muted);">Videos de YouTube y TikTok</div>
-  </div>
-  <!-- Feed -->
-  <div id="reelsFeed" style="max-width:480px;margin:0 auto;padding:0 0 100px;display:flex;flex-direction:column;gap:0;">
-    <div style="text-align:center;padding:60px 20px;color:var(--muted);">
-      <div style="font-size:2.5rem;margin-bottom:12px;">🎬</div>
-      <div style="font-size:.9rem;">Cargando reels...</div>
-    </div>
-  </div>
-</div>
+<!-- PAGE: REELS (placeholder inside layout — el real es el overlay fixed) -->
+<div class="page" id="page-reels" style="height:0;overflow:hidden;padding:0!important;"></div>
 
 <!-- PAGE: MÚSICA -->
 <!-- ===== SUBIR SKILL PAGE ===== -->
@@ -5312,7 +5299,14 @@ window.gp = (id, pushState = true) => {
   if(id==='spots'){ loadSpots(); loadFriendSpots(); }
   if(id==='casitrofeo') renderMapPosts();
   if(id==='trofeos-feed') { listenTrofeosFeed(); document.getElementById('trofeoFeedBadge').style.display='inline-flex'; }
-  if(id==='reels') { loadReelsPage(); }
+  if(id==='reels') {
+    const prevPg = document.querySelector('.page.active');
+    window._reelsPrevPage = prevPg && prevPg.id !== 'page-reels' ? prevPg.id.replace('page-','') : 'home';
+    const overlay = document.getElementById('reelsOverlay');
+    if(overlay){ overlay.style.display='block'; document.body.style.overflow='hidden'; }
+    loadReelsPage();
+    return;
+  }
   if(id==='peso-del-trofeo') { renderTrofeos(FISH_DB); }
   if(id==='shop') { loadShopDiscount(); }
   if(id==='publica-trofeo') {
@@ -17313,6 +17307,13 @@ function _reelCard(p){
   </div>`;
 }
 window.loadReelsPage = loadReelsPage;
+function closeReelsOverlay(){
+  const overlay = document.getElementById('reelsOverlay');
+  if(overlay) overlay.style.display='none';
+  document.body.style.overflow='';
+  if(window._reelsPrevPage) window.gp(window._reelsPrevPage, true);
+}
+window.closeReelsOverlay = closeReelsOverlay;
 
 let _unsubTrofeos = null;
 let _trofeosFeedData = [];
@@ -20891,5 +20892,19 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // Esperar un tick para que el DOM esté completo
   setTimeout(applyLang, 200);
 });
-</script></body>
+</script>
+<!-- ===== REELS FULLSCREEN OVERLAY ===== -->
+<div id="reelsOverlay" style="display:none;position:fixed;inset:0;z-index:5000;background:#000;">
+  <div style="position:absolute;top:0;left:0;right:0;z-index:20;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(0,0,0,.7) 0%,transparent 100%);pointer-events:none;">
+    <span style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:900;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.9);pointer-events:none;">🎬 Reels</span>
+    <button onclick="closeReelsOverlay()" style="pointer-events:auto;background:rgba(0,0,0,.55);border:1.5px solid rgba(255,255,255,.25);color:#fff;width:36px;height:36px;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);">✕</button>
+  </div>
+  <div id="reelsFeed" style="width:100%;height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;">
+    <div style="height:100vh;display:flex;align-items:center;justify-content:center;color:#fff;">
+      <div style="text-align:center;"><div style="font-size:2.5rem;margin-bottom:12px;">🎬</div><div style="font-size:.9rem;opacity:.7;">Cargando reels...</div></div>
+    </div>
+  </div>
+</div>
+
+</body>
 </html>
