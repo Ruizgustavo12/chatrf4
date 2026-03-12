@@ -4913,19 +4913,21 @@ async function doLogin(){
     onLogin();
     toast('¡Bienvenido '+window.CU.nick+'! 🎣','ok');
   } catch(e) {
-    let msg = 'Error: ' + (e.code || e.message || 'desconocido');
-    if(e.code === 'auth/invalid-email') msg = 'Email inválido';
-    else if(e.code === 'auth/user-not-found') msg = 'Usuario no encontrado. Verificá el email.';
-    else if(e.code === 'auth/wrong-password') msg = 'Contraseña incorrecta';
-    else if(e.code === 'auth/invalid-credential') msg = 'Email o contraseña incorrectos';
-    else if(e.code === 'auth/invalid-login-credentials') msg = 'Email o contraseña incorrectos';
-    else if(e.code === 'auth/too-many-requests') msg = 'Demasiados intentos. Esperá unos minutos.';
-    else if(e.code === 'auth/network-request-failed') msg = 'Error de red. Verificá tu conexión.';
-    else if(e.code === 'auth/operation-not-allowed') msg = '⚠️ Login con email no está habilitado en Firebase. Activalo en Firebase Console → Authentication → Sign-in methods.';
-    else if(e.code === 'auth/configuration-not-found') msg = '⚠️ Firebase no está configurado para email/contraseña. Activalo en Firebase Console.';
+    let msg = '';
+    const code = e.code || '';
+    if(code === 'auth/invalid-email') msg = 'Email inválido';
+    else if(code === 'auth/user-not-found') msg = 'Usuario no encontrado. Verificá el email.';
+    else if(code === 'auth/wrong-password') msg = 'Contraseña incorrecta';
+    else if(code === 'auth/invalid-credential' || code === 'auth/invalid-login-credentials') msg = 'Email o contraseña incorrectos. Verificá bien los datos o usá "¿Olvidaste tu contraseña?".';
+    else if(code === 'auth/too-many-requests') msg = 'Cuenta bloqueada temporalmente por demasiados intentos. Restablecé tu contraseña o esperá unos minutos.';
+    else if(code === 'auth/network-request-failed') msg = 'Error de red. Verificá tu conexión a internet.';
+    else if(code === 'auth/user-disabled') msg = 'Esta cuenta fue deshabilitada.';
+    else if(code === 'auth/operation-not-allowed') msg = '⚠️ Login con email no está habilitado en Firebase Console.';
+    else if(code === 'auth/configuration-not-found') msg = '⚠️ Firebase no está configurado para email/contraseña.';
+    else msg = 'Error al iniciar sesión (' + (code || e.message || 'desconocido') + ')';
     errEl.textContent = msg;
     errEl.style.display='block';
-    console.error('Login error:', e.code, e.message);
+    console.error('Login error:', code, e.message);
     if(btn){ btn.disabled=false; btn.textContent='Iniciar sesión'; }
   }
 }
@@ -14748,20 +14750,44 @@ function renderSidebarOnline(online, offline){
 // ===== HELPER: Extraer emoji de bandera del string de país =====
 function getCountryFlag(country){
   if(!country) return '';
-  // Las banderas son pares de indicadores regionales (U+1F1E6–U+1F1FF)
-  // Ej: "🇺🇾 Uruguay" → extraer los primeros dos chars que son el par de bandera
-  const chars = [...country]; // spread para manejar correctamente los code points
-  // Verificar si los primeros 1-2 caracteres son indicadores regionales (banderas)
+  const chars = [...country.trim()];
+  // Caso 1: empieza con par de indicadores regionales (bandera emoji), ej: "🇺🇾 Uruguay"
   if(chars.length >= 2){
     const c0 = chars[0].codePointAt(0);
     const c1 = chars[1].codePointAt(0);
-    // Indicadores regionales: rango 0x1F1E6 – 0x1F1FF
     if(c0 >= 0x1F1E6 && c0 <= 0x1F1FF && c1 >= 0x1F1E6 && c1 <= 0x1F1FF){
-      return chars[0] + chars[1]; // bandera = 2 indicadores regionales juntos
+      return chars[0] + chars[1];
     }
   }
-  // Fallback: si el primer char es cualquier emoji (code point > 127)
-  if(chars.length && chars[0].codePointAt(0) > 127) return chars[0];
+  // Caso 2: código de 2 letras, ej: "uy", "ar", "mx" — convertir a bandera
+  const codeMap = {
+    ar:'🇦🇷',mx:'🇲🇽',es:'🇪🇸',co:'🇨🇴',cl:'🇨🇱',pe:'🇵🇪',
+    ve:'🇻🇪',uy:'🇺🇾',br:'🇧🇷',bo:'🇧🇴',py:'🇵🇾',ec:'🇪🇨',
+    pa:'🇵🇦',cr:'🇨🇷',gt:'🇬🇹',hn:'🇭🇳',sv:'🇸🇻',do:'🇩🇴',
+    cu:'🇨🇺',pr:'🇵🇷',ru:'🇷🇺',us:'🇺🇸',de:'🇩🇪',fr:'🇫🇷',
+    it:'🇮🇹',pt:'🇵🇹',pl:'🇵🇱',ua:'🇺🇦',gb:'🇬🇧',ca:'🇨🇦',au:'🇦🇺'
+  };
+  const nameMap = {
+    'argentina':'🇦🇷','méxico':'🇲🇽','mexico':'🇲🇽','españa':'🇪🇸','espana':'🇪🇸',
+    'colombia':'🇨🇴','chile':'🇨🇱','perú':'🇵🇪','peru':'🇵🇪','venezuela':'🇻🇪',
+    'uruguay':'🇺🇾','brasil':'🇧🇷','brazil':'🇧🇷','bolivia':'🇧🇴','paraguay':'🇵🇾',
+    'ecuador':'🇪🇨','panamá':'🇵🇦','panama':'🇵🇦','costa rica':'🇨🇷',
+    'guatemala':'🇬🇹','honduras':'🇭🇳','el salvador':'🇸🇻','rep. dominicana':'🇩🇴',
+    'cuba':'🇨🇺','puerto rico':'🇵🇷','rusia':'🇷🇺','russia':'🇷🇺',
+    'estados unidos':'🇺🇸','united states':'🇺🇸','alemania':'🇩🇪','germany':'🇩🇪',
+    'francia':'🇫🇷','france':'🇫🇷','italia':'🇮🇹','italy':'🇮🇹',
+    'portugal':'🇵🇹','polonia':'🇵🇱','poland':'🇵🇱','ucrania':'🇺🇦','ukraine':'🇺🇦',
+    'reino unido':'🇬🇧','canadá':'🇨🇦','canada':'🇨🇦','australia':'🇦🇺'
+  };
+  const lower = country.trim().toLowerCase();
+  // Código 2 letras exacto
+  if(lower.length === 2 && codeMap[lower]) return codeMap[lower];
+  // Nombre de país
+  if(nameMap[lower]) return nameMap[lower];
+  // Buscar si el nombre del país está dentro del string (ej: "🇺🇾 Uruguay" ya manejado arriba)
+  for(const [name, flag] of Object.entries(nameMap)){
+    if(lower.includes(name)) return flag;
+  }
   return '';
 }
 
