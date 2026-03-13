@@ -20376,8 +20376,7 @@ async function loadMemories(){
   _memoriesIdx  = 0;
 
   if(!memories.length){
-    // Mostrar el card vacío igual que Facebook
-    _renderMemoriesEmpty(w);
+    w.style.display = 'none';
     return;
   }
   _renderMemoriesCard(w);
