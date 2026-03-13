@@ -12617,14 +12617,78 @@ function removeSavedAccount(email, e){
 }
 
 async function doForgotPassword(){
-  const em = document.getElementById('lEmail').value.trim();
-  if(!em){ toast('Ingresá tu email primero','err'); return; }
-  try {
-    const { sendPasswordResetEmail } = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js');
-    await sendPasswordResetEmail(auth, em);
-    toast('Email de recuperación enviado ✅','ok');
-  } catch(e){ toast('No se pudo enviar el email','err'); }
+  // Mostrar modal para ingresar email o nick
+  const old = document.getElementById('_forgotModal');
+  if(old) old.remove();
+  const m = document.createElement('div');
+  m.id = '_forgotModal';
+  m.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:16px;';
+  m.innerHTML = `
+    <div style="background:#161b22;border:1px solid #30363d;border-radius:16px;padding:28px 24px;max-width:400px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.5);">
+      <div style="font-size:1.5rem;text-align:center;margin-bottom:8px;">🔑</div>
+      <div style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:800;color:var(--accent);text-align:center;margin-bottom:6px;">Recuperar contraseña</div>
+      <div style="font-size:.82rem;color:var(--muted);text-align:center;margin-bottom:18px;">Ingresá tu email o nick y te enviamos un link para restablecer tu contraseña.</div>
+      <input id="_forgotInput" type="text" placeholder="Email o nombre de usuario" style="width:100%;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:11px 14px;color:#e6edf3;font-family:'Exo 2',sans-serif;font-size:.92rem;outline:none;margin-bottom:10px;" onkeypress="if(event.key==='Enter')_sendForgot()">
+      <div id="_forgotErr" style="color:#f85149;font-size:.78rem;text-align:center;margin-bottom:8px;display:none;"></div>
+      <div id="_forgotOk" style="color:#3fb950;font-size:.82rem;text-align:center;margin-bottom:8px;display:none;padding:8px;background:rgba(63,185,80,.1);border-radius:6px;border:1px solid rgba(63,185,80,.3);"></div>
+      <button onclick="_sendForgot()" id="_forgotBtn" style="width:100%;padding:12px;background:var(--accent);color:#000;border:none;border-radius:8px;font-size:.95rem;font-weight:800;font-family:'Exo 2',sans-serif;cursor:pointer;margin-bottom:10px;transition:opacity .15s;">Enviar link de recuperación</button>
+      <button onclick="document.getElementById('_forgotModal').remove()" style="width:100%;padding:10px;background:none;color:var(--muted);border:1px solid #30363d;border-radius:8px;font-size:.85rem;font-weight:600;font-family:'Exo 2',sans-serif;cursor:pointer;">Cancelar</button>
+    </div>`;
+  m.addEventListener('click', e=>{ if(e.target===m) m.remove(); });
+  document.body.appendChild(m);
+  setTimeout(()=>{ const inp=document.getElementById('_forgotInput'); if(inp) inp.focus(); }, 100);
 }
+
+window._sendForgot = async function(){
+  const inp = document.getElementById('_forgotInput');
+  const errEl = document.getElementById('_forgotErr');
+  const okEl = document.getElementById('_forgotOk');
+  const btn = document.getElementById('_forgotBtn');
+  let val = inp ? inp.value.trim() : '';
+  if(!val){ errEl.textContent='Ingresá tu email o nick'; errEl.style.display='block'; return; }
+  errEl.style.display='none'; okEl.style.display='none';
+  btn.disabled=true; btn.textContent='Enviando...';
+  try {
+    let email = val;
+    // Si no tiene @ buscar por nick
+    if(!val.includes('@')){
+      let found = null;
+      try {
+        const q = await getDocs(query(collection(db,'users'), where('nick','==',val)));
+        found = q.docs[0];
+      } catch(e2){}
+      if(!found){
+        try {
+          const q2 = await getDocs(query(collection(db,'users'), where('nickLower','==',val.toLowerCase())));
+          found = q2.docs[0];
+        } catch(e3){}
+      }
+      if(!found){
+        errEl.textContent='Nick no encontrado. Probá con tu email.';
+        errEl.style.display='block';
+        btn.disabled=false; btn.textContent='Enviar link de recuperación';
+        return;
+      }
+      email = found.data().email;
+      if(!email){
+        errEl.textContent='No se encontró email para este nick.';
+        errEl.style.display='block';
+        btn.disabled=false; btn.textContent='Enviar link de recuperación';
+        return;
+      }
+    }
+    const { sendPasswordResetEmail } = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js');
+    await sendPasswordResetEmail(auth, email);
+    okEl.textContent='✅ Email enviado a ' + email + '. Revisá tu bandeja de entrada (y el spam).';
+    okEl.style.display='block';
+    btn.textContent='¡Enviado!';
+    setTimeout(()=>{ const m=document.getElementById('_forgotModal'); if(m) m.remove(); }, 4000);
+  } catch(e){
+    errEl.textContent = e.code==='auth/user-not-found' ? 'No existe una cuenta con ese email.' : 'Error al enviar. Verificá el email.';
+    errEl.style.display='block';
+    btn.disabled=false; btn.textContent='Enviar link de recuperación';
+  }
+};
 
 // ===== GALLERY =====
 function renderGallery(){
