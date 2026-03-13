@@ -4845,7 +4845,6 @@ async function doFacebookLogin(){
   try {
     const provider = new FacebookAuthProvider();
     provider.addScope('email');
-    provider.addScope('public_profile');
     const cred = await signInWithPopup(auth, provider);
     const user = cred.user;
     const userRef = doc(db, 'users', user.uid);
