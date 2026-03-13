@@ -2209,6 +2209,10 @@ select.fi option{background:var(--bg3);color:var(--text);}
           <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:22px;height:22px;">
           Continuar con Google
         </button>
+        <button onclick="doFacebookLogin()" style="width:100%;padding:12px;background:#1877f2;color:#fff;border:none;border-radius:6px;font-size:1rem;font-weight:600;font-family:'Exo 2',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;transition:background .15s;" onmouseover="this.style.background='#166fe5'" onmouseout="this.style.background='#1877f2'">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.268h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
+          Continuar con Facebook
+        </button>
       </div>
 
       <!-- Footer WikipediaRF4 -->
@@ -4237,7 +4241,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
     </div>
     <div class="wk-fg"><label class="wk-fl">Descripción / Setup</label><textarea class="wk-fi" id="wkPDesc" placeholder="Señuelo, profundidad, condiciones del agua..." style="min-height:65px"></textarea></div>
     <div class="wk-fg">
-      <label class="wk-fl">📸 Fotos (máx. 5)</label>
+      <label class="wk-fl">📸 Fotos (máx. 4)</label>
       <div class="wk-dz" id="wkDropzone">
         <div>📁 Arrastrá o hacé clic para subir fotos</div>
         <div style="font-size:.75rem;color:var(--muted,#567890);margin-top:4px">JPG, PNG · Max 5MB c/u</div>
@@ -4408,7 +4412,7 @@ function _stub(name){ return function(){ _q.push([name, arguments]); }; }
 <script type="module">
 // ===== FIREBASE SETUP (modular ESM — sin eval, compatible con CSP) =====
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, addDoc, deleteDoc, onSnapshot, query, orderBy, limit, serverTimestamp, increment, where, deleteField, Timestamp, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js';
 
@@ -4833,6 +4837,57 @@ async function doGoogleLogin(){
     errEl.textContent = e.message;
   }
 }
+
+// ===== FACEBOOK LOGIN =====
+async function doFacebookLogin(){
+  const errEl = document.getElementById('lErr');
+  errEl.textContent = ''; errEl.style.display = 'none';
+  try {
+    const provider = new FacebookAuthProvider();
+    provider.addScope('email');
+    provider.addScope('public_profile');
+    const cred = await signInWithPopup(auth, provider);
+    const user = cred.user;
+    const userRef = doc(db, 'users', user.uid);
+    const userSnap = await getDoc(userRef);
+    if(!userSnap.exists()){
+      const nick = (user.displayName?.replace(/\s+/g,'') || 'User' + Date.now().toString().slice(-4));
+      const newUser = {
+        nick, nickLower: nick.toLowerCase(),
+        email: user.email || '',
+        av: user.photoURL ? user.photoURL + '?type=large' : '',
+        cover: '', bio: '', country: '',
+        favFish: '', favMap: '',
+        social_yt: '', social_dc: '',
+        joined: new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}),
+        posts: 0, friends: 0, likes: 0,
+        createdAt: serverTimestamp()
+      };
+      await setDoc(userRef, newUser);
+      window.CU = { id: user.uid, ...newUser };
+      document.getElementById('mAuth').style.display = 'none';
+      const cpModal = document.getElementById('mCountryPick');
+      if(cpModal){ cpModal.style.display='flex'; }
+      return;
+    } else {
+      window.CU = { id: user.uid, ...userSnap.data() };
+    }
+    if(!window.CU.country){
+      document.getElementById('mAuth').style.display = 'none';
+      const cpModal = document.getElementById('mCountryPick');
+      if(cpModal){ cpModal.style.display='flex'; }
+      return;
+    }
+    document.getElementById('mAuth').style.display = 'none';
+    onLogin();
+    toast('¡Bienvenido ' + window.CU.nick + '! 🎣', 'ok');
+  } catch(e) {
+    if(e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') return;
+    errEl.style.display = 'block';
+    errEl.textContent = e.message;
+  }
+}
+window.doFacebookLogin = doFacebookLogin;
 
 // ===== CONFIRMAR PAÍS =====
 window.confirmCountryPick = async function(){
@@ -17518,23 +17573,9 @@ function trofeoFeedCardHTML(t){
       </div>
       ${technique?`<div style="font-size:.72rem;background:rgba(0,198,255,.1);color:var(--accent);padding:3px 10px;border-radius:100px;white-space:nowrap;">🎣 ${technique}</div>`:''}
     </div>
-    <!-- Images carousel -->
-    ${images.length>0
-      ? `<div style="position:relative;background:#000;" id="tfcar_${t.id||''}">
-          <img id="tfcarimg_${t.id||''}" src="${images[0]}" style="width:100%;max-height:440px;object-fit:cover;display:block;cursor:pointer;transition:opacity .12s;" onclick="(function(){window._postImgsMap=window._postImgsMap||{};window._postImgsMap['trofeo_${t.id||''}']=[${images.map(x=>`'${x}'`).join(',')}];openImgLightboxById('trofeo_${t.id||''}',window._tfIdx&&window._tfIdx['${t.id||''}']||0);})()" loading="lazy">
-          ${images.length>1?`
-            <div onclick="(function(e){e.stopPropagation();var id='${t.id||''}',imgs=[${images.map(x=>`'${x}'`).join(',')}];window._tfIdx=window._tfIdx||{};var idx=(window._tfIdx[id]||0)-1;if(idx<0)idx=imgs.length-1;window._tfIdx[id]=idx;var im=document.getElementById('tfcarimg_'+id),ct=document.getElementById('tfcarcnt_'+id),ds=document.querySelectorAll('.tfcardot_'+id);if(im){im.style.opacity='0';setTimeout(function(){im.src=imgs[idx];im.onclick=function(){window._postImgsMap=window._postImgsMap||{};window._postImgsMap['trofeo_'+id]=imgs;openImgLightboxById('trofeo_'+id,idx);};im.style.opacity='1';},110);}if(ct)ct.textContent=(idx+1)+' / '+imgs.length;ds.forEach(function(d,i){d.style.background=i===idx?'#fff':'rgba(255,255,255,.4)';});})(event)" style="position:absolute;top:0;left:0;width:44px;height:100%;z-index:5;cursor:pointer;display:flex;align-items:center;justify-content:center;background:linear-gradient(to right,rgba(0,0,0,.35),transparent);">
-              <div style="background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:300;">‹</div>
-            </div>
-            <div onclick="(function(e){e.stopPropagation();var id='${t.id||''}',imgs=[${images.map(x=>`'${x}'`).join(',')}];window._tfIdx=window._tfIdx||{};var idx=(window._tfIdx[id]||0)+1;if(idx>=imgs.length)idx=0;window._tfIdx[id]=idx;var im=document.getElementById('tfcarimg_'+id),ct=document.getElementById('tfcarcnt_'+id),ds=document.querySelectorAll('.tfcardot_'+id);if(im){im.style.opacity='0';setTimeout(function(){im.src=imgs[idx];im.onclick=function(){window._postImgsMap=window._postImgsMap||{};window._postImgsMap['trofeo_'+id]=imgs;openImgLightboxById('trofeo_'+id,idx);};im.style.opacity='1';},110);}if(ct)ct.textContent=(idx+1)+' / '+imgs.length;ds.forEach(function(d,i){d.style.background=i===idx?'#fff':'rgba(255,255,255,.4)';});})(event)" style="position:absolute;top:0;right:0;width:44px;height:100%;z-index:5;cursor:pointer;display:flex;align-items:center;justify-content:center;background:linear-gradient(to left,rgba(0,0,0,.35),transparent);">
-              <div style="background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:300;">›</div>
-            </div>
-            <div id="tfcarcnt_${t.id||''}" style="position:absolute;top:10px;right:10px;background:rgba(0,0,0,.6);color:#fff;font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:100px;z-index:4;">1 / ${images.length}</div>
-            <div style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:4;">
-              ${images.map((_,i)=>`<div class="tfcardot_${t.id||''}" style="width:7px;height:7px;border-radius:50%;background:${i===0?'#fff':'rgba(255,255,255,.4)'};transition:background .2s;cursor:pointer;pointer-events:none;"></div>`).join('')}
-            </div>
-          `:''}
-        </div>`
+    <!-- Images -->
+    ${images.length>1
+      ? `<div style="display:grid;grid-template-columns:${images.length===2?'1fr 1fr':'1fr 1fr 1fr'};gap:2px;margin-bottom:0;">${images.slice(0,4).map(img=>`<img src="${img}" style="width:100%;aspect-ratio:1;object-fit:cover;cursor:pointer;" onclick="openImgLightbox('${img}')" loading="lazy">`).join('')}</div>`
       : imgUrl?`<img src="${imgUrl}" style="width:100%;max-height:440px;object-fit:cover;display:block;cursor:pointer;" onclick="openImgLightbox('${imgUrl}')" loading="lazy">`:''}
     <!-- Details -->
     ${bait||spot?`<div style="padding:10px 14px 4px;display:flex;flex-wrap:wrap;gap:6px;">
@@ -18914,46 +18955,11 @@ async function wkUpdateBannerCounts() {
 }
 
 // Card HTML builder
-// Store per-card current image index
-window._wkCardIdx = window._wkCardIdx || {};
-
-window.wkCardNav = function(event, cardId, dir) {
-  event.stopPropagation();
-  const imgs = window._wkCardImgs && window._wkCardImgs[cardId];
-  if(!imgs || imgs.length <= 1) return;
-  let idx = (window._wkCardIdx[cardId] || 0) + dir;
-  if(idx < 0) idx = imgs.length - 1;
-  if(idx >= imgs.length) idx = 0;
-  window._wkCardIdx[cardId] = idx;
-  const imgEl = document.getElementById('wkci-' + cardId);
-  const dotEls = document.querySelectorAll('.wkcd-' + cardId);
-  if(imgEl){ imgEl.style.opacity='0'; setTimeout(()=>{ imgEl.src=imgs[idx]; imgEl.style.opacity='1'; },100); }
-  dotEls.forEach((d,i)=>{ d.style.background = i===idx ? '#fff' : 'rgba(255,255,255,.4)'; });
-};
-
 function wkCard(t, showSt=false) {
   const liked = window.CU && t.reactions && t.reactions[window.CU.id]?.emoji==='❤️';
-  const hasImgs = t.images && t.images.length > 0;
-  const multiImg = t.images && t.images.length > 1;
-  window._wkCardImgs = window._wkCardImgs || {};
-  if(hasImgs) window._wkCardImgs[t.id] = t.images;
-  window._wkCardIdx[t.id] = window._wkCardIdx[t.id] || 0;
   return `<div class="tcard" onclick="wkOpenDet('${t.id}')">
-    <div class="tcard-img" style="position:relative;">
-      ${hasImgs
-        ? `<img id="wkci-${t.id}" src="${t.images[0]}" alt="${wkEsc(t.fish)}" loading="lazy" style="transition:opacity .1s;">`
-        : `<span>🐟</span>`}
-      ${multiImg ? `
-        <div onclick="wkCardNav(event,'${t.id}',-1)" style="position:absolute;top:0;left:0;width:40%;height:100%;z-index:5;cursor:w-resize;display:flex;align-items:center;justify-content:flex-start;padding-left:6px;opacity:0;transition:opacity .2s;" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0'">
-          <div style="background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:1rem;">‹</div>
-        </div>
-        <div onclick="wkCardNav(event,'${t.id}',1)" style="position:absolute;top:0;right:0;width:40%;height:100%;z-index:5;cursor:e-resize;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;opacity:0;transition:opacity .2s;" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0'">
-          <div style="background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:1rem;">›</div>
-        </div>
-        <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:4px;z-index:6;">
-          ${t.images.map((_,i)=>`<div class="wkcd-${t.id}" onclick="event.stopPropagation();wkCardNav({stopPropagation:()=>{}},'${t.id}',${i - (window._wkCardIdx[t.id]||0)})" style="width:6px;height:6px;border-radius:50%;background:${i===0?'#fff':'rgba(255,255,255,.4)'};cursor:pointer;transition:background .2s;"></div>`).join('')}
-        </div>
-      ` : ''}
+    <div class="tcard-img">
+      ${t.images&&t.images[0]?`<img src="${t.images[0]}" alt="${wkEsc(t.fish)}" loading="lazy">`:`<span>🐟</span>`}
       <div class="twbadge">${fmtKg(t.weight||0)}</div>
       ${showSt&&t.status?`<div class="status-badge status-${t.status}">${t.status==='pending'?'⏳ Pendiente':t.status==='approved'?'✅ Aprobado':'❌ Rechazado'}</div>`:''}
     </div>
@@ -19387,14 +19393,13 @@ window.wkResetForm = () => {
   const dt = document.getElementById('wkPDt');
   if(dt) dt.value = new Date().toISOString().split('T')[0];
   _wkImgs=[]; _wkEditId=null; wkPvRender();
-  window._wkCardIdx = {};
   const err=document.getElementById('wkPubErr'); if(err) err.textContent='';
 };
 
 // File handling for publish form
 window.wkHFiles = (files) => {
   Array.from(files).forEach(f=>{
-    if(_wkImgs.length>=5) return;
+    if(_wkImgs.length>=4) return;
     if(!f.type.startsWith('image/')) return;
     const reader=new FileReader();
     reader.onload=e=>{ _wkImgs.push({file:f,preview:e.target.result}); wkPvRender(); };
