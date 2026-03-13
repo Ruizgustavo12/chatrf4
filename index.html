@@ -1566,12 +1566,27 @@ select.fi option{background:var(--bg3);color:var(--text);}
         <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px 8px;">
           <span style="font-size:.88rem;font-weight:700;color:var(--muted);">Contactos</span>
           <div style="display:flex;gap:4px;">
-            <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''" title="Buscar">🔍</div>
-            <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''" title="Opciones">···</div>
+            <div id="sidebarSearchBtn" style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''" onclick="toggleSidebarSearch()" title="Buscar">🔍</div>
+            <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">···</div>
           </div>
+        </div>
+        <div id="sidebarSearchBox" style="display:none;padding:0 10px 8px;">
+          <input id="sidebarSearchInput" type="text" placeholder="Buscar contacto..." oninput="filterSidebarContacts(this.value)"
+            style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:7px 14px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.82rem;outline:none;">
         </div>
         <div id="sidebarOnlineList" style="padding:2px 0;"></div>
       </div>
+
+      <!-- ÚLTIMOS TROFEOS WIDGET -->
+      <div id="trofeoSidebarWidget" style="margin-bottom:14px;">
+        <div class="sr-title" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>🥇 Últimos Trofeos</span>
+          <span style="font-size:.72rem;color:var(--accent);cursor:pointer;font-weight:600;" onclick="gp('trofeos-feed')">Ver todos</span>
+        </div>
+        <div id="trofeoSidebarList"><div style="font-size:.75rem;color:var(--muted);padding:6px 4px;">Cargando...</div></div>
+      </div>
+
+    </div>
 
       <!-- ÚLTIMOS TROFEOS WIDGET -->
       <div id="trofeoSidebarWidget" style="margin-bottom:14px;">
@@ -15166,7 +15181,46 @@ function renderSidebarOnline(online, offline){
     html = `<div style="text-align:center;padding:16px 8px;color:var(--muted);font-size:.75rem;">🎣 Sin contactos aún</div>`;
   }
   el.innerHTML = html;
+  // Guardar todos los usuarios para filtrar
+  window._sidebarAllOnline = onlineFiltered;
+  window._sidebarAllOffline = offline;
+  window._sidebarUserBanner = userBanner;
 }
+
+// Toggle buscador de contactos
+window.toggleSidebarSearch = function(){
+  const box = document.getElementById('sidebarSearchBox');
+  const inp = document.getElementById('sidebarSearchInput');
+  if(!box) return;
+  const visible = box.style.display !== 'none';
+  box.style.display = visible ? 'none' : 'block';
+  if(!visible && inp){ inp.value=''; inp.focus(); filterSidebarContacts(''); }
+};
+
+// Filtrar contactos por nick
+window.filterSidebarContacts = function(q){
+  const el = document.getElementById('sidebarOnlineList');
+  if(!el) return;
+  const online = window._sidebarAllOnline || [];
+  const offline = window._sidebarAllOffline || [];
+  const banner = window._sidebarUserBanner;
+  if(!banner) return;
+  const search = q.toLowerCase().trim();
+  if(!search){
+    let html = '';
+    if(online.length) html += online.map(u=>banner(u,true)).join('');
+    if(offline.length) html += offline.map(u=>banner(u,false)).join('');
+    if(!html) html = `<div style="text-align:center;padding:16px 8px;color:var(--muted);font-size:.75rem;">🎣 Sin contactos aún</div>`;
+    el.innerHTML = html; return;
+  }
+  const allUsers = [...online.map(u=>({...u,_on:true})), ...offline.map(u=>({...u,_on:false}))];
+  const filtered = allUsers.filter(u => (u.nick||'').toLowerCase().includes(search));
+  if(!filtered.length){
+    el.innerHTML = `<div style="text-align:center;padding:16px 8px;color:var(--muted);font-size:.75rem;">Sin resultados para "${q}"</div>`;
+    return;
+  }
+  el.innerHTML = filtered.map(u=>banner(u, u._on)).join('');
+};
 
 // Extraer emoji de bandera del string de país
 function getCountryFlag(country){
