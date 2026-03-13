@@ -2418,8 +2418,14 @@ select.fi option{background:var(--bg3);color:var(--text);}
       <button class="btn btn-s" style="font-size:.8rem" onclick="openEmojiPicker(event,'postText')">😊 Emoji</button>
       <button class="btn btn-s" style="font-size:.8rem" onclick="openFeelingModal()">🙂 Sentimiento</button>
       <button class="btn btn-s" style="font-size:.8rem" onclick="insertFishTag()">🎣 Etiqueta pez</button>
-      <button class="btn btn-s" style="font-size:.8rem" onclick="focusPostTextAndAt()">🏷️ Etiquetar persona</button>
+      <button class="btn btn-s" style="font-size:.8rem" onclick="openTagPeopleModal()">🏷️ Etiquetar personas</button>
       <button class="btn btn-s" style="font-size:.8rem" onclick="toggleLinkInput()">🔗 Link</button>
+    </div>
+
+    <!-- Personas etiquetadas -->
+    <div id="taggedPeopleRow" style="display:none;margin-bottom:8px;flex-wrap:wrap;gap:6px;align-items:center;">
+      <span style="font-size:.75rem;color:var(--muted);">👥 Con:</span>
+      <div id="taggedPeopleChips" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
     </div>
 
     <!-- Link preview section -->
@@ -2455,6 +2461,26 @@ select.fi option{background:var(--bg3);color:var(--text);}
       </div>
     </div>
     <button class="btn btn-p btn-full" onclick="submitPost()">Publicar</button>
+  </div>
+</div>
+
+<!-- Modal: Etiquetar personas -->
+<div class="mo" id="mTagPeople">
+  <div class="modal modal-md" style="max-height:90vh;display:flex;flex-direction:column;">
+    <div style="display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--border);flex-shrink:0;">
+      <button onclick="cm('mTagPeople');om('mCreatePost')" style="background:var(--bg3);border:none;color:var(--text);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;flex-shrink:0;">←</button>
+      <span style="font-size:1rem;font-weight:700;color:var(--text);flex:1;text-align:center;">Etiquetar personas</span>
+      <button onclick="applyTaggedPeople()" style="background:var(--accent);border:none;color:#fff;padding:6px 14px;border-radius:100px;cursor:pointer;font-size:.82rem;font-weight:700;">Listo</button>
+    </div>
+    <!-- Search -->
+    <div style="padding:10px 0 4px;flex-shrink:0;">
+      <input id="tagPeopleSearch" type="text" placeholder="🔍  Buscar amigos..." oninput="searchTagPeople(this.value)"
+        style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 14px;color:var(--text);font-size:.88rem;outline:none;box-sizing:border-box;">
+    </div>
+    <!-- Selected chips -->
+    <div id="tagPeopleSelected" style="display:none;padding:6px 0;flex-shrink:0;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:5px;"></div>
+    <!-- Results -->
+    <div id="tagPeopleList" style="overflow-y:auto;flex:1;padding-top:6px;"></div>
   </div>
 </div>
 
@@ -7820,6 +7846,7 @@ function postHTML(p){
     ${sharedHTML}
     ${!p.sharedFrom ? linkHTML : ''}
     ${!p.sharedFrom && p.text?`<div class="post-text">${renderCommentText(p.text)}</div>`:''}
+    ${p.taggedPeople&&p.taggedPeople.length?`<div style="font-size:.8rem;color:var(--muted);padding:2px 14px 8px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;">👥 Con: ${p.taggedPeople.map(u=>`<span onclick="openUserProfile('${u.id}','${esc(u.nick)}')" style="color:var(--accent);font-weight:700;cursor:pointer;">@${esc(u.nick)}</span>`).join(', ')}</div>`:''}
     ${!p.sharedFrom ? fishTag : ''}
     ${(()=>{
     if(p.profileAction==='cover' && p.images&&p.images[0]){
@@ -8009,9 +8036,19 @@ async function submitPost(){
     video: videoUrl,
     link: linkData,
     feeling: window._selectedFeeling || null,
+    taggedPeople: (window._taggedPeople||[]).map(u=>({id:u.id,nick:u.nick,av:u.av||''})),
     time: serverTimestamp(),
     likes:0, comments:[], reactions:{}, reactionCounts:{}
   });
+
+  // Notificar a personas etiquetadas desde el modal
+  if(window._taggedPeople && window._taggedPeople.length){
+    for(const u of window._taggedPeople){
+      if(u.id !== window.CU.id){
+        sendNotifToUserWithPost(u.id, `🏷️ ${window.CU.nick} te etiquetó en una publicación${text?`: "${text.slice(0,50)}"`:'.'}`, newPostRef.id);
+      }
+    }
+  }
 
   // Notificar a usuarios etiquetados con @
   const postMentions = text.match(/@([\w\d_]+)/g);
@@ -8043,6 +8080,11 @@ async function submitPost(){
   document.getElementById('postMediaPreview').style.display='none';
   document.getElementById('linkInputRow').style.display='none';
   window.clearFeeling && window.clearFeeling();
+  window._taggedPeople = [];
+  const tagRow = document.getElementById('taggedPeopleRow');
+  const tagChips = document.getElementById('taggedPeopleChips');
+  if(tagRow) tagRow.style.display='none';
+  if(tagChips) tagChips.innerHTML='';
   cm('mCreatePost');
   addNotif('📝 Publicaste una nueva captura'+(fish?`: ${fish} ${weight?fmtKg(weight):''}`:''));
   addXP(10,'publicación');
@@ -8122,7 +8164,95 @@ function insertEmojiChar(em){
 function insertEmoji(){ document.getElementById('postText').value += ' 🎣'; }
 function insertFishTag(){ document.getElementById('fishTagRow').style.display = document.getElementById('fishTagRow').style.display==='none'?'block':'none'; }
 
-// ── Sentimientos / Actividades ──────────────────────────────────────────────
+// ── Etiquetar Personas ─────────────────────────────────────────────────────
+window._taggedPeople = []; // [{id, nick, av}]
+
+window.openTagPeopleModal = function(){
+  cm('mCreatePost');
+  renderTagPeopleSelected();
+  searchTagPeople('');
+  const si = document.getElementById('tagPeopleSearch');
+  if(si){ si.value=''; si.focus(); }
+  om('mTagPeople');
+};
+
+window.searchTagPeople = async function(q){
+  const el = document.getElementById('tagPeopleList');
+  if(!el) return;
+  el.innerHTML = `<div style="padding:12px 4px;font-size:.78rem;color:var(--muted);">Buscando...</div>`;
+  try {
+    const snap = await getDocs(query(collection(db,'users'), limit(150)));
+    let users = snap.docs.map(d=>({id:d.id,...d.data()}))
+      .filter(u => u.id !== window.CU?.id);
+    if(q.trim()) users = users.filter(u=>(u.nick||'').toLowerCase().includes(q.toLowerCase()));
+    users = users.slice(0, 30);
+    if(!users.length){ el.innerHTML=`<div style="padding:20px;text-align:center;color:var(--muted);font-size:.85rem;">Sin resultados</div>`; return; }
+    const taggedIds = new Set(window._taggedPeople.map(u=>u.id));
+    el.innerHTML = users.map(u=>{
+      const tagged = taggedIds.has(u.id);
+      return `<div onclick="toggleTagPerson('${u.id}','${(u.nick||'').replace(/'/g,"\\'")}','${u.av||''}')"
+        style="display:flex;align-items:center;gap:10px;padding:10px 6px;border-radius:8px;cursor:pointer;transition:background .15s;"
+        onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
+        <img src="${u.av||getDefaultAv(u.gender||'')}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.src=getDefaultAv()">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:.88rem;font-weight:700;color:var(--text);">${esc(u.nick||'')}</div>
+          ${u.country?`<div style="font-size:.72rem;color:var(--muted);">${u.country}</div>`:''}
+        </div>
+        <div style="width:22px;height:22px;border-radius:50%;border:2px solid ${tagged?'var(--accent)':'var(--border)'};background:${tagged?'var(--accent)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s;">
+          ${tagged?'<span style="color:#fff;font-size:.7rem;font-weight:900;">✓</span>':''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e){ el.innerHTML=`<div style="padding:12px;color:var(--muted);font-size:.78rem;">Error al buscar</div>`; }
+};
+
+window.toggleTagPerson = function(id, nick, av){
+  const idx = window._taggedPeople.findIndex(u=>u.id===id);
+  if(idx>=0) window._taggedPeople.splice(idx,1);
+  else window._taggedPeople.push({id, nick, av});
+  renderTagPeopleSelected();
+  const si = document.getElementById('tagPeopleSearch');
+  searchTagPeople(si ? si.value : '');
+};
+
+function renderTagPeopleSelected(){
+  const el = document.getElementById('tagPeopleSelected');
+  if(!el) return;
+  if(!window._taggedPeople.length){ el.style.display='none'; el.innerHTML=''; return; }
+  el.style.display='flex';
+  el.innerHTML = window._taggedPeople.map(u=>`
+    <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,120,255,.15);border:1px solid rgba(0,120,255,.3);border-radius:100px;padding:4px 10px 4px 6px;">
+      <img src="${u.av||getDefaultAv()}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;" onerror="this.src=getDefaultAv()">
+      <span style="font-size:.78rem;font-weight:700;color:var(--accent);">@${esc(u.nick)}</span>
+      <span onclick="toggleTagPerson('${u.id}','${u.nick.replace(/'/g,"\\'")}','${u.av||''}')" style="cursor:pointer;color:var(--muted);font-size:.75rem;margin-left:2px;">✕</span>
+    </div>`).join('');
+}
+
+window.applyTaggedPeople = function(){
+  cm('mTagPeople');
+  om('mCreatePost');
+  // Mostrar chips en el post modal
+  const row = document.getElementById('taggedPeopleRow');
+  const chips = document.getElementById('taggedPeopleChips');
+  if(!row || !chips) return;
+  if(!window._taggedPeople.length){ row.style.display='none'; chips.innerHTML=''; return; }
+  row.style.display='flex';
+  chips.innerHTML = window._taggedPeople.map(u=>`
+    <div style="display:inline-flex;align-items:center;gap:4px;background:rgba(0,120,255,.12);border:1px solid rgba(0,120,255,.25);border-radius:100px;padding:3px 9px 3px 5px;">
+      <img src="${u.av||getDefaultAv()}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;" onerror="this.src=getDefaultAv()">
+      <span style="font-size:.75rem;font-weight:700;color:var(--accent);">@${esc(u.nick)}</span>
+      <span onclick="removeTaggedPerson('${u.id}')" style="cursor:pointer;color:var(--muted);font-size:.7rem;margin-left:2px;">✕</span>
+    </div>`).join('');
+};
+
+window.removeTaggedPerson = function(id){
+  window._taggedPeople = window._taggedPeople.filter(u=>u.id!==id);
+  window.applyTaggedPeople();
+  if(!window._taggedPeople.length){
+    const row = document.getElementById('taggedPeopleRow');
+    if(row) row.style.display='none';
+  }
+};
 const _FEELINGS = {
   sentimientos: [
     {e:'😊',l:'feliz'},{e:'😇',l:'bendecido'},{e:'🥰',l:'amado'},{e:'😢',l:'triste'},
