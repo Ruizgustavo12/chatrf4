@@ -4747,7 +4747,7 @@ function init(){
     if(splash && splash.style.display !== 'none'){
       splash.style.display = 'none';
       document.getElementById('mAuth').style.display = 'block';
-      setTimeout(()=>loadAuthTrofeos(), 800);
+      setTimeout(loadAuthTrofeos, 1200);
     }
   }, 4000);
 
@@ -4784,30 +4784,31 @@ function init(){
       window.CU = null;
       hideSplash();
       document.getElementById('mAuth').style.display = 'block';
-      setTimeout(()=>loadAuthTrofeos(), 800);
+      setTimeout(loadAuthTrofeos, 1200);
     }
   });
 }
 
 // ===== CARGA TROFEOS EN PANTALLA DE LOGIN =====
-async function loadAuthTrofeos(retry=0){
+async function loadAuthTrofeos(){
   const el = document.getElementById('authTrofeosList');
   if(!el) return;
-  // Esperar a que db esté listo
-  if(typeof db === 'undefined' || !db){
-    if(retry < 10) setTimeout(()=>loadAuthTrofeos(retry+1), 500);
-    return;
-  }
+  el.innerHTML = '<div style="font-size:.75rem;color:#8b949e;text-align:center;padding:12px;">Cargando trofeos...</div>';
   try{
-    const snap = await getDocs(query(collection(db,'trofeosPendientes'), where('status','==','approved'), limit(50)));
+    // Sin where ni orderBy para evitar requerir índice compuesto — filtrar en cliente
+    const snap = await getDocs(query(collection(db,'trofeosPendientes'), limit(100)));
     let items = snap.docs.map(d=>({id:d.id,...d.data()}))
+      .filter(t => t.status === 'approved')
       .sort((a,b)=>{
-        const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt?.seconds ? a.createdAt.seconds*1000 : 0);
-        const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt?.seconds ? b.createdAt.seconds*1000 : 0);
+        const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt?.seconds ? a.createdAt.seconds*1000 : (typeof a.createdAt==='number'?a.createdAt:0));
+        const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt?.seconds ? b.createdAt.seconds*1000 : (typeof b.createdAt==='number'?b.createdAt:0));
         return tb - ta;
       })
       .slice(0,4);
-    if(!items.length){ el.innerHTML='<div style="font-size:.75rem;color:#8b949e;text-align:center;">Sin trofeos aún</div>'; return; }
+    if(!items.length){
+      el.innerHTML='<div style="font-size:.75rem;color:#8b949e;text-align:center;padding:8px;">Sin trofeos aún</div>';
+      return;
+    }
     el.innerHTML = items.map(t=>{
       const img = (t.images&&t.images[0])||t.imageUrl||t.img||'';
       const fish = (t.fish||t.especie||'?').substring(0,28);
@@ -4825,8 +4826,8 @@ async function loadAuthTrofeos(retry=0){
       </div>`;
     }).join('');
   }catch(e){
-    console.warn('loadAuthTrofeos error:', e);
-    if(retry < 5) setTimeout(()=>loadAuthTrofeos(retry+1), 1500);
+    console.error('loadAuthTrofeos error:', e);
+    el.innerHTML='<div style="font-size:.72rem;color:#8b949e;text-align:center;padding:8px;">No se pudieron cargar los trofeos</div>';
   }
 }
 
