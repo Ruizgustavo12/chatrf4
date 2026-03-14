@@ -1269,7 +1269,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
 /* ── EXCLUSIVOS VERIFICADOS ── */
 @keyframes goldFall{0%{transform:translateY(0)rotate(0);opacity:1}100%{transform:translateY(110vh)rotate(720deg);opacity:0}}
 @keyframes goldPulse{0%,100%{box-shadow:0 0 8px rgba(255,215,0,.5)}50%{box-shadow:0 0 20px rgba(255,215,0,.9),0 0 35px rgba(255,165,0,.4)}}
-.story-verif{outline:2.5px solid gold;outline-offset:2px;animation:goldPulse 2s ease-in-out infinite;}
+.story-verif{}
 .chat-gold-bg{background:linear-gradient(180deg,rgba(40,28,0,.7)0%,var(--bg2)55%)!important;}
 .chat-gold-header{border-bottom:1px solid rgba(255,215,0,.25)!important;background:linear-gradient(90deg,rgba(255,215,0,.06),transparent)!important;}
 .pinned-label{display:inline-flex;align-items:center;gap:5px;padding:2px 10px;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);border-radius:100px;font-size:.65rem;font-weight:800;color:gold;margin-bottom:4px;}
@@ -1499,7 +1499,7 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(window.loadAdsI
   <div class="tb-nav">
     <button class="tb-nav-btn on" onclick="gp('home');setNav(this)" title="Inicio">🏠</button>
     <button class="tb-nav-btn" onclick="gp('amigos');setNav(this);renderAmigosPage();" title="Amigos">👥</button>
-    <button class="tb-nav-btn" id="shopNavBtn" onclick="gp('shop');setNav(this);renderShopPage();" title="Tienda" style="font-size:.75rem;font-weight:700;">🛒 Tienda</button>
+    
     <button class="tb-nav-btn" onclick="gp('trofeos-feed');setNav(this)" title="Trofeos Recientes" style="font-size:.75rem;font-weight:700;">🥇 Trofeos Recientes</button>
     <button class="tb-nav-btn" onclick="gp('reels');setNav(this)" title="Reels" style="font-size:.75rem;font-weight:700;">🎬 Reels</button>
     <button class="tb-nav-btn" id="pezSemanalNavBtn" onclick="openPezSemanalModal();setNav(this)" title="Pez de la Semana" style="font-size:.75rem;font-weight:700;">🐟 Pez Semanal</button>
@@ -1970,7 +1970,7 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(window.loadAdsI
         <div class="ptab" onclick="swPTab(this,'ptAbout')">Información</div>
         <div class="ptab" onclick="swPTab(this,'ptGallery')">🖼 Galería</div>
         <div class="ptab" onclick="swPTab(this,'ptFriends')">Amigos</div>
-        <div class="ptab" id="ptShopTab" onclick="swPTab(this,'ptShop')" style="display:none;background:linear-gradient(135deg,rgba(255,200,0,.15),rgba(255,100,0,.1));color:gold;border-bottom:2px solid gold;">🛒 Tienda</div>
+        
       </div>
     </div>
   </div>
@@ -3694,7 +3694,7 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(window.loadAdsI
 
 <!-- SPOTS PAGE -->
 <!-- ── PÁGINA TIENDA (solo admin) ── -->
-<div class="page" id="page-shop" style="max-width:860px;margin:0 auto;padding:24px 16px 80px;">
+<div class="page" id="page-shop" style="display:none!important;" style="max-width:860px;margin:0 auto;padding:24px 16px 80px;">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
     <span style="font-size:1.6rem;">🛒</span>
     <div>
@@ -8122,7 +8122,7 @@ function postHTML(p){
 
     }).join('');
   // Verificar estado en tiempo real desde el caché de usuarios verificados
-  const isVerif = !!(p.userVerified || (window._verifUsers && window._verifUsers[p.userId]));
+  const isVerif = false;
   const _isMyPost = window.CU && p.userId === window.CU.id;
   // Leer shopEquipped del autor desde el cache global _usersShop (tiempo real, visible para TODOS)
   const _authorShop = (window._usersShop && window._usersShop[p.userId]) || {};
@@ -8139,7 +8139,7 @@ function postHTML(p){
       </div>
       <div class="post-meta" style="cursor:pointer" onclick="openUserProfile('${p.userId}','${esc(p.userNick)}')">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          <div class="post-author">${(()=>{ const _isAdm = p.userNick==='ruizgustavo12'||p.userRole==='admin'; return _isAdm ? `<span class="admin-name">${esc(p.userNick)}</span><span class="admin-crown">👑</span>` : esc(p.userNick); })()}${isVerif?' <span title="Verificado" style="font-size:.75rem;line-height:1;">✅</span>':''}${_postBadge?' <span style="font-size:1rem;" title="Badge">'+_postBadge+'</span>':''}${p.feeling?` <span style="font-weight:400;font-size:.85rem;">está ${p.feeling.emoji} <span style="color:var(--muted);">me siento ${p.feeling.label}.</span></span>`:''}</div>
+          <div class="post-author">${(()=>{ const _isAdm = p.userNick==='ruizgustavo12'||p.userRole==='admin'; return _isAdm ? `<span class="admin-name">${esc(p.userNick)}</span><span class="admin-crown">👑</span>` : esc(p.userNick); })()}${_postBadge?' <span style="font-size:1rem;" title="Badge">'+_postBadge+'</span>':''}${p.feeling?` <span style="font-weight:400;font-size:.85rem;">está ${p.feeling.emoji} <span style="color:var(--muted);">me siento ${p.feeling.label}.</span></span>`:''}</div>
           ${_postTitulo?`<span style="font-size:.6rem;font-weight:800;color:var(--muted);background:rgba(0,0,0,.06);border-radius:100px;padding:1px 8px;letter-spacing:.04em;">${esc(_postTitulo)}</span>`:''}
           ${(()=>{ const plvl=getLevel(p.userXp||0); return `<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:100px;border:1px solid;color:${plvl.color};border-color:${plvl.border};background:${plvl.border.replace(/[\d.]+\)$/,'.08)')};">${plvl.name}</span>`; })()}
         </div>
@@ -8869,7 +8869,7 @@ async function toggleComments(pid){
       const cRxnTotalM = Object.values(cRxnsM).reduce((a,b)=>a+b,0);
       const cTopRxnM = Object.entries(cRxnsM).filter(e=>e[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,2).map(e=>e[0]).join('');
       const nameColor = isVerified ? '#f5a623' : isAuthor ? '#1877f2' : '#e6edf3';
-      const verifiedBadge = isVerified ? '<span style="color:#f5a623;font-size:.8rem;margin-left:2px;">✓</span>' : '';
+      const verifiedBadge = '';
       const isAdminCmt = c.nick==='ruizgustavo12' || c.role==='admin';
       const adminNameHtml = isAdminCmt
         ? `<span class="admin-name" style="font-size:.82rem;">${esc(c.nick||'')}</span><span class="admin-crown" style="font-size:.72rem;">👑</span>`
@@ -9622,7 +9622,7 @@ function renderProfile(){
   const cover = document.getElementById('profCover');
   const canvas = document.getElementById('verifParticles');
   const seal = document.getElementById('verifSeal');
-  if(isVerified){
+  if(false){
     cover.classList.add('verif-cover-active');
     if(canvas){ canvas.style.display='block'; _startVerifParticles(canvas); }
     if(seal) seal.style.display='block';
@@ -9635,23 +9635,20 @@ function renderProfile(){
   // ── AVATAR ring animado ──
   const avWrapEl = document.querySelector('.profile-av-wrap');
   if(avWrapEl){
-    if(isVerified) avWrapEl.classList.add('verif-av-ring');
-    else avWrapEl.classList.remove('verif-av-ring');
+    avWrapEl.classList.remove('verif-av-ring');
   }
-  if(isVerified) avEl.classList.add('verified-ring');
-  else avEl.classList.remove('verified-ring');
+  avEl.classList.remove('verified-ring');
 
   // ── NOMBRE dorado animado ──
   const nameEl = document.getElementById('profName');
   nameEl.textContent = window.CU.nick;
   const isPremiumUser = window.CU.role === 'premium' || (window.CU.badges||[]).includes('premium');
-  if(isVerified) nameEl.classList.add('verif-name-gold');
-  else nameEl.classList.remove('verif-name-gold');
+  nameEl.classList.remove('verif-name-gold');
   if(isPremiumUser){ nameEl.classList.add('premium-name'); } else { nameEl.classList.remove('premium-name'); }
 
   // ── BADGE ──
   const badge = document.getElementById('profVerifiedBadge');
-  if(badge) badge.style.display = isVerified ? 'inline-flex' : 'none';
+  if(badge) badge.style.display = 'none';
 
   // ── BADGE PREMIUM ──
   let _profPremBadge = document.getElementById('_profPremiumBadge');
@@ -9670,7 +9667,7 @@ function renderProfile(){
 
   // ── BANNER PREMIUM ──
   let verifBanner = document.getElementById('verifProfileBanner');
-  if(isVerified){
+  if(false){
     if(!verifBanner){
       verifBanner = document.createElement('div');
       verifBanner.id = 'verifProfileBanner';
@@ -12291,7 +12288,7 @@ async function loadAdminUsers(){
         <div style="font-size:.85rem;font-weight:700;display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
           ${esc(u.nick||'?')}
           ${u.nick==='ruizgustavo12'?'<span style="font-size:.6rem;background:rgba(255,68,68,.1);color:var(--red);padding:1px 6px;border-radius:100px;">ADMIN</span>':''}
-          ${u.verified?'<span title="Verificado" style="font-size:.75rem;">✅</span>':u.verifPending?'<span title="Pendiente" style="font-size:.75rem;color:gold;">⏳</span>':''}
+          
           ${getCountryFlag(u.country)?`<span style="font-size:.8rem;">${getCountryFlag(u.country)}</span>`:''}
         </div>
         <div style="font-size:.72rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(u.email||'')}${u.country?' · '+esc(u.country):''}</div>
@@ -13816,7 +13813,7 @@ function renderMisAmigos(){
       <div style="width:52px;height:52px;border-radius:50%;overflow:hidden;margin:0 auto 7px;border:2px solid ${f.verified?'gold':'var(--border)'};">
         <img src="${f.av||getDefaultAv(f.gender||'')}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
       </div>
-      <div style="font-size:.78rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(f.nick||'?')}${f.verified?' ✅':''}</div>
+      <div style="font-size:.78rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(f.nick||'?')}</div>
     </div>`).join('');
 }
 
@@ -13861,8 +13858,8 @@ async function renderSuggestedUsers(){
       const safenick = (u.nick||'').replace(/'/g, "\\'");
       const connHtml = fmtC(presMap[u.id]||0);
       return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:${small?'10px 8px':'14px 10px'};text-align:center;cursor:pointer;transition:border-color .2s;" onclick="openUserProfile('${u.id}','${safenick}');" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-        <div style="width:${small?'40px':'52px'};height:${small?'40px':'52px'};border-radius:50%;overflow:hidden;margin:0 auto ${small?'5px':'7px'};border:2px solid ${u.verified?'gold':'var(--border)'};"><img src="${u.av||getDefaultAv(u.gender||'')}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>
-        <div style="font-size:${small?'.7rem':'.78rem'};font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(u.nick||'?')}${u.verified?' ✅':''}</div>
+        <div style="width:${small?'40px':'52px'};height:${small?'40px':'52px'};border-radius:50%;overflow:hidden;margin:0 auto ${small?'5px':'7px'};border:2px solid var(--border);"><img src="${u.av||getDefaultAv(u.gender||'')}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>
+        <div style="font-size:${small?'.7rem':'.78rem'};font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(u.nick||'?')}</div>
         <div style="margin:3px 0;">${connHtml}</div>
         <button onclick="sendFriendRequest('${u.id}','${safenick}','page');event.stopPropagation();" style="margin-top:4px;width:100%;padding:4px;background:var(--accent);border:none;border-radius:var(--rs);color:#000;font-size:.65rem;font-weight:700;cursor:pointer;">+ Agregar</button>
       </div>`;
@@ -13935,7 +13932,7 @@ async function renderNewFishers(){
         + `<img src="${u.av||getDefaultAv(u.gender||'')}" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(u.nick||'?')}&background=21262d&color=2ec4b6&size=120'">`
         + `</div>`
         + `<div style="padding:7px 7px 8px;display:flex;flex-direction:column;gap:4px;flex:1;">`
-        + `<div onclick="openUserProfile('${u.id}','${safenick}')" style="font-size:.75rem;font-weight:700;color:var(--text);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${nick}${u.verified?' ✅':''}</div>`
+        + `<div onclick="openUserProfile('${u.id}','${safenick}')" style="font-size:.75rem;font-weight:700;color:var(--text);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${nick}</div>`
         + `<div>${connHtml}</div>`
         + addBtn
         + dismissBtn
@@ -14854,11 +14851,10 @@ async function _loadUserProfilePage(uid, nick){
     const nEl = document.getElementById('upName');
     nEl.textContent = uNick;
     const isPremium = u.role === 'premium' || (u.badges||[]).includes('premium');
-    if(isVerified) nEl.classList.add('verif-name-gold');
-    else nEl.classList.remove('verif-name-gold');
+    nEl.classList.remove('verif-name-gold');
     if(isPremium){ nEl.classList.add('premium-name'); } else { nEl.classList.remove('premium-name'); }
-    document.getElementById('upVerifBadge').style.display = isVerified ? 'inline-flex' : 'none';
-    document.getElementById('upVerifBanner').style.display = isVerified ? 'flex' : 'none';
+    document.getElementById('upVerifBadge').style.display = 'none';
+    document.getElementById('upVerifBanner').style.display = 'none';
     // Badge Premium
     let _upPremBadge = document.getElementById('_upPremiumBadge');
     if(isPremium){
@@ -15186,7 +15182,7 @@ async function _loadUserProfilePage(uid, nick){
       document.getElementById('upTabAmigos').innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">${friendCards.map(({fid,f,addBtn})=>`
         <div onclick="openUserProfile('${fid}','${(f.nick||'').replace(/'/g,"\'")}');" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center;cursor:pointer;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
           <div style="width:44px;height:44px;border-radius:50%;background:var(--bg4);margin:0 auto 6px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;${f.verified?'border:2px solid gold;':'border:1px solid var(--border);'}"><img src="${f.av||getDefaultAv(f.gender||'')}" style="width:100%;height:100%;object-fit:cover;"></div>
-          <div style="font-size:.72rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(f.nick||'?')}${f.verified?' ✅':''}</div>
+          <div style="font-size:.72rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(f.nick||'?')}</div>
           ${addBtn}
         </div>`).join('')}</div>`;
 
