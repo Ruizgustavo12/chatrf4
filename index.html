@@ -17899,7 +17899,7 @@ function trofeoFeedCardHTML(t){
   const notes = esc(t.notes||t.nota||t.description||'');
 
   const tid = t.id||"";
-  const rxnBtnsHtml = "<button class=\"rxn-btn\" onclick=\"doReact('trofeo_'+ tid +'','trofeo_normal','trofeo');schedHideRxnPop('trofeo_'+ tid +'')\"><img src=\"/troff.png\" style=\"width:24px;height:24px;\" title=\"Trofeo\"></button><button class=\"rxn-btn\" onclick=\"doReact('trofeo_'+ tid +'','trofeo_super','trofeo');schedHideRxnPop('trofeo_'+ tid +'')\"><img src=\"/troff_super.png\" style=\"width:24px;height:24px;\" title=\"Super Trofeo\"></button>";
+  const rxnBtnsHtml = `<button class="rxn-btn" onclick="doReact('trofeo_${tid}','trofeo_normal');schedHideRxnPop('trofeo_${tid}')"><img src="/troff.png" style="width:24px;height:24px;" title="Trofeo"></button><button class="rxn-btn" onclick="doReact('trofeo_${tid}','trofeo_super');schedHideRxnPop('trofeo_${tid}')"><img src="/troff_super.png" style="width:24px;height:24px;" title="Super Trofeo"></button>`;
   return `<div id="trofeo_${tid}" style="background:var(--bg2);border:1px solid rgba(255,215,0,.25);border-radius:var(--r);margin-bottom:18px;overflow:hidden;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='rgba(255,215,0,.25)'">
     <!-- Header type banner -->
     <div style="background:linear-gradient(135deg,rgba(255,215,0,.12),rgba(255,215,0,.04));border-bottom:1px solid rgba(255,215,0,.15);padding:8px 14px;display:flex;align-items:center;gap:6px;">
@@ -17932,8 +17932,8 @@ function trofeoFeedCardHTML(t){
     </div>
     <!-- Images -->
     ${images.length>1
-      ? `<div style="display:grid;grid-template-columns:${images.length===2?'1fr 1fr':'1fr 1fr 1fr'};gap:2px;margin-bottom:0;">${images.slice(0,4).map(img=>`<img src="${img}" style="width:100%;aspect-ratio:1;object-fit:cover;cursor:pointer;" onclick="openImgLightbox('${img}')" loading="lazy">`).join('')}</div>`
-      : imgUrl?`<img src="${imgUrl}" style="width:100%;max-height:440px;object-fit:cover;display:block;cursor:pointer;" onclick="openImgLightbox('${imgUrl}')" loading="lazy">`:''}
+      ? `<div style="display:grid;grid-template-columns:${images.length===2?'1fr 1fr':'1fr 1fr 1fr'};gap:2px;margin-bottom:0;">${images.slice(0,4).map((img,ii)=>`<img src="${img}" style="width:100%;aspect-ratio:1;object-fit:cover;cursor:pointer;" onclick="(function(){window._postImgsMap=window._postImgsMap||{};window._postImgsMap['trofeo_${tid}']=[${images.map(x=>"'"+x+"'").join(',')}];openImgLightboxById('trofeo_${tid}',${ii});})()" loading="lazy">`).join('')}</div>`
+      : imgUrl?`<img src="${imgUrl}" style="width:100%;max-height:440px;object-fit:cover;display:block;cursor:pointer;" onclick="(function(){window._postImgsMap=window._postImgsMap||{};window._postImgsMap['trofeo_${tid}']=['${imgUrl}'];openImgLightbox('${imgUrl}',['${imgUrl}'],'trofeo_${tid}');})()" loading="lazy">`:''}
     <!-- Details -->
     ${bait||spot?`<div style="padding:10px 14px 4px;display:flex;flex-wrap:wrap;gap:6px;">
       ${bait?`<span style="background:rgba(255,170,0,.08);color:var(--warn);padding:3px 10px;border-radius:100px;font-size:.72rem;">🪱 ${bait}</span>`:''}
