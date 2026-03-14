@@ -19440,7 +19440,7 @@ async function loadInsigniasPanel(){
 
 function filterInsigniasBy(f){
   _insigFilter = f;
-  ['todos','pescador','activo','pro'].forEach(k=>{
+  ['todos','pescador','activo','pro','premium'].forEach(k=>{
     const b = document.getElementById('ifbtn-'+k);
     if(b){ b.classList.toggle('active', k===f); }
   });
@@ -19461,7 +19461,7 @@ function renderInsigniasPanel(){
     if(_insigFilter==='pescador') return (u.badges||[]).includes('pescador');
     if(_insigFilter==='activo')   return (u.badges||[]).includes('activo');
     if(_insigFilter==='pro')      return (u.badges||[]).includes('pro');
-    if(_insigFilter==='premium')   return (u.badges||[]).includes('premium');
+    if(_insigFilter==='premium')   return (u.badges||[]).includes('premium') || u.role==='premium';
     return true;
   });
 
@@ -19485,7 +19485,9 @@ function renderInsigniasPanel(){
 
   container.innerHTML = users.map(u=>{
     const av = u.av ? `<img src="${u.av}" style="width:100%;height:100%;object-fit:cover;">` : `<span style="font-size:.9rem;font-weight:700;color:var(--accent);">${(u.nick||'?')[0].toUpperCase()}</span>`;
-    const badges = u.badges||[];
+    // Normalize: if role==='premium' ensure it shows in badges too
+    const badges = [...(u.badges||[])];
+    if(u.role==='premium' && !badges.includes('premium')) badges.push('premium');
     const currentRole = u.adminRole || 'usuario';
 
     const badgeBtns = BADGE_DEFS.map(b=>{
