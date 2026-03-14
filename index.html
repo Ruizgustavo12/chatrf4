@@ -6278,11 +6278,10 @@ async function _svRegisterView(){
   const listPanel = document.getElementById('svViewersList');
   if(listPanel) listPanel.style.display='none';
 
-  // Muestra el ojito solo si es el dueño Y tiene Premium (o verificado)
+  // Muestra el ojito para todos si la historia tiene ID real
   const wrap = document.getElementById('svViewsWrap');
   if(!s.id){ if(wrap) wrap.style.display='none'; return; }
-  const isPremiumOwner = isOwner && (window.CU.role==='premium' || (window.CU.badges||[]).includes('premium') || window.CU.verified);
-  if(wrap) wrap.style.display = isPremiumOwner ? 'flex' : 'none';
+  if(wrap) wrap.style.display='flex';
 
   try {
     // Registra la vista dentro del doc de la historia (solo si no es el dueño)
