@@ -3644,6 +3644,7 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(window.loadAdsI
         <button onclick="filterInsigniasBy('pescador')" id="ifbtn-pescador" class="cfbtn">⭐ Pescador</button>
         <button onclick="filterInsigniasBy('activo')" id="ifbtn-activo" class="cfbtn">⭐ Activo</button>
         <button onclick="filterInsigniasBy('pro')" id="ifbtn-pro" class="cfbtn">👑 Pro</button>
+        <button onclick="filterInsigniasBy('premium')" id="ifbtn-premium" class="cfbtn">⭐ Premium</button>
       </div>
     </div>
 
@@ -3652,7 +3653,8 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(window.loadAdsI
       <span style="display:flex;align-items:center;gap:5px;padding:4px 12px;border-radius:100px;background:rgba(46,196,182,.12);border:1px solid rgba(46,196,182,.3);font-size:.75rem;color:var(--accent);font-weight:700;">⭐ Activo</span>
       <span style="display:flex;align-items:center;gap:5px;padding:4px 12px;border-radius:100px;background:rgba(212,160,23,.12);border:1px solid rgba(212,160,23,.3);font-size:.75rem;color:var(--gold);font-weight:700;">👑 Pro</span>
       <span style="display:flex;align-items:center;gap:5px;padding:4px 12px;border-radius:100px;background:rgba(66,183,42,.12);border:1px solid rgba(66,183,42,.3);font-size:.75rem;color:var(--green);font-weight:700;">⭐ Pescador</span>
-      <span style="margin-left:auto;font-size:.72rem;color:var(--muted);align-self:center;">Click en una insignia o rol para activar/desactivar → se guarda solo</span>
+      <span style="display:flex;align-items:center;gap:5px;padding:4px 12px;border-radius:100px;background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.4);font-size:.75rem;color:#ffd700;font-weight:700;">⭐ Premium</span>
+            <span style="margin-left:auto;font-size:.72rem;color:var(--muted);align-self:center;">Click en una insignia o rol para activar/desactivar → se guarda solo</span>
     </div>
 
     <div id="insigniasPanelList" style="display:grid;gap:8px;">
@@ -19459,6 +19461,7 @@ function renderInsigniasPanel(){
     if(_insigFilter==='pescador') return (u.badges||[]).includes('pescador');
     if(_insigFilter==='activo')   return (u.badges||[]).includes('activo');
     if(_insigFilter==='pro')      return (u.badges||[]).includes('pro');
+    if(_insigFilter==='premium')   return (u.badges||[]).includes('premium');
     return true;
   });
 
@@ -19471,6 +19474,7 @@ function renderInsigniasPanel(){
     { key:'activo',   label:'⭐ Activo',   bg:'rgba(46,196,182,.15)',  border:'rgba(46,196,182,.4)',  color:'var(--accent)' },
     { key:'pro',      label:'👑 Pro',       bg:'rgba(212,160,23,.15)',  border:'rgba(212,160,23,.4)',  color:'var(--gold)'   },
     { key:'pescador', label:'⭐ Pescador',  bg:'rgba(66,183,42,.15)',   border:'rgba(66,183,42,.4)',   color:'var(--green)'  },
+    { key:'premium',  label:'⭐ Premium',   bg:'rgba(255,215,0,.15)',   border:'rgba(255,215,0,.5)',   color:'#ffd700'       },
   ];
   const ROLE_DEFS = [
     { key:'usuario',    label:'👤 Usuario',    bg:'rgba(100,150,255,.1)',  border:'rgba(100,150,255,.3)', color:'#6699ff' },
@@ -19531,10 +19535,19 @@ async function toggleInsignia(userId, badge){
   const idx = badges.indexOf(badge);
   if(idx>=0) badges.splice(idx,1); else badges.push(badge);
   try {
-    await updateDoc(doc(db,'users',userId),{badges});
+    const updates = {badges};
+    // Si se activa/desactiva el badge premium, sincronizar también el campo role
+    if(badge==='premium'){
+      updates.role = idx>=0 ? '' : 'premium';
+    }
+    await updateDoc(doc(db,'users',userId), updates);
     u.badges = badges;
+    if(badge==='premium') u.role = idx>=0 ? '' : 'premium';
     renderInsigniasPanel();
-    toast(`${idx>=0?'Insignia quitada':'Insignia asignada'} ✓`,'ok');
+    const msg = badge==='premium'
+      ? (idx>=0 ? 'Premium desactivado ✓' : '⭐ Premium activado ✓')
+      : (idx>=0 ? 'Insignia quitada ✓' : 'Insignia asignada ✓');
+    toast(msg,'ok');
   } catch(e){ toast('Error al actualizar insignia','err'); console.error(e); }
 }
 
