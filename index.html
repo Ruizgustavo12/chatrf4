@@ -19916,7 +19916,19 @@ window.wkSubmitTrophy = async () => {
       userRole:window.CU.role||'novato', likes:0, views:0, commentCount:0,
       createdAt:serverTimestamp()
     };
-    await addDoc(collection(db,'trofeosPendientes'), data);
+    const newRef = await addDoc(collection(db,'trofeosPendientes'), data);
+    // Actualizar config/lastTrophy para el login (1 lectura en vez de toda la coleccion)
+    try{
+      await setDoc(doc(db,'config','lastTrophy'),{
+        id: newRef.id,
+        fish: fish,
+        weight: parseFloat(weight),
+        map: map,
+        nick: window.CU.nick||'?',
+        imageUrl: imageUrls[0]||'',
+        createdAt: new Date()
+      });
+    }catch(e){ console.warn('No se pudo actualizar config/lastTrophy:',e); }
     // Actualizar contador de trofeos del usuario
     try{ await updateDoc(doc(db,'users',window.CU.id),{trophyCount:increment(1)}); }catch(e){}
     wkCm('wkMPublish'); wkResetForm();
