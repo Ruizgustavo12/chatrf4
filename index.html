@@ -6278,10 +6278,11 @@ async function _svRegisterView(){
   const listPanel = document.getElementById('svViewersList');
   if(listPanel) listPanel.style.display='none';
 
-  // Muestra el ojito solo si la historia tiene ID real de Firestore
+  // Muestra el ojito solo si es el dueño Y tiene Premium (o verificado)
   const wrap = document.getElementById('svViewsWrap');
   if(!s.id){ if(wrap) wrap.style.display='none'; return; }
-  if(wrap) wrap.style.display='flex';
+  const isPremiumOwner = isOwner && (window.CU.role==='premium' || (window.CU.badges||[]).includes('premium') || window.CU.verified);
+  if(wrap) wrap.style.display = isPremiumOwner ? 'flex' : 'none';
 
   try {
     // Registra la vista dentro del doc de la historia (solo si no es el dueño)
@@ -9685,17 +9686,7 @@ function renderProfile(){
 
   // ── BOTÓN VERIFICACIÓN ──
   const verifBtn = document.getElementById('profVerifBtn');
-  if(verifBtn){
-    if(isVerified){
-      verifBtn.style.display='none';
-    } else if(CU.verifPending){
-      verifBtn.innerHTML = `<span style="background:rgba(255,200,0,.08);border:1px solid rgba(255,200,0,.25);color:gold;border-radius:100px;padding:4px 12px;font-size:.72rem;font-weight:700;">⏳ Verificación pendiente</span>`;
-      verifBtn.style.display='block';
-    } else {
-      verifBtn.innerHTML = `<button onclick="requestVerification()" style="background:rgba(0,198,255,.1);border:1px solid rgba(0,198,255,.3);color:var(--accent);border-radius:100px;padding:5px 14px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;">🔵 Solicitar verificación</button>`;
-      verifBtn.style.display='block';
-    }
-  }
+  if(verifBtn) verifBtn.style.display='none';
   document.getElementById('profBioEl').textContent = window.CU.bio||'';
   // Exclusivos verificados
   const _ab=document.getElementById('btnAnonMode'); if(_ab) _ab.style.display='none'; // Modo anónimo desactivado
