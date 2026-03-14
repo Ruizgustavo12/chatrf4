@@ -4665,7 +4665,7 @@ async function listenVerifiedUsers(){
   // Solo recargar si pasaron más de 5 minutos
   if(Date.now() - _usersLastFetch < 1800000 && Object.keys(window._verifUsers||{}).length > 0) return; // Cache 30 min
   try {
-    const snap = await getDocs(collection(db,'users'));
+    const snap = await getDocs(query(collection(db,'users'), limit(500)));
     window._verifUsers = {};
     window._usersShop = {};
     snap.docs.forEach(d => {
@@ -4711,7 +4711,7 @@ function listenPosts() {
     err => {
       console.warn('listenPosts error:', err);
       // Fallback: intentar getDocs sin orderBy (evita error de índice faltante)
-      getDocs(collection(db, 'posts')).then(snap => {
+      getDocs(query(collection(db, 'posts'), orderBy('time','desc'), limit(50))).then(snap => {
         _posts = snap.docs.map(d => ({ id: d.id, ...d.data(), time: d.data().time?.toMillis?.() || Date.now() }))
           .sort((a,b) => b.time - a.time).slice(0, 50);
         renderFeed();
@@ -4899,9 +4899,8 @@ function renderCommentText(text){
 async function searchMentionedUser(nick){
   if(!nick) return;
   try {
-    const snap = await getDocs(collection(db,'users'));
-    const user = snap.docs.map(d=>({id:d.id,...d.data()}))
-      .find(u=>(u.nick||'').toLowerCase()===nick.toLowerCase());
+    const snap = await getDocs(query(collection(db,'users'), where('nickLower','==',nick.toLowerCase()), limit(1)));
+    const user = snap.docs.length ? {id:snap.docs[0].id,...snap.docs[0].data()} : null;
     if(user) openUserProfile(user.id, user.nick);
     else toast('@'+nick+' no encontrado','err');
   } catch(e){ toast('Error buscando usuario','err'); }
@@ -5038,7 +5037,7 @@ async function doLogin(){
       if(!found){
         // Last resort: scan users (only if small collection)
         try {
-          const all = await getDocs(collection(db,'users'));
+          const all = await getDocs(query(collection(db,'users'), limit(300)));
           found = all.docs.find(d => {
             const n = d.data().nick||'';
             const nl = d.data().nickLower||'';
@@ -5178,7 +5177,7 @@ function onLogin(){
       if (!_initPath.startsWith('/u/') && !_initPath.startsWith('/mensajes') && !_initPath.startsWith('/notif') && ROUTES[_initPath] === undefined && _initPath.length > 1 && !_initPath.includes('.')) {
         const nickSlugLegacy = _initPath.slice(1);
         window.gp('userprofile', false);
-        getDocs(collection(db,'users')).then(snap => {
+        getDocs(query(collection(db,'users'), limit(300))).then(snap => {
           const found = snap.docs.find(d => {
             const n = (d.data().nick||'').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
             return n === nickSlugLegacy;
@@ -5198,7 +5197,7 @@ function onLogin(){
         const nickSlug = _initPath.slice(3);
         window.gp('userprofile', false);
         // Try to find user by nick slug from Firestore
-        getDocs(collection(db,'users')).then(snap => {
+        getDocs(query(collection(db,'users'), limit(300))).then(snap => {
           const found = snap.docs.find(d => {
             const n = (d.data().nick||'').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
             return n === nickSlug;
@@ -8151,12 +8150,11 @@ async function submitPost(){
   const postMentions = text.match(/@([\w\d_]+)/g);
   if(postMentions){
     try {
-      const usersSnap = await getDocs(collection(db,'users'));
-      const allUsers = usersSnap.docs.map(d=>({id:d.id,...d.data()}));
       const notified = new Set();
       for(const m of postMentions){
         const nick = m.slice(1).toLowerCase();
-        const user = allUsers.find(u=>(u.nick||'').toLowerCase()===nick);
+        const _uSnap = await getDocs(query(collection(db,'users'), where('nickLower','==',nick), limit(1)));
+        const user = _uSnap.docs.length ? {id:_uSnap.docs[0].id,..._uSnap.docs[0].data()} : null;
         if(user && user.id !== window.CU.id && !notified.has(user.id)){
           notified.add(user.id);
           sendNotifToUserWithPost(user.id, `🏷️ ${window.CU.nick} te etiquetó en una publicación: "${text.slice(0,50)}"`, newPostRef.id);
@@ -8468,10 +8466,8 @@ async function handlePostMentionInput(inp){
   clearTimeout(_postMentionTimer);
   _postMentionTimer = setTimeout(async ()=>{
     try {
-      const snap = await getDocs(collection(db,'users'));
-      const users = snap.docs.map(d=>({id:d.id,...d.data()}))
-        .filter(u=>u.id!==window.CU?.id && (u.nick||'').toLowerCase().startsWith(query_str))
-        .slice(0,6);
+      const snap = await getDocs(query(collection(db,'users'), where('nickLower','>=',query_str), where('nickLower','<=',query_str+''), limit(6)));
+      const users = snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>u.id!==window.CU?.id);
       if(!users.length){ mentionEl.style.display='none'; return; }
       mentionEl.innerHTML = users.map(u=>{
         const safeNick = (u.nick||'').replace(/"/g,'&quot;');
@@ -9295,12 +9291,11 @@ async function submitComment(pid){
     const mentions = txt.match(/@([\w\d_]+)/g);
     if(mentions){
       try {
-        const usersSnap = await getDocs(collection(db,'users'));
-        const allUsers = usersSnap.docs.map(d=>({id:d.id,...d.data()}));
         const notified = new Set();
         for(const m of mentions){
           const nick = m.slice(1).toLowerCase();
-          const user = allUsers.find(u=>(u.nick||'').toLowerCase()===nick);
+          const _uSnap = await getDocs(query(collection(db,'users'), where('nickLower','==',nick), limit(1)));
+          const user = _uSnap.docs.length ? {id:_uSnap.docs[0].id,..._uSnap.docs[0].data()} : null;
           if(user && user.id !== window.CU.id && !notified.has(user.id)){
             notified.add(user.id);
             const isReply = txt.startsWith('@'+nick);
@@ -9350,10 +9345,8 @@ async function handleMentionInput(inp, pid){
   clearTimeout(_mentionTimer);
   _mentionTimer = setTimeout(async ()=>{
     try {
-      const snap = await getDocs(collection(db,'users'));
-      const users = snap.docs.map(d=>({id:d.id,...d.data()}))
-        .filter(u=>u.id!==window.CU?.id && (u.nick||'').toLowerCase().startsWith(query_str))
-        .slice(0,6);
+      const snap = await getDocs(query(collection(db,'users'), where('nickLower','>=',query_str), where('nickLower','<=',query_str+''), limit(6)));
+      const users = snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>u.id!==window.CU?.id);
       if(!users.length){ mentionEl.style.display='none'; return; }
       mentionEl.innerHTML = users.map(u=>{
         const safeNick = (u.nick||'').replace(/"/g,'&quot;');
@@ -12002,7 +11995,7 @@ async function loadAdminData(){
   // Reports y posts siguen leyendose para mostrar la lista (necesario)
   const [postsSnap, reportsSnap, storiesSnap] = await Promise.all([
     getDocs(query(collection(db,'posts'), orderBy('time','desc'), limit(100))),
-    getDocs(collection(db,'reports')),
+    getDocs(query(collection(db,'reports'), limit(200))),
     getDocs(query(collection(db,'stories'), limit(50))),
   ]);
   if(document.getElementById('adminStatReports')) document.getElementById('adminStatReports').textContent = reportsSnap.size;
@@ -12055,7 +12048,7 @@ async function loadAdminData(){
 async function loadAdminUsers(){
   const el = document.getElementById('adminUsersList');
   el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);">⏳ Cargando...</div>';
-  const snap = await getDocs(collection(db,'users'));
+  const snap = await getDocs(query(collection(db,'users'), limit(300)));
   const users = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.nick||'').localeCompare(b.nick||''));
   el.innerHTML = users.length ? `
     <div style="display:flex;gap:8px;padding:8px 0 12px;align-items:center;">
@@ -12374,7 +12367,7 @@ async function loadSoporteBadge(){
 
 async function loadAdminPatches(){
   try {
-    const snap = await getDocs(query(collection(db,'patches'),orderBy('time','desc')));
+    const snap = await getDocs(query(collection(db,'patches'),orderBy('time','desc'),limit(50)));
     const items = snap.docs.map(d=>({id:d.id,...d.data()}));
     const el = document.getElementById('adminPatchesList');
     if(el) el.innerHTML = items.length ? items.map(p=>patchCardHTML(p,true)).join('') : '<div style="text-align:center;padding:20px;color:var(--muted);">Sin parches aún</div>';
@@ -12392,7 +12385,7 @@ async function loadSoporteTickets(){
   if(!el) return;
   el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);">⏳ Cargando tickets...</div>';
   try {
-    const snap = await getDocs(query(collection(db,'soporte'), orderBy('time','desc')));
+    const snap = await getDocs(query(collection(db,'soporte'), orderBy('time','desc'), limit(100)));
     _soporteTickets = snap.docs.map(d=>({id:d.id,...d.data(), _ts: d.data().time?.toMillis?.()|| Date.now()}));
     // Actualizar badge con pendientes
     const pendientes = _soporteTickets.filter(t=>!t.leido).length;
@@ -12629,7 +12622,7 @@ function soporteNuevoReporte(){
 
 async function loadParches(){
   try {
-    const snap = await getDocs(query(collection(db,'patches'),orderBy('time','desc')));
+    const snap = await getDocs(query(collection(db,'patches'),orderBy('time','desc'),limit(50)));
     const items = snap.docs.map(d=>({id:d.id,...d.data()}));
     const el = document.getElementById('parchesFeed');
     if(el) el.innerHTML = items.length ? items.map(p=>patchCardHTML(p,false)).join('') : '<div style="text-align:center;padding:40px;color:var(--muted);">Sin parches publicados aún.</div>';
@@ -12675,7 +12668,7 @@ async function submitTorneo(){
 
 async function loadAdminTorneos(){
   try {
-    const snap = await getDocs(query(collection(db,'torneos'),orderBy('time','desc')));
+    const snap = await getDocs(query(collection(db,'torneos'),orderBy('time','desc'),limit(100)));
     const items = snap.docs.map(d=>({id:d.id,...d.data()}));
     const el = document.getElementById('adminTorneosList');
     if(el) el.innerHTML = items.length ? items.map(t=>torneoCardHTML(t,true)).join('') : '<div style="text-align:center;padding:20px;color:var(--muted);">Sin torneos</div>';
@@ -12684,7 +12677,7 @@ async function loadAdminTorneos(){
 
 async function loadTorneos(){
   try {
-    const snap = await getDocs(query(collection(db,'torneos'),orderBy('time','desc')));
+    const snap = await getDocs(query(collection(db,'torneos'),orderBy('time','desc'),limit(100)));
     const items = snap.docs.map(d=>({id:d.id,...d.data()}));
     const el = document.getElementById('torneosFeed');
     if(el) el.innerHTML = items.length ? items.map(t=>torneoCardHTML(t,false)).join('') : '<div style="text-align:center;padding:40px;color:var(--muted);">Sin torneos aún.</div>';
@@ -12730,7 +12723,7 @@ async function submitAdminGroup(){
 
 async function loadAdminGrupos(){
   try {
-    const snap = await getDocs(query(collection(db,'groups'),orderBy('time','desc')));
+    const snap = await getDocs(query(collection(db,'groups'),orderBy('time','desc'),limit(100)));
     const items = snap.docs.map(d=>({id:d.id,...d.data()}));
     const el = document.getElementById('adminGruposList');
     if(el) el.innerHTML = items.length ? items.map(g=>`
@@ -12847,7 +12840,7 @@ window.loadAdminLive = loadAdminLive;
 
 async function loadAdminAds(){
   try {
-    const snap = await getDocs(query(collection(db,'ads'),orderBy('order','asc')));
+    const snap = await getDocs(query(collection(db,'ads'),orderBy('order','asc'),limit(50)));
     const items = snap.docs.map(d=>({id:d.id,...d.data()}));
     const el = document.getElementById('adminAdsList');
     if(!el) return;
@@ -13125,7 +13118,7 @@ async function loadGroups(){
       headerEl.innerHTML = `<div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--accent);">🎣 Grupos de Pesca</div>`;
     }
   }
-  const snap = await getDocs(query(collection(db,'groups'), orderBy('time','desc')));
+  const snap = await getDocs(query(collection(db,'groups'), orderBy('time','desc'), limit(100)));
   const groups = snap.docs.map(d=>({id:d.id,...d.data()}));
   const el = document.getElementById('gruposList');
   if(!el) return;
@@ -13537,7 +13530,7 @@ async function deleteSpot(spotId){
 
 async function loadSpots(){
   try {
-    const snap = await getDocs(query(collection(db,'spots'), orderBy('time','desc')));
+    const snap = await getDocs(query(collection(db,'spots'), orderBy('time','desc'), limit(100)));
     const spots = snap.docs.map(d=>({id:d.id,...d.data()}));
     const el = document.getElementById('spotsFeed');
     if(el) el.innerHTML = spots.length
@@ -13552,7 +13545,7 @@ async function loadFriendSpots(){
   const friends = window.CU?.friends || [];
   if(!friends.length){ el.innerHTML=''; return; }
   try {
-    const snap = await getDocs(query(collection(db,'spots'), orderBy('time','desc')));
+    const snap = await getDocs(query(collection(db,'spots'), orderBy('time','desc'), limit(100)));
     const spots = snap.docs.map(d=>({id:d.id,...d.data()})).filter(s=>friends.includes(s.userId));
     el.innerHTML = spots.length
       ? `<div style="font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">📍 Spots de tus amigos</div>`+spots.slice(0,5).map(spotCardHTML).join('')
@@ -13567,7 +13560,7 @@ async function renderFriendSpotsInHome(){
   const friends = window.CU?.friends || [];
   if(!friends.length){ el.innerHTML=''; return; }
   try {
-    const snap = await getDocs(query(collection(db,'spots'), orderBy('time','desc')));
+    const snap = await getDocs(query(collection(db,'spots'), orderBy('time','desc'), limit(100)));
     const spots = snap.docs.map(d=>({id:d.id,...d.data()})).filter(s=>friends.includes(s.userId));
     el.innerHTML = spots.length
       ? `<div style="font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding:0 2px;">📍 Spots recientes de amigos</div>`+spots.slice(0,3).map(spotCardHTML).join('')
@@ -13869,7 +13862,7 @@ async function loadVerifRequests(){
   if(!el) return;
   el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);">Cargando...</div>';
   try {
-    const snap = await getDocs(collection(db,'verifRequests'));
+    const snap = await getDocs(query(collection(db,'verifRequests'), limit(100)));
     const reqs = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.requestTime||0)-(a.requestTime||0));
     if(!reqs.length){ el.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);">Sin solicitudes pendientes 🎉</div>'; return; }
     el.innerHTML = reqs.map(r=>`
@@ -14491,7 +14484,7 @@ async function sendShopAnnouncementToAll(){
   const btn = document.getElementById('btnShopAnnounce');
   if(btn){ btn.disabled=true; btn.textContent='⏳ Enviando...'; }
   try {
-    const usersSnap = await getDocs(collection(db,'users'));
+    const usersSnap = await getDocs(query(collection(db,'users'), limit(500)));
     const myId = window.CU.id;
     const myNick = window.CU.nick || 'RF4 Latam';
     const msg = `🎉 ¡Hola! Te avisamos que la TIENDA de RF4 Latam está 100% GRATIS por 30 días 🛒✨\n\nPodés tunear tu perfil y publicaciones con marcos, badges, títulos, efectos y colores. ¡Entrá a la tienda desde el botón de arriba y equipate todo lo que quieras sin costo!\n\n🔥 ¡Aprovechalo antes de que se acabe el período gratuito!`;
@@ -14527,8 +14520,8 @@ async function openUserProfile(uid, nick){
   // Si no hay uid, busca por nick
   if(!uid && nick){
     try {
-      const snap = await getDocs(collection(db,'users'));
-      const found = snap.docs.find(d=>(d.data().nick||'').toLowerCase()===(nick||'').toLowerCase());
+      const snap = await getDocs(query(collection(db,'users'), where('nickLower','==',(nick||'').toLowerCase()), limit(1)));
+      const found = snap.docs[0];
       if(found){ uid = found.id; }
     } catch(e){}
   }
@@ -15678,7 +15671,7 @@ function renderContacts(onlineUsers){
 
 async function updateMyGroupsSidebar(){
   try {
-    const snap = await getDocs(collection(db,'groups'));
+    const snap = await getDocs(query(collection(db,'groups'), limit(100)));
     const myGroups = snap.docs.map(d=>({id:d.id,...d.data()})).filter(g=>g.members&&g.members.includes(window.CU?.id));
     const el = document.getElementById('myGroupsList');
     if(el) el.innerHTML = myGroups.length
@@ -15995,7 +15988,7 @@ function renderMessengerList(){
   if(_messengerListUnsub){ clearInterval(_messengerListUnsub); _messengerListUnsub=null; }
   async function _refreshMessengerPresence(){
     try {
-      const snap = await getDocs(collection(db,'presence'));
+      const snap = await getDocs(query(collection(db,'presence'), limit(200)));
       const now = Date.now();
       _messengerOnlineIds = new Set(
         snap.docs
@@ -17038,7 +17031,7 @@ async function loadVideos(){
   if(!el) return;
   el.innerHTML = '<div style="text-align:center;padding:60px;color:var(--muted);grid-column:1/-1;">⏳ Cargando videos...</div>';
   try {
-    const snap = await getDocs(query(collection(db,'posts'), orderBy('time','desc')));
+    const snap = await getDocs(query(collection(db,'posts'), orderBy('time','desc'), limit(100)));
     let posts = snap.docs.map(d=>({id:d.id,...d.data()}))
       .filter(p => p.video && extractYtId(p.video));
     if(_videosFilter === 'mine' && window.CU){
@@ -17096,7 +17089,7 @@ function filterVideos(type){
 // ===== ADS MANAGEMENT =====
 async function loadAds(){
   try {
-    const snap = await getDocs(query(collection(db,'ads'),orderBy('order','asc')));
+    const snap = await getDocs(query(collection(db,'ads'),orderBy('order','asc'),limit(50)));
     const ads = snap.docs.map(d=>({id:d.id,...d.data()})).filter(a=>a.active);
     const el = document.getElementById('adsBanner');
     if(!el) return;
@@ -19216,7 +19209,7 @@ async function loadInsigniasPanel(){
   if(!container) return;
   container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);">Cargando...</div>';
   try {
-    const snap = await getDocs(collection(db,'users'));
+    const snap = await getDocs(query(collection(db,'users'), limit(300)));
     _insigAllUsers = snap.docs.map(d=>({id:d.id,...d.data()}));
     renderInsigniasPanel();
   } catch(e){
@@ -19400,7 +19393,7 @@ async function wkUpdateBannerCounts() {
     const el = document.getElementById('wkTotalTrophy');
     if(el) el.textContent = total||'—';
     // Online count from presence (charlasrf4)
-    const presSnap = await getDocs(collection(db,'presence'));
+    const presSnap = await getDocs(query(collection(db,'presence'), limit(200)));
     const online = presSnap.docs.filter(d => {
       const t = d.data().lastSeen?.toMillis?.() || 0;
       return Date.now() - t < 5*60*1000;
