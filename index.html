@@ -17898,7 +17898,8 @@ function trofeoFeedCardHTML(t){
   const description = esc(t.description||t.notes||t.nota||'');
   const notes = esc(t.notes||t.nota||t.description||'');
 
-  const tid = t.id||'';
+  const tid = t.id||"";
+  const rxnBtnsHtml = "<button class=\"rxn-btn\" onclick=\"doReact('trofeo_'+ tid +'','trofeo_normal','trofeo');schedHideRxnPop('trofeo_'+ tid +'')\"><img src=\"/troff.png\" style=\"width:24px;height:24px;\" title=\"Trofeo\"></button><button class=\"rxn-btn\" onclick=\"doReact('trofeo_'+ tid +'','trofeo_super','trofeo');schedHideRxnPop('trofeo_'+ tid +'')\"><img src=\"/troff_super.png\" style=\"width:24px;height:24px;\" title=\"Super Trofeo\"></button>";
   return `<div id="trofeo_${tid}" style="background:var(--bg2);border:1px solid rgba(255,215,0,.25);border-radius:var(--r);margin-bottom:18px;overflow:hidden;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='rgba(255,215,0,.25)'">
     <!-- Header type banner -->
     <div style="background:linear-gradient(135deg,rgba(255,215,0,.12),rgba(255,215,0,.04));border-bottom:1px solid rgba(255,215,0,.15);padding:8px 14px;display:flex;align-items:center;gap:6px;">
@@ -17957,7 +17958,7 @@ function trofeoFeedCardHTML(t){
         <div class="rxn-popup" id="rxnp_trofeo_${tid}"
           onmouseenter="cancelHideRxnPop('trofeo_${tid}')"
           onmouseleave="schedHideRxnPop('trofeo_${tid}')">
-          ${[{e:'trofeo_normal',s:'/troff.png',l:'Trofeo'},{e:'trofeo_super',s:'/troff_super.png',l:'Super Trofeo'}].map(function(r){return '<button class="rxn-btn" onclick="doReact(\'trofeo_'+tid+'\',\''+r.e+'\',\'trofeo\');schedHideRxnPop(\'trofeo_'+tid+'\')"><img src="'+r.s+'" style="width:24px;height:24px;" title="'+r.l+'"></button>';}).join('')
+          ${rxnBtnsHtml}
         </div>
       </div>
       <button class="act-btn" style="flex:1;justify-content:center;" onclick="toggleComments('trofeo_${tid}')">💬 Comentar</button>
