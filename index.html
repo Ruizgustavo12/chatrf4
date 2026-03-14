@@ -19353,21 +19353,54 @@ async function wkLoadHome() {
   grid.innerHTML = '<div class="wk-ld"><div class="wk-sp"></div></div>';
   try {
     const snap = await getDocs(query(collection(db,'trofeosPendientes'), where('status','==','approved'), limit(50)));
-    _wkAllTrophies = snap.docs.map(d=>({id:d.id,...d.data()}));
+    _wkAllTrophies = snap.docs.map(d=>({id:d.id,...d.data()}))
+      .sort((a,b)=>{
+        const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt?.seconds ? a.createdAt.seconds*1000 : 0);
+        const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt?.seconds ? b.createdAt.seconds*1000 : 0);
+        return tb - ta;
+      });
     if(_wkAllTrophies.length===0){ grid.innerHTML=''; empty.style.display='block'; return; }
     empty.style.display='none';
-    grid.innerHTML = _wkAllTrophies.map(t=>wkCard(t)).join('');
-    // Update stats
     const hst = document.getElementById('wkTotalTrophy');
     if(hst) hst.textContent = _wkAllTrophies.length+'+';
+    // Si el usuario está logueado, mostrar todo
+    if(window.CU){
+      grid.innerHTML = _wkAllTrophies.map(t=>wkCard(t)).join('');
+      return;
+    }
+    // No logueado: mostrar solo 3 y paywall
+    const visible = _wkAllTrophies.slice(0,3);
+    const locked = _wkAllTrophies.slice(3,6); // 3 cards borrosas de preview
+    grid.innerHTML = visible.map(t=>wkCard(t)).join('') +
+      ((_wkAllTrophies.length > 3) ? `
+      <div style="position:relative;grid-column:1/-1;">
+        <!-- Preview borroso de los siguientes trofeos -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;filter:blur(6px);pointer-events:none;user-select:none;max-height:280px;overflow:hidden;">
+          ${locked.map(t=>wkCard(t)).join('')}
+        </div>
+        <!-- Overlay paywall -->
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(to bottom,rgba(13,17,23,0) 0%,rgba(13,17,23,.85) 30%,rgba(13,17,23,.97) 100%);padding:24px 16px;text-align:center;border-radius:var(--r);">
+          <div style="font-size:2rem;margin-bottom:8px;">🔒</div>
+          <div style="font-family:'Orbitron',monospace;font-size:.95rem;font-weight:900;color:var(--gold);margin-bottom:6px;">¡Hay ${_wkAllTrophies.length - 3} trofeos más!</div>
+          <div style="font-size:.82rem;color:var(--muted);margin-bottom:18px;line-height:1.5;">Registrate gratis o iniciá sesión<br>para ver todos los trofeos de la comunidad.</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+            <button onclick="gp('home');setTimeout(showLogin,200)" style="background:var(--accent);color:#0d1117;border:none;border-radius:8px;padding:10px 24px;font-weight:800;cursor:pointer;font-family:'Exo 2',sans-serif;font-size:.88rem;">🔑 Iniciar sesión</button>
+            <button onclick="gp('home');setTimeout(showReg,200)" style="background:var(--gold);color:#0d1117;border:none;border-radius:8px;padding:10px 24px;font-weight:800;cursor:pointer;font-family:'Exo 2',sans-serif;font-size:.88rem;">⭐ Registrarse gratis</button>
+          </div>
+        </div>
+      </div>` : '');
   } catch(e) {
-    // fallback: try without orderBy
     try {
       const snap2 = await getDocs(query(collection(db,'trofeosPendientes'), where('status','==','approved'), limit(12)));
       _wkAllTrophies = snap2.docs.map(d=>({id:d.id,...d.data()}));
       if(!_wkAllTrophies.length){ grid.innerHTML=''; empty.style.display='block'; return; }
       empty.style.display='none';
-      grid.innerHTML = _wkAllTrophies.map(t=>wkCard(t)).join('');
+      if(window.CU){
+        grid.innerHTML = _wkAllTrophies.map(t=>wkCard(t)).join('');
+      } else {
+        const visible = _wkAllTrophies.slice(0,3);
+        grid.innerHTML = visible.map(t=>wkCard(t)).join('');
+      }
     } catch(e2){ grid.innerHTML='<div class="wk-empty"><div class="wk-ei">⚠️</div><div class="wk-et">Error al cargar</div></div>'; }
   }
 }
