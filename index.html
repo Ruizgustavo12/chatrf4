@@ -3716,6 +3716,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
         <option value="Norwegian Sea">Mar de Noruega</option>
         <option value="Kuori Lake">Kuori Lake</option>
         <option value="Copper lake">Cooper Lake</option>
+        <option value="Río Tunguska">Río Tunguska</option>
         <option value="Lower Tunguska River">Lower Tunguska River</option>
       </select>
     </div>
@@ -4133,9 +4134,8 @@ select.fi option{background:var(--bg3);color:var(--text);}
             <option>Ladoga Lake</option><option>Amber Lake</option><option>Bear Lake</option>
             <option>Mosquito Lake</option><option>Seversky Donets</option><option>Yama River</option>
             <option>Archipiélago Ladoga</option><option>Mar de Noruega</option><option>Lago Elk</option>
-            <option>Kuori</option><option>Cooper Lake</option>
+            <option>Kuori</option><option>Cooper Lake</option><option>Río Tunguska</option>
           </select>
-          <button class="btn btn-s btn-sm" onclick="document.getElementById('wkHomeMapSelect').value='';wkOnHomeMapChange()">✕ Limpiar</button>
         </div>
         <div class="map-results" id="wkHomeMapResults" style="display:none">
           <div class="map-results-header">
@@ -4170,7 +4170,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
           <option>Ladoga Lake</option><option>Amber Lake</option><option>Bear Lake</option>
           <option>Mosquito Lake</option><option>Seversky Donets</option><option>Yama River</option>
           <option>Archipiélago Ladoga</option><option>Mar de Noruega</option><option>Lago Elk</option>
-          <option>Kuori</option><option>Cooper Lake</option>
+          <option>Kuori</option><option>Cooper Lake</option><option>Río Tunguska</option>
         </select>
         <select class="wk-fi" style="width:auto" id="wkFTech" onchange="wkRenderTrophies()">
           <option value="">Todas las técnicas</option>
@@ -4280,7 +4280,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
           <option>Ladoga Lake</option><option>Amber Lake</option><option>Bear Lake</option>
           <option>Mosquito Lake</option><option>Seversky Donets</option><option>Yama River</option>
           <option>Archipiélago Ladoga</option><option>Mar de Noruega</option><option>Lago Elk</option>
-          <option>Kuori</option><option>Cooper Lake</option>
+          <option>Kuori</option><option>Cooper Lake</option><option>Río Tunguska</option>
         </select>
       </div>
       <div class="wk-fg"><label class="wk-fl">Spot</label><input class="wk-fi" id="wkPS" placeholder="Ej: Spot A, Puente Norte..."></div>
@@ -4299,7 +4299,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
     </div>
     <div class="wk-fg"><label class="wk-fl">Descripción / Setup</label><textarea class="wk-fi" id="wkPDesc" placeholder="Señuelo, profundidad, condiciones del agua..." style="min-height:65px"></textarea></div>
     <div class="wk-fg">
-      <label class="wk-fl">📸 Fotos (máx. 4)</label>
+      <label class="wk-fl">📸 Fotos (máx. 5)</label>
       <div class="wk-dz" id="wkDropzone">
         <div>📁 Arrastrá o hacé clic para subir fotos</div>
         <div style="font-size:.75rem;color:var(--muted,#567890);margin-top:4px">JPG, PNG · Max 5MB c/u</div>
@@ -19756,7 +19756,7 @@ window.wkResetForm = () => {
 // File handling for publish form
 window.wkHFiles = (files) => {
   Array.from(files).forEach(f=>{
-    if(_wkImgs.length>=4) return;
+    if(_wkImgs.length>=5) return;
     if(!f.type.startsWith('image/')) return;
     const reader=new FileReader();
     reader.onload=e=>{ _wkImgs.push({file:f,preview:e.target.result}); wkPvRender(); };
