@@ -1450,8 +1450,22 @@ select.fi option{background:var(--bg3);color:var(--text);}
 @keyframes barSlide{0%{background-position:200% 0}100%{background-position:-200% 0}}
 /* ===== END WIKI TROFEOS STYLES ===== */
 </style>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6245611726363291"
-     crossorigin="anonymous"></script>
+<script>
+// AdSense: solo cargar si el usuario NO es premium
+window._adsLoaded = false;
+window.loadAdsIfNeeded = function() {
+  if(window._adsLoaded) return;
+  const role = window.CU?.role || '';
+  if(role === 'premium' || role === 'admin') return;
+  window._adsLoaded = true;
+  const s = document.createElement('script');
+  s.async = true;
+  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6245611726363291';
+  s.crossOrigin = 'anonymous';
+  document.head.appendChild(s);
+};
+document.addEventListener('DOMContentLoaded', () => { setTimeout(window.loadAdsIfNeeded, 2000); });
+</script>
 </head>
 <body>
 <!-- SW Update Toast -->
@@ -1573,6 +1587,18 @@ select.fi option{background:var(--bg3);color:var(--text);}
       <div class="sl-item"><span class="sl-item-icon">🔖</span> Guardados</div>
       <div class="sl-item" onclick="gp('parches')"><span class="sl-item-icon">🔧</span> Parches y Actualizaciones</div>
       <div class="sl-item" onclick="gp('soporte')"><span class="sl-item-icon">🆘</span> Soporte Técnico</div>
+
+      <!-- BOTÓN PREMIUM -->
+      <div id="slPremiumBtn" style="margin:6px 4px;">
+        <div onclick="openPremiumModal()" style="background:linear-gradient(135deg,#1a1400,#2a1e00);border:1.5px solid rgba(255,215,0,.5);border-radius:10px;padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .2s;" onmouseover="this.style.borderColor='rgba(255,215,0,.9)'" onmouseout="this.style.borderColor='rgba(255,215,0,.5)'">
+          <span style="font-size:1.4rem;">⭐</span>
+          <div>
+            <div style="font-size:.82rem;font-weight:800;color:#ffd700;">Premium — $1/mes</div>
+            <div style="font-size:.7rem;color:rgba(255,215,0,.6);">Sin anuncios + badge exclusivo</div>
+          </div>
+        </div>
+      </div>
+      <!-- FIN BOTÓN PREMIUM -->
       <div class="divider"></div>
       <!-- Nuevos Pescadores -->
       <div style="padding:0 6px 8px;">
@@ -21695,6 +21721,84 @@ window.setBottomNav = function(id){
   if(el) el.classList.add('on');
 };
 </script>
+
+<!-- ===== MODAL PREMIUM ===== -->
+<div id="premiumModal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;">
+  <div style="background:linear-gradient(135deg,#1a1400,#2a1e00,#1a1400);border:1.5px solid rgba(255,215,0,.5);border-radius:18px;padding:28px 24px;max-width:340px;width:90%;position:relative;box-shadow:0 8px 40px rgba(0,0,0,.6),0 0 30px rgba(255,215,0,.08);">
+    <button onclick="closePremiumModal()" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,.1);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:.9rem;">✕</button>
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:2.5rem;margin-bottom:8px;">⭐</div>
+      <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:#ffd700;">RF4 Premium</div>
+      <div style="font-size:.8rem;color:rgba(255,215,0,.6);margin-top:4px;">Solo $1 USD por mes</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:10px;font-size:.82rem;color:#e6edf3;"><span style="color:#ffd700;">✓</span> Sin anuncios en todo el sitio</div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:.82rem;color:#e6edf3;"><span style="color:#ffd700;">✓</span> Badge ⭐ Premium en tu perfil</div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:.82rem;color:#e6edf3;"><span style="color:#ffd700;">✓</span> Apoyás la comunidad RF4 Latam</div>
+    </div>
+    <div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.2);border-radius:10px;padding:12px;margin-bottom:16px;font-size:.75rem;color:rgba(255,255,255,.7);line-height:1.6;">
+      1. Hacé clic en el botón de abajo para pagar $1 USD por PayPal.<br>
+      2. Mandanos el comprobante por el chat de soporte.<br>
+      3. En menos de 24hs activamos tu cuenta Premium. ✅
+    </div>
+    <a href="https://www.paypal.com/paypalme/synxyes/1" target="_blank" onclick="premiumPaypalClicked()" style="display:block;text-align:center;background:linear-gradient(135deg,#003087,#009cde);color:#fff;font-weight:800;font-size:.95rem;padding:12px;border-radius:10px;text-decoration:none;transition:opacity .2s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+      💳 Pagar con PayPal — $1 USD
+    </a>
+    <div style="text-align:center;margin-top:12px;font-size:.68rem;color:rgba(255,255,255,.35);">Pago manual · Activación en menos de 24hs</div>
+  </div>
+</div>
+
+<script>
+// ===== PREMIUM MODAL =====
+window.openPremiumModal = function() {
+  // Si ya es premium, mostrar mensaje
+  if(window.CU && window.CU.role === 'premium') {
+    toast('⭐ Ya sos Premium! Gracias por apoyar la comunidad 🎣', 'ok'); return;
+  }
+  if(!window.CU) { toast('Iniciá sesión para suscribirte','err'); return; }
+  const m = document.getElementById('premiumModal');
+  m.style.display = 'flex';
+};
+window.closePremiumModal = function() {
+  document.getElementById('premiumModal').style.display = 'none';
+};
+window.premiumPaypalClicked = function() {
+  // Notificar al admin por Firestore
+  try {
+    const { addDoc, collection, serverTimestamp } = window._fbFns || {};
+    if(addDoc && collection) {
+      addDoc(collection(db, 'premiumRequests'), {
+        userId: window.CU?.id || '',
+        nick: window.CU?.nick || '?',
+        email: window.CU?.email || '',
+        status: 'pending',
+        createdAt: serverTimestamp ? serverTimestamp() : new Date()
+      });
+    }
+  } catch(e) {}
+  toast('✅ Completá el pago en PayPal y mandanos el comprobante por Soporte!', 'ok');
+  setTimeout(closePremiumModal, 2500);
+};
+
+// Cerrar modal al hacer clic fuera
+document.getElementById('premiumModal').addEventListener('click', function(e) {
+  if(e.target === this) closePremiumModal();
+});
+
+// Ocultar botón premium si ya es premium
+function updatePremiumBtn() {
+  const btn = document.getElementById('slPremiumBtn');
+  if(!btn) return;
+  if(window.CU && window.CU.role === 'premium') {
+    btn.innerHTML = '<div style="margin:6px 4px;background:linear-gradient(135deg,#1a1400,#2a1e00);border:1.5px solid rgba(255,215,0,.5);border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:8px;"><span>⭐</span><span style="font-size:.78rem;font-weight:800;color:#ffd700;">¡Sos Premium!</span></div>';
+  }
+  // También recargar ads si no es premium
+  window.loadAdsIfNeeded && window.loadAdsIfNeeded();
+}
+// Llamar cuando se carga el usuario
+document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBtn, 2500); });
+</script>
+<!-- ===== FIN MODAL PREMIUM ===== -->
 
 </body>
 </html>
