@@ -5,9 +5,10 @@
 <script>
   var path = window.location.pathname;
   if (path && path !== '/' && path !== '/index.html') {
-    sessionStorage.setItem('__rf4_redirect', path);
+    window.location.replace('https://wikipediarf4.uy/?r=' + encodeURIComponent(path));
+  } else {
+    window.location.replace('https://wikipediarf4.uy/');
   }
-  window.location.replace('https://wikipediarf4.uy/');
 </script>
 </body>
 </html>
