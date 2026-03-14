@@ -6317,20 +6317,21 @@ function svToggleViewersList(){
   if(!s || !window.CU) return;
   const isOwner = s.userId === window.CU.id;
   const isVerified = window.CU.verified;
+  const isPremium = window.CU.role === 'premium' || (window.CU.badges||[]).includes('premium');
   const panel = document.getElementById('svViewersList');
   if(!panel) return;
 
   // No-dueño: mensaje explicativo
   if(!isOwner){
-    toast('Solo los dueños verificados pueden ver quién vio sus historias ✅','inf');
+    toast('Solo el dueño de la historia puede ver quién la vio','inf');
     return;
   }
-  // Dueño pero NO verificado
-  if(!isVerified){
-    toast('Solo cuentas verificadas pueden ver quién vio sus historias ✅','inf');
+  // Dueño pero NO verificado ni premium
+  if(!isVerified && !isPremium){
+    toast('⭐ Función exclusiva Premium — activá tu cuenta por $1/mes','inf');
     return;
   }
-  // Dueño Y verificado: toggle panel
+  // Dueño Y (verificado O premium): toggle panel
   const open = panel.style.display !== 'none';
   panel.style.display = open ? 'none' : 'block';
   if(!open && s.id){
@@ -21787,6 +21788,7 @@ window.setBottomNav = function(id){
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
       <div style="display:flex;align-items:center;gap:10px;font-size:.82rem;color:#e6edf3;"><span style="color:#ffd700;">✓</span> Sin anuncios en todo el sitio</div>
       <div style="display:flex;align-items:center;gap:10px;font-size:.82rem;color:#e6edf3;"><span style="color:#ffd700;">✓</span> Badge ⭐ Premium en tu perfil</div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:.82rem;color:#e6edf3;"><span style="color:#ffd700;">✓</span> Ves quién vio tus historias</div>
       <div style="display:flex;align-items:center;gap:10px;font-size:.82rem;color:#e6edf3;"><span style="color:#ffd700;">✓</span> Ayudanos a mantener viva a WikiPediaRF4.UY</div>
     </div>
     <div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.2);border-radius:10px;padding:12px;margin-bottom:16px;font-size:.75rem;color:rgba(255,255,255,.7);line-height:1.6;">
