@@ -100,11 +100,58 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
 /* ===== LAYOUT ===== */
 .layout{display:grid;grid-template-columns:280px 1fr 300px;gap:0;padding-top:56px;min-height:100vh;}
 @media(max-width:1100px){.layout{grid-template-columns:240px 1fr;}}
-/* Elementos mobile ocultos */
+/* Elementos mobile ocultos en desktop */
 .tb-mobile-logo{display:none;}
 .bottom-nav{display:none;}
 .mobile-hamburger{display:none;}
 .mobile-only-btn{display:none !important;}
+
+/* ===== RESPONSIVE MOBILE ===== */
+@media(max-width:768px){
+  /* Topbar mobile */
+  .topbar{padding:0 10px;height:52px;}
+  .tb-nav{display:none !important;}
+  .tb-search{width:140px;padding:5px 10px;}
+  .tb-logo{font-size:.85rem;}
+
+  /* Layout: una sola columna */
+  .layout{grid-template-columns:1fr !important;padding-top:52px;}
+  .sidebar-left{display:none;}
+  .sidebar-right{display:none !important;}
+  .feed{padding:8px;max-width:100%;}
+
+  /* Bottom nav mobile */
+  .bottom-nav{
+    display:flex !important;
+    position:fixed;bottom:0;left:0;right:0;
+    background:#161b22;border-top:1px solid var(--border);
+    z-index:1000;height:56px;
+    align-items:center;justify-content:space-around;
+    padding:0 4px;
+  }
+  .bottom-nav-btn{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:2px;padding:6px 8px;border-radius:8px;cursor:pointer;
+    background:none;border:none;color:var(--muted);font-size:.58rem;font-weight:700;
+    font-family:'Exo 2',sans-serif;min-width:44px;transition:color .2s;
+  }
+  .bottom-nav-btn .bn-icon{font-size:1.3rem;line-height:1;}
+  .bottom-nav-btn.on,.bottom-nav-btn:hover{color:var(--accent);}
+
+  /* Padding extra abajo para no tapar contenido con bottom nav */
+  body{padding-bottom:56px;}
+
+  /* Posts más compactos */
+  .post-card{border-radius:0;margin-bottom:8px;}
+  .story-card{width:90px;height:160px;}
+
+  /* Perfil mobile */
+  .profile-layout{grid-template-columns:1fr !important;}
+  .profile-cover{height:140px;}
+
+  /* Modales full screen en mobile */
+  .modal-box{width:100% !important;max-width:100% !important;border-radius:16px 16px 0 0 !important;position:fixed !important;bottom:0 !important;top:auto !important;left:0 !important;right:0 !important;max-height:90vh;overflow-y:auto;}
+}
 
 
 
@@ -21618,6 +21665,34 @@ document.addEventListener('DOMContentLoaded', ()=>{
     </div>
   </div>
 </div>
+
+<!-- BOTTOM NAV MOBILE -->
+<div class="bottom-nav" id="bottomNav">
+  <button class="bottom-nav-btn on" id="bnHome" onclick="gp('home');setBottomNav('bnHome')">
+    <span class="bn-icon">🏠</span>Home
+  </button>
+  <button class="bottom-nav-btn" id="bnTrofeos" onclick="gp('trofeos-feed');setBottomNav('bnTrofeos')">
+    <span class="bn-icon">🥇</span>Trofeos
+  </button>
+  <button class="bottom-nav-btn" id="bnWiki" onclick="gp('wiki');setBottomNav('bnWiki')">
+    <span class="bn-icon">📖</span>Wiki
+  </button>
+  <button class="bottom-nav-btn" id="bnAmigos" onclick="gp('amigos');setBottomNav('bnAmigos');renderAmigosPage()">
+    <span class="bn-icon">👥</span>Amigos
+  </button>
+  <button class="bottom-nav-btn" id="bnPerfil" onclick="gp('profile');setBottomNav('bnPerfil')">
+    <span class="bn-icon">👤</span>Perfil
+  </button>
+</div>
+
+<script>
+// Bottom nav helper
+window.setBottomNav = function(id){
+  document.querySelectorAll('.bottom-nav-btn').forEach(b=>b.classList.remove('on'));
+  const el = document.getElementById(id);
+  if(el) el.classList.add('on');
+};
+</script>
 
 </body>
 </html>
