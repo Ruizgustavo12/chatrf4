@@ -1,14 +1,13 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>WikiPediaRF4.UY</title>
+<html>
+<head><meta charset="utf-8"><title>RF4 Latam</title></head>
+<body>
 <script>
-  // Guarda la ruta actual y redirige al index
   var path = window.location.pathname;
-  sessionStorage.setItem('rf4_redirect', path);
-  window.location.replace('http://wikipediarf4.uy/?r=' + encodeURIComponent(path));
+  if (path && path !== '/' && path !== '/index.html') {
+    sessionStorage.setItem('__rf4_redirect', path);
+  }
+  window.location.replace('https://wikipediarf4.uy/');
 </script>
-</head>
-<body></body>
+</body>
 </html>
