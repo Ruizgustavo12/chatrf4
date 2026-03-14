@@ -18061,7 +18061,7 @@ function listenTrofeosFeed(){
   if(_unsubTrofeos) return;
   // Escuchar trofeos locales aprobados (db charlasrf4)
   const unsubLocal = onSnapshot(
-    query(collection(db,'trofeosPendientes'), where('status','==','approved')),
+    query(collection(db,'trofeosPendientes'), where('status','==','approved'), orderBy('createdAt','desc')),
     snap => {
       const local = snap.docs.map(d=>({id:d.id,...d.data(),_src:'local'}));
       // Solo usamos la colección local
