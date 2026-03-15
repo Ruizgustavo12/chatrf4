@@ -16390,7 +16390,19 @@ function renderMessengerList(){
 
 function openChatWith(uid, nick){
   if(!uid||!window.CU){ toast('Iniciá sesión primero','err'); return; }
+  // Si ya estamos en este chat, no hacer nada
+  if(_chatUserId === uid) return;
   tryApplyChatGold(uid);
+
+  // Cerrar pickers abiertos del chat anterior
+  const stkPicker = document.getElementById('chatStickerPicker');
+  if(stkPicker) stkPicker.style.display = 'none';
+  const gifPicker = document.getElementById('chatGifPicker');
+  if(gifPicker) gifPicker.style.display = 'none';
+  // Limpiar input
+  const inp = document.getElementById('chatInput');
+  if(inp) inp.value = '';
+
   _chatUserId = uid;
   _chatUserNick = nick;
   // Marcar notifs de mensajes de este usuario como leídas
@@ -16745,20 +16757,25 @@ async function submitPhotoComment(){
 }
 
 function backToMessengerList(){
-  if(!window.location.pathname.startsWith('/mensajes/') && window.location.pathname !== '/mensajes') {
-    // already handled
-  } else {
-    
-  }
+  // Cerrar pickers
+  const stkPicker = document.getElementById('chatStickerPicker');
+  if(stkPicker) stkPicker.style.display = 'none';
+  const gifPicker = document.getElementById('chatGifPicker');
+  if(gifPicker) gifPicker.style.display = 'none';
+  // Limpiar input
+  const inp = document.getElementById('chatInput');
+  if(inp) inp.value = '';
+
   if(_unsubChat){ _unsubChat(); _unsubChat=null; }
+  if(_presenceUnsub){ _presenceUnsub(); _presenceUnsub=null; }
   _chatUserId = null;
+  _chatUserNick = null;
   const chatWin = document.getElementById('chatWindow');
   const list = document.getElementById('messengerList');
   const inputRow = document.getElementById('chatInputRow');
-  if(chatWin) chatWin.style.display='none';
+  if(chatWin){ chatWin.style.display='none'; chatWin.innerHTML=''; }
   if(list) list.style.display='block';
   if(inputRow) inputRow.style.display='none';
-  // Render inmediato con datos actuales + relanzar listener de lista
   if(list) list.innerHTML = _buildMessengerHTML();
   renderMessengerList();
 }
