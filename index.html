@@ -20399,17 +20399,31 @@ window.wkSaveEdit = async (id) => {
 // MAPA INTERACTIVO RF4 — SOLO ADMIN
 // ============================================================
 const RF4_MAPS = {
-  elk_lake:       { name:'Elk Lake',        img:'/lago-elk.png',                                               xMin:43,  yMin:43,  xMax:157, yMax:157 },
-  norwegian_sea:  { name:'Norwegian Sea',   img:'https://en.rf4h.ru/templates/rf4m/maps/img/sea_83.webp',      xMin:2,   yMin:2,   xMax:993, yMax:993 },
-  mosquito_lake:  { name:'Mosquito Lake',   img:'https://en.rf4h.ru/templates/rf4m/maps/img/mosquito_83.webp', xMin:2,   yMin:2,   xMax:993, yMax:993 },
-  old_burg:       { name:'Old Burg Lake',   img:'https://en.rf4h.ru/templates/rf4m/maps/img/oldburg_83.webp',  xMin:2,   yMin:2,   xMax:993, yMax:993 },
-  winding_rivulet:{ name:'Winding Rivulet', img:'https://en.rf4h.ru/templates/rf4m/maps/img/bindweed_83.webp', xMin:2,   yMin:2,   xMax:993, yMax:993 },
-  belaya_river:   { name:'Belaya River',    img:'https://en.rf4h.ru/templates/rf4m/maps/img/white_83.webp',    xMin:2,   yMin:2,   xMax:993, yMax:993 },
-  akhtuba:        { name:'Akhtuba River',   img:'https://en.rf4h.ru/templates/rf4m/maps/img/ahtuba_83.webp',   xMin:2,   yMin:2,   xMax:993, yMax:993 },
-  ladoga:         { name:'Ladoga Lake',     img:'https://en.rf4h.ru/templates/rf4m/maps/img/ladoga_83.webp',   xMin:2,   yMin:2,   xMax:993, yMax:993 },
-  kuori:          { name:'Kuori Lake',      img:'https://en.rf4h.ru/templates/rf4m/maps/img/quori_83.webp',    xMin:2,   yMin:2,   xMax:993, yMax:993 },
-  tunguska:       { name:'Lower Tunguska',  img:'https://en.rf4h.ru/templates/rf4m/maps/img/tunguska_83.webp', xMin:2,   yMin:2,   xMax:993, yMax:993 },
-  yama:           { name:'Yama River',      img:'https://en.rf4h.ru/templates/rf4m/maps/img/pit_83.webp',      xMin:2,   yMin:2,   xMax:993, yMax:993 },
+  // pxLeft/pxRight/pyTop/pyBot = fracción de la imagen donde está la grilla
+  // Elk Lake: imagen 693x700, grilla col 27→664, fila 13→669
+  elk_lake:       { name:'Elk Lake',        img:'/lago-elk.png',
+                    xMin:43,  xMax:157, yMin:43,  yMax:157,
+                    pxLeft:0.039, pxRight:0.958, pyTop:0.019, pyBot:0.956 },
+  norwegian_sea:  { name:'Norwegian Sea',   img:'https://en.rf4h.ru/templates/rf4m/maps/img/sea_83.webp',
+                    xMin:2,   xMax:993, yMin:2,   yMax:993 },
+  mosquito_lake:  { name:'Mosquito Lake',   img:'https://en.rf4h.ru/templates/rf4m/maps/img/mosquito_83.webp',
+                    xMin:2,   xMax:993, yMin:2,   yMax:993 },
+  old_burg:       { name:'Old Burg Lake',   img:'https://en.rf4h.ru/templates/rf4m/maps/img/oldburg_83.webp',
+                    xMin:2,   xMax:993, yMin:2,   yMax:993 },
+  winding_rivulet:{ name:'Winding Rivulet', img:'https://en.rf4h.ru/templates/rf4m/maps/img/bindweed_83.webp',
+                    xMin:2,   xMax:993, yMin:2,   yMax:993 },
+  belaya_river:   { name:'Belaya River',    img:'https://en.rf4h.ru/templates/rf4m/maps/img/white_83.webp',
+                    xMin:2,   xMax:993, yMin:2,   yMax:993 },
+  akhtuba:        { name:'Akhtuba River',   img:'https://en.rf4h.ru/templates/rf4m/maps/img/ahtuba_83.webp',
+                    xMin:2,   xMax:993, yMin:2,   yMax:993 },
+  ladoga:         { name:'Ladoga Lake',     img:'https://en.rf4h.ru/templates/rf4m/maps/img/ladoga_83.webp',
+                    xMin:2,   xMax:993, yMin:2,   yMax:993 },
+  kuori:          { name:'Kuori Lake',      img:'https://en.rf4h.ru/templates/rf4m/maps/img/quori_83.webp',
+                    xMin:2,   xMax:993, yMin:2,   yMax:993 },
+  tunguska:       { name:'Lower Tunguska',  img:'https://en.rf4h.ru/templates/rf4m/maps/img/tunguska_83.webp',
+                    xMin:2,   xMax:993, yMin:2,   yMax:993 },
+  yama:           { name:'Yama River',      img:'https://en.rf4h.ru/templates/rf4m/maps/img/pit_83.webp',
+                    xMin:2,   xMax:993, yMin:2,   yMax:993 },
 };
 let _admCurrentMap = 'elk_lake';
 let _admMapSpots = JSON.parse(localStorage.getItem('rf4_admin_spots')||'{}');
@@ -20421,11 +20435,18 @@ function initAdminMapas(){
 
 function _admGetRange(){
   const m = RF4_MAPS[_admCurrentMap];
+  // Límites RF4 del mapa
   return {
     xMin: m.xMin !== undefined ? m.xMin : 0,
     xMax: m.xMax !== undefined ? m.xMax : 1000,
     yMin: m.yMin !== undefined ? m.yMin : 0,
     yMax: m.yMax !== undefined ? m.yMax : 1000,
+    // Límites en píxeles de la grilla dentro de la imagen (como % de la imagen)
+    // Elk Lake: grilla de px 27 a 664 horizontal, 13 a 669 vertical en imagen 693x700
+    pxLeft:  m.pxLeft  !== undefined ? m.pxLeft  : 0,
+    pxRight: m.pxRight !== undefined ? m.pxRight : 1,
+    pyTop:   m.pyTop   !== undefined ? m.pyTop   : 0,
+    pyBot:   m.pyBot   !== undefined ? m.pyBot   : 1,
   };
 }
 
@@ -20448,10 +20469,12 @@ function admMapClick(e){
   const rect = img.getBoundingClientRect();
   const relX = (e.clientX - rect.left) / rect.width;
   const relY = (e.clientY - rect.top)  / rect.height;
-  const {xMin,xMax,yMin,yMax} = _admGetRange();
-  // X normal: mayor X = más a la derecha
-  const rx = Math.round(xMin + relX * (xMax - xMin));
-  const ry = Math.round(yMax - relY * (yMax - yMin));
+  const {xMin,xMax,yMin,yMax,pxLeft,pxRight,pyTop,pyBot} = _admGetRange();
+  const gL=pxLeft||0, gR=pxRight||1, gT=pyTop||0, gB=pyBot||1;
+  const gx = (relX - gL) / (gR - gL);
+  const gy = (relY - gT) / (gB - gT);
+  const rx = Math.round(xMin + gx * (xMax - xMin));
+  const ry = Math.round(yMax - gy * (yMax - yMin));
   document.getElementById('admMapX').value = rx;
   document.getElementById('admMapY').value = ry;
   document.getElementById('admMapCoordDisplay').textContent = `📍 X: ${rx}  Y: ${ry}`;
@@ -20462,10 +20485,12 @@ function admMapClick(e){
 function admMapGoto(){
   const x = parseInt(document.getElementById('admMapX').value)||0;
   const y = parseInt(document.getElementById('admMapY').value)||0;
-  const {xMin,xMax,yMin,yMax} = _admGetRange();
-  // X normal: mayor X = más a la derecha
-  const relX = (x - xMin) / (xMax - xMin);
-  const relY = (yMax - y) / (yMax - yMin);
+  const {xMin,xMax,yMin,yMax,pxLeft,pxRight,pyTop,pyBot} = _admGetRange();
+  const gL=pxLeft||0, gR=pxRight||1, gT=pyTop||0, gB=pyBot||1;
+  const gx = (x - xMin) / (xMax - xMin);
+  const gy = (yMax - y) / (yMax - yMin);
+  const relX = gL + gx * (gR - gL);
+  const relY = gT + gy * (gB - gT);
   _admPinX = x; _admPinY = y;
   document.getElementById('admMapCoordDisplay').textContent = `📍 X: ${x}  Y: ${y}`;
   admMapPlacePin(relX, relY, `${x}:${y}`);
