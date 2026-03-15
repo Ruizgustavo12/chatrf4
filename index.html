@@ -2022,10 +2022,12 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(window.loadAdsI
           <div class="pac-item" id="profGenderRow" style="display:none">👥 Género: <strong id="profGender">—</strong></div>
           <div class="pac-item">📅 Se unió en <strong id="profJoined">2024</strong></div>
           <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border);">🌐 Redes y Contacto</div>
-          <div class="pac-item" id="profYTRow" style="display:none">▶️ YouTube: <a id="profYT" style="color:var(--accent);word-break:break-all;" target="_blank">—</a></div>
+          <div class="pac-item" id="profFBRow" style="display:none">📘 Facebook: <a id="profFB" style="color:var(--accent);" target="_blank" rel="noopener">—</a></div>
+          <div class="pac-item" id="profIGRow" style="display:none">📸 Instagram: <a id="profIG" style="color:var(--accent);" target="_blank" rel="noopener">—</a></div>
+          <div class="pac-item" id="profTTRow" style="display:none">🎵 TikTok: <a id="profTT" style="color:var(--accent);" target="_blank" rel="noopener">—</a></div>
           <div class="pac-item" id="profDCRow" style="display:none">💬 Discord: <strong id="profDC">—</strong></div>
-          <div class="pac-item" id="profTWRow" style="display:none">🐦 Twitch: <a id="profTW" style="color:var(--accent);" target="_blank">—</a></div>
-          <div class="pac-item" id="profWebRow" style="display:none">🌐 Web/Blog: <a id="profWeb" style="color:var(--accent);" target="_blank">—</a></div>
+          <div class="pac-item" id="profYTRow" style="display:none">▶️ YouTube: <a id="profYT" style="color:var(--accent);word-break:break-all;" target="_blank" rel="noopener">—</a></div>
+          <div class="pac-item" id="profTWRow" style="display:none">🎮 Twitch: <a id="profTW" style="color:var(--accent);" target="_blank" rel="noopener">—</a></div>
           <button class="btn btn-s" style="width:100%;margin-top:12px;font-size:.8rem" onclick="openEditProfile()">✏ Editar información</button>
         </div>
       </div>
@@ -3072,12 +3074,16 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(window.loadAdsI
     <!-- Redes y contacto -->
     <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:14px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🌐 Redes y Contacto</div>
     <div class="frow">
-      <div class="fg"><label class="fl">▶️ YouTube</label><input class="fi" id="epYT" placeholder="URL canal..."></div>
-      <div class="fg"><label class="fl">💬 Discord</label><input class="fi" id="epDC" placeholder="usuario#1234"></div>
+      <div class="fg"><label class="fl">📘 Facebook</label><input class="fi" id="epFB" placeholder="tu usuario (ej: ruizgustavo12)"></div>
+      <div class="fg"><label class="fl">📸 Instagram</label><input class="fi" id="epIG" placeholder="tu usuario (ej: ruizgustavo12)"></div>
     </div>
     <div class="frow">
+      <div class="fg"><label class="fl">🎵 TikTok</label><input class="fi" id="epTT" placeholder="tu usuario (ej: ruizgustavo12)"></div>
+      <div class="fg"><label class="fl">💬 Discord</label><input class="fi" id="epDC" placeholder="usuario o usuario#1234"></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="fl">▶️ YouTube</label><input class="fi" id="epYT" placeholder="URL del canal..."></div>
       <div class="fg"><label class="fl">🎮 Twitch</label><input class="fi" id="epTW" placeholder="URL o usuario de Twitch"></div>
-      <div class="fg"><label class="fl">🌐 Web / Blog</label><input class="fi" id="epWeb" placeholder="https://..."></div>
     </div>
 
     <button class="btn btn-p btn-full" style="margin-top:6px;" onclick="saveProfile()">💾 Guardar cambios</button>
@@ -9751,13 +9757,23 @@ function renderProfile(){
   document.getElementById('profJoined').textContent = window.CU.joined||new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
 
   // Social links
+  // Facebook — usuario → link
+  if(window.CU.social_fb){ const u=window.CU.social_fb; document.getElementById('profFBRow').style.display='flex'; const a=document.getElementById('profFB'); a.textContent=u; a.href='https://facebook.com/'+u; }
+  else { document.getElementById('profFBRow').style.display='none'; }
+  // Instagram — usuario → link
+  if(window.CU.social_ig){ const u=window.CU.social_ig; document.getElementById('profIGRow').style.display='flex'; const a=document.getElementById('profIG'); a.textContent='@'+u; a.href='https://instagram.com/'+u; }
+  else { document.getElementById('profIGRow').style.display='none'; }
+  // TikTok — usuario → link
+  if(window.CU.social_tt){ const u=window.CU.social_tt; document.getElementById('profTTRow').style.display='flex'; const a=document.getElementById('profTT'); a.textContent='@'+u; a.href='https://tiktok.com/@'+u; }
+  else { document.getElementById('profTTRow').style.display='none'; }
+  // Discord — solo usuario, sin link
+  setInfoField('profDCRow','profDC', window.CU.social_dc);
+  // YouTube — URL directa
   if(window.CU.social_yt){ document.getElementById('profYTRow').style.display='flex'; document.getElementById('profYT').textContent=window.CU.social_yt.replace(/https?:\/\/(www\.)?/,''); document.getElementById('profYT').href=window.CU.social_yt; }
   else { document.getElementById('profYTRow').style.display='none'; }
-  setInfoField('profDCRow','profDC', window.CU.social_dc);
+  // Twitch — URL directa
   if(window.CU.social_tw){ document.getElementById('profTWRow').style.display='flex'; document.getElementById('profTW').textContent=window.CU.social_tw.replace(/https?:\/\/(www\.)?/,''); document.getElementById('profTW').href=window.CU.social_tw; }
   else { document.getElementById('profTWRow').style.display='none'; }
-  if(window.CU.social_web){ document.getElementById('profWebRow').style.display='flex'; document.getElementById('profWeb').textContent=window.CU.social_web.replace(/https?:\/\/(www\.)?/,''); document.getElementById('profWeb').href=window.CU.social_web; }
-  else { document.getElementById('profWebRow').style.display='none'; }
 
   // Level based on experience
   const lvlMap = {Principiante:'🐟 Principiante',Intermedio:'🎣 Intermedio',Avanzado:'⭐ Avanzado',Experto:'🏆 Experto',Profesional:'👑 Profesional'};
@@ -9893,7 +9909,9 @@ async function saveProfile(){
   window.CU.social_yt = document.getElementById('epYT').value.trim();
   window.CU.social_dc = document.getElementById('epDC').value.trim();
   window.CU.social_tw = document.getElementById('epTW').value.trim();
-  window.CU.social_web = document.getElementById('epWeb').value.trim();
+  window.CU.social_fb = (document.getElementById('epFB').value.trim()).replace(/^@/,'').replace(/^https?:\/\/(www\.)?facebook\.com\/?/,'').replace(/\/$/,'');
+  window.CU.social_ig = (document.getElementById('epIG').value.trim()).replace(/^@/,'').replace(/^https?:\/\/(www\.)?instagram\.com\/?/,'').replace(/\/$/,'');
+  window.CU.social_tt = (document.getElementById('epTT').value.trim()).replace(/^@/,'').replace(/^https?:\/\/(www\.)?tiktok\.com\/@?/,'').replace(/\/$/,'');
   await updateDoc(doc(db, 'users', window.CU.id), window.CU);
   cm('mEditProfile'); updateNavUI(); renderProfile();
   toast('Perfil actualizado ✅','ok');
@@ -9965,7 +9983,9 @@ function openEditProfile(){
   document.getElementById('epYT').value = window.CU.social_yt||'';
   document.getElementById('epDC').value = window.CU.social_dc||'';
   document.getElementById('epTW').value = window.CU.social_tw||'';
-  document.getElementById('epWeb').value = window.CU.social_web||'';
+  document.getElementById('epFB').value = window.CU.social_fb||'';
+  document.getElementById('epIG').value = window.CU.social_ig||'';
+  document.getElementById('epTT').value = window.CU.social_tt||'';
   om('mEditProfile');
   setTimeout(setupBioLimit,50);
 }
@@ -15167,6 +15187,13 @@ async function _loadUserProfilePage(uid, nick){
       if(u.favFish) infoLines.push(`<div style="display:flex;align-items:flex-start;gap:10px;"><span style="font-size:1.1rem;flex-shrink:0;margin-top:1px;">🎣</span><span>Pez favorito: <strong style="color:var(--text);">${esc(u.favFish)}</strong></span></div>`);
       if(u.favMap) infoLines.push(`<div style="display:flex;align-items:flex-start;gap:10px;"><span style="font-size:1.1rem;flex-shrink:0;margin-top:1px;">🗺️</span><span>Mapa favorito: <strong style="color:var(--text);">${esc(u.favMap)}</strong></span></div>`);
       if(mutualFriends.length) infoLines.push(`<div style="display:flex;align-items:flex-start;gap:10px;"><span style="font-size:1.1rem;flex-shrink:0;margin-top:1px;">🤝</span><span style="color:var(--accent);">${mutualFriends.length} amigo${mutualFriends.length>1?'s':''} en común</span></div>`);
+      // Redes sociales
+      if(u.social_fb){ const usr=u.social_fb; infoLines.push(`<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:1.1rem;flex-shrink:0;">📘</span><a href="https://facebook.com/${encodeURIComponent(usr)}" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600;">${esc(usr)}</a></div>`); }
+      if(u.social_ig){ const usr=u.social_ig; infoLines.push(`<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:1.1rem;flex-shrink:0;">📸</span><a href="https://instagram.com/${encodeURIComponent(usr)}" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600;">@${esc(usr)}</a></div>`); }
+      if(u.social_tt){ const usr=u.social_tt; infoLines.push(`<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:1.1rem;flex-shrink:0;">🎵</span><a href="https://tiktok.com/@${encodeURIComponent(usr)}" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600;">@${esc(usr)}</a></div>`); }
+      if(u.social_dc){ infoLines.push(`<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:1.1rem;flex-shrink:0;">💬</span><span style="color:var(--text);">${esc(u.social_dc)}</span></div>`); }
+      if(u.social_yt){ infoLines.push(`<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:1.1rem;flex-shrink:0;">▶️</span><a href="${esc(u.social_yt)}" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600;">${esc(u.social_yt.replace(/https?:\/\/(www\.)?/,''))}</a></div>`); }
+      if(u.social_tw){ infoLines.push(`<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:1.1rem;flex-shrink:0;">🎮</span><a href="${esc(u.social_tw)}" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600;">${esc(u.social_tw.replace(/https?:\/\/(www\.)?/,''))}</a></div>`); }
       upInfoItems.innerHTML = infoLines.length ? infoLines.join('') : '<div style="color:var(--muted);font-size:.8rem;">Sin información pública</div>';
     }
 
