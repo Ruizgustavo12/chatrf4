@@ -20449,6 +20449,7 @@ function admMapClick(e){
   const relX = (e.clientX - rect.left) / rect.width;
   const relY = (e.clientY - rect.top)  / rect.height;
   const {xMin,xMax,yMin,yMax} = _admGetRange();
+  // X aumenta izq→der, Y disminuye arriba→abajo
   const rx = Math.round(xMin + relX * (xMax - xMin));
   const ry = Math.round(yMax - relY * (yMax - yMin));
   document.getElementById('admMapX').value = rx;
@@ -20462,6 +20463,7 @@ function admMapGoto(){
   const x = parseInt(document.getElementById('admMapX').value)||0;
   const y = parseInt(document.getElementById('admMapY').value)||0;
   const {xMin,xMax,yMin,yMax} = _admGetRange();
+  // Convertir coordenadas RF4 a posición relativa en imagen
   const relX = (x - xMin) / (xMax - xMin);
   const relY = (yMax - y) / (yMax - yMin);
   _admPinX = x; _admPinY = y;
