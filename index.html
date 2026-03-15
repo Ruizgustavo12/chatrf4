@@ -3699,6 +3699,7 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(window.loadAdsI
   <div id="admt-mapas" style="display:none;">
     <div style="margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
       <select id="admMapSelect" onchange="loadAdminMap(this.value)" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:var(--rs);font-family:'Exo 2',sans-serif;font-size:.85rem;cursor:pointer;">
+        <option value="elk_lake">🦌 Elk Lake</option>
         <option value="norwegian_sea">🌊 Norwegian Sea</option>
         <option value="mosquito_lake">🦟 Mosquito Lake</option>
         <option value="old_burg">🏰 Old Burg Lake</option>
@@ -20398,23 +20399,34 @@ window.wkSaveEdit = async (id) => {
 // MAPA INTERACTIVO RF4 — SOLO ADMIN
 // ============================================================
 const RF4_MAPS = {
-  norwegian_sea:  { name:'Norwegian Sea',   img:'https://en.rf4h.ru/templates/rf4m/maps/img/sea_83.webp' },
-  mosquito_lake:  { name:'Mosquito Lake',   img:'https://en.rf4h.ru/templates/rf4m/maps/img/mosquito_83.webp' },
-  old_burg:       { name:'Old Burg Lake',   img:'https://en.rf4h.ru/templates/rf4m/maps/img/oldburg_83.webp' },
-  winding_rivulet:{ name:'Winding Rivulet', img:'https://en.rf4h.ru/templates/rf4m/maps/img/bindweed_83.webp' },
-  belaya_river:   { name:'Belaya River',    img:'https://en.rf4h.ru/templates/rf4m/maps/img/white_83.webp' },
-  akhtuba:        { name:'Akhtuba River',   img:'https://en.rf4h.ru/templates/rf4m/maps/img/ahtuba_83.webp' },
-  ladoga:         { name:'Ladoga Lake',     img:'https://en.rf4h.ru/templates/rf4m/maps/img/ladoga_83.webp' },
-  kuori:          { name:'Kuori Lake',      img:'https://en.rf4h.ru/templates/rf4m/maps/img/quori_83.webp' },
-  tunguska:       { name:'Lower Tunguska',  img:'https://en.rf4h.ru/templates/rf4m/maps/img/tunguska_83.webp' },
-  yama:           { name:'Yama River',      img:'https://en.rf4h.ru/templates/rf4m/maps/img/pit_83.webp' },
+  elk_lake:       { name:'Elk Lake',        img:'/lago-elk.png',                                               xMin:43,  yMin:43,  xMax:157, yMax:157 },
+  norwegian_sea:  { name:'Norwegian Sea',   img:'https://en.rf4h.ru/templates/rf4m/maps/img/sea_83.webp',      xMin:2,   yMin:2,   xMax:993, yMax:993 },
+  mosquito_lake:  { name:'Mosquito Lake',   img:'https://en.rf4h.ru/templates/rf4m/maps/img/mosquito_83.webp', xMin:2,   yMin:2,   xMax:993, yMax:993 },
+  old_burg:       { name:'Old Burg Lake',   img:'https://en.rf4h.ru/templates/rf4m/maps/img/oldburg_83.webp',  xMin:2,   yMin:2,   xMax:993, yMax:993 },
+  winding_rivulet:{ name:'Winding Rivulet', img:'https://en.rf4h.ru/templates/rf4m/maps/img/bindweed_83.webp', xMin:2,   yMin:2,   xMax:993, yMax:993 },
+  belaya_river:   { name:'Belaya River',    img:'https://en.rf4h.ru/templates/rf4m/maps/img/white_83.webp',    xMin:2,   yMin:2,   xMax:993, yMax:993 },
+  akhtuba:        { name:'Akhtuba River',   img:'https://en.rf4h.ru/templates/rf4m/maps/img/ahtuba_83.webp',   xMin:2,   yMin:2,   xMax:993, yMax:993 },
+  ladoga:         { name:'Ladoga Lake',     img:'https://en.rf4h.ru/templates/rf4m/maps/img/ladoga_83.webp',   xMin:2,   yMin:2,   xMax:993, yMax:993 },
+  kuori:          { name:'Kuori Lake',      img:'https://en.rf4h.ru/templates/rf4m/maps/img/quori_83.webp',    xMin:2,   yMin:2,   xMax:993, yMax:993 },
+  tunguska:       { name:'Lower Tunguska',  img:'https://en.rf4h.ru/templates/rf4m/maps/img/tunguska_83.webp', xMin:2,   yMin:2,   xMax:993, yMax:993 },
+  yama:           { name:'Yama River',      img:'https://en.rf4h.ru/templates/rf4m/maps/img/pit_83.webp',      xMin:2,   yMin:2,   xMax:993, yMax:993 },
 };
-let _admCurrentMap = 'norwegian_sea';
+let _admCurrentMap = 'elk_lake';
 let _admMapSpots = JSON.parse(localStorage.getItem('rf4_admin_spots')||'{}');
 let _admPinX = null, _admPinY = null;
 
 function initAdminMapas(){
   loadAdminMap(_admCurrentMap);
+}
+
+function _admGetRange(){
+  const m = RF4_MAPS[_admCurrentMap];
+  return {
+    xMin: m.xMin !== undefined ? m.xMin : 0,
+    xMax: m.xMax !== undefined ? m.xMax : 1000,
+    yMin: m.yMin !== undefined ? m.yMin : 0,
+    yMax: m.yMax !== undefined ? m.yMax : 1000,
+  };
 }
 
 function loadAdminMap(mapKey){
@@ -20432,15 +20444,13 @@ function loadAdminMap(mapKey){
 
 function admMapClick(e){
   const img = document.getElementById('admMapImg');
-  const container = document.getElementById('admMapInner');
-  if(!img||!container) return;
+  if(!img) return;
   const rect = img.getBoundingClientRect();
   const relX = (e.clientX - rect.left) / rect.width;
   const relY = (e.clientY - rect.top)  / rect.height;
-  // Convertir a coordenadas RF4 (0-1000)
-  // X aumenta de izquierda a derecha, Y aumenta de arriba a abajo pero en RF4 Y=0 es abajo
-  const rx = Math.round(relX * 1000);
-  const ry = Math.round((1 - relY) * 1000);
+  const {xMin,xMax,yMin,yMax} = _admGetRange();
+  const rx = Math.round(xMin + relX * (xMax - xMin));
+  const ry = Math.round(yMax - relY * (yMax - yMin));
   document.getElementById('admMapX').value = rx;
   document.getElementById('admMapY').value = ry;
   document.getElementById('admMapCoordDisplay').textContent = `📍 X: ${rx}  Y: ${ry}`;
@@ -20451,9 +20461,9 @@ function admMapClick(e){
 function admMapGoto(){
   const x = parseInt(document.getElementById('admMapX').value)||0;
   const y = parseInt(document.getElementById('admMapY').value)||0;
-  // Convertir coordenadas RF4 a posición relativa en imagen
-  const relX = x / 1000;
-  const relY = 1 - (y / 1000);
+  const {xMin,xMax,yMin,yMax} = _admGetRange();
+  const relX = (x - xMin) / (xMax - xMin);
+  const relY = (yMax - y) / (yMax - yMin);
   _admPinX = x; _admPinY = y;
   document.getElementById('admMapCoordDisplay').textContent = `📍 X: ${x}  Y: ${y}`;
   admMapPlacePin(relX, relY, `${x}:${y}`);
