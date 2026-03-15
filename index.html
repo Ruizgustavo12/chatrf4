@@ -8179,11 +8179,51 @@ function postHTML(p){
       </div>
       <div style="position:relative;">
         <button class="post-menu" onclick="togglePostMenu('${p.id}', event, '${p.userId}')" style="font-size:1.3rem;line-height:1;">⋯</button>
-        <div id="pmenu_${p.id}" data-owner="${p.userId}" style="display:none;position:absolute;right:0;top:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);min-width:150px;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,.5);overflow:hidden;">
-          ${!p.sharedFrom ? `<button onclick="togglePostMenu('${p.id}', event); _openEditPostSafe('${p.id}')" data-owner-only="true" data-edit-pid="${p.id}" style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:var(--text);padding:12px 16px;cursor:pointer;font-size:.88rem;text-align:left;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">✏️ Editar</button>` : ''}
-          ${window.CU?.verified&&p.userId===window.CU?.id?`<button onclick="togglePostMenu('${p.id}',event);${p.id===window.CU?.pinnedPostId?'unpinPost()':"pinPost('${p.id}')"};" style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:gold;padding:12px 16px;cursor:pointer;font-size:.88rem;text-align:left;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">${p.id===window.CU?.pinnedPostId?'📌 Desfijar':'📌 Fijar en perfil'}</button>`:''}
-          <button onclick="togglePostMenu('${p.id}', event); deleteMyPost('${p.id}')" data-owner-only="true" style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:var(--red);padding:12px 16px;cursor:pointer;font-size:.88rem;text-align:left;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">🗑 Eliminar</button>
-          <button onclick="togglePostMenu('${p.id}', event); reportPost('${p.id}','${esc(p.userNick)}')" data-other-only="true" style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:var(--warn);padding:12px 16px;cursor:pointer;font-size:.88rem;text-align:left;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">⚠️ Reportar</button>
+        <div id="pmenu_${p.id}" data-owner="${p.userId}" style="display:none;position:absolute;right:0;top:100%;background:var(--bg2);border:1px solid var(--border);border-radius:12px;min-width:260px;z-index:999;box-shadow:0 8px 32px rgba(0,0,0,.6);overflow:hidden;padding:6px 0;">
+
+          ${/* ── OPCIONES DEL DUEÑO ── */'' }
+          ${window.CU?.verified&&p.userId===window.CU?.id ? `
+          <button onclick="togglePostMenu('${p.id}',event);${p.id===window.CU?.pinnedPostId?'unpinPost()':"pinPost('${p.id}')"}" data-owner-only="true" style="display:flex;align-items:center;gap:12px;width:100%;background:none;border:none;color:var(--text);padding:10px 16px;cursor:pointer;font-size:.88rem;text-align:left;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">
+            <span style="width:32px;height:32px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">📌</span>
+            <div><div style="font-weight:700;">${p.id===window.CU?.pinnedPostId?'Desfijar publicación':'Fijar publicación'}</div><div style="font-size:.72rem;color:var(--muted);">${p.id===window.CU?.pinnedPostId?'Quitar del inicio de tu perfil':'Mostrar al inicio de tu perfil'}</div></div>
+          </button>` : ''}
+
+          <button onclick="togglePostMenu('${p.id}',event);_savePostToFav('${p.id}')" style="display:flex;align-items:center;gap:12px;width:100%;background:none;border:none;color:var(--text);padding:10px 16px;cursor:pointer;font-size:.88rem;text-align:left;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">
+            <span style="width:32px;height:32px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">🔖</span>
+            <div><div style="font-weight:700;">Guardar publicación</div><div style="font-size:.72rem;color:var(--muted);">Agregar a tus elementos guardados</div></div>
+          </button>
+
+          <button onclick="togglePostMenu('${p.id}',event);navigator.clipboard.writeText(location.origin+'/#post_${p.id}').then(()=>toast('¡Enlace copiado!','ok'))" style="display:flex;align-items:center;gap:12px;width:100%;background:none;border:none;color:var(--text);padding:10px 16px;cursor:pointer;font-size:.88rem;text-align:left;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">
+            <span style="width:32px;height:32px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">🔗</span>
+            <div><div style="font-weight:700;">Copiar enlace</div></div>
+          </button>
+
+          <div data-owner-only="true" style="height:1px;background:var(--border);margin:4px 0;"></div>
+
+          ${!p.sharedFrom ? `
+          <button onclick="togglePostMenu('${p.id}', event); _openEditPostSafe('${p.id}')" data-owner-only="true" data-edit-pid="${p.id}" style="display:flex;align-items:center;gap:12px;width:100%;background:none;border:none;color:var(--text);padding:10px 16px;cursor:pointer;font-size:.88rem;text-align:left;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">
+            <span style="width:32px;height:32px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">✏️</span>
+            <div><div style="font-weight:700;">Editar publicación</div></div>
+          </button>` : ''}
+
+          <button onclick="togglePostMenu('${p.id}',event);_mutePostNotifs('${p.id}')" data-owner-only="true" style="display:flex;align-items:center;gap:12px;width:100%;background:none;border:none;color:var(--text);padding:10px 16px;cursor:pointer;font-size:.88rem;text-align:left;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">
+            <span style="width:32px;height:32px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">🔕</span>
+            <div><div style="font-weight:700;">Desactivar notificaciones</div><div style="font-size:.72rem;color:var(--muted);">Dejar de recibir notif. de esta publicación</div></div>
+          </button>
+
+          <div data-owner-only="true" style="height:1px;background:var(--border);margin:4px 0;"></div>
+
+          <button onclick="togglePostMenu('${p.id}', event); deleteMyPost('${p.id}')" data-owner-only="true" style="display:flex;align-items:center;gap:12px;width:100%;background:none;border:none;color:var(--red);padding:10px 16px;cursor:pointer;font-size:.88rem;text-align:left;transition:background .15s;" onmouseover="this.style.background='rgba(248,81,73,.08)'" onmouseout="this.style.background='none'">
+            <span style="width:32px;height:32px;border-radius:50%;background:rgba(248,81,73,.12);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">🗑️</span>
+            <div><div style="font-weight:700;">Mover a la papelera</div><div style="font-size:.72rem;color:var(--muted);">Eliminar esta publicación permanentemente</div></div>
+          </button>
+
+          ${/* ── OPCIONES PARA OTROS ── */'' }
+          <button onclick="togglePostMenu('${p.id}', event); reportPost('${p.id}','${esc(p.userNick)}')" data-other-only="true" style="display:flex;align-items:center;gap:12px;width:100%;background:none;border:none;color:var(--warn);padding:10px 16px;cursor:pointer;font-size:.88rem;text-align:left;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">
+            <span style="width:32px;height:32px;border-radius:50%;background:rgba(210,153,34,.1);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">⚠️</span>
+            <div><div style="font-weight:700;">Reportar publicación</div><div style="font-size:.72rem;color:var(--muted);">Denunciar contenido inapropiado</div></div>
+          </button>
+
         </div>
       </div>
     </div>
@@ -15474,6 +15514,22 @@ function _openEditPostSafe(pid){
              || (window._trofeosPosts||[]).find(p=>p.id===pid);
   const text = post ? (post.text||'') : '';
   openEditPost(pid, text);
+}
+
+function _savePostToFav(pid){
+  const saved = JSON.parse(localStorage.getItem('_savedPosts')||'[]');
+  if(saved.includes(pid)){ toast('Ya guardaste esta publicación 🔖','ok'); return; }
+  saved.unshift(pid);
+  localStorage.setItem('_savedPosts', JSON.stringify(saved.slice(0,50)));
+  toast('✅ Publicación guardada en tus elementos','ok');
+}
+
+function _mutePostNotifs(pid){
+  const muted = JSON.parse(localStorage.getItem('_mutedPosts')||'[]');
+  if(muted.includes(pid)){ toast('Ya tenías las notificaciones desactivadas','ok'); return; }
+  muted.push(pid);
+  localStorage.setItem('_mutedPosts', JSON.stringify(muted));
+  toast('🔕 Notificaciones desactivadas para esta publicación','ok');
 }
 
 function openEditPost(pid, text){
