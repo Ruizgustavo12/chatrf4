@@ -4772,6 +4772,7 @@ const auth = getAuth(app);
 // Set persistence immediately
 (async()=>{ try{ await setPersistence(auth, browserLocalPersistence); }catch(e){} })();
 const db = getFirestore(app);
+window.db = db;
 
 // ===== STATE =====
 window.CU = null;
