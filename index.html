@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6245611726363291"
+     crossorigin="anonymous"></script>
 <title>WikiPediaRF4.UY Red Social para los amantes de Russian Fishing4</title>
 
   <!-- SEO Básico -->
@@ -1739,20 +1742,9 @@ input:focus, textarea:focus {
 }
 </style>
 <script>
-// AdSense: solo cargar si el usuario NO es premium
-window._adsLoaded = false;
-window.loadAdsIfNeeded = function() {
-  if(window._adsLoaded) return;
-  const role = window.CU?.role || '';
-  if(role === 'premium' || role === 'admin') return;
-  window._adsLoaded = true;
-  const s = document.createElement('script');
-  s.async = true;
-  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6245611726363291';
-  s.crossOrigin = 'anonymous';
-  document.head.appendChild(s);
-};
-document.addEventListener('DOMContentLoaded', () => { setTimeout(window.loadAdsIfNeeded, 2000); });
+// AdSense: cargado directamente en el <head> para usuarios no premium
+window._adsLoaded = true;
+window.loadAdsIfNeeded = function() {}; // ya no necesario
 </script>
 </head>
 <body>
