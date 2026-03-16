@@ -1744,7 +1744,20 @@ input:focus, textarea:focus {
 <script>
 // AdSense: cargado directamente en el <head> para usuarios no premium
 window._adsLoaded = true;
-window.loadAdsIfNeeded = function() {}; // ya no necesario
+window.loadAdsIfNeeded = function() {
+  // Solo mostrar ads a usuarios no-premium
+  if(window.CU && window.CU.role === 'premium') {
+    document.querySelectorAll('.adsense-unit').forEach(el => el.style.display = 'none');
+    return;
+  }
+  document.querySelectorAll('.adsense-unit').forEach(el => el.style.display = 'block');
+  // Inicializar unidades que aún no se cargaron
+  try {
+    document.querySelectorAll('.adsbygoogle[data-adsbygoogle-status=""]').forEach(function(){
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    });
+  } catch(e) {}
+};
 </script>
 </head>
 <body>
@@ -1966,6 +1979,17 @@ window.loadAdsIfNeeded = function() {}; // ya no necesario
       <!-- ✨ RECUERDOS -->
       <div id="memoriesWidget" style="display:none;"></div>
 
+      <!-- AD: Banner encima del feed -->
+      <div class="adsense-unit" style="margin:8px 0 14px;text-align:center;">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-6245611726363291"
+             data-ad-slot="auto"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      </div>
+
       <!-- Posts -->
       <div id="feedPosts"><div style="text-align:center;padding:40px;color:var(--muted);font-size:.85rem;">🎣 Cargando feed...</div></div>
     </div>
@@ -1996,6 +2020,17 @@ window.loadAdsIfNeeded = function() {}; // ya no necesario
           <span style="font-size:.72rem;color:var(--accent);cursor:pointer;font-weight:600;" onclick="gp('trofeos-feed')">Ver todos</span>
         </div>
         <div id="trofeoSidebarList"><div style="font-size:.75rem;color:var(--muted);padding:6px 4px;">Cargando...</div></div>
+      </div>
+
+      <!-- AD: Sidebar derecho -->
+      <div class="adsense-unit" style="margin:10px 0;text-align:center;">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-6245611726363291"
+             data-ad-slot="auto"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
       </div>
 
     </div>
@@ -8183,7 +8218,28 @@ function renderFeed(){
       _loadMostViewedPosts(el);
       return;
     }
-    el.innerHTML = _posts.map(p=>postHTML(p)).join('');
+    const isPremium = window.CU && window.CU.role === 'premium';
+    const adHTML = isPremium ? '' : `<div class="adsense-unit" style="margin:12px 0;text-align:center;">
+      <ins class="adsbygoogle" style="display:block"
+           data-ad-client="ca-pub-6245611726363291"
+           data-ad-slot="auto" data-ad-format="fluid"
+           data-ad-layout-key="-6t+ed+2i-1n-4w"
+           data-full-width-responsive="true"></ins>
+    </div>`;
+    let html = '';
+    _posts.forEach((p, i) => {
+      html += postHTML(p);
+      if(!isPremium && (i + 1) % 5 === 0) html += adHTML;
+    });
+    el.innerHTML = html;
+    // Inicializar los ads insertados
+    if(!isPremium) {
+      try {
+        el.querySelectorAll('.adsbygoogle:not([data-adsbygoogle-status])').forEach(function(){
+          (adsbygoogle = window.adsbygoogle || []).push({});
+        });
+      } catch(e) {}
+    }
     el.querySelectorAll('.comments-section').forEach(function(c){ c.classList.remove('open'); });
     return;
   }
