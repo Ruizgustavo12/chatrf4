@@ -1751,6 +1751,8 @@ input:focus, textarea:focus {
 /* Ocultar ads vacíos */
 .adsense-unit { min-height:0 !important; }
 .adsbygoogle[data-ad-status="unfilled"] { display:none !important; height:0 !important; }
+/* Página café sin padding-top */
+#page-cafe { padding-top:0 !important; }
 </style>
 <script>
 // AdSense: cargado directamente en el <head> para usuarios no premium
@@ -4569,12 +4571,11 @@ window.loadAdsIfNeeded = function() {
 
 <!-- ===== PÁGINA SOPORTE TÉCNICO ===== -->
 <!-- PAGE: CAFÉ -->
-<div class="page" id="page-cafe" style="padding:0;height:calc(100vh - 56px);display:flex;flex-direction:column;">
+<div class="page" id="page-cafe" style="padding-top:0 !important;height:calc(100vh - 56px);display:flex;flex-direction:column;overflow:hidden;">
 
-  <!-- Header del café -->
-  <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+  <!-- Header selector de mapas -->
+  <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0;">
     <span style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:900;color:#ff8c00;">☕ Pedidos del Café</span>
-    <span style="font-size:.78rem;color:var(--muted);">Seleccioná el mapa:</span>
     <select id="cafeWaterSelect" onchange="loadCafeMap(this.value)"
       style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);padding:5px 10px;font-family:'Exo 2',sans-serif;font-size:.82rem;cursor:pointer;outline:none;">
       <option value="komarinoe">🏞️ Lago Komarinoe</option>
@@ -4591,27 +4592,21 @@ window.loadAdsIfNeeded = function() {
       <option value="archipelago">🏝️ Archipiélago Ladoga</option>
       <option value="ahtuba">🌊 Río Akhtuba</option>
       <option value="mednoe">🏞️ Lago Mednoe</option>
-      <option value="tunguska">🌊 Río Nizhnyaya Tunguska</option>
+      <option value="tunguska">🌊 Río N. Tunguska</option>
       <option value="yama">🌊 Río Yama</option>
       <option value="sea">🌊 Mar de Noruega</option>
     </select>
-    <span style="font-size:.75rem;color:var(--muted);margin-left:auto;">⏱️ Se actualiza cada 60 seg.</span>
+    <span style="font-size:.75rem;color:var(--muted);margin-left:auto;">⏱️ Actualización cada 60 seg.</span>
   </div>
 
-  <!-- Iframe -->
+  <!-- Iframe que ocupa todo el espacio restante -->
   <iframe id="cafeIframe"
     src="https://rf4-cafe.ru/komarinoe"
-    style="flex:1;width:100%;border:none;background:#1a1a2e;"
+    style="flex:1;width:100%;border:none;background:#1a1a2e;display:block;"
     allowfullscreen>
   </iframe>
 
 </div>
-
-<script>
-function loadCafeMap(water) {
-  document.getElementById('cafeIframe').src = 'https://rf4-cafe.ru/' + water;
-}
-</script>
 
 <div class="page" id="page-soporte" style="max-width:680px;margin:0 auto;padding:24px 16px 80px;">
 
@@ -6247,6 +6242,11 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 window.navigateTo = navigateTo;
 // ===== END URL ROUTER =====
+
+window.loadCafeMap = function(water) {
+  const iframe = document.getElementById('cafeIframe');
+  if(iframe) iframe.src = 'https://rf4-cafe.ru/' + water;
+};
 
 window.gp = (id, pushState = true) => {
   // Al salir del perfil ajeno: detener sus partículas y restaurar las del usuario propio
