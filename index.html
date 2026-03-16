@@ -18681,11 +18681,7 @@ let _trofeosFeedData = window._trofeosFeedData;
 let _trofeoFeedFilter = 'all';
 
 async function listenTrofeosFeed(){
-  // No recargar si ya hay datos frescos (menos de 2 minutos) — pero admin siempre recarga
-  const isAdmin = window.CU?.nick === 'ruizgustavo12' || window.CU?.email === 'synxyes@gmail.com' || window.CU?.role === 'admin';
-  if(!isAdmin && window._trofeosFeedLastLoad && (Date.now() - window._trofeosFeedLastLoad) < 120000 && window._trofeosFeedData.length){
-    renderTrofeosFeed(); return;
-  }
+  // Siempre recarga para mostrar el último trofeo agregado
   const feedEl = document.getElementById('trofeosFeed');
   if(feedEl) feedEl.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted);">
     <div style="font-size:2rem;margin-bottom:8px;">🏆</div>
@@ -18696,7 +18692,7 @@ async function listenTrofeosFeed(){
   }
   try {
     console.log('[Trofeos] Iniciando carga desde Firestore...');
-    const snap = await getDocs(query(collection(db,'trofeosPendientes'), limit(100)));
+    const snap = await getDocs(query(collection(db,'trofeosPendientes'), orderBy('createdAt','desc'), limit(100)));
     console.log('[Trofeos] Documentos recibidos:', snap.docs.length);
     const tsVal = x => x?.toMillis ? x.toMillis() : (typeof x==="number" ? x : (x?.seconds ? x.seconds*1000 : 0));
     const all = snap.docs.map(d=>({id:d.id,...d.data(),_src:'local'}));
