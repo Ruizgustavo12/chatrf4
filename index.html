@@ -18872,11 +18872,9 @@ async function listenTrofeosFeed(){
 }
 
 function listenTrofeosSidebar(){
-  getDocs(query(collection(db,'trofeosPendientes'), where('status','==','approved'), limit(20)))
+  getDocs(query(collection(db,'trofeosPendientes'), where('status','==','approved'), orderBy('createdAt','desc'), limit(5)))
     .then(snap => {
-      const items = snap.docs.map(d=>({id:d.id,...d.data()}))
-        .sort((a,b)=>(b.createdAt?.toMillis?.()??b.createdAt??0)-(a.createdAt?.toMillis?.()??a.createdAt??0))
-        .slice(0,5);
+      const items = snap.docs.map(d=>({id:d.id,...d.data()}));
       renderTrofeoSidebar(items);
       renderHomeTrophyWidget(items[0]||null);
     }).catch(e=>console.warn('trofeosSidebar error:',e));
