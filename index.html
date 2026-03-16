@@ -1879,6 +1879,7 @@ window.loadAdsIfNeeded = function() {}; // ya no necesario
       <div class="sl-item" onclick="gp('peso-del-trofeo')"><span class="sl-item-icon">🏆</span> Peso del Trofeo</div>
       <div class="sl-item" onclick="gp('skill')"><span class="sl-item-icon">📈</span> Subir Skill</div>
       <div class="sl-item" onclick="gp('wiki-trofeos')" id="slWikiTrofeosBtn" style="background:linear-gradient(90deg,rgba(255,215,0,.08),transparent);border-left:3px solid #ffd700;"><span class="sl-item-icon">🏆</span> Publicar Trofeos</div>
+      <div class="sl-item" onclick="gp('compartir-spot')" id="slCompartirSpotBtn" style="background:linear-gradient(90deg,rgba(46,196,182,.08),transparent);border-left:3px solid var(--accent);"><span class="sl-item-icon">📍</span> Compartir Spot</div>
 
       <div class="sl-item"><span class="sl-item-icon">🔖</span> Guardados</div>
       <div class="sl-item" onclick="gp('parches')"><span class="sl-item-icon">🔧</span> Parches y Actualizaciones</div>
@@ -4639,7 +4640,7 @@ window.loadAdsIfNeeded = function() {}; // ya no necesario
             <option>Ladoga Lake</option><option>Amber Lake</option><option>Bear Lake</option>
             <option>Mosquito Lake</option><option>Seversky Donets</option><option>Yama River</option>
             <option>Archipiélago Ladoga</option><option>Mar de Noruega</option><option>Lago Elk</option>
-            <option>Kuori</option><option>Cooper Lake</option>
+            <option>Kuori</option><option>Cooper Lake</option><option>Lower Tunguska River</option>
           </select>
           <button class="btn btn-s btn-sm" onclick="document.getElementById('wkHomeMapSelect').value='';wkOnHomeMapChange()">✕ Limpiar</button>
         </div>
@@ -4676,7 +4677,7 @@ window.loadAdsIfNeeded = function() {}; // ya no necesario
           <option>Ladoga Lake</option><option>Amber Lake</option><option>Bear Lake</option>
           <option>Mosquito Lake</option><option>Seversky Donets</option><option>Yama River</option>
           <option>Archipiélago Ladoga</option><option>Mar de Noruega</option><option>Lago Elk</option>
-          <option>Kuori</option><option>Cooper Lake</option>
+          <option>Kuori</option><option>Cooper Lake</option><option>Lower Tunguska River</option>
         </select>
         <select class="wk-fi" style="width:auto" id="wkFTech" onchange="wkRenderTrophies()">
           <option value="">Todas las técnicas</option>
@@ -4786,7 +4787,7 @@ window.loadAdsIfNeeded = function() {}; // ya no necesario
           <option>Ladoga Lake</option><option>Amber Lake</option><option>Bear Lake</option>
           <option>Mosquito Lake</option><option>Seversky Donets</option><option>Yama River</option>
           <option>Archipiélago Ladoga</option><option>Mar de Noruega</option><option>Lago Elk</option>
-          <option>Kuori</option><option>Cooper Lake</option>
+          <option>Kuori</option><option>Cooper Lake</option><option>Lower Tunguska River</option>
         </select>
       </div>
       <div class="wk-fg"><label class="wk-fl">Spot</label><input class="wk-fi" id="wkPS" placeholder="Ej: Spot A, Puente Norte..."></div>
@@ -4833,6 +4834,143 @@ window.loadAdsIfNeeded = function() {}; // ya no necesario
 </div>
 
 <!-- ===== FIN WIKI TROFEOS ===== -->
+
+<!-- ===== COMPARTIR SPOT (página tipo wiki-trofeos) ===== -->
+<div class="page" id="page-compartir-spot" style="min-height:100vh;padding-bottom:80px;">
+
+  <!-- Banner contador -->
+  <div id="spOnlineBanner" style="width:100%;background:linear-gradient(90deg,rgba(0,15,28,.97),rgba(0,30,50,.95),rgba(0,15,28,.97));border-bottom:1px solid rgba(0,212,255,.18);padding:10px 20px;display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;position:sticky;top:62px;z-index:900;backdrop-filter:blur(12px);">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:1.1rem;">📍</span>
+      <div style="display:flex;align-items:baseline;gap:7px">
+        <span id="spTotalSpots" style="font-family:'Orbitron',monospace;font-size:1.65rem;font-weight:900;color:#2ec4b6;text-shadow:0 0 18px rgba(46,196,182,.8);line-height:1;transition:all .35s ease">—</span>
+        <div style="display:flex;flex-direction:column;line-height:1.2">
+          <span style="font-family:'Orbitron',monospace;font-size:.56rem;font-weight:800;color:#2ec4b6;letter-spacing:1.5px">SPOTS</span>
+          <span style="font-family:'Orbitron',monospace;font-size:.56rem;font-weight:800;color:#2ec4b6;letter-spacing:1.5px">COMPARTIDOS</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sub-navegación -->
+  <div class="wk-nav">
+    <button class="wk-nb on" id="spNbInicio" onclick="spGp('sp-inicio',this)">🏠 Inicio</button>
+    <button class="wk-nb" id="spNbSpots" onclick="spGp('sp-spots',this)">📍 Todos los Spots</button>
+    <button class="wk-nb cta" id="spNbPublish" style="display:none" onclick="spOpenPublish()">+ Compartir Spot</button>
+    <button class="wk-nb" id="spNbAdmin" style="display:none" onclick="spGp('sp-admin',this)">⚙ Admin</button>
+  </div>
+
+  <!-- SUB-PÁGINA: INICIO -->
+  <div id="sp-inicio" style="display:block;">
+    <div class="section">
+      <!-- Explorar por mapa -->
+      <div class="map-search-wrap">
+        <div class="map-search-title">🗺️ Explorar por Mapa</div>
+        <div class="map-search-sub">Seleccioná un mapa y ve todos los spots de esa zona</div>
+        <div class="map-select-row">
+          <select class="map-select" id="spHomeMapSelect" onchange="spOnHomeMapChange()">
+            <option value="">— Seleccioná un mapa —</option>
+            <option>Belaya River</option><option>Volkhov River</option><option>Akhtuba River</option>
+            <option>Winding Rivulet</option><option>Old Burg Lake</option><option>Sura River</option>
+            <option>Ladoga Lake</option><option>Amber Lake</option><option>Bear Lake</option>
+            <option>Mosquito Lake</option><option>Seversky Donets</option><option>Yama River</option>
+            <option>Archipiélago Ladoga</option><option>Mar de Noruega</option><option>Lago Elk</option>
+            <option>Kuori</option><option>Cooper Lake</option><option>Lower Tunguska River</option>
+          </select>
+          <button class="btn btn-s btn-sm" onclick="document.getElementById('spHomeMapSelect').value='';spOnHomeMapChange()">✕ Limpiar</button>
+        </div>
+        <div class="map-results" id="spHomeMapResults" style="display:none">
+          <div class="map-results-header">
+            <div class="map-results-title" id="spHomeMapTitle"></div>
+            <div class="map-results-count" id="spHomeMapCount"></div>
+          </div>
+          <div id="spHomeMapGrid" style="display:flex;flex-direction:column;gap:12px;margin-top:12px;"></div>
+          <div class="wk-empty" id="spHomeMapEmpty" style="display:none;padding:24px 0"><div class="wk-ei">🗺️</div><div class="wk-et">Sin spots en este mapa</div><div class="wk-es">¡Sé el primero en compartir desde aquí!</div></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:10px">
+        <div><div class="stitle">📍 Spots Recientes</div><div class="ssub">Los últimos spots compartidos por la comunidad</div></div>
+        <button class="btn btn-s btn-sm" onclick="spGp('sp-spots',document.getElementById('spNbSpots'))">Ver todos →</button>
+      </div>
+      <div id="spHomeGrid" style="display:flex;flex-direction:column;gap:12px;"></div>
+      <div class="wk-empty" id="spHomeEmpty" style="display:none"><div class="wk-ei">📍</div><div class="wk-et">Aún no hay spots</div><div class="wk-es">¡Sé el primero en compartir un spot!</div></div>
+    </div>
+  </div>
+
+  <!-- SUB-PÁGINA: TODOS LOS SPOTS -->
+  <div id="sp-spots" style="display:none;">
+    <div class="section">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:8px">
+        <div><div class="stitle">📍 Todos los Spots</div><div class="ssub">Explorá los spots de la comunidad</div></div>
+        <button class="btn btn-p btn-sm" id="spPubBtn" style="display:none" onclick="spOpenPublish()">+ Compartir Spot</button>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;align-items:center">
+        <select class="wk-fi" style="width:auto" id="spFMap" onchange="spRenderSpots()">
+          <option value="">Todos los mapas</option>
+          <option>Belaya River</option><option>Volkhov River</option><option>Akhtuba River</option>
+          <option>Winding Rivulet</option><option>Old Burg Lake</option><option>Sura River</option>
+          <option>Ladoga Lake</option><option>Amber Lake</option><option>Bear Lake</option>
+          <option>Mosquito Lake</option><option>Seversky Donets</option><option>Yama River</option>
+          <option>Archipiélago Ladoga</option><option>Mar de Noruega</option><option>Lago Elk</option>
+          <option>Kuori</option><option>Cooper Lake</option><option>Lower Tunguska River</option>
+        </select>
+        <input class="wk-fi" style="width:190px" placeholder="Buscar pez o spot..." id="spFSearch" oninput="spRenderSpots()">
+      </div>
+      <div id="spGrid" style="display:flex;flex-direction:column;gap:12px;"></div>
+      <div class="wk-empty" id="spEmpty" style="display:none"><div class="wk-ei">📍</div><div class="wk-et">Sin resultados</div><div class="wk-es">Cambiá los filtros o compartí el primero</div></div>
+    </div>
+  </div>
+
+  <!-- SUB-PÁGINA: ADMIN -->
+  <div id="sp-admin" style="display:none;">
+    <div class="section">
+      <div class="stitle">⚙ Admin · Compartir Spot</div>
+      <div class="ssub">Solo ruizgustavo12</div>
+      <div id="spAdminList" style="margin-top:16px;"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL: PUBLICAR SPOT (wiki-style) -->
+<div class="wk-mo" id="spMPublish">
+  <div class="wk-modal">
+    <button class="wk-mcx" onclick="spCm('spMPublish');spResetForm()">✕</button>
+    <div style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:800;color:#2ec4b6;margin-bottom:22px">📍 Compartir Spot</div>
+    <div class="wk-frow">
+      <div class="wk-fg"><label class="wk-fl">Mapa *</label>
+        <select class="wk-fi" id="spPM">
+          <option value="">Seleccionar...</option>
+          <option>Belaya River</option><option>Volkhov River</option><option>Akhtuba River</option>
+          <option>Winding Rivulet</option><option>Old Burg Lake</option><option>Sura River</option>
+          <option>Ladoga Lake</option><option>Amber Lake</option><option>Bear Lake</option>
+          <option>Mosquito Lake</option><option>Seversky Donets</option><option>Yama River</option>
+          <option>Archipiélago Ladoga</option><option>Mar de Noruega</option><option>Lago Elk</option>
+          <option>Kuori</option><option>Cooper Lake</option><option>Lower Tunguska River</option>
+        </select>
+      </div>
+      <div class="wk-fg"><label class="wk-fl">Nombre del spot</label><input class="wk-fi" id="spPName" placeholder="Ej: Spot A, Puente Norte..."></div>
+    </div>
+    <div class="wk-fg"><label class="wk-fl">Descripción *</label><textarea class="wk-fi" id="spPDesc" placeholder="Describí el spot: ubicación, profundidad, condiciones del agua, mejor horario..." style="min-height:80px"></textarea></div>
+    <div class="wk-frow">
+      <div class="wk-fg"><label class="wk-fl">Pez capturado</label><input class="wk-fi" id="spPFish" placeholder="Ej: Pike, Catfish..."></div>
+      <div class="wk-fg"><label class="wk-fl">Peso (kg)</label><input class="wk-fi" type="number" step="0.001" id="spPWeight" placeholder="0.000"></div>
+    </div>
+    <div class="wk-fg"><label class="wk-fl">Método y carnada</label><textarea class="wk-fi" id="spPSetup" placeholder="Ej: Fondo con lombriz, spinning con señuelo #3..." style="min-height:55px"></textarea></div>
+    <div class="wk-fg">
+      <label class="wk-fl">📸 Fotos (máx. 5)</label>
+      <div class="wk-dz" id="spDropzone">
+        <div>📁 Arrastrá o hacé clic para subir fotos</div>
+        <div style="font-size:.75rem;color:var(--muted,#567890);margin-top:4px">JPG, PNG · Max 5MB c/u</div>
+        <input type="file" id="spFileInput" multiple accept="image/*" onchange="spHFiles(this.files)">
+      </div>
+      <div class="wk-pv" id="spPvGrid"></div>
+    </div>
+    <button class="btn btn-p" style="width:100%;margin-top:6px;background:var(--accent);" onclick="spSubmitSpot()" id="spSubmitBtn">📍 Publicar Spot</button>
+    <div id="spPubErr" style="color:#ff4466;font-size:.82rem;margin-top:8px;text-align:center"></div>
+  </div>
+</div>
+<!-- ===== FIN COMPARTIR SPOT ===== -->
 
 <!-- MAPA INTERACTIVO DE TROFEOS (solo admin) --><!-- TROFEOS POR MAPA PAGE (solo ruizgustavo12) -->
 
@@ -4967,7 +5105,7 @@ function _stub(name){ return function(){ _q.push([name, arguments]); }; }
  'toggleMessenger','sendChatMsg','openChatWith','backToMessengerList',
  'joinGroup','leaveGroup','openGroupPost','showGroupWelcome','previewGroupPostImg','removeGroupPostImg','submitGroupPost',
  'acceptFriendRequest','rejectFriendRequest','dismissFriendRequest','sendFriendRequestFromProfile','loadRealFriends','updateNotifBadge','updateMsgBadge',
- 'previewSpotImg','removeSpotImg','submitSpot','loadSpots','toggleYtInput','previewYtEmbed','clearYtInput','extractYtId','openPostWithYt','loadFriendSpots','renderFriendSpotsInHome','openEditSpot','saveEditSpot','deleteSpot','scrollToPost',
+ 'previewSpotImg','removeSpotImg','submitSpot','loadSpots','spOpenPublish','spGp','spCm','spResetForm','spHFiles','spRemFile','spSubmitSpot','spRenderSpots','spOnHomeMapChange','spDeleteSpot','toggleYtInput','previewYtEmbed','clearYtInput','extractYtId','openPostWithYt','loadFriendSpots','renderFriendSpotsInHome','openEditSpot','saveEditSpot','deleteSpot','scrollToPost',
  'renderSidebarFriends','renderSuggestedUsers','playNotifSound','showNotifToast','sendNotifToUserWithPost','openMessenger','loadVideos','filterVideos',
  'previewPezSemanaImg','submitPezSemana','deletePezSemana','loadPezSemana','openPezSemanalModal','openReactionsModal','buildRxnLabel',
  'filterTrofeoFeed','listenTrofeosFeed','swSkillTab','searchStoryMusic','selectStoryMusic','clearStoryMusic','searchDeezer','playDeezer','closeTrophyBanner','debounceStoryMusic','_hoverStoryPreview','_leaveStoryPreview','debounceMusicSearch','_doSharePost','_cmtOpenGif','searchCmtGifs','sendCmtGif','_toggleSharePrivacy','_setSharePrivacy','_txtMusicInput','_txtMusicFocus','_txtMusicSearch','_txtSelectTrack','_txtClearMusic','_txtSelectPopular','_txtSetSearch','_fotoMusicInput','_fotoMusicFocus','_fotoMusicSearch','_fotoSelectTrack','_fotoClearMusic','_fotoSelectPopular','_fotoSetSearch','_svToggleRxnPop','_svCloseRxnPop'
@@ -5888,6 +6026,7 @@ const PAGE_TO_URL = {
   'amigos':        '/amigos',
   'shop':          '/tienda',
   'trofeos-feed':  '/trofeos-resientes',
+  'compartir-spot': '/compartir-spot',
   'reels':          '/reels',
   'galeria':       '/galeria',
   'videos':        '/videos',
@@ -6029,6 +6168,17 @@ window.gp = (id, pushState = true) => {
   if(pvBtn) pvBtn.style.display = window.CU?.verified ? 'flex' : 'none';
   if(id==='spots'){ loadSpots(); loadFriendSpots(); }
   if(id==='casitrofeo') renderMapPosts();
+  if(id==='compartir-spot') {
+    spLoadData().then(()=>{ spRenderHome(); });
+    // Mostrar botón publicar y admin si aplica
+    const isAdmin = window.CU?.nick === 'ruizgustavo12' || window.CU?.email === 'synxyes@gmail.com' || window.CU?.role === 'admin';
+    const spPub = document.getElementById('spNbPublish');
+    const spAdm = document.getElementById('spNbAdmin');
+    const spPubBtn = document.getElementById('spPubBtn');
+    if(spPub) spPub.style.display = window.CU ? 'inline-flex' : 'none';
+    if(spAdm) spAdm.style.display = isAdmin ? 'inline-flex' : 'none';
+    if(spPubBtn) spPubBtn.style.display = window.CU ? '' : 'none';
+  }
   if(id==='trofeos-feed') {
     listenTrofeosFeed();
     document.getElementById('trofeoFeedBadge').style.display='inline-flex';
@@ -18681,7 +18831,11 @@ let _trofeosFeedData = window._trofeosFeedData;
 let _trofeoFeedFilter = 'all';
 
 async function listenTrofeosFeed(){
-  // Siempre recarga para mostrar el último trofeo agregado
+  // No recargar si ya hay datos frescos (menos de 2 minutos) — pero admin siempre recarga
+  const isAdmin = window.CU?.nick === 'ruizgustavo12' || window.CU?.email === 'synxyes@gmail.com' || window.CU?.role === 'admin';
+  if(!isAdmin && window._trofeosFeedLastLoad && (Date.now() - window._trofeosFeedLastLoad) < 120000 && window._trofeosFeedData.length){
+    renderTrofeosFeed(); return;
+  }
   const feedEl = document.getElementById('trofeosFeed');
   if(feedEl) feedEl.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted);">
     <div style="font-size:2rem;margin-bottom:8px;">🏆</div>
@@ -18692,7 +18846,7 @@ async function listenTrofeosFeed(){
   }
   try {
     console.log('[Trofeos] Iniciando carga desde Firestore...');
-    const snap = await getDocs(query(collection(db,'trofeosPendientes'), orderBy('createdAt','desc'), limit(100)));
+    const snap = await getDocs(query(collection(db,'trofeosPendientes'), limit(100)));
     console.log('[Trofeos] Documentos recibidos:', snap.docs.length);
     const tsVal = x => x?.toMillis ? x.toMillis() : (typeof x==="number" ? x : (x?.seconds ? x.seconds*1000 : 0));
     const all = snap.docs.map(d=>({id:d.id,...d.data(),_src:'local'}));
@@ -19303,6 +19457,241 @@ const _expose = {
   loadXPLevels, saveXPLevels, addXPLevelRow, renderXPLevelsAdmin,
   listenTrofeosFeed, filterTrofeoFeed, renderTrofeosFeed, trofeoFeedCardHTML, renderTrofeoSidebar
 };
+
+// ===== COMPARTIR SPOT (wiki-style) =====
+let _spFiles = [];
+let _spData = [];
+
+window.spGp = function(subId, btn) {
+  document.querySelectorAll('#page-compartir-spot > div[id^="sp-"]').forEach(el => el.style.display = 'none');
+  const el = document.getElementById(subId);
+  if(el) el.style.display = 'block';
+  document.querySelectorAll('.wk-nav .wk-nb').forEach(b => b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  if(subId === 'sp-spots') spRenderSpots();
+  if(subId === 'sp-admin') spLoadAdmin();
+};
+
+window.spOpenPublish = function() {
+  if(!window.CU){ toast('Iniciá sesión para compartir un spot','err'); return; }
+  document.getElementById('spMPublish').classList.add('open');
+};
+
+window.spCm = function(id) {
+  const el = document.getElementById(id);
+  if(el) el.classList.remove('open');
+};
+
+window.spResetForm = function() {
+  ['spPM','spPName','spPDesc','spPFish','spPWeight','spPSetup'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  document.getElementById('spPvGrid').innerHTML = '';
+  document.getElementById('spFileInput').value = '';
+  document.getElementById('spPubErr').textContent = '';
+  _spFiles = [];
+};
+
+window.spHFiles = function(files) {
+  const maxFiles = 5;
+  Array.from(files).forEach(file => {
+    if(_spFiles.length >= maxFiles){ toast('Máximo 5 fotos','err'); return; }
+    if(file.size > 5*1024*1024){ toast('Foto muy grande (máx 5MB)','err'); return; }
+    _spFiles.push(file);
+    const reader = new FileReader();
+    reader.onload = e => {
+      const pv = document.getElementById('spPvGrid');
+      if(pv){
+        const idx = _spFiles.length - 1;
+        const div = document.createElement('div');
+        div.className = 'wk-pvitem';
+        div.innerHTML = `<img src="${e.target.result}"><button class="wk-pvrem" onclick="spRemFile(${idx})">✕</button>`;
+        pv.appendChild(div);
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
+window.spRemFile = function(idx) {
+  _spFiles.splice(idx,1);
+  const pv = document.getElementById('spPvGrid');
+  if(pv){
+    pv.innerHTML = '';
+    _spFiles.forEach((f,i) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const div = document.createElement('div');
+        div.className = 'wk-pvitem';
+        div.innerHTML = `<img src="${e.target.result}"><button class="wk-pvrem" onclick="spRemFile(${i})">✕</button>`;
+        pv.appendChild(div);
+      };
+      reader.readAsDataURL(f);
+    });
+  }
+};
+
+window.spSubmitSpot = async function() {
+  if(!window.CU){ toast('Iniciá sesión primero','err'); return; }
+  const map = document.getElementById('spPM').value;
+  const name = document.getElementById('spPName').value.trim();
+  const desc = document.getElementById('spPDesc').value.trim();
+  const fish = document.getElementById('spPFish').value.trim();
+  const weight = document.getElementById('spPWeight').value;
+  const setup = document.getElementById('spPSetup').value.trim();
+  const errEl = document.getElementById('spPubErr');
+  if(!map){ errEl.textContent = '⚠ Seleccioná un mapa'; return; }
+  if(!desc){ errEl.textContent = '⚠ Escribí una descripción del spot'; return; }
+  errEl.textContent = '';
+  const btn = document.getElementById('spSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Publicando...';
+  try {
+    const imageUrls = [];
+    for(const f of _spFiles.slice(0,5)){
+      imageUrls.push(await uploadImage(f,'spots'));
+    }
+    await addDoc(collection(db,'spotsCompartidos'),{
+      userId: window.CU.id, userNick: window.CU.nick, userAv: window.CU.av||'',
+      map, name, desc, fish, weight: parseFloat(weight)||0, setup,
+      images: imageUrls, time: serverTimestamp(),
+      likes:0, reactions:{}, reactionCounts:{}
+    });
+    spCm('spMPublish'); spResetForm();
+    toast('✅ ¡Spot compartido!','ok');
+    await spLoadData();
+    spRenderHome();
+  } catch(e){
+    errEl.textContent = 'Error al publicar: ' + (e.message||e.code||'desconocido');
+  } finally {
+    btn.disabled = false; btn.textContent = '📍 Publicar Spot';
+  }
+};
+
+async function spLoadData(){
+  try {
+    const snap = await getDocs(query(collection(db,'spotsCompartidos'), orderBy('time','desc'), limit(200)));
+    _spData = snap.docs.map(d=>({id:d.id,...d.data()}));
+    const countEl = document.getElementById('spTotalSpots');
+    if(countEl) countEl.textContent = _spData.length;
+  } catch(e){ console.warn('spLoadData error:',e); }
+}
+
+function spCardHTML(s){
+  const imgs = s.images||[];
+  const isAdmin = window.CU?.nick === 'ruizgustavo12' || window.CU?.email === 'synxyes@gmail.com';
+  const isOwner = window.CU?.id === s.userId;
+  const canDel = isAdmin || isOwner;
+  const timeStr = s.time?.toMillis ? fmtT(s.time.toMillis()) : fmtT(s.time||Date.now());
+  return `<div id="spcard_${s.id}" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;">
+      <div style="width:40px;height:40px;border-radius:50%;border:2px solid var(--accent);overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);background:var(--bg3);flex-shrink:0;cursor:pointer;" onclick="openUserProfile('${s.userId}','${(s.userNick||'').replace(/'/g,"\'")}')">
+        <img src="${s.userAv||getDefaultAv()}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">
+      </div>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:.9rem;cursor:pointer;" onclick="openUserProfile('${s.userId}','${(s.userNick||'').replace(/'/g,"\'")}')">
+          ${esc(s.userNick||'')}
+        </div>
+        <div style="font-size:.72rem;color:var(--muted);">📍 ${esc(s.map||'')}${s.name?' · '+esc(s.name):''} · ${timeStr}</div>
+      </div>
+      ${canDel?`<button onclick="spDeleteSpot('${s.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.8rem;padding:4px 8px;border-radius:6px;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">🗑</button>`:''}
+    </div>
+    ${s.desc?`<div style="padding:0 14px 10px;font-size:.9rem;line-height:1.6;">${esc(s.desc)}</div>`:''}
+    ${imgs.length===1?`<img src="${imgs[0]}" style="width:100%;max-height:380px;object-fit:cover;display:block;cursor:pointer;" onclick="openImgLightbox('${imgs[0]}')">`:
+      imgs.length>1?`<div class="post-img-grid g2" style="gap:2px;">${imgs.slice(0,4).map(img=>`<img src="${img}" style="width:100%;height:200px;object-fit:cover;cursor:pointer;" onclick="openImgLightbox('${img}')">`).join('')}</div>`:''}
+    ${s.fish||s.setup?`<div style="padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px;border-top:1px solid var(--border);">
+      ${s.fish?`<span style="background:rgba(0,198,255,.1);color:var(--accent);padding:3px 10px;border-radius:100px;font-size:.75rem;">🐟 ${esc(s.fish)}${s.weight?' · '+fmtKg(s.weight):''}</span>`:''}
+      ${s.setup?`<span style="background:rgba(255,215,0,.08);color:var(--gold);padding:3px 10px;border-radius:100px;font-size:.75rem;">🎣 ${esc(s.setup)}</span>`:''}
+    </div>`:''}
+  </div>`;
+}
+
+window.spDeleteSpot = async function(id){
+  if(!confirm('¿Eliminar este spot?')) return;
+  try {
+    await deleteDoc(doc(db,'spotsCompartidos',id));
+    const el = document.getElementById('spcard_'+id);
+    if(el){ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }
+    _spData = _spData.filter(s=>s.id!==id);
+    toast('Spot eliminado ✅','ok');
+  } catch(e){ toast('Error al eliminar','err'); }
+};
+
+function spRenderHome(){
+  const grid = document.getElementById('spHomeGrid');
+  const empty = document.getElementById('spHomeEmpty');
+  if(!grid) return;
+  const data = _spData.slice(0,8);
+  if(!data.length){ grid.innerHTML=''; if(empty) empty.style.display='block'; return; }
+  if(empty) empty.style.display='none';
+  grid.innerHTML = data.map(spCardHTML).join('');
+}
+
+window.spRenderSpots = function(){
+  const grid = document.getElementById('spGrid');
+  const empty = document.getElementById('spEmpty');
+  if(!grid) return;
+  const mapF = (document.getElementById('spFMap')?.value||'').toLowerCase();
+  const search = (document.getElementById('spFSearch')?.value||'').toLowerCase();
+  let data = _spData;
+  if(mapF) data = data.filter(s=>(s.map||'').toLowerCase().includes(mapF));
+  if(search) data = data.filter(s=>
+    (s.fish||'').toLowerCase().includes(search)||
+    (s.name||'').toLowerCase().includes(search)||
+    (s.desc||'').toLowerCase().includes(search)
+  );
+  if(!data.length){ grid.innerHTML=''; if(empty) empty.style.display='block'; return; }
+  if(empty) empty.style.display='none';
+  grid.innerHTML = data.map(spCardHTML).join('');
+};
+
+window.spOnHomeMapChange = function(){
+  const map = document.getElementById('spHomeMapSelect').value;
+  const res = document.getElementById('spHomeMapResults');
+  const title = document.getElementById('spHomeMapTitle');
+  const count = document.getElementById('spHomeMapCount');
+  const grid = document.getElementById('spHomeMapGrid');
+  const empty = document.getElementById('spHomeMapEmpty');
+  if(!map){ if(res) res.style.display='none'; return; }
+  if(res) res.style.display='block';
+  if(title) title.textContent = '🗺️ ' + map;
+  const filtered = _spData.filter(s=>(s.map||'')=== map);
+  if(count) count.textContent = filtered.length + ' spot' + (filtered.length!==1?'s':'');
+  if(!filtered.length){
+    if(grid) grid.innerHTML='';
+    if(empty) empty.style.display='block';
+  } else {
+    if(empty) empty.style.display='none';
+    if(grid) grid.innerHTML = filtered.map(spCardHTML).join('');
+  }
+};
+
+async function spLoadAdmin(){
+  const el = document.getElementById('spAdminList');
+  if(!el) return;
+  const isAdmin = window.CU?.nick === 'ruizgustavo12' || window.CU?.email === 'synxyes@gmail.com' || window.CU?.role === 'admin';
+  if(!isAdmin){ el.innerHTML='<div style="color:var(--muted)">Solo admins</div>'; return; }
+  el.innerHTML = '<div style="color:var(--muted)">Cargando...</div>';
+  try {
+    const snap = await getDocs(query(collection(db,'spotsCompartidos'), orderBy('time','desc'), limit(200)));
+    const all = snap.docs.map(d=>({id:d.id,...d.data()}));
+    el.innerHTML = all.length
+      ? all.map(s=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;">
+          <div>
+            <div style="font-weight:700;font-size:.88rem;">${esc(s.userNick||'')} · ${esc(s.map||'')}${s.name?' · '+esc(s.name):''}</div>
+            <div style="font-size:.75rem;color:var(--muted);">${(s.desc||'').slice(0,80)}${s.desc?.length>80?'...':''}</div>
+          </div>
+          <button onclick="spDeleteSpot('${s.id}')" style="background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.3);color:var(--red);border-radius:6px;padding:5px 10px;font-size:.75rem;cursor:pointer;font-family:'Exo 2',sans-serif;">🗑 Borrar</button>
+        </div>`).join('')
+      : '<div style="color:var(--muted);padding:20px;">No hay spots</div>';
+  } catch(e){ el.innerHTML='<div style="color:var(--red);">Error al cargar</div>'; }
+}
+
+// Exponer al window
+window.spHFiles = window.spHFiles;
+window.spRemFile = window.spRemFile;
+// ===== FIN COMPARTIR SPOT JS =====
+
 
 // ===== RANKING SEMANAL =====
 const EXCLUDED_FROM_RANKING = ['ruizgustavo12'];
@@ -21297,6 +21686,7 @@ const _SIDEBAR_DEFAULT = [
   { id:'peso-del-trofeo',icon:'🏆',label:'Peso del Trofeo' },
   { id:'skill',         icon:'📈', label:'Subir Skill' },
   { id:'wiki-trofeos',  icon:'🏆', label:'Publicar Trofeos' },
+  { id:'compartir-spot', icon:'📍', label:'Compartir Spot' },
   { id:'parches',       icon:'🔧', label:'Parches y Actualizaciones' },
   { id:'soporte',       icon:'🆘', label:'Soporte Técnico' },
 ];
