@@ -6246,6 +6246,51 @@ window.addEventListener('DOMContentLoaded', () => {
 window.navigateTo = navigateTo;
 // ===== END URL ROUTER =====
 
+// ===== FACEBOOK SHARE DEEP LINK HANDLER =====
+// Cuando FB abre la URL con ?p=ID o ?t=ID, carga el post/trofeo directamente
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  var postId = params.get('p');
+  var trofeoId = params.get('t');
+  if(!postId && !trofeoId) return;
+
+  // Limpiar el param de la URL sin recargar
+  try {
+    var cleanUrl = window.location.origin + window.location.pathname;
+    window.history.replaceState(null,'', cleanUrl);
+  } catch(e){}
+
+  // Esperar a que Firebase cargue el usuario y los posts
+  function _tryOpenFBLink(tries){
+    if(tries <= 0) return;
+    if(postId){
+      if(typeof scrollToPost === 'function'){
+        gp && gp('home');
+        setTimeout(function(){ scrollToPost(postId); }, 600);
+        return;
+      }
+    }
+    if(trofeoId){
+      if(typeof gp === 'function'){
+        gp('trofeos-feed');
+        setTimeout(function(){
+          var el = document.getElementById('trofeo_'+trofeoId);
+          if(el){ el.scrollIntoView({behavior:'smooth',block:'center'}); el.style.boxShadow='0 0 0 3px #ffd700'; setTimeout(function(){el.style.boxShadow='';},2500); }
+        }, 1200);
+        return;
+      }
+    }
+    setTimeout(function(){ _tryOpenFBLink(tries-1); }, 700);
+  }
+
+  // Guardar para abrirlo después del login de Firebase
+  window._fbDeepLink = { postId: postId, trofeoId: trofeoId };
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(function(){ _tryOpenFBLink(8); }, 1500);
+  });
+})();
+// ===== FIN FACEBOOK SHARE DEEP LINK HANDLER =====
+
 window.loadCafeMap = function(water) {
   const iframe = document.getElementById('cafeIframe');
   if(!iframe) return;
@@ -8814,7 +8859,7 @@ function postHTML(p){
       </div>
       <button class="post-action-btn" onclick="toggleComments('${p.id}')">💬 <span style="font-size:.82rem;">Comentar</span></button>
       <button class="post-action-btn" onclick="sharePost('${p.id}')">🔁 <span style="font-size:.82rem;">Compartir</span></button>
-      <button class="post-action-btn" onclick="(function(){var u=encodeURIComponent(location.origin+location.pathname+'#post_${p.id}');window.open('https://www.facebook.com/sharer/sharer.php?u='+u,'_blank','width=640,height=460,resizable=yes');})();" title="Compartir en Facebook" style="color:#1877F2;gap:5px;">
+      <button class="post-action-btn" onclick="(function(){var u=encodeURIComponent(location.origin+location.pathname+'?p=${p.id}');window.open('https://www.facebook.com/sharer/sharer.php?u='+u,'_blank','width=640,height=460,resizable=yes');})();" title="Compartir en Facebook" style="color:#1877F2;gap:5px;">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="#1877F2"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.268h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
         <span style="font-size:.82rem;">Facebook</span>
       </button>
@@ -9604,7 +9649,7 @@ async function toggleComments(pid){
       </div>
       <button onclick="document.getElementById('_cmtModalInp_${pid}').focus()" style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;" onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='none'">💬 Comentar</button>
       <button onclick="sharePost('${pid}')" style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;" onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='none'">↗ Compartir</button>
-      <button onclick="(function(){var u=encodeURIComponent(location.origin+location.pathname+'#post_${pid}');window.open('https://www.facebook.com/sharer/sharer.php?u='+u,'_blank','width=640,height=460,resizable=yes');})();" style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;cursor:pointer;font-size:.88rem;font-weight:700;color:#1877F2;" onmouseover="this.style.background='rgba(24,119,242,.1)'" onmouseout="this.style.background='none'" title="Compartir en Facebook">
+      <button onclick="(function(){var u=encodeURIComponent(location.origin+location.pathname+'?p=${pid}');window.open('https://www.facebook.com/sharer/sharer.php?u='+u,'_blank','width=640,height=460,resizable=yes');})();" style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;cursor:pointer;font-size:.88rem;font-weight:700;color:#1877F2;" onmouseover="this.style.background='rgba(24,119,242,.1)'" onmouseout="this.style.background='none'" title="Compartir en Facebook">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="#1877F2"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.268h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
         Facebook
       </button>
@@ -12264,7 +12309,7 @@ function openImgLightbox(src, allImgs, postId){
           </div>
           <button class="ig-act-btn" onclick="document.getElementById('_igCmtInp').focus()">💬 Comentar</button>
           ${_galPostId?`<button class="ig-act-btn" onclick="igShare()">↗ Compartir</button>`:''}
-          ${_galPostId?`<button class="ig-act-btn" onclick="(function(){var u=encodeURIComponent(location.origin+location.pathname+'#post_'+_galPostId);window.open('https://www.facebook.com/sharer/sharer.php?u='+u,'_blank','width=640,height=460,resizable=yes');})()" style="color:#1877F2;gap:5px;"><svg viewBox='0 0 24 24' width='15' height='15' fill='#1877F2'><path d='M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.268h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z'/></svg> Facebook</button>`:''}
+          ${_galPostId?`<button class="ig-act-btn" onclick="(function(){var u=encodeURIComponent(location.origin+location.pathname+'?p='+_galPostId);window.open('https://www.facebook.com/sharer/sharer.php?u='+u,'_blank','width=640,height=460,resizable=yes');})()" style="color:#1877F2;gap:5px;"><svg viewBox='0 0 24 24' width='15' height='15' fill='#1877F2'><path d='M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.268h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z'/></svg> Facebook</button>`:''}
         </div>
       </div>
 
@@ -15231,7 +15276,7 @@ async function sharePost(pid){
   };
 
   shareButtons.appendChild(_mkShareBtn('🔁','Feed','#21262d', ()=>{ const _t=ta.value.trim(),_pr=window._sharePrivacy; overlay.remove(); _doSharePost(pid,realPid,_pr,_t); }));
-  shareButtons.appendChild(_mkShareBtn('🔗','Copiar enlace','#21262d', ()=>{ navigator.clipboard.writeText(location.href+'#post_'+pid).then(()=>toast('¡Enlace copiado!','ok')); overlay.remove(); }));
+  shareButtons.appendChild(_mkShareBtn('🔗','Copiar enlace','#21262d', ()=>{ navigator.clipboard.writeText(location.origin+location.pathname+'?p='+pid).then(()=>toast('¡Enlace copiado!','ok')); overlay.remove(); }));
 
   // ── Facebook ──────────────────────────────────────────────────────────────
   const _fbIconDiv = document.createElement('div');
@@ -15246,7 +15291,7 @@ async function sharePost(pid){
   _fbLbl.textContent='Facebook';
   _fbBtn.appendChild(_fbIconDiv); _fbBtn.appendChild(_fbLbl);
   _fbBtn.addEventListener('click',()=>{
-    const _postUrl = location.origin + location.pathname + '#post_' + pid;
+    const _postUrl = location.origin + location.pathname + '?p=' + pid;
     const _fbUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(_postUrl);
     window.open(_fbUrl,'_blank','width=620,height=450,resizable=yes,scrollbars=yes');
     overlay.remove();
@@ -15254,9 +15299,9 @@ async function sharePost(pid){
   shareButtons.appendChild(_fbBtn);
   // ── Fin Facebook ──────────────────────────────────────────────────────────
 
-  shareButtons.appendChild(_mkShareBtn('💬','WhatsApp','#25D366', ()=>{ window.open('https://wa.me/?text='+encodeURIComponent(location.href+'#post_'+pid),'_blank'); overlay.remove(); }));
-  shareButtons.appendChild(_mkShareBtn('✈️','Telegram','#229ED9', ()=>{ window.open('https://t.me/share/url?url='+encodeURIComponent(location.href+'#post_'+pid),'_blank'); overlay.remove(); }));
-  shareButtons.appendChild(_mkShareBtn('📸','Instagram','linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)', ()=>{ navigator.clipboard.writeText(location.href+'#post_'+pid).then(()=>toast('Copiá el enlace y pegalo en Instagram 📸','ok')); overlay.remove(); }));
+  shareButtons.appendChild(_mkShareBtn('💬','WhatsApp','#25D366', ()=>{ window.open('https://wa.me/?text='+encodeURIComponent(location.origin+location.pathname+'?p='+pid),'_blank'); overlay.remove(); }));
+  shareButtons.appendChild(_mkShareBtn('✈️','Telegram','#229ED9', ()=>{ window.open('https://t.me/share/url?url='+encodeURIComponent(location.origin+location.pathname+'?p='+pid),'_blank'); overlay.remove(); }));
+  shareButtons.appendChild(_mkShareBtn('📸','Instagram','linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)', ()=>{ navigator.clipboard.writeText(location.origin+location.pathname+'?p='+pid).then(()=>toast('Copiá el enlace y pegalo en Instagram 📸','ok')); overlay.remove(); }));
   shareSection.appendChild(shareButtons);
 
   // ── Enviar a amigos ───────────────────────────────────────────────────────
@@ -19627,7 +19672,7 @@ const _expose = {
 
 // ===== COMPARTIR EN FACEBOOK =====
 window.shareTrofeoFacebook = function(tid, fish, map, weight, nick) {
-  var pageUrl = location.origin + location.pathname + "#trofeo_" + tid;
+  var pageUrl = location.origin + location.pathname + "?t=" + tid;
   var kg = (weight ? (weight/1000).toFixed(3).replace(".", ",") + " kg" : "");
   var quote = "🏆 Trofeo de " + (fish||"pez") + (kg ? " — " + kg : "") + " en " + (map||"RF4") + "! 🎣 WikiPediaRF4.UY";
   var fbUrl = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(pageUrl) + "&quote=" + encodeURIComponent(quote);
