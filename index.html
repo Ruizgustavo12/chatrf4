@@ -19551,14 +19551,37 @@ window.spSubmitSpot = async function() {
     for(const f of _spFiles.slice(0,5)){
       imageUrls.push(await uploadImage(f,'spots'));
     }
+    // Guardar en colección spotsCompartidos
     await addDoc(collection(db,'spotsCompartidos'),{
       userId: window.CU.id, userNick: window.CU.nick, userAv: window.CU.av||'',
       map, name, desc, fish, weight: parseFloat(weight)||0, setup,
       images: imageUrls, time: serverTimestamp(),
       likes:0, reactions:{}, reactionCounts:{}
     });
+    // Publicar también en el feed principal como post normal
+    const spotText = [
+      `📍 Spot compartido${map ? ' · ' + map : ''}${name ? ' · ' + name : ''}`,
+      desc,
+      fish ? `🐟 ${fish}${parseFloat(weight) ? ' · ' + parseFloat(weight).toFixed(3) + ' kg' : ''}` : '',
+      setup ? `🎣 ${setup}` : ''
+    ].filter(Boolean).join('\n');
+    const newPostRef = await addDoc(collection(db,'posts'),{
+      userId: window.CU.id, userNick: window.CU.nick, userAv: window.CU.av||'',
+      userXp: window.CU.xp||0, userVerified: window.CU.verified||false,
+      text: spotText, fish, weight: parseFloat(weight)||0, map,
+      tech: setup||'', images: imageUrls, video: null, link: null,
+      feeling: null, taggedPeople: [], postType: 'spot',
+      time: serverTimestamp(),
+      likes:0, comments:[], reactions:{}, reactionCounts:{}
+    });
+    // Notificar amigos
+    const friends = window.CU.friends || [];
+    for(const fid of friends){
+      sendNotifToUser(fid, `📍 ${window.CU.nick} compartió un nuevo spot`);
+    }
+    try{ await setDoc(doc(db,'config','stats'),{totalPosts: increment(1)},{merge:true}); }catch(e){}
     spCm('spMPublish'); spResetForm();
-    toast('✅ ¡Spot compartido!','ok');
+    toast('✅ ¡Spot compartido en el feed!','ok');
     await spLoadData();
     spRenderHome();
   } catch(e){
