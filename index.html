@@ -4565,9 +4565,10 @@ document.addEventListener('DOMContentLoaded', function(){
     {id:5,name:'Lago Kuori',lvl:12,diff:'mid',fish:19,spots:3,region:'Norte',baseClimate:'frío',
      fish_list:['Carpa','Tenca','Lucio','Perca','Brema'],hot_day:['Carpa','Tenca'],hot_night:['Lucio'],
      tip:'Lago tranquilo y profundo. Carpa koi de gran tamaño activa en la orilla norte al amanecer.'},
-    {id:6,name:'Lago Oso',lvl:18,diff:'mid',fish:18,spots:2,region:'Central',baseClimate:'templado',
-     fish_list:['Carpa','Carpín','Brema','Tenca','Lucio'],hot_day:['Carpa','Carpín'],hot_night:['Lucio','Tenca'],
-     tip:'Carpas gigantes. Necesitás carrete con arrastre de al menos 14kg para los trofeos.'},
+    {id:6,name:'Lago del Oso',lvl:18,diff:'mid',fish:10,spots:2,region:'Central',baseClimate:'oso',tempRef:23,
+     fish_list:['Barbo Albino','Carpa Negra','Alburno','Rotan','Barbo Común','Tenca Oro','Carpa de Cuero','Carpa Espejo','Mejillón de Río','Tenca'],
+     hot_day:['Carpa Espejo','Carpa de Cuero','Barbo Común'],hot_night:['Carpa Negra','Tenca'],
+     tip:'Carpas de tamaño absolutamente sorprendente. Aparejo flotante y de profundidad 5 estrellas. Lanzado a larga distancia con waggler.'},
     {id:7,name:'Río Voljov',lvl:20,diff:'mid',fish:23,spots:1,region:'Norte',baseClimate:'fresco',
      fish_list:['Lucioperca','Perca','Siluro','Asp','Lucio','Brema'],hot_day:['Asp','Lucioperca'],hot_night:['Siluro'],
      tip:'Río ancho. Siluro grande en aguas profundas con cebo vivo por la noche.'},
@@ -4592,10 +4593,9 @@ document.addEventListener('DOMContentLoaded', function(){
     {id:14,name:'Río Akhtuba',lvl:28,diff:'expert',fish:51,spots:15,region:'Sur',baseClimate:'cálido',
      fish_list:['Beluga','Esturión','Siluro','Carpa herbívora','Asp','Lucioperca'],hot_day:['Asp','Lucioperca'],hot_night:['Beluga','Siluro','Esturión'],
      tip:'El río más variado del juego. Beluga y esturión son trofeos legendarios de nivel máximo.'},
-    {id:15,name:'Copper Lake',lvl:29,diff:'expert',fish:14,spots:4,region:'Central',baseClimate:'copper',tempRef:16,
-     fish_list:['C2 SuperFreak','Barbo Común','Carpa Cuero Dinks','Carpa Espejo Dinks','F1','Hi Utsuri','Kohaku','Tenca de Kvolsdorfsky','Carpa de Cuero','Mameshibori Goshiki','Carpa Espejo','Narumi Asagi','Yotsushiro','Orenji'],
-     hot_day:['Kohaku','Hi Utsuri','Carpa Espejo'],hot_night:['C2 SuperFreak','F1','Carpa de Cuero'],
-     tip:'Lago especial con especies criadas artificialmente. Koi japonés, tenca Kwolsdorf y C2 SuperFreak. Prohibido cañas de carpa y carretes >6000.'},
+    {id:15,name:'Lago Cobre',lvl:34,diff:'expert',fish:22,spots:4,region:'Siberia',baseClimate:'frío',
+     fish_list:['Lenok','Tímalo','Taimen','Perca siberiana','Lucio'],hot_day:['Tímalo','Lenok'],hot_night:['Taimen'],
+     tip:'Aguas siberianas. Taimen es el trofeo más codiciado. Spinning agresivo al atardecer.'},
     {id:16,name:'Río Tunguska',lvl:36,diff:'expert',fish:18,spots:3,region:'Siberia',baseClimate:'muy frío',
      fish_list:['Taimen','Lenok','Tímalo','Perca siberiana','Lucio'],hot_day:['Lenok','Tímalo'],hot_night:['Taimen'],
      tip:'Río remoto y difícil. Pocos peces pero de gran tamaño. Solo para jugadores expertos.'},
@@ -4609,13 +4609,14 @@ document.addEventListener('DOMContentLoaded', function(){
 
 
   var WEATHER_BY_CLIMATE={
-    'templado':   [['☀️','Despejado','#3fb950','Normal'],['⛅','Nublado','#8b949e','Normal'],['🌧️','Lluvia','#378ADD','Baja'],['⛈️','Tormenta','#9370db','Baja'],['💨','Viento','#2ec4b6','Alta']],
-    'fresco':     [['⛅','Nublado','#8b949e','Normal'],['🌧️','Lluvia','#378ADD','Baja'],['☀️','Despejado','#3fb950','Alta'],['💨','Viento fuerte','#2ec4b6','Alta'],['⛈️','Tormenta','#9370db','Baja']],
-    'frío':       [['⛅','Nublado','#8b949e','Baja'],['❄️','Nieve ligera','#b0d4ff','Baja'],['🌧️','Lluvia fría','#378ADD','Baja'],['☀️','Despejado frío','#3fb950','Alta'],['💨','Viento norte','#2ec4b6','Normal']],
-    'muy frío':   [['❄️','Nevada','#b0d4ff','Baja'],['⛅','Nublado','#8b949e','Baja'],['🌨️','Nieve intensa','#d0e8ff','Baja'],['💨','Ventisca','#2ec4b6','Normal'],['☀️','Despejado','#3fb950','Alta']],
-    'cálido':     [['☀️','Soleado','#d4a017','Alta'],['⛅','Parcial nublado','#8b949e','Normal'],['⛈️','Tormenta','#9370db','Baja'],['🌧️','Lluvia cálida','#378ADD','Baja'],['💨','Brisa','#2ec4b6','Normal']],
-    'ártico':     [['❄️','Tormenta de nieve','#b0d4ff','Baja'],['⛅','Nublado','#8b949e','Baja'],['💨','Viento ártico','#2ec4b6','Normal'],['🌨️','Nevada','#d0e8ff','Baja'],['☀️','Claro polar','#3fb950','Alta']],
-    'copper':     [['⛅','Nublado','#8b949e','Baja'],['🌧️','Lluvia ligera','#378ADD','Baja'],['⛅','Parcial nublado','#8b949e','Baja'],['☀️','Despejado','#3fb950','Normal'],['🌧️','Lluvia','#378ADD','Baja']]
+    'templado':  [['☀️','Despejado','#3fb950','Normal'],['⛅','Nublado','#8b949e','Normal'],['🌧️','Lluvia','#378ADD','Baja'],['⛈️','Tormenta','#9370db','Baja'],['💨','Viento','#2ec4b6','Alta']],
+    'fresco':    [['⛅','Nublado','#8b949e','Normal'],['🌧️','Lluvia','#378ADD','Baja'],['☀️','Despejado','#3fb950','Alta'],['💨','Viento fuerte','#2ec4b6','Alta'],['⛈️','Tormenta','#9370db','Baja']],
+    'frío':      [['⛅','Nublado','#8b949e','Baja'],['❄️','Nieve ligera','#b0d4ff','Baja'],['🌧️','Lluvia fría','#378ADD','Baja'],['☀️','Despejado frío','#3fb950','Alta'],['💨','Viento norte','#2ec4b6','Normal']],
+    'muy frío':  [['❄️','Nevada','#b0d4ff','Baja'],['⛅','Nublado','#8b949e','Baja'],['🌨️','Nieve intensa','#d0e8ff','Baja'],['💨','Ventisca','#2ec4b6','Normal'],['☀️','Despejado','#3fb950','Alta']],
+    'cálido':    [['☀️','Soleado','#d4a017','Alta'],['⛅','Parcial nublado','#8b949e','Normal'],['⛈️','Tormenta','#9370db','Baja'],['🌧️','Lluvia cálida','#378ADD','Baja'],['💨','Brisa','#2ec4b6','Normal']],
+    'ártico':    [['❄️','Tormenta de nieve','#b0d4ff','Baja'],['⛅','Nublado','#8b949e','Baja'],['💨','Viento ártico','#2ec4b6','Normal'],['🌨️','Nevada','#d0e8ff','Baja'],['☀️','Claro polar','#3fb950','Alta']],
+    'copper':    [['⛅','Nublado','#8b949e','Baja'],['🌧️','Lluvia ligera','#378ADD','Baja'],['⛅','Parcial nublado','#8b949e','Baja'],['☀️','Despejado','#3fb950','Normal'],['🌧️','Lluvia','#378ADD','Baja']],
+    'oso':       [['⛅','Nublado','#8b949e','Normal'],['⛅','Nublado','#8b949e','Normal'],['☀️','Despejado','#3fb950','Normal'],['🌧️','Lluvia','#378ADD','Normal'],['⛅','Nublado','#8b949e','Normal']]
   };
 
 
@@ -4709,40 +4710,54 @@ document.addEventListener('DOMContentLoaded', function(){
 
       if(isOpen){
         html+='<div class="lago-detail show">';
-        // Temp agua
         var season=getSeason();
-        var tempMin=season.temp[0]; var tempMax=season.temp[1];
-        var tempOffset={frío:-4,'muy frío':-8,fresco:-2,templado:0,cálido:4,ártico:-12,copper:-2}[lago.baseClimate]||0;
-        var temp=lago.tempRef ? lago.tempRef : Math.round(tempMin+(tempMax-tempMin)*0.5+tempOffset);
+        var tempOffset={frío:-4,'muy frío':-8,fresco:-2,templado:0,cálido:4,ártico:-12,copper:-2,oso:0}[lago.baseClimate]||0;
+        var temp=lago.tempRef ? lago.tempRef : Math.round(season.temp[0]+(season.temp[1]-season.temp[0])*0.5+tempOffset);
         var presion=wx[3]||'Normal';
         var presionColor=presion==='Baja'?'#378ADD':presion==='Alta'?'#f85149':'#3fb950';
+
+        // Cards principales
         html+='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:10px;">';
-        html+='<div style="background:var(--bg2);border-radius:var(--rs);padding:7px 8px;text-align:center;">';
-        html+='<div style="font-size:.58rem;color:var(--muted);margin-bottom:2px;">Temp. agua</div>';
-        html+='<div style="font-size:.85rem;font-weight:700;color:var(--text);">'+temp+'°C</div></div>';
-        html+='<div style="background:var(--bg2);border-radius:var(--rs);padding:7px 8px;text-align:center;">';
-        html+='<div style="font-size:.58rem;color:var(--muted);margin-bottom:2px;">Clima</div>';
-        html+='<div style="font-size:.82rem;font-weight:700;color:'+wx[2]+';white-space:nowrap;">'+wx[0]+' '+wx[1]+'</div></div>';
-        html+='<div style="background:var(--bg2);border-radius:var(--rs);padding:7px 8px;text-align:center;">';
-        html+='<div style="font-size:.58rem;color:var(--muted);margin-bottom:2px;">Presión</div>';
-        html+='<div style="font-size:.85rem;font-weight:700;color:'+presionColor+';">'+presion+'</div></div>';
-        html+='<div style="background:var(--bg2);border-radius:var(--rs);padding:7px 8px;text-align:center;">';
-        html+='<div style="font-size:.58rem;color:var(--muted);margin-bottom:2px;">Momento</div>';
-        html+='<div style="font-size:.78rem;font-weight:700;color:var(--accent);">'+(night?'🌙 Noche':'☀ Día')+'</div></div>';
+        html+='<div style="background:var(--bg2);border-radius:var(--rs);padding:7px 8px;text-align:center;"><div style="font-size:.58rem;color:var(--muted);margin-bottom:2px;">🌡 Temp. agua</div><div style="font-size:.85rem;font-weight:700;color:var(--text);">'+temp+'°C</div></div>';
+        html+='<div style="background:var(--bg2);border-radius:var(--rs);padding:7px 8px;text-align:center;"><div style="font-size:.58rem;color:var(--muted);margin-bottom:2px;">🌤 Clima</div><div style="font-size:.8rem;font-weight:700;color:'+wx[2]+';white-space:nowrap;">'+wx[0]+' '+wx[1]+'</div></div>';
+        html+='<div style="background:var(--bg2);border-radius:var(--rs);padding:7px 8px;text-align:center;"><div style="font-size:.58rem;color:var(--muted);margin-bottom:2px;">📊 Presión</div><div style="font-size:.85rem;font-weight:700;color:'+presionColor+';">'+presion+'</div></div>';
+        html+='<div style="background:var(--bg2);border-radius:var(--rs);padding:7px 8px;text-align:center;"><div style="font-size:.58rem;color:var(--muted);margin-bottom:2px;">⏱ Momento</div><div style="font-size:.78rem;font-weight:700;color:var(--accent);">'+(night?'🌙 Noche':'☀ Día')+'</div></div>';
         html+='</div>';
-        // Efecto del clima en pesca
+
+        // Pronóstico próximas 5 horas del juego
+        html+='<div style="font-size:.62rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">📅 Próximas 5 horas en RF4</div>';
+        html+='<div style="display:flex;gap:4px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px;">';
+        var options=WEATHER_BY_CLIMATE[lago.baseClimate]||WEATHER_BY_CLIMATE['templado'];
+        var cycleBase=new Date().getUTCHours();
+        for(var fi=1;fi<=5;fi++){
+          var fh=(gh+fi)%24;
+          var fPhase=getPhase(fh);
+          var fSeed=(lago.id*7+(cycleBase+fi)*3)%5;
+          var fWx=options[fSeed];
+          var fPresion=fWx[3]||'Normal';
+          var fPresColor=fPresion==='Baja'?'#378ADD':fPresion==='Alta'?'#f85149':'#3fb950';
+          html+='<div style="flex:0 0 auto;background:var(--bg2);border-radius:var(--rs);padding:6px 8px;text-align:center;min-width:64px;border:1px solid var(--border);">';
+          html+='<div style="font-size:.6rem;font-weight:700;color:'+fPhase.c+';margin-bottom:3px;">'+String(fh).padStart(2,'0')+':00</div>';
+          html+='<div style="font-size:1rem;margin-bottom:2px;">'+fWx[0]+'</div>';
+          html+='<div style="font-size:.6rem;color:'+fWx[2]+';">'+fWx[1]+'</div>';
+          html+='<div style="font-size:.58rem;color:'+fPresColor+';margin-top:1px;">'+fPresion+'</div>';
+          html+='</div>';
+        }
+        html+='</div>';
+
+        // Efecto del clima
         var wxEffect=getWeatherEffect(wx[1]);
         html+='<div style="background:var(--bg2);border-radius:var(--rs);padding:8px 10px;margin-bottom:10px;border-left:3px solid '+wx[2]+';font-size:.72rem;color:var(--muted);line-height:1.5;">';
         html+='<span style="font-weight:700;color:'+wx[2]+';">'+wx[0]+' Efecto en pesca:</span> '+wxEffect+'</div>';
+
         // Peces activos
-        html+='<div style="font-size:.62rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">Peces activos ahora '+(night?'🌙':'☀')+'</div>';
+        html+='<div style="font-size:.62rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">🐟 Peces activos ahora '+(night?'🌙':'☀')+'</div>';
         html+='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;">';
         lago.fish_list.forEach(function(f){
           var isHot=hotFish.indexOf(f)>-1;
           html+='<span class="lago-fish-tag'+(isHot?' hot':'')+'">'+(isHot?'★ ':'')+f+'</span>';
         });
         html+='</div>';
-        // Tip
         html+='<div style="font-size:.72rem;color:var(--muted);line-height:1.6;padding-top:8px;border-top:1px solid var(--border);">💡 '+lago.tip+'</div>';
         html+='</div>';
       }
