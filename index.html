@@ -1885,6 +1885,26 @@ document.addEventListener('DOMContentLoaded', function(){
   <div class="layout">
     <!-- LEFT -->
     <div class="sidebar-left">
+
+      <!-- MINI RELOJ RF4 -->
+      <div style="margin:4px 4px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px;">
+        <div style="font-size:.6rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;">
+          <span>⏱ Hora dentro del Juego</span>
+          <span style="display:flex;align-items:center;gap:3px;font-size:.6rem;color:var(--green);font-weight:600;text-transform:none;"><span style="width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block;animation:slClockPulse 2s infinite;"></span>En vivo</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="slRF4Clock" style="font-family:'Orbitron',monospace;font-size:1.35rem;font-weight:900;color:var(--accent);letter-spacing:3px;min-width:72px;">--:--</div>
+          <div style="flex:1;">
+            <div id="slRF4Phase" style="font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(46,196,182,.12);color:var(--accent);display:inline-block;margin-bottom:3px;">--</div>
+            <div id="slRF4Season" style="font-size:.62rem;color:var(--muted);">--</div>
+          </div>
+        </div>
+        <div style="margin-top:6px;height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;">
+          <div id="slRF4Bar" style="height:100%;background:var(--accent);border-radius:2px;transition:width 1s linear;width:0%;"></div>
+        </div>
+      </div>
+      <!-- FIN MINI RELOJ RF4 -->
+
       <div class="sl-profile" onclick="gp('profile')">
         <div class="sl-av" id="slAv">👤</div>
         <div class="sl-name" id="slName">Mi Perfil</div>
@@ -4550,96 +4570,60 @@ document.addEventListener('DOMContentLoaded', function(){
 <script>
 (function(){
   var LAGOS_DATA=[
-    {id:1,name:'Lago Mosquito',lvl:1,diff:'beginner',fish:20,spots:8,region:'Norte',baseClimate:'templado',tempRef:23,
-     mapImg:'https://en.rf4h.ru/templates/rf4m/maps/img/mosquito_83.webp',
-     fish_list:['Alburno','Brema','Siluro','Rotan','Cachuelo','Carpa Común','Rutilo','Carpa Cruciana','Rana','Carpa Gibel','Tenca Oro','Ide','Musgurnus Fosilis','Carpa Espejo','Perca de Río','Lucio','Acerina','Tenca','Brema Blanca'],
-     hot_day:['Brema','Carpa Común','Tenca'],hot_night:['Lucio','Perca de Río','Siluro'],
-     tip:'Lago ideal para principiantes. Aparejo flotante y de profundidad 5 estrellas. Carpa y brema abundan en orillas vegetadas.'},
-    {id:2,name:'Rivulet Sinuoso',lvl:1,diff:'beginner',fish:29,spots:9,region:'Norte',baseClimate:'fresco',tempRef:22,
-     mapImg:'https://en.rf4h.ru/templates/rf4m/maps/img/bindweed_83.webp',
-     fish_list:['Aspio','Alburno','Zope','Brema','Lota','Siluro','Rotan','Cachuelo','Carpa Común','Rutilo','Carpa Cruciana','Acerina Donet','Cangrejo de Río','Rana','Carpa Gibel','Gobio','Ide','Pez Narizón','Perca de Río','Lucio','Mejillón de Río','Acerina','Tenca','Sander Volgensis','Brema Blanca','Bellaurus Zapa','Sander (Lucioperca)','Mejillón Cebra'],
-     hot_day:['Aspio','Cachuelo','Ide'],hot_night:['Lucio','Sander (Lucioperca)'],
-     tip:'Río angosto ideal para spinning. Gran variedad de depredadores. Bueno para principiantes en caña giratoria.'},
-    {id:3,name:'Lago del Viejo Castillo',lvl:12,diff:'beginner',fish:20,spots:2,region:'Norte',baseClimate:'templado',tempRef:24,
-     mapImg:'https://en.rf4h.ru/templates/rf4m/maps/img/prison_83.webp',
-     fish_list:['Carpa Negra','Alburno','Brema','Lota','Siluro','Rotan','Cachuelo','Carpa Común','Rutilo','Carpa Cruciana','Anguila','Rana','Carpa Gibel','Carpa Herbívora','Ide','Perca de Río','Lucio','Acerina','Tenca','Brema Blanca'],
-     hot_day:['Carpa Común','Carpa Herbívora','Brema'],hot_night:['Anguila','Lucio','Carpa Negra'],
-     tip:'Lago profundo con lucio y perca de trofeo. Anguila extremadamente larga en aguas profundas. Aparejo flotante y de profundidad 5 estrellas.'},
-    {id:4,name:'Río Bélaya',lvl:12,diff:'beginner',fish:30,spots:6,region:'Norte',baseClimate:'fresco',tempRef:17,
-     mapImg:'https://en.rf4h.ru/templates/rf4m/maps/img/white_83.webp',
-     fish_list:['Tímalo Siberiano','Aspio','Alburno','Brema','Trucha Marrón','Lota','Siluro','Cachuelo','Carpa Común','Rutilo','Carpa Cruciana','Alburno Shemaya','Cangrejo de Río','Rana','Carpa Gibel','Tímalo','Gobio','Coregonus de Pidschian','Ide','Pez Narizón','Perca de Río','Lucio','Mejillón de Río','Acerina','Esterlete','Taiman','Tenca','Brema Blanca','Bellaurus Zapa','Sander (Lucioperca)'],
-     hot_day:['Tímalo','Aspio','Trucha Marrón'],hot_night:['Taiman','Lucio','Esterlete'],
-     tip:'Famoso río de Bashkortostán. Trofeo principal: Taiman. Aparejo giratorio 5 estrellas. Perfecto para spinning.'},
-    {id:5,name:'Lago Kuori',lvl:16,diff:'mid',fish:13,spots:3,region:'Norte',baseClimate:'frío',tempRef:11,
-     mapImg:'https://en.rf4h.ru/templates/rf4m/maps/img/quori_83.webp',
-     fish_list:['Trucha Ártica','Trucha Marrón','Lota','Salvelino de Arroyo','Piscardo Común','Tímalo','Salvelino Kuori','Pescado Blanco Kuori','Reo','Peled','Trucha Arcoíris','Trucha de Sevan','Vendace'],
-     hot_day:['Tímalo','Trucha Arcoíris','Trucha Marrón'],hot_night:['Trucha Ártica','Salvelino Kuori','Lota'],
-     tip:'Lago de bosques con fondo lleno de pozos profundos. Rico en truchas y salvelinos. Aparejo giratorio 5 estrellas.'},
-    {id:6,name:'Lago del Oso',lvl:18,diff:'mid',fish:10,spots:2,region:'Central',baseClimate:'oso',tempRef:23,
-     mapImg:'https://en.rf4h.ru/templates/rf4m/maps/img/bearish_83.webp',
-     fish_list:['Barbo Albino','Carpa Negra','Alburno','Rotan','Barbo Común','Tenca Oro','Carpa de Cuero','Carpa Espejo','Mejillón de Río','Tenca'],
-     hot_day:['Carpa Espejo','Carpa de Cuero','Barbo Común'],hot_night:['Carpa Negra','Tenca'],
-     tip:'Carpas de tamaño absolutamente sorprendente. Aparejo flotante y de profundidad 5 estrellas. Lanzado a larga distancia con waggler.'},
-    {id:7,name:'Río Vóljov',lvl:20,diff:'mid',fish:31,spots:1,region:'Norte',baseClimate:'fresco',tempRef:21,
-     mapImg:'https://en.rf4h.ru/templates/rf4m/maps/img/volhov_83.webp',
-     fish_list:['Aspio','Salmón del Atlántico','Alburno','Zope','Brema','Lota','Siluro','Cachuelo','Carpa Común','Rutilo','Carpa Cruciana','Alburno Shemaya','Anguila','Cangrejo de Río','Rana','Carpa Gibel','Gobio','Ide','Salmón Ladoga','Pez Narizón','Perca de Río','Lucio','Mejillón de Río','Acerina','Tenca','Vendace','Vimba o Zarte','Brema Blanca','Bellaurus Zapa','Sander (Lucioperca)','Mejillón Cebra'],
-     hot_day:['Aspio','Sander (Lucioperca)','Vimba o Zarte'],hot_night:['Siluro','Salmón Ladoga','Anguila'],
-     tip:'Mejor zona de pesca del noroeste de Rusia. Bagres gigantes del tamaño de un barco. Aparejo giratorio 5 estrellas.'},
-    {id:8,name:'Lago Elk',lvl:1,diff:'beginner',fish:19,spots:7,region:'Norteamérica',baseClimate:'templado',tempRef:22,
-     mapImg:'https://en.rf4h.ru/templates/rf4m/maps/img/elk_83.webp',
-     fish_list:['Black Bass de Boca Grande','Black Bass de Boca Pequeña','Bass Moteado','Bass Rayado','Bass Blanco','Bass Híbrido','Bass Pavo Real','Crappie Blanco','Crappie Negro','Bluegill','Redear Sunfish','Warmouth','Gizzard Shad','Walleye','Catfish de Canal','Flathead Catfish','Tambor de Agua Dulce','Spotted Gar','Alligator Gar'],
-     hot_day:['Black Bass de Boca Grande','Crappie Blanco','Walleye'],hot_night:['Flathead Catfish','Catfish de Canal','Bass Rayado'],
-     tip:'Único lago americano del juego. Peces de Norteamérica exclusivos. Aparejo giratorio 5 estrellas.'},
-    {id:9,name:'Río Don',lvl:22,diff:'mid',fish:42,spots:12,region:'Sur',baseClimate:'cálido',tempRef:19,
-     mapImg:'https://en.rf4h.ru/templates/rf4m/maps/img/don_83.webp',
-     fish_list:['Aspio','Beluga del Mar Negro','Kutum del Mar Negro','Shemaya del Mar Negro','Alburno','Zope','Brema','Lota','Siluro','Cachuelo','Clupeonella','Carpa Común','Rutilo','Carpa Cruciana','Alburno Shemaya','Acerina Donet','Anguila','Cangrejo de Río','Rana','Carpa Gibel','Carpa Herbívora','Gobio','Ide','Pez Narizón','Perca de Río','Lucio','Sábalo Póntico','Perca del Sol','Mejillón de Río','Gardi','Acerina','Esturión Ruso','Pelecus','Rutilo Hackelli (Taran)','Tenca','Lamprea Ucraniana','Sander Volgensis','Brema Blanca','Bellaurus Zapa','Carpa Silvestre','Sander (Lucioperca)','Mejillón Cebra'],
-     hot_day:['Aspio','Perca del Sol','Esturión Ruso'],hot_night:['Siluro','Lucio','Anguila'],
-     tip:'Uno de los ríos más pintorescos de Europa del Este. Perca sol y esturión como trofeos especiales. Aparejo flotante 5 estrellas.'},
-    {id:10,name:'Río Surá',lvl:24,diff:'mid',fish:38,spots:3,region:'Central',baseClimate:'templado',tempRef:20,
-     mapImg:'https://en.rf4h.ru/templates/rf4m/maps/img/sura_83.webp',
-     fish_list:['Aspio','Carpa de Cabeza Grande','Alburno','Zope','Brema','Lota','Siluro','Cachuelo','Carpa Común','Rutilo','Carpa Cruciana','Alburno Shemaya','Anguila','Cangrejo de Río','Rana','Carpa Gibel','Carpa Herbívora','Gobio','Ide','Pez Narizón','Perca de Río','Lucio','Mejillón de Río','Gardi','Acerina','Esturión Ruso','Pelecus','Carpa Plateada','Esterlete','Tenca','Vimba o Zarte','Sander Volgensis','Brema Blanca','Bellaurus Zapa','Carpa Silvestre','Sander (Lucioperca)','Mejillón Cebra'],
-     hot_day:['Aspio','Carpa Plateada','Gardi'],hot_night:['Siluro','Esterlete','Esturión Ruso'],
-     tip:'Segundo afluente más grande del Volga. Trofeo: esterlete o esturión ruso. Aparejo giratorio y de profundidad 5 estrellas.'},
-    {id:11,name:'Lago de Ládoga',lvl:26,diff:'expert',fish:35,spots:4,region:'Norte',baseClimate:'frío',tempRef:14,
-     mapImg:'https://en.rf4h.ru/templates/rf4m/maps/img/ladoga_83.webp',
-     fish_list:['Salmón del Atlántico','Esturión del Báltico','Alburno','Zope','Brema','Lota','Salvelino de Arroyo','Cachuelo','Carpa Común','Piscardo Común','Rutilo','Carpa Cruciana','Anguila','Cangrejo de Río','Rana','Carpa Gibel','Salvelino Gris','Tímalo','Ide','Salmón Ladoga','Reo','Ludoga Whitefish','Perca de Río','Lucio','Salvelino Rojo','Ripus','Acerina','Eperlano','Espinoso de Tres Espinas','Pescado Blanco de Valaam','Vendace','Vimba o Zarte','Pescado Blanco de Volkhov','Pescado Blanco Vuoksa','Brema Blanca'],
-     hot_day:['Tímalo','Vimba o Zarte','Salmón Ladoga'],hot_night:['Salmón del Atlántico','Esturión del Báltico','Lota'],
-     tip:'El lago más grande de Europa. Rico en esturión del Báltico y salmón. Aparejo giratorio 5 estrellas.'},
-    {id:12,name:'El Lago Ámbar',lvl:26,diff:'expert',fish:22,spots:2,region:'Báltico',baseClimate:'templado',tempRef:20,
-     mapImg:'https://en.rf4h.ru/templates/rf4m/maps/img/amber_83.webp',
-     fish_list:['Barbo Común','Carpa Común','Carpa Fantasma Común','Carpa Común Albino','Carpa Cruciana','Carpa Espejo Enmarcado','Carpa Espejo Enmarcado Fantasma','Carpa Espejo Enmarcado Albino','Rana','Carpa Gibel','Carpa Herbívora','Carpa de Cuero','Carpa Espejo Fantasma','Carpa Espejo Albino','Carpa Linear','Carpa Espejo','Carpa Fantasma Espejo','Perca de Río','Carpa Común Oro','Carpa de Cuero Albino','Carpa de Cuero Fantasma','Carpa Espejo Oro'],
-     hot_day:['Carpa Espejo','Carpa Linear','Carpa Herbívora'],hot_night:['Carpa de Cuero','Carpa Común','Barbo Común'],
-     tip:'Lago famoso por carpas de escamas brillantes. Solo carpas y variantes. Aparejo flotante y de profundidad 5 estrellas.'},
-    {id:13,name:'El Archipiélago del Ladoga',lvl:27,diff:'expert',fish:37,spots:9,region:'Norte',baseClimate:'frío',tempRef:16,
-     mapImg:'https://en.rf4h.ru/templates/rf4m/maps/img/archip_83.webp',
-     fish_list:['Salmón del Atlántico','Omul Baikal','Esturión del Báltico','Coregono Negro','Brema','Lota','Salvelino de Arroyo','Cachuelo','Piscardo Común','Rutilo','Carpa Cruciana','Anguila','Rana','Carpa Gibel','Salvelino Gris','Tímalo','Ide','Pescado Blanco del Lago Ladoga','Salmón Ladoga','Esturión de Ladoga','Reo','Ludoga Whitefish','Perca de Río','Lucio','Salvelino Rojo','Ripus','Acerina','Eperlano','Pescado Blanco Svir','Espinoso de Tres Espinas','Pescado Blanco de Valaam','Vendace','Vimba o Zarte','Pescado Blanco de Volkhov','Pescado Blanco Vuoksa','Brema Blanca'],
-     hot_day:['Tímalo','Salmón Ladoga','Coregono Negro'],hot_night:['Salmón del Atlántico','Esturión de Ladoga','Esturión del Báltico'],
-     tip:'600 islas en el norte del Ladoga. Fondo inclinado perfecto para pesca. Trofeo máximo: Salmón del Atlántico. Aparejo giratorio 5 estrellas.'},
-    {id:14,name:'Río Ajtuba',lvl:28,diff:'expert',fish:51,spots:16,region:'Sur',baseClimate:'cálido',tempRef:34,
-     mapImg:'https://en.rf4h.ru/templates/rf4m/maps/img/ahtuba_83.webp',
-     fish_list:['Siluro Albino','Aspio','Esturión Bastardo','Salmón Blanco','Beluga','Carpa de Cabeza Grande','Búfalo Negro','Alosa Caspia','Alburno','Zope','Arenque Brazhnikov','Brema','Búfalo','Lota','Salmón de Mar Negro','Kutum del Caspio','Lamprea del Caspio','Rutilus Caspicus','Siluro','Cachuelo','Carpa Común','Rutilo','Carpa Cruciana','Alburno Shemaya','Brema Oriental','Rana','Carpa Gibel','Carpa Herbívora','Gobio','Ide','Arenque de Kessler','Pez Narizón','Perca de Río','Esturión Persa','Lucio','Gardi','Acerina','Esturión Ruso','Carpa Plateada','Esturión Estrellado','Esterlete','Brema Blanca','Bellaurus Zapa','Carpa Silvestre','Sander (Lucioperca)'],
-     hot_day:['Aspio','Carpa Herbívora','Esturión Ruso'],hot_night:['Beluga','Siluro','Esturión Persa'],
-     tip:'Aguas de pesca más famosas de Rusia. Trofeos legendarios: Beluga y Esturión Persa. Aparejo flotante y giratorio 5 estrellas.'},
-    {id:15,name:'Copper Lake',lvl:29,diff:'expert',fish:14,spots:4,region:'Central',baseClimate:'copper',tempRef:16,
-     mapImg:'https://en.rf4h.ru/templates/rf4m/maps/img/copper_83.webp',
-     fish_list:['C2 SuperFreak','Barbo Común','Carpa Cuero Dinks','Carpa Espejo Dinks','F1','Hi Utsuri','Kohaku','Tenca de Kvolsdorfsky','Carpa de Cuero','Mameshibori Goshiki','Carpa Espejo','Narumi Asagi','Yotsushiro','Orenji'],
-     hot_day:['Kohaku','Hi Utsuri','Carpa Espejo'],hot_night:['C2 SuperFreak','F1','Carpa de Cuero'],
-     tip:'Lago especial con especies criadas artificialmente. Koi japonés, tenca Kwolsdorf y C2 SuperFreak. Prohibido cañas de carpa y carretes >6000.'},
-    {id:16,name:'Río Tunguska Inferior',lvl:30,diff:'expert',fish:45,spots:17,region:'Siberia',baseClimate:'muy frío',tempRef:10,
-     mapImg:'https://en.rf4h.ru/templates/rf4m/maps/img/tunguska_83.webp',
-     fish_list:['Silurus Amur','Trucha Ártica','Tímalo Siberiano','Omul Ártico','Eperlano Asiático','Omul Baikal','Alburno','Brema','Coregonus Nasus','Trucha Marrón','Lota','Rotan','Carpa Común','Rutilo','Carpa Cruciana','Alburno Shemaya','Salvelino Dryagin','Tímalo de Siberia Oriental','Esturión de Siberia Oriental','Brema Oriental','Carpa Gibel','Coregonus de Pidschian','Ide','Piscardo del Lago','Nelma','Peled','Perca de Río','Lucio','Salmón Rosado','Round Whitefish','Acerina','Lenok de Hocico Agudo','Barbula Toni','Leusisco Siberiano','Gobio Siberiano','Lamprea Siberiana','Rutilo Siberiano','Sardina Siberiana Cisco','Cavilat Siberiano','Esterlete Siberiano','Taiman','Espinoso de Tres Espinas','Tugun','Brema Blanca','Sander (Lucioperca)'],
-     hot_day:['Tímalo Siberiano','Lenok de Hocico Agudo','Omul Ártico'],hot_night:['Taiman','Esturión de Siberia Oriental','Nelma'],
-     tip:'Afluente más grande del Yeniséi. Siberia remota. Taiman y esturión siberiano como trofeos. Aparejo giratorio y flotante 5 estrellas.'},
-    {id:17,name:'Río Yama',lvl:32,diff:'expert',fish:33,spots:2,region:'Siberia Oriental',baseClimate:'frío',tempRef:19,
-     mapImg:'https://en.rf4h.ru/templates/rf4m/maps/img/pit_83.webp',
-     fish_list:['Trucha Ártica','Eperlano Asiático','Alburno','Lenok de Hocico Romo','Lota','Salmón Real','Salmón Keta','Salmón Plateado','Alburno Shemaya','Trucha Dolly Varden','Tímalo de Siberia Oriental','Lamprea de Arroyo del Lejano Oriente','Ide','Kaluga','Trucha Arcoíris de Kamchatka','El Char de Levanidov','Costatumus','Masu','Masu Sedentario','Mongolia Redfin','Neiva','Espinoso de Nueve Espinas','Perca de Río','Lucio','Salmón Rosado','Round Whitefish','Acerina','Lenok de Hocico Agudo','Barbula Toni','Salmón Rojo','Lamprea del Pacífico','Ugui','Char Japonés'],
-     hot_day:['Lenok de Hocico Romo','Trucha Dolly Varden','Masu'],hot_night:['Salmón Keta','Salmón Real','Kaluga'],
-     tip:'Nace en la meseta de Olskoye. Trofeos migratorios: Trucha Dolly Varden, Salmón Keta y Salmón Plateado. Aparejo giratorio 5 estrellas.'},
-    {id:18,name:'Mar de Noruega',lvl:34,diff:'expert',fish:57,spots:14,region:'Ártico',baseClimate:'ártico',tempRef:9,
-     mapImg:'https://en.rf4h.ru/templates/rf4m/maps/img/sea_83.webp',
-     fish_list:['Solla Americana','Artic Skate','Atún Rojo','Bacalao del Atlántico','Fletán del Atlántico','Arenque del Atlántico','Caballa Atlántica','Chancharro','Pez Lobo del Atlántico','Tiburón Peregrino','Gallineta Nórdica','Rufo Negro','Maruca Azul','Bacaladilla','Maruca Común','Congrio','Cusk','Cangrejo de Mar','Merluza Europea','Platija Europea','Calamar Común','Tiburón Serpiente','Fletán Negro','Tiburón de Groenlandia','Eglefino','Vieira Islandesa','Lumpo','Mejillón de Mar','Pez Lobo del Norte','Opa','Ostra','Abadejo','Majarro Sardinero','Cangrejo Real Rojo','Granadero de Cabeza Dura','Carbonero','Sardina','Myoxocephalus Scorpius','Galineta Pequeña','Mielga','Pez Lobo Manchado','Pez Espada','Raya Espinosa','Rodaballo','Merlan'],
-     hot_day:['Bacalao del Atlántico','Caballa Atlántica','Gallineta Nórdica'],hot_night:['Fletán del Atlántico','Pez Lobo del Atlántico','Atún Rojo'],
-     tip:'Frontera entre el Atlántico y el Ártico. Solo aparejos de mar 5 estrellas. Trofeo supremo: Tiburón Peregrino y Fletán del Atlántico.'}
+    {id:1,name:'Lago Mosquito',lvl:1,diff:'beginner',fish:20,spots:8,region:'Norte',baseClimate:'templado',
+     fish_list:['Perca','Brema','Carpa','Tenca','Rudd','Lucioperca'],hot_day:['Carpa','Brema'],hot_night:['Perca','Lucioperca'],
+     tip:'Lago de inicio. Excelente para principiantes. Carpa y brema abundan cerca de la vegetación.'},
+    {id:2,name:'Arroyo Sinuoso',lvl:4,diff:'beginner',fish:29,spots:9,region:'Norte',baseClimate:'fresco',
+     fish_list:['Dace','Perca','Lucio','Chub','Asp','Ide'],hot_day:['Dace','Chub'],hot_night:['Lucio'],
+     tip:'Gran variedad de peces pequeños. Ideal para subir XP rápido con spinning ligero.'},
+    {id:3,name:'Lago Viejo Burg',lvl:6,diff:'beginner',fish:21,spots:2,region:'Norte',baseClimate:'templado',
+     fish_list:['Brema','Carpa','Tenca','Rudd','Lucio'],hot_day:['Carpa','Brema'],hot_night:['Tenca','Lucio'],
+     tip:'Bueno para carnada artesanal. Carpa nocturna con masa de ajo o maíz.'},
+    {id:4,name:'Río Belaya',lvl:8,diff:'beginner',fish:26,spots:6,region:'Norte',baseClimate:'fresco',
+     fish_list:['Tímalo','Lenok','Perca','Lucio','Chub','Trucha'],hot_day:['Tímalo','Chub'],hot_night:['Lucio'],
+     tip:'Río de corriente rápida. Ideal para spinning con señuelos pequeños en zonas de piedra.'},
+    {id:5,name:'Lago Kuori',lvl:12,diff:'mid',fish:19,spots:3,region:'Norte',baseClimate:'frío',
+     fish_list:['Carpa','Tenca','Lucio','Perca','Brema'],hot_day:['Carpa','Tenca'],hot_night:['Lucio'],
+     tip:'Lago tranquilo y profundo. Carpa koi de gran tamaño activa en la orilla norte al amanecer.'},
+    {id:6,name:'Lago Oso',lvl:18,diff:'mid',fish:18,spots:2,region:'Central',baseClimate:'templado',
+     fish_list:['Carpa','Carpín','Brema','Tenca','Lucio'],hot_day:['Carpa','Carpín'],hot_night:['Lucio','Tenca'],
+     tip:'Carpas gigantes. Necesitás carrete con arrastre de al menos 14kg para los trofeos.'},
+    {id:7,name:'Río Voljov',lvl:20,diff:'mid',fish:23,spots:1,region:'Norte',baseClimate:'fresco',
+     fish_list:['Lucioperca','Perca','Siluro','Asp','Lucio','Brema'],hot_day:['Asp','Lucioperca'],hot_night:['Siluro'],
+     tip:'Río ancho. Siluro grande en aguas profundas con cebo vivo por la noche.'},
+    {id:8,name:'Lago Elk',lvl:16,diff:'mid',fish:19,spots:7,region:'Central',baseClimate:'templado',
+     fish_list:['Carpa','Tenca','Lucio','Perca','Rudd','Brema'],hot_day:['Carpa','Rudd'],hot_night:['Lucio','Tenca'],
+     tip:'Lago de tamaño mediano con spots variados. Excelente para feeder con lombriz.'},
+    {id:9,name:'Río Donets Seversky',lvl:24,diff:'mid',fish:38,spots:12,region:'Sur',baseClimate:'cálido',
+     fish_list:['Siluro','Carpa','Lucioperca','Asp','Brema','Barbo','Carpa herbívora'],hot_day:['Barbo','Asp'],hot_night:['Siluro','Carpa'],
+     tip:'Gran variedad. Siluro y carpa herbívora son los trofeos más buscados. Mejor de madrugada.'},
+    {id:10,name:'Río Sura',lvl:26,diff:'mid',fish:25,spots:3,region:'Central',baseClimate:'templado',
+     fish_list:['Siluro','Lucioperca','Asp','Perca','Lucio','Brema'],hot_day:['Lucioperca','Asp'],hot_night:['Siluro'],
+     tip:'Aguas cálidas en verano. Siluro muy activo de noche cerca del fondo rocoso.'},
+    {id:11,name:'Lago Ladoga',lvl:28,diff:'expert',fish:28,spots:4,region:'Norte',baseClimate:'frío',
+     fish_list:['Trucha de lago','Salmón','Lucioperca','Perca','Tímalo','Lucio'],hot_day:['Tímalo','Perca'],hot_night:['Trucha de lago','Salmón'],
+     tip:'Lago enorme y frío. Salmón y trucha de lago son los grandes trofeos. Requiere nivel 28+.'},
+    {id:12,name:'Lago Ámbar',lvl:30,diff:'expert',fish:26,spots:2,region:'Báltico',baseClimate:'templado',
+     fish_list:['Carpa koi','Carpa','Tenca','Brema','Lucio','Perca'],hot_day:['Carpa koi','Carpa'],hot_night:['Lucio','Tenca'],
+     tip:'Carpa koi de talla récord. Requiere equipo de alto nivel y carnadas especiales.'},
+    {id:13,name:'Archipiélago Ladoga',lvl:32,diff:'expert',fish:33,spots:9,region:'Norte',baseClimate:'frío',
+     fish_list:['Salmón del Atlántico','Trucha','Lucioperca','Perca','Siluro','Brema'],hot_day:['Lucioperca','Perca'],hot_night:['Salmón del Atlántico'],
+     tip:'El mapa más grande. Salmón del Atlántico al amanecer es el trofeo máximo.'},
+    {id:14,name:'Río Akhtuba',lvl:28,diff:'expert',fish:51,spots:15,region:'Sur',baseClimate:'cálido',
+     fish_list:['Beluga','Esturión','Siluro','Carpa herbívora','Asp','Lucioperca'],hot_day:['Asp','Lucioperca'],hot_night:['Beluga','Siluro','Esturión'],
+     tip:'El río más variado del juego. Beluga y esturión son trofeos legendarios de nivel máximo.'},
+    {id:15,name:'Lago Cobre',lvl:34,diff:'expert',fish:22,spots:4,region:'Siberia',baseClimate:'frío',
+     fish_list:['Lenok','Tímalo','Taimen','Perca siberiana','Lucio'],hot_day:['Tímalo','Lenok'],hot_night:['Taimen'],
+     tip:'Aguas siberianas. Taimen es el trofeo más codiciado. Spinning agresivo al atardecer.'},
+    {id:16,name:'Río Tunguska',lvl:36,diff:'expert',fish:18,spots:3,region:'Siberia',baseClimate:'muy frío',
+     fish_list:['Taimen','Lenok','Tímalo','Perca siberiana','Lucio'],hot_day:['Lenok','Tímalo'],hot_night:['Taimen'],
+     tip:'Río remoto y difícil. Pocos peces pero de gran tamaño. Solo para jugadores expertos.'},
+    {id:17,name:'Río Yama',lvl:40,diff:'expert',fish:20,spots:5,region:'Siberia',baseClimate:'frío',
+     fish_list:['Salmón del Pacífico','Trucha arcoíris','Lenok','Tímalo','Perca'],hot_day:['Tímalo','Trucha arcoíris'],hot_night:['Salmón del Pacífico'],
+     tip:'Aguas heladas. Salmón del Pacífico en temporada de desove. Nivel mínimo recomendado 40.'},
+    {id:18,name:'Mar de Noruega',lvl:45,diff:'expert',fish:25,spots:6,region:'Ártico',baseClimate:'ártico',
+     fish_list:['Halibut','Bacalao','Lobo de mar','Caballa','Pez rojo','Escorpión marino'],hot_day:['Caballa','Bacalao'],hot_night:['Halibut','Lobo de mar'],
+     tip:'Única ubicación marina. Halibut gigante como trofeo supremo. Requiere caña de mar.'}
   ];
 
   var WEATHER_BY_CLIMATE={
@@ -4741,13 +4725,6 @@ document.addEventListener('DOMContentLoaded', function(){
 
       if(isOpen){
         html+='<div class="lago-detail show">';
-        // Imagen del mapa
-        if(lago.mapImg){
-          html+='<div style="margin-bottom:10px;border-radius:var(--rs);overflow:hidden;position:relative;">';
-          html+='<img src="'+lago.mapImg+'" alt="Mapa '+lago.name+'" style="width:100%;height:120px;object-fit:cover;display:block;" loading="lazy" onerror="this.style.display=\'none\'">';
-          html+='<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.6));padding:6px 8px;font-size:.65rem;font-weight:700;color:#fff;">🗺️ '+lago.name+'</div>';
-          html+='</div>';
-        }
         // Temp agua
         var season=getSeason();
         var tempMin=season.temp[0]; var tempMax=season.temp[1];
@@ -24267,5 +24244,34 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
 })();
 </script>
 <!-- ===== FIN JS CHAT RF4 ===== -->
+
+<!-- MINI RELOJ SIDEBAR IZQUIERDO -->
+<style>@keyframes slClockPulse{0%,100%{opacity:1}50%{opacity:.3}}</style>
+<script>
+(function(){
+  var P=[{s:0,e:4,n:'Madrugada',c:'#378ADD'},{s:4,e:7,n:'Amanecer',c:'#EF9F27'},{s:7,e:11,n:'Mañana',c:'#3fb950'},{s:11,e:14,n:'Mediodía',c:'#d4a017'},{s:14,e:18,n:'Tarde',c:'#3fb950'},{s:18,e:21,n:'Atardecer',c:'#f85149'},{s:21,e:24,n:'Noche',c:'#9370db'}];
+  var S=[{m:[12,1,2],n:'❄ Invierno'},{m:[3,4,5],n:'🌱 Primavera'},{m:[6,7,8],n:'☀ Verano'},{m:[9,10,11],n:'🍂 Otoño'}];
+  function pad(n){return String(n).padStart(2,'0');}
+  function tick(){
+    var now=new Date();
+    var u=now.getUTCHours()*3600+now.getUTCMinutes()*60+now.getUTCSeconds();
+    var gs=u%3600; var gh=Math.floor(gs/150); var gm=Math.floor((gs%150)/150*60);
+    var prog=Math.round(gs/3600*100);
+    var phase=P.find(function(p){return gh>=p.s&&gh<p.e;})||P[0];
+    var month=now.getUTCMonth()+1;
+    var season=S.find(function(s){return s.m.indexOf(month)>-1;})||S[0];
+    var c=document.getElementById('slRF4Clock');
+    var ph=document.getElementById('slRF4Phase');
+    var se=document.getElementById('slRF4Season');
+    var bar=document.getElementById('slRF4Bar');
+    if(c) c.textContent=pad(gh)+':'+pad(gm);
+    if(ph){ph.textContent=phase.n;ph.style.color=phase.c;}
+    if(se) se.textContent=season.n;
+    if(bar) bar.style.width=prog+'%';
+  }
+  tick(); setInterval(tick,1000);
+})();
+</script>
+<!-- FIN MINI RELOJ SIDEBAR IZQUIERDO -->
 </body>
 </html>
