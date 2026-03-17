@@ -1815,6 +1815,7 @@ document.addEventListener('DOMContentLoaded', function(){
     <button class="tb-nav-btn" onclick="openPremiumModal()" title="Premium" style="font-size:.75rem;font-weight:800;background:linear-gradient(135deg,rgba(255,215,0,.15),rgba(255,165,0,.08));border-bottom:2px solid #ffd700;color:#ffd700;">⭐ Premium</button>
     <button class="tb-nav-btn" id="pezSemanalNavBtn" onclick="openPezSemanalModal();setNav(this)" title="Pez de la Semana" style="font-size:.75rem;font-weight:700;">🐟 Pez Semanal</button>
     <button class="tb-nav-btn" onclick="gp('peso-del-trofeo');setNav(this)" title="Peso del Trofeo" style="font-size:.75rem;font-weight:700;">🏆 Peso del Trofeo</button>
+    <button class="tb-nav-btn" onclick="gp('cebos');setNav(this)" title="Buscador de Cebos" style="font-size:.75rem;font-weight:700;">🪱 Cebos</button>
 
     <button class="tb-nav-btn" id="adminNavBtn" style="display:none;font-size:.75rem;font-weight:700;" onclick="gp('admin');setNav(this)" title="Panel Admin">🛡️ Admin</button>
   </div>
@@ -1904,6 +1905,7 @@ document.addEventListener('DOMContentLoaded', function(){
       <div class="sl-item" onclick="gp('skill')"><span class="sl-item-icon">📈</span> Subir Skill</div>
       <div class="sl-item" onclick="gp('wiki-trofeos')" id="slWikiTrofeosBtn" style="background:linear-gradient(90deg,rgba(255,215,0,.08),transparent);border-left:3px solid #ffd700;"><span class="sl-item-icon">🏆</span> Publicar Trofeos</div>
       <div class="sl-item" onclick="gp('compartir-spot')" id="slCompartirSpotBtn" style="background:linear-gradient(90deg,rgba(46,196,182,.08),transparent);border-left:3px solid var(--accent);"><span class="sl-item-icon">📍</span> Compartir Spot</div>
+      <div class="sl-item" onclick="gp('cebos')" id="slCebosBtn" style="background:linear-gradient(90deg,rgba(46,196,182,.08),transparent);border-left:3px solid #00c853;"><span class="sl-item-icon">🪱</span> Buscador de Cebos</div>
 
       <div class="sl-item"><span class="sl-item-icon">🔖</span> Guardados</div>
       <div class="sl-item" onclick="gp('torneos')"><span class="sl-item-icon">🏆</span> Torneos</div>
@@ -5119,6 +5121,78 @@ document.addEventListener('DOMContentLoaded', function(){
 </div>
 <!-- ===== FIN COMPARTIR SPOT ===== -->
 
+<!-- ===== SECCIÓN CEBOS ===== -->
+<div class="page" id="page-cebos" style="max-width:800px;margin:0 auto;padding:20px 14px 80px;">
+
+  <!-- HEADER -->
+  <div style="background:linear-gradient(135deg,rgba(46,196,182,.12),rgba(0,180,120,.06));border:1px solid rgba(46,196,182,.25);border-radius:14px;padding:20px 20px 16px;margin-bottom:22px;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),#00e676,var(--accent));background-size:200%;animation:shimmer 2.5s linear infinite;"></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+      <span style="font-size:2rem;">🪱</span>
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--accent);">Buscador de Cebos</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:2px;">Descubrí con qué cebo y en qué mapa se pescó cada especie · datos reales de la comunidad</div>
+      </div>
+    </div>
+
+    <!-- BUSCADOR -->
+    <div style="display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;display:flex;align-items:center;gap:8px;background:var(--bg);border:1.5px solid var(--border);border-radius:100px;padding:8px 16px;transition:border-color .2s;" id="cebosSearchWrap">
+        <span style="font-size:1rem;">🔍</span>
+        <input id="cebosSearchInput" type="text" placeholder="Buscar pez... ej: Pike, Catfish, Carpa..."
+          style="background:none;border:none;outline:none;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.9rem;width:100%;"
+          oninput="cebosOnInput(this.value)"
+          onkeydown="if(event.key==='Enter')cebosBuscar()">
+      </div>
+      <button onclick="cebosBuscar()" style="background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;padding:9px 20px;border-radius:100px;font-family:'Exo 2',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        🪱 Buscar cebo
+      </button>
+    </div>
+
+    <!-- SUGERENCIAS AUTOCOMPLETE -->
+    <div id="cebosSuggestions" style="display:none;position:absolute;left:20px;right:20px;top:calc(100% - 12px);background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:500;overflow:hidden;"></div>
+  </div>
+
+  <!-- ESTADO: vacío / cargando / resultados -->
+  <div id="cebosEstado" style="text-align:center;padding:40px 20px;color:var(--muted);font-size:.88rem;">
+    <div style="font-size:2.5rem;margin-bottom:10px;">🎣</div>
+    <div style="font-weight:700;color:var(--text);margin-bottom:6px;">¿Qué querés pescar hoy?</div>
+    <div>Escribí el nombre de un pez y te mostramos con qué cebo fue capturado según los trofeos y spots de la comunidad.</div>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div id="cebosResultados" style="display:none;">
+    <!-- Header resultados -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+      <div>
+        <div id="cebosResultTitle" style="font-family:'Orbitron',monospace;font-size:.95rem;font-weight:800;color:var(--text);"></div>
+        <div id="cebosResultSub" style="font-size:.72rem;color:var(--muted);margin-top:2px;"></div>
+      </div>
+      <button onclick="cebosLimpiar()" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 14px;border-radius:100px;font-family:'Exo 2',sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;">✕ Nueva búsqueda</button>
+    </div>
+
+    <!-- TABS: Trofeos / Spots -->
+    <div style="display:flex;gap:8px;margin-bottom:18px;" id="cebosTabsRow">
+      <button id="cebosTabTrofeos" onclick="cebosTab('trofeos')" style="padding:7px 18px;border-radius:100px;font-family:'Exo 2',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;border:1px solid rgba(255,215,0,.5);background:rgba(255,215,0,.15);color:var(--gold);transition:all .2s;">🏆 Trofeos</button>
+      <button id="cebosTabSpots" onclick="cebosTab('spots')" style="padding:7px 18px;border-radius:100px;font-family:'Exo 2',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--muted);transition:all .2s;">📍 Spots</button>
+    </div>
+
+    <!-- RESUMEN por mapa (pills) -->
+    <div id="cebosMapasPills" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;"></div>
+
+    <!-- Lista de cards -->
+    <div id="cebosLista"></div>
+
+    <!-- Sin resultados -->
+    <div id="cebosVacio" style="display:none;text-align:center;padding:40px 20px;">
+      <div style="font-size:2rem;margin-bottom:8px;">🐟</div>
+      <div style="font-weight:700;color:var(--text);margin-bottom:4px;">Sin resultados en esta categoría</div>
+      <div style="font-size:.8rem;color:var(--muted);">Probá con la otra pestaña o buscá otro nombre de pez.</div>
+    </div>
+  </div>
+</div>
+<!-- ===== FIN SECCIÓN CEBOS ===== -->
+
 <!-- MAPA INTERACTIVO DE TROFEOS (solo admin) --><!-- TROFEOS POR MAPA PAGE (solo ruizgustavo12) -->
 
 <!-- CREATE SPOT MODAL -->
@@ -6168,6 +6242,7 @@ const ROUTES = {
   '/pez-semanal': 'pez-semanal',
   '/publicar-trofeos': 'wiki-trofeos',
   '/privacidad': 'privacidad',
+  '/cebos': 'cebos',
 };
 
 // Map page IDs to clean URLs
@@ -6196,6 +6271,7 @@ const PAGE_TO_URL = {
   'admin':         '/admin',
   'grupos':        '/grupos',
   'wiki-trofeos':  '/publicar-trofeos',
+  'cebos':         '/cebos',
 };
 
 function navigateTo(id, pushState = true) {
@@ -23462,5 +23538,349 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
 })();
 </script>
 <!-- ===== FIN AVATAR POPUP ===== -->
+
+<!-- ===== JS SECCIÓN CEBOS ===== -->
+<script>
+(function(){
+  // ─── Estado ────────────────────────────────────────────────
+  var _cebosTabActual   = 'trofeos';
+  var _cebosTrofeos     = [];   // datos cargados de trofeosPendientes
+  var _cebosSpots       = [];   // datos cargados de spotsCompartidos
+  var _cebosQuery       = '';   // última búsqueda
+  var _cebosMapaFiltro  = '';   // mapa seleccionado para filtrar
+  var _cebosAllFishNames= [];   // lista para autocomplete
+
+  // ─── Utilidades ─────────────────────────────────────────────
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function normalize(s){ return String(s||'').toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+
+  // ─── Autocomplete ───────────────────────────────────────────
+  window.cebosOnInput = function(val){
+    var sug = document.getElementById('cebosSuggestions');
+    if(!sug) return;
+    var q = normalize(val);
+    if(q.length < 2){ sug.style.display='none'; return; }
+    var matches = _cebosAllFishNames.filter(function(n){ return normalize(n).includes(q); }).slice(0,8);
+    if(!matches.length){ sug.style.display='none'; return; }
+    sug.style.display='block';
+    sug.innerHTML = matches.map(function(n){
+      return '<div style="padding:10px 16px;cursor:pointer;font-size:.88rem;color:var(--text);transition:background .15s;display:flex;align-items:center;gap:8px;" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'none\'" onclick="cebosSelectSug(\''+esc(n)+'\')">'
+        + '<span style="font-size:.9rem;">🐟</span> '+esc(n)
+        + '</div>';
+    }).join('<div style="height:1px;background:var(--border);margin:0 10px;"></div>');
+  };
+
+  window.cebosSelectSug = function(nombre){
+    document.getElementById('cebosSearchInput').value = nombre;
+    var sug = document.getElementById('cebosSuggestions');
+    if(sug) sug.style.display='none';
+    cebosBuscar();
+  };
+
+  // Cerrar sugerencias al click fuera
+  document.addEventListener('click', function(e){
+    if(!e.target.closest('#cebosSearchWrap') && !e.target.closest('#cebosSuggestions')){
+      var sug = document.getElementById('cebosSuggestions');
+      if(sug) sug.style.display='none';
+    }
+  });
+
+  // ─── Precarga de nombres para autocomplete ───────────────────
+  async function cebosPrecargarNombres(){
+    if(_cebosAllFishNames.length > 0) return;
+    try {
+      var { getDocs, query, collection, where, limit, orderBy } = window.firebaseFirestore || {};
+      if(!getDocs) return;
+      var db = window.db;
+      if(!db) return;
+      var snap = await getDocs(query(collection(db,'trofeosPendientes'), where('status','==','approved'), limit(300)));
+      var names = {};
+      snap.docs.forEach(function(d){
+        var f = (d.data().fish || d.data().especie || '').trim();
+        if(f) names[f] = true;
+      });
+      var snap2 = await getDocs(query(collection(db,'spotsCompartidos'), orderBy('time','desc'), limit(200)));
+      snap2.docs.forEach(function(d){
+        var f = (d.data().fish || '').trim();
+        if(f) names[f] = true;
+      });
+      _cebosAllFishNames = Object.keys(names).sort();
+    } catch(e){ console.warn('cebos precarga:', e); }
+  }
+
+  // ─── Buscar ─────────────────────────────────────────────────
+  window.cebosBuscar = async function(){
+    var inp = document.getElementById('cebosSearchInput');
+    if(!inp) return;
+    var q = inp.value.trim();
+    if(!q){ if(typeof toast==='function') toast('Escribí el nombre de un pez','warn'); return; }
+
+    _cebosQuery      = q;
+    _cebosMapaFiltro = '';
+    _cebosTabActual  = 'trofeos';
+
+    // Mostrar loading
+    document.getElementById('cebosEstado').style.display='block';
+    document.getElementById('cebosEstado').innerHTML = '<div style="padding:40px 20px;text-align:center;"><div style="font-size:2rem;animation:spin 1s linear infinite;display:inline-block;">⚙️</div><div style="color:var(--muted);margin-top:10px;font-size:.85rem;">Buscando cebos para <strong style="color:var(--accent);">'+esc(q)+'</strong>...</div></div>';
+    document.getElementById('cebosResultados').style.display='none';
+
+    try {
+      var { getDocs, query: fq, collection, where, orderBy, limit } = window.firebaseFirestore || {};
+      if(!getDocs){ throw new Error('Firebase no disponible'); }
+      var db = window.db;
+      if(!db){ throw new Error('DB no disponible'); }
+      var qNorm = normalize(q);
+
+      // --- Trofeos aprobados ---
+      var tSnap = await getDocs(fq(collection(db,'trofeosPendientes'), where('status','==','approved'), limit(500)));
+      _cebosTrofeos = tSnap.docs
+        .map(function(d){ return Object.assign({id:d.id}, d.data()); })
+        .filter(function(t){
+          var fish = normalize(t.fish || t.especie || '');
+          return fish.includes(qNorm);
+        });
+
+      // --- Spots ---
+      var sSnap = await getDocs(fq(collection(db,'spotsCompartidos'), orderBy('time','desc'), limit(400)));
+      _cebosSpots = sSnap.docs
+        .map(function(d){ return Object.assign({id:d.id}, d.data()); })
+        .filter(function(s){
+          var fish = normalize(s.fish || '');
+          return fish.includes(qNorm);
+        });
+
+      // Mostrar resultados
+      cebosRenderResultados();
+
+    } catch(err){
+      document.getElementById('cebosEstado').innerHTML = '<div style="padding:40px;text-align:center;"><div style="font-size:2rem;">😕</div><div style="color:var(--red);margin-top:8px;font-size:.85rem;">Error al buscar: '+esc(err.message||'')+'</div></div>';
+    }
+  };
+
+  // ─── Render principal ────────────────────────────────────────
+  function cebosRenderResultados(){
+    var total = _cebosTrofeos.length + _cebosSpots.length;
+
+    if(total === 0){
+      document.getElementById('cebosEstado').innerHTML = '<div style="padding:40px 20px;text-align:center;"><div style="font-size:2.5rem;margin-bottom:10px;">🎣</div><div style="font-weight:700;color:var(--text);margin-bottom:6px;">Sin resultados para "'+esc(_cebosQuery)+'"</div><div style="font-size:.8rem;color:var(--muted);">Probá con otro nombre. Recordá que los peces están en inglés (ej: Pike, Catfish, Carp).</div></div>';
+      document.getElementById('cebosResultados').style.display='none';
+      return;
+    }
+
+    document.getElementById('cebosEstado').style.display='none';
+    document.getElementById('cebosResultados').style.display='block';
+
+    // Título
+    document.getElementById('cebosResultTitle').textContent = '🪱 Cebos para: ' + _cebosQuery;
+    document.getElementById('cebosResultSub').textContent = _cebosTrofeos.length + ' trofeo(s) · ' + _cebosSpots.length + ' spot(s) encontrados';
+
+    // Tabs: mostrar contadores
+    document.getElementById('cebosTabTrofeos').innerHTML = '🏆 Trofeos <span style="background:rgba(255,215,0,.2);color:var(--gold);padding:1px 7px;border-radius:100px;font-size:.72rem;margin-left:4px;">'+_cebosTrofeos.length+'</span>';
+    document.getElementById('cebosTabSpots').innerHTML    = '📍 Spots <span style="background:rgba(46,196,182,.15);color:var(--accent);padding:1px 7px;border-radius:100px;font-size:.72rem;margin-left:4px;">'+_cebosSpots.length+'</span>';
+
+    cebosRenderTab();
+  }
+
+  // ─── Cambio de tab ───────────────────────────────────────────
+  window.cebosTab = function(tab){
+    _cebosTabActual  = tab;
+    _cebosMapaFiltro = '';
+    var btnT = document.getElementById('cebosTabTrofeos');
+    var btnS = document.getElementById('cebosTabSpots');
+    if(tab === 'trofeos'){
+      btnT.style.border='1px solid rgba(255,215,0,.5)'; btnT.style.background='rgba(255,215,0,.15)'; btnT.style.color='var(--gold)';
+      btnS.style.border='1px solid var(--border)'; btnS.style.background='var(--bg3)'; btnS.style.color='var(--muted)';
+    } else {
+      btnS.style.border='1px solid rgba(46,196,182,.5)'; btnS.style.background='rgba(46,196,182,.12)'; btnS.style.color='var(--accent)';
+      btnT.style.border='1px solid var(--border)'; btnT.style.background='var(--bg3)'; btnT.style.color='var(--muted)';
+    }
+    cebosRenderTab();
+  };
+
+  // ─── Render items del tab activo ─────────────────────────────
+  function cebosRenderTab(){
+    var data = _cebosTabActual === 'trofeos' ? _cebosTrofeos : _cebosSpots;
+    var lista = document.getElementById('cebosLista');
+    var vacio = document.getElementById('cebosVacio');
+    var pills = document.getElementById('cebosMapasPills');
+
+    // Pills de mapas
+    var mapasConteo = {};
+    data.forEach(function(item){
+      var m = (item.map || item.mapa || '').trim();
+      if(m) mapasConteo[m] = (mapasConteo[m]||0)+1;
+    });
+    var mapasOrdenados = Object.keys(mapasConteo).sort(function(a,b){ return mapasConteo[b]-mapasConteo[a]; });
+
+    if(mapasOrdenados.length > 1){
+      pills.innerHTML = '<button onclick="cebosFiltraMapa(\'\')" style="padding:4px 12px;border-radius:100px;font-family:\'Exo 2\',sans-serif;font-size:.72rem;font-weight:700;cursor:pointer;border:1px solid var(--accent);background:'+((!_cebosMapaFiltro)?'var(--accent)':'var(--bg3)')+';color:'+((!_cebosMapaFiltro)?'#fff':'var(--muted)')+';transition:all .2s;">🌍 Todos</button>'
+        + mapasOrdenados.map(function(m){
+          var activo = _cebosMapaFiltro === m;
+          return '<button onclick="cebosFiltraMapa(\''+esc(m).replace(/'/g,"\\'")+'\')" style="padding:4px 12px;border-radius:100px;font-family:\'Exo 2\',sans-serif;font-size:.72rem;font-weight:700;cursor:pointer;border:1px solid '+(activo?'var(--accent)':'var(--border)')+';background:'+(activo?'var(--accent)':'var(--bg3)')+';color:'+(activo?'#fff':'var(--muted)')+';transition:all .2s;">📍 '+esc(m)+' <span style="opacity:.7;">('+mapasConteo[m]+')</span></button>';
+        }).join('');
+    } else {
+      pills.innerHTML = '';
+    }
+
+    // Filtrar por mapa si hay selección
+    var filtered = _cebosMapaFiltro
+      ? data.filter(function(item){ return (item.map||item.mapa||'').trim() === _cebosMapaFiltro; })
+      : data;
+
+    if(!filtered.length){
+      lista.innerHTML='';
+      vacio.style.display='block';
+      return;
+    }
+    vacio.style.display='none';
+
+    if(_cebosTabActual === 'trofeos'){
+      lista.innerHTML = filtered.map(cebosTrofeoCard).join('');
+    } else {
+      lista.innerHTML = filtered.map(cebosSpotCard).join('');
+    }
+  }
+
+  window.cebosFiltraMapa = function(mapa){
+    _cebosMapaFiltro = mapa;
+    cebosRenderTab();
+  };
+
+  // ─── Card de TROFEO ──────────────────────────────────────────
+  function cebosTrofeoCard(t){
+    var fish      = esc(t.fish || t.especie || 'Desconocido');
+    var mapa      = esc(t.map  || t.mapa   || '');
+    var peso      = t.weight || t.peso || 0;
+    var cebo      = esc(t.bait || t.carnada || '');
+    var tecnica   = esc(t.technique || t.tecnica || t.tech || '');
+    var spot      = esc(t.spot || t.coords || '');
+    var nota      = esc(t.description || t.notes || t.nota || '');
+    var nick      = esc(t.userNick || t.submittedBy || t.nick || 'Anónimo');
+    var av        = t.userPhoto || t.userAv || t.av || '';
+    var userId    = t.userId || '';
+    var imgUrl    = (t.images && t.images[0]) || t.imageUrl || t.img || '';
+    var ts        = t.createdAt && t.createdAt.toMillis ? t.createdAt.toMillis() : (t.createdAt || 0);
+    var fecha     = ts ? (typeof fmtT==='function' ? fmtT(ts) : new Date(ts).toLocaleDateString('es') ) : '';
+    var pesoFmt   = peso ? (typeof fmtKg==='function' ? fmtKg(peso) : peso+' kg') : '';
+
+    // Si no hay cebo NI técnica, mostrar un aviso
+    var tieneCebo = cebo || tecnica;
+
+    return '<div style="background:var(--bg2);border:1px solid rgba(255,215,0,.2);border-radius:var(--r);margin-bottom:14px;overflow:hidden;transition:border-color .2s;display:flex;flex-direction:column;" onmouseover="this.style.borderColor=\'var(--gold)\'" onmouseout="this.style.borderColor=\'rgba(255,215,0,.2)\'">'
+      // tira dorada superior
+      + '<div style="height:3px;background:linear-gradient(90deg,var(--gold),#ffb300,var(--gold));"></div>'
+      + '<div style="display:flex;gap:0;flex-wrap:wrap;">'
+      // foto si hay
+      + (imgUrl ? '<div style="width:96px;min-height:96px;flex-shrink:0;overflow:hidden;"><img src="'+imgUrl+'" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.style.display=\'none\'"></div>' : '')
+      // contenido
+      + '<div style="flex:1;padding:12px 14px;min-width:0;">'
+        // header: fish + peso
+        + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">'
+          + '<span style="font-family:\'Orbitron\',monospace;font-size:.92rem;font-weight:900;color:var(--gold);">🏆 '+fish+'</span>'
+          + (pesoFmt ? '<span style="background:rgba(255,215,0,.12);color:var(--gold);padding:2px 10px;border-radius:100px;font-size:.75rem;font-weight:800;">⚖️ '+pesoFmt+'</span>' : '')
+          + '<span style="margin-left:auto;font-size:.68rem;color:var(--muted);">'+fecha+'</span>'
+        + '</div>'
+        // CEBO + TÉCNICA (lo más importante)
+        + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">'
+          + (cebo    ? '<span style="background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:#00e676;padding:4px 12px;border-radius:100px;font-size:.78rem;font-weight:700;">🪱 '+cebo+'</span>' : '')
+          + (tecnica ? '<span style="background:rgba(0,198,255,.1);border:1px solid rgba(0,198,255,.3);color:var(--accent);padding:4px 12px;border-radius:100px;font-size:.78rem;font-weight:700;">🎣 '+tecnica+'</span>' : '')
+          + (!tieneCebo ? '<span style="background:var(--bg3);color:var(--muted);padding:4px 12px;border-radius:100px;font-size:.75rem;">Sin datos de cebo registrados</span>' : '')
+        + '</div>'
+        // MAPA
+        + (mapa ? '<div style="font-size:.78rem;color:var(--muted);margin-bottom:5px;">📍 <strong style="color:var(--text);">'+mapa+'</strong>'+(spot?' · Spot: '+spot:'')+'</div>' : '')
+        // Spot coords
+        + (nota ? '<div style="font-size:.75rem;color:var(--muted);font-style:italic;margin-bottom:5px;">"'+nota+'"</div>' : '')
+        // Footer: usuario
+        + '<div style="display:flex;align-items:center;gap:6px;margin-top:6px;cursor:pointer;" onclick="openUserProfile(\''+userId+'\',\''+nick.replace(/'/g,"\\'")+'\')">'
+          + '<div style="width:22px;height:22px;border-radius:50%;border:1px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--bg3);font-size:.65rem;font-weight:700;color:var(--accent);flex-shrink:0;">'
+            + (av ? '<img src="'+av+'" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display=\'none\'">' : (nick[0]||'?').toUpperCase())
+          + '</div>'
+          + '<span style="font-size:.72rem;color:var(--muted);">@'+nick+'</span>'
+          + '<span style="font-size:.65rem;padding:1px 6px;border-radius:100px;background:rgba(255,215,0,.1);color:var(--gold);font-weight:700;margin-left:auto;">🥇 Trofeo</span>'
+        + '</div>'
+      + '</div>'
+      + '</div>'
+    + '</div>';
+  }
+
+  // ─── Card de SPOT ────────────────────────────────────────────
+  function cebosSpotCard(s){
+    var fish    = esc(s.fish  || 'Desconocido');
+    var mapa    = esc(s.map   || '');
+    var nombre  = esc(s.name  || '');
+    var desc    = esc(s.desc  || s.text || '');
+    var setup   = esc(s.setup || s.tech || '');
+    var peso    = s.weight || 0;
+    var nick    = esc(s.userNick || 'Anónimo');
+    var av      = s.userAv || '';
+    var userId  = s.userId || '';
+    var imgUrl  = (s.images && s.images[0]) || '';
+    var ts      = s.time && s.time.toMillis ? s.time.toMillis() : 0;
+    var fecha   = ts ? (typeof fmtT==='function' ? fmtT(ts) : new Date(ts).toLocaleDateString('es')) : '';
+    var pesoFmt = peso ? (typeof fmtKg==='function' ? fmtKg(peso) : peso+' kg') : '';
+
+    return '<div style="background:var(--bg2);border:1px solid rgba(46,196,182,.2);border-radius:var(--r);margin-bottom:14px;overflow:hidden;transition:border-color .2s;display:flex;flex-direction:column;" onmouseover="this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.borderColor=\'rgba(46,196,182,.2)\'">'
+      + '<div style="height:3px;background:linear-gradient(90deg,var(--accent),#00e676,var(--accent));"></div>'
+      + '<div style="display:flex;gap:0;flex-wrap:wrap;">'
+      + (imgUrl ? '<div style="width:96px;min-height:96px;flex-shrink:0;overflow:hidden;"><img src="'+imgUrl+'" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.style.display=\'none\'"></div>' : '')
+      + '<div style="flex:1;padding:12px 14px;min-width:0;">'
+        + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">'
+          + '<span style="font-family:\'Orbitron\',monospace;font-size:.88rem;font-weight:800;color:var(--accent);">📍 '+fish+'</span>'
+          + (pesoFmt ? '<span style="background:rgba(46,196,182,.1);color:var(--accent);padding:2px 10px;border-radius:100px;font-size:.75rem;font-weight:800;">⚖️ '+pesoFmt+'</span>' : '')
+          + '<span style="margin-left:auto;font-size:.68rem;color:var(--muted);">'+fecha+'</span>'
+        + '</div>'
+        // SETUP / CEBO (lo más importante)
+        + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">'
+          + (setup ? '<span style="background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:#00e676;padding:4px 12px;border-radius:100px;font-size:.78rem;font-weight:700;">🪱 '+setup+'</span>' : '<span style="background:var(--bg3);color:var(--muted);padding:4px 12px;border-radius:100px;font-size:.75rem;">Sin datos de cebo/setup</span>')
+        + '</div>'
+        + (mapa   ? '<div style="font-size:.78rem;color:var(--muted);margin-bottom:4px;">📍 <strong style="color:var(--text);">'+mapa+'</strong>'+(nombre?' · '+nombre:'')+'</div>' : '')
+        + (desc   ? '<div style="font-size:.75rem;color:var(--muted);margin-bottom:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">'+desc+'</div>' : '')
+        + '<div style="display:flex;align-items:center;gap:6px;margin-top:6px;cursor:pointer;" onclick="openUserProfile(\''+userId+'\',\''+nick.replace(/'/g,"\\'")+'\')">'
+          + '<div style="width:22px;height:22px;border-radius:50%;border:1px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--bg3);font-size:.65rem;font-weight:700;color:var(--accent);flex-shrink:0;">'
+            + (av ? '<img src="'+av+'" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display=\'none\'">' : (nick[0]||'?').toUpperCase())
+          + '</div>'
+          + '<span style="font-size:.72rem;color:var(--muted);">@'+nick+'</span>'
+          + '<span style="font-size:.65rem;padding:1px 6px;border-radius:100px;background:rgba(46,196,182,.1);color:var(--accent);font-weight:700;margin-left:auto;">📍 Spot</span>'
+        + '</div>'
+      + '</div>'
+      + '</div>'
+    + '</div>';
+  }
+
+  // ─── Limpiar búsqueda ────────────────────────────────────────
+  window.cebosLimpiar = function(){
+    document.getElementById('cebosSearchInput').value = '';
+    document.getElementById('cebosResultados').style.display='none';
+    document.getElementById('cebosEstado').style.display='block';
+    document.getElementById('cebosEstado').innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:.88rem;"><div style="font-size:2.5rem;margin-bottom:10px;">🎣</div><div style="font-weight:700;color:var(--text);margin-bottom:6px;">¿Qué querés pescar hoy?</div><div>Escribí el nombre de un pez y te mostramos con qué cebo fue capturado según los trofeos y spots de la comunidad.</div></div>';
+    _cebosQuery=''; _cebosTrofeos=[]; _cebosSpots=[];
+  };
+
+  // ─── Hook en gp para precargar nombres al entrar a la página ─
+  var _cebosGpHooked = false;
+  function hookCebosGp(){
+    if(_cebosGpHooked) return;
+    _cebosGpHooked = true;
+    var origGp = window.gp;
+    window.gp = function(id, pushState){
+      origGp && origGp(id, pushState);
+      if(id === 'cebos'){
+        cebosPrecargarNombres();
+      }
+    };
+  }
+  // Esperar a que gp esté disponible
+  var _cebosHookInterval = setInterval(function(){
+    if(typeof window.gp === 'function'){ hookCebosGp(); clearInterval(_cebosHookInterval); }
+  }, 300);
+
+  // Precargar al arrancar (en background)
+  window.addEventListener('DOMContentLoaded', function(){
+    setTimeout(cebosPrecargarNombres, 4000);
+  });
+
+})();
+</script>
+<!-- ===== FIN JS SECCIÓN CEBOS ===== -->
 </body>
 </html>
