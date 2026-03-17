@@ -24374,16 +24374,15 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
     if(!window.db || !window._fsLib) return;
     var fs = window._fsLib;
     try {
-      var snap = await fs.getDocs(fs.query(
-        fs.collection(window.db,'faq'),
-        fs.where('estado','==','aprobado'),
-        fs.orderBy('cat','asc'),
-        fs.orderBy('time','desc')
+      var snap = await getDocs(query(
+        collection(db,'faq'),
+        where('estado','==','aprobado'),
+        orderBy('time','desc')
       ));
       _faqAll = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
       faqRender();
-      // Badge admin
-      var pendSnap = await fs.getDocs(fs.query(fs.collection(window.db,'faq'), fs.where('estado','==','pendiente')));
+      // Badge admin pendientes
+      var pendSnap = await getDocs(query(collection(db,'faq'), where('estado','==','pendiente')));
       var badge = document.getElementById('admFaqBadge');
       if(badge && pendSnap.size > 0){ badge.style.display='inline'; badge.textContent=pendSnap.size; }
     } catch(e){ console.log('FAQ load error',e); }
@@ -24452,14 +24451,14 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
         estado: 'pendiente',
         userId: window.CU.id,
         userNick: window.CU.nick||'',
-        time: fs.serverTimestamp ? fs.serverTimestamp() : Date.now()
+        time: serverTimestamp()
       });
       toast('¡Pregunta enviada! El admin la revisará pronto 🎣','ok');
       document.getElementById('faqPropQ').value='';
       document.getElementById('faqPropA').value='';
       document.getElementById('faqPropBox').style.display='none';
       document.getElementById('faqPropBtn').style.display='block';
-    } catch(e){ toast('Error al enviar','err'); }
+    } catch(e){ console.error('faqSubmit error',e); toast('Error al enviar: '+String(e.message||e),'err'); }
   };
 
   // ── Admin FAQ ─────────────────────────────────────────────────
@@ -24469,10 +24468,10 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
     if(filtro) _faqAdminFilter = filtro;
     var el = document.getElementById('faqAdminList');
     if(!el) return;
-    if(!window.db || !window._fsLib){ el.innerHTML='<div style="color:var(--muted);padding:20px;">Sin conexión</div>'; return; }
+    if(!window.db){ el.innerHTML='<div style="color:var(--muted);padding:20px;">Sin conexión</div>'; return; }
     el.innerHTML='<div style="text-align:center;padding:32px;color:var(--muted);">Cargando...</div>';
-    var fs = window._fsLib;
     try {
+      var fs = window._fsLib;
       var q;
       if(_faqAdminFilter==='todas') q=fs.query(fs.collection(window.db,'faq'), fs.orderBy('time','desc'));
       else q=fs.query(fs.collection(window.db,'faq'), fs.where('estado','==',_faqAdminFilter), fs.orderBy('time','desc'));
@@ -24501,27 +24500,24 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
   };
 
   window.faqAdminAction = async function(id, estado){
-    if(!window.db || !window._fsLib) return;
-    var fs = window._fsLib;
+    if(!window.db) return;
     var respEl = document.getElementById('faqResp-'+id);
     var resp = respEl ? respEl.value.trim() : '';
     try {
-      var ref = fs.doc(window.db,'faq',id);
-      await fs.updateDoc(ref,{ estado:estado, respuesta:resp, revisadoPor: window.CU&&window.CU.nick||'admin' });
+      await updateDoc(doc(db,'faq',id),{ estado:estado, respuesta:resp, revisadoPor: window.CU&&window.CU.nick||'admin' });
       toast(estado==='aprobado'?'✅ Aprobada':'❌ Rechazada','ok');
-      loadAdminFaq();
+      window.loadAdminFaq();
       loadFaq();
-    } catch(e){ toast('Error','err'); }
+    } catch(e){ console.error('faqAdminAction',e); toast('Error: '+String(e.message||e),'err'); }
   };
 
   window.faqAdminDelete = async function(id){
     if(!confirm('¿Eliminar esta pregunta?')) return;
-    if(!window.db || !window._fsLib) return;
-    var fs = window._fsLib;
+    if(!window.db) return;
     try {
-      await fs.deleteDoc(fs.doc(window.db,'faq',id));
+      await deleteDoc(doc(db,'faq',id));
       toast('Eliminada','ok');
-      loadAdminFaq();
+      window.loadAdminFaq();
     } catch(e){ toast('Error','err'); }
   };
 
