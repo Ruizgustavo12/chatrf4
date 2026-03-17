@@ -15,12 +15,18 @@ options.add_argument('--disable-gpu')
 options.add_argument('--window-size=1920,1080')
 options.binary_location = '/usr/bin/google-chrome'
 
+PROXY = "https://images.weserv.nl/?url="
+
 records = []
 seen = set()
 
 def extraer_url(style):
     match = re.search(r"url\(['\"]?(.+?)['\"]?\)", style)
-    return 'https:' + match.group(1) if match else ''
+    if not match:
+        return ''
+    url = 'https:' + match.group(1) if match.group(1).startswith('//') else match.group(1)
+    clean = url.replace("https://", "").replace("http://", "")
+    return PROXY + clean
 
 try:
     driver = webdriver.Chrome(options=options)
