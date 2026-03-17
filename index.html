@@ -4556,7 +4556,7 @@ document.addEventListener('DOMContentLoaded', function(){
       <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#1a7a74);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">🎣</div>
       <div>
         <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--accent);">Records RF4</div>
-        <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">Datos en tiempo real desde rf4-stat.ru · <span id="rf4recMeta" style="color:var(--green);">● cargando...</span></div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">Records semanales oficiales · <span id="rf4recMeta" style="color:var(--green);">● cargando...</span></div>
       </div>
     </div>
     <button onclick="rf4RecReload()" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:7px 14px;color:var(--muted);font-family:'Exo 2',sans-serif;font-size:.8rem;cursor:pointer;transition:all .18s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">⟳ Actualizar</button>
@@ -4564,11 +4564,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
   <!-- Tabs -->
   <div style="display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:14px;overflow-x:auto;scrollbar-width:none;" id="rf4recTabs">
-    <button class="rf4rec-tab active" onclick="rf4RecTab('locations',this)">📍 Ubicaciones</button>
-    <button class="rf4rec-tab" onclick="rf4RecTab('fish',this)">🐟 Peces</button>
-    <button class="rf4rec-tab" onclick="rf4RecTab('baits',this)">🪱 Cebos</button>
-    <button class="rf4rec-tab" onclick="rf4RecTab('players',this)">🏆 Ranking</button>
-    <button class="rf4rec-tab" onclick="rf4RecTab('recent',this)">🕐 Recientes</button>
+    <button class="rf4rec-tab active" onclick="rf4RecTab('records',this)">🎣 Todos</button>
+    <button class="rf4rec-tab" onclick="rf4RecTab('peces',this)">🐟 Por Pez</button>
+    <button class="rf4rec-tab" onclick="rf4RecTab('senuelos',this)">🪱 Por Señuelo</button>
+    <button class="rf4rec-tab" onclick="rf4RecTab('jugadores',this)">🏆 Ranking</button>
+    <button class="rf4rec-tab" onclick="rf4RecTab('ubicacion',this)">📍 Por Lago</button>
   </div>
 
   <!-- Buscador -->
@@ -4599,146 +4599,212 @@ document.addEventListener('DOMContentLoaded', function(){
 .rf4rec-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(46,196,182,.05); }
 .rf4rec-table { width: 100%; border-collapse: collapse; font-size: .83rem; }
 .rf4rec-table th { padding: 9px 14px; text-align: left; color: var(--accent); font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid var(--border); background: var(--bg2); position: sticky; top: 0; z-index: 1; }
-.rf4rec-table td { padding: 10px 14px; border-bottom: 1px solid rgba(48,54,61,.45); color: var(--text); }
+.rf4rec-table td { padding: 9px 14px; border-bottom: 1px solid rgba(48,54,61,.45); color: var(--text); vertical-align: middle; }
 .rf4rec-table tr:last-child td { border-bottom: none; }
 .rf4rec-table tr:hover td { background: rgba(255,255,255,.02); }
 .rf4rec-badge { display:inline-block; padding:2px 9px; border-radius:100px; font-size:.7rem; font-weight:700; background:rgba(46,196,182,.1); color:var(--accent); border:1px solid rgba(46,196,182,.25); }
 .rf4rec-badge-gold { background:rgba(212,160,23,.12); color:var(--gold); border:1px solid rgba(212,160,23,.3); }
 .rf4rec-empty { text-align:center; padding:40px; color:var(--muted); font-size:.88rem; }
+.rf4rec-img { width:32px; height:32px; border-radius:6px; object-fit:contain; background:var(--bg3); vertical-align:middle; margin-right:8px; }
+.rf4rec-fish-cell { display:flex; align-items:center; gap:8px; }
+.rf4rec-loc-badge { display:inline-block; padding:2px 8px; border-radius:100px; font-size:.7rem; background:var(--bg3); color:var(--muted); border:1px solid var(--border); }
 </style>
 
 <script>
 (function(){
-  var _d = { locations:[], fish:[], baits:[], players:[], recent:[], loaded:false };
-  var _tab = 'locations';
+  var _records = [];
+  var _tab = 'records';
   var _q   = '';
+  var _loaded = false;
+  var _updated = '';
 
   function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  // ── Cargar desde Firestore ────────────────────────────────────────────────
+  // ── Cargar records.json del repo ──────────────────────────────────────────
   async function load(){
-    var fs = window._fsLib;
-    if(!fs || !window.db) throw new Error('Firebase no listo');
-    async function getDoc(name){
-      var snap = await fs.getDoc(fs.doc(window.db,'rf4_records',name));
-      return snap.exists() ? snap.data() : null;
-    }
-    var [loc,fish,baits,players,recent,meta] = await Promise.all([
-      getDoc('locations'), getDoc('fish'), getDoc('baits'),
-      getDoc('players'),   getDoc('recent_records'), getDoc('_meta')
-    ]);
-    _d.locations = loc?.items    || [];
-    _d.fish      = fish?.items   || [];
-    _d.baits     = baits?.items  || [];
-    _d.players   = players?.items|| [];
-    _d.recent    = recent?.items || [];
-    _d.loaded    = true;
+    // Cache busting con timestamp redondeado a 30 min
+    var bust = Math.floor(Date.now() / (30*60*1000));
+    var res  = await fetch('/records.json?v=' + bust);
+    if(!res.ok) throw new Error('No se pudo cargar records.json ('+res.status+')');
+    var json = await res.json();
+    _records = json.records || [];
+    _updated = json.updated || '';
+    _loaded  = true;
 
-    // Meta
     var metaEl = document.getElementById('rf4recMeta');
-    if(metaEl && meta?.lastUpdate){
-      var ts  = meta.lastUpdate.toDate ? meta.lastUpdate.toDate() : new Date(meta.lastUpdate);
-      var min = Math.floor((Date.now()-ts.getTime())/60000);
-      metaEl.textContent = '● actualizado hace '+(min<1?'menos de 1':min)+' min';
-    }
+    if(metaEl) metaEl.textContent = '● actualizado ' + esc(_updated);
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Agrupar por campo ─────────────────────────────────────────────────────
+  function groupBy(arr, key){
+    var map = {};
+    arr.forEach(function(r){
+      var k = r[key] || '—';
+      if(!map[k]) map[k] = [];
+      map[k].push(r);
+    });
+    return map;
+  }
+
+  // ── Render principal ──────────────────────────────────────────────────────
   function render(){
     var el = document.getElementById('rf4recBody');
     if(!el) return;
-    if(!_d.loaded){
+    if(!_loaded){
       el.innerHTML='<div class="rf4rec-empty"><div style="font-size:2rem;margin-bottom:8px;">🎣</div>Cargando...</div>';
       return;
     }
     var q = _q.toLowerCase();
     switch(_tab){
-      case 'locations': renderLoc(el,q);     break;
-      case 'fish':      renderFish(el,q);    break;
-      case 'baits':     renderBaits(el,q);   break;
-      case 'players':   renderPlayers(el,q); break;
-      case 'recent':    renderRecent(el,q);  break;
+      case 'records':   renderRecords(el, q);   break;
+      case 'peces':     renderPeces(el, q);      break;
+      case 'senuelos':  renderSenuelos(el, q);   break;
+      case 'jugadores': renderJugadores(el, q);  break;
+      case 'ubicacion': renderUbicacion(el, q);  break;
     }
   }
 
+  function wrap(html){
+    return '<div style="overflow-x:auto;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">'+html+'</div>';
+  }
   function tbl(head, rows){
-    if(!rows) return '<div class="rf4rec-empty">No hay resultados</div>';
-    return '<div style="overflow-x:auto;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">'
-      +'<table class="rf4rec-table"><thead><tr>'+head+'</tr></thead><tbody>'+rows+'</tbody></table></div>';
+    if(!rows.length) return '<div class="rf4rec-empty">Sin resultados para esa búsqueda</div>';
+    return wrap('<table class="rf4rec-table"><thead><tr>'+head+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>');
   }
 
-  function renderLoc(el,q){
-    var data=_d.locations.filter(function(l){return !q||l.name.toLowerCase().includes(q);});
-    if(!data.length){el.innerHTML='<div class="rf4rec-empty">Sin resultados</div>';return;}
-    el.innerHTML=tbl(
-      '<th>Ubicación</th><th>Records</th><th>Peso máx.</th><th>Especies</th>',
-      data.map(function(l){
-        return '<tr><td style="font-weight:600;">'+esc(l.name)+'</td>'
-          +'<td><span class="rf4rec-badge">'+esc(String(l.recordCount||0))+'</span></td>'
-          +'<td>'+esc(l.maxWeight||'-')+'</td>'
-          +'<td>'+esc(String(l.fishCount||'-'))+'</td></tr>';
-      }).join('')
-    );
-  }
-
-  function renderFish(el,q){
-    var data=_d.fish.filter(function(f){return !q||f.name.toLowerCase().includes(q)||(f.location||'').toLowerCase().includes(q);});
-    if(!data.length){el.innerHTML='<div class="rf4rec-empty">Sin resultados</div>';return;}
-    el.innerHTML=tbl(
-      '<th>Especie</th><th>Records</th><th>Peso máx.</th><th>Ubicación</th>',
-      data.map(function(f){
-        return '<tr><td style="font-weight:600;">'+esc(f.name)+'</td>'
-          +'<td><span class="rf4rec-badge">'+esc(String(f.records||0))+'</span></td>'
-          +'<td><span class="rf4rec-badge-gold rf4rec-badge">'+esc(f.maxWeight||'-')+'</span></td>'
-          +'<td style="color:var(--muted);font-size:.8rem;">'+esc(f.location||'-')+'</td></tr>';
-      }).join('')
-    );
-  }
-
-  function renderBaits(el,q){
-    var data=_d.baits.filter(function(b){return !q||b.name.toLowerCase().includes(q)||(b.topFish||'').toLowerCase().includes(q);});
-    if(!data.length){el.innerHTML='<div class="rf4rec-empty">Sin resultados</div>';return;}
-    el.innerHTML=tbl(
-      '<th>Cebo / Señuelo</th><th>En records</th><th>Pez principal</th><th>Ubicación</th>',
-      data.map(function(b){
-        return '<tr><td style="font-weight:600;">'+esc(b.name)+'</td>'
-          +'<td><span class="rf4rec-badge">'+esc(String(b.records||0))+'</span></td>'
-          +'<td>'+esc(b.topFish||'-')+'</td>'
-          +'<td style="color:var(--muted);font-size:.8rem;">'+esc(b.location||'-')+'</td></tr>';
-      }).join('')
-    );
-  }
-
-  function renderPlayers(el,q){
-    var data=_d.players.filter(function(p){return !q||p.name.toLowerCase().includes(q);});
-    if(!data.length){el.innerHTML='<div class="rf4rec-empty">No hay datos de ranking todavía</div>';return;}
-    el.innerHTML=tbl(
-      '<th>#</th><th>Jugador</th><th>Puntuación</th><th>Nivel</th>',
-      data.map(function(p,i){
-        var c=i===0?'#ffd700':i===1?'#c0c0c0':i===2?'#cd7f32':'var(--accent)';
-        return '<tr><td style="font-weight:900;color:'+c+'">#'+(i+1)+'</td>'
-          +'<td style="font-weight:600;">'+esc(p.name)+'</td>'
-          +'<td>'+esc(p.score||'-')+'</td>'
-          +'<td style="color:var(--muted);">'+esc(p.level||'-')+'</td></tr>';
-      }).join('')
-    );
-  }
-
-  function renderRecent(el,q){
-    var data=_d.recent.filter(function(r){
-      return !q||r.fish.toLowerCase().includes(q)||r.player.toLowerCase().includes(q)||(r.location||'').toLowerCase().includes(q);
+  // Tab 1 — Todos los records (con imágenes)
+  function renderRecords(el, q){
+    var data = _records.filter(function(r){
+      return !q || r.pez.toLowerCase().includes(q)
+        || r.jugador.toLowerCase().includes(q)
+        || (r.ubicacion||'').toLowerCase().includes(q)
+        || (r.señuelo||'').toLowerCase().includes(q);
     });
-    if(!data.length){el.innerHTML='<div class="rf4rec-empty">Sin records recientes</div>';return;}
-    el.innerHTML=tbl(
-      '<th>Jugador</th><th>Pez</th><th>Peso</th><th>Ubicación</th><th>Cebo</th>',
-      data.slice(0,100).map(function(r){
-        return '<tr><td style="font-weight:600;color:var(--accent);">'+esc(r.player)+'</td>'
-          +'<td>'+esc(r.fish)+'</td>'
-          +'<td><span class="rf4rec-badge rf4rec-badge-gold">'+esc(r.weight)+'</span></td>'
-          +'<td style="color:var(--muted);font-size:.8rem;">'+esc(r.location||'-')+'</td>'
-          +'<td style="color:var(--muted);font-size:.8rem;">'+esc(r.bait||'-')+'</td></tr>';
-      }).join('')
-    );
+    if(!data.length){ el.innerHTML='<div class="rf4rec-empty">Sin resultados</div>'; return; }
+    var head = '<th>Pez</th><th>Peso</th><th>Señuelo</th><th>Ubicación</th><th>Jugador</th><th>Fecha</th>';
+    var rows = data.map(function(r){
+      var imgPez = r.img_pez
+        ? '<img class="rf4rec-img" src="'+esc(r.img_pez)+'" alt="" onerror="this.style.display=\'none\'">'
+        : '';
+      var imgSen = r.img_senuelo
+        ? '<img class="rf4rec-img" src="'+esc(r.img_senuelo)+'" alt="" onerror="this.style.display=\'none\'">'
+        : '';
+      return '<tr>'
+        +'<td><div class="rf4rec-fish-cell">'+imgPez+'<span style="font-weight:600;">'+esc(r.pez)+'</span></div></td>'
+        +'<td><span class="rf4rec-badge rf4rec-badge-gold">'+esc(r.peso)+'</span></td>'
+        +'<td><div class="rf4rec-fish-cell">'+imgSen+'<span>'+esc(r.señuelo||'—')+'</span></div></td>'
+        +'<td><span class="rf4rec-loc-badge">'+esc(r.ubicacion||'—')+'</span></td>'
+        +'<td style="color:var(--accent);font-weight:600;">'+esc(r.jugador)+'</td>'
+        +'<td style="color:var(--muted);font-size:.78rem;">'+esc(r.fecha||'—')+'</td>'
+        +'</tr>';
+    });
+    el.innerHTML = tbl(head, rows);
+  }
+
+  // Tab 2 — Por especie de pez
+  function renderPeces(el, q){
+    var data = _records.filter(function(r){ return !q || r.pez.toLowerCase().includes(q); });
+    var grouped = groupBy(data, 'pez');
+    var sorted  = Object.keys(grouped).sort();
+    if(!sorted.length){ el.innerHTML='<div class="rf4rec-empty">Sin resultados</div>'; return; }
+    var head = '<th>Pez</th><th>Records</th><th>Mejor peso</th><th>Mejor jugador</th><th>Ubicación</th>';
+    var rows = sorted.map(function(pez){
+      var items = grouped[pez];
+      // Ordenar por peso (kg)
+      items.sort(function(a,b){ return parseFloat(b.peso)||0 - parseFloat(a.peso)||0; });
+      var best = items[0];
+      var img  = best.img_pez
+        ? '<img class="rf4rec-img" src="'+esc(best.img_pez)+'" alt="" onerror="this.style.display=\'none\'">'
+        : '';
+      return '<tr>'
+        +'<td><div class="rf4rec-fish-cell">'+img+'<span style="font-weight:600;">'+esc(pez)+'</span></div></td>'
+        +'<td><span class="rf4rec-badge">'+items.length+'</span></td>'
+        +'<td><span class="rf4rec-badge rf4rec-badge-gold">'+esc(best.peso)+'</span></td>'
+        +'<td style="color:var(--accent);">'+esc(best.jugador)+'</td>'
+        +'<td><span class="rf4rec-loc-badge">'+esc(best.ubicacion||'—')+'</span></td>'
+        +'</tr>';
+    });
+    el.innerHTML = tbl(head, rows);
+  }
+
+  // Tab 3 — Por señuelo
+  function renderSenuelos(el, q){
+    var data = _records.filter(function(r){
+      return r.señuelo && (!q || r.señuelo.toLowerCase().includes(q) || r.pez.toLowerCase().includes(q));
+    });
+    var grouped = groupBy(data, 'señuelo');
+    var sorted  = Object.keys(grouped).sort(function(a,b){ return grouped[b].length - grouped[a].length; });
+    if(!sorted.length){ el.innerHTML='<div class="rf4rec-empty">Sin resultados</div>'; return; }
+    var head = '<th>Señuelo</th><th>En records</th><th>Pez más frecuente</th><th>Ubicación más común</th>';
+    var rows = sorted.map(function(sen){
+      var items = grouped[sen];
+      var img   = items[0].img_senuelo
+        ? '<img class="rf4rec-img" src="'+esc(items[0].img_senuelo)+'" alt="" onerror="this.style.display=\'none\'">'
+        : '';
+      // Pez más frecuente
+      var pezCount = {};
+      items.forEach(function(r){ pezCount[r.pez]=(pezCount[r.pez]||0)+1; });
+      var topPez = Object.keys(pezCount).sort(function(a,b){return pezCount[b]-pezCount[a];})[0];
+      // Ubicación más común
+      var locCount = {};
+      items.forEach(function(r){ if(r.ubicacion) locCount[r.ubicacion]=(locCount[r.ubicacion]||0)+1; });
+      var topLoc = Object.keys(locCount).sort(function(a,b){return locCount[b]-locCount[a];})[0]||'—';
+      return '<tr>'
+        +'<td><div class="rf4rec-fish-cell">'+img+'<span style="font-weight:600;">'+esc(sen)+'</span></div></td>'
+        +'<td><span class="rf4rec-badge">'+items.length+'</span></td>'
+        +'<td>'+esc(topPez)+'</td>'
+        +'<td><span class="rf4rec-loc-badge">'+esc(topLoc)+'</span></td>'
+        +'</tr>';
+    });
+    el.innerHTML = tbl(head, rows);
+  }
+
+  // Tab 4 — Ranking jugadores
+  function renderJugadores(el, q){
+    var data = _records.filter(function(r){ return !q || r.jugador.toLowerCase().includes(q); });
+    var grouped = groupBy(data, 'jugador');
+    var sorted  = Object.keys(grouped).sort(function(a,b){ return grouped[b].length - grouped[a].length; });
+    if(!sorted.length){ el.innerHTML='<div class="rf4rec-empty">Sin resultados</div>'; return; }
+    var head = '<th>#</th><th>Jugador</th><th>Records esta semana</th><th>Mejor pez</th><th>Mejor peso</th>';
+    var rows = sorted.map(function(jug, i){
+      var items = grouped[jug];
+      items.sort(function(a,b){ return parseFloat(b.peso)||0 - parseFloat(a.peso)||0; });
+      var best = items[0];
+      var c    = i===0?'#ffd700':i===1?'#c0c0c0':i===2?'#cd7f32':'var(--muted)';
+      return '<tr>'
+        +'<td style="font-weight:900;color:'+c+';font-size:.9rem;">#'+(i+1)+'</td>'
+        +'<td style="font-weight:700;color:var(--accent);">'+esc(jug)+'</td>'
+        +'<td><span class="rf4rec-badge">'+items.length+'</span></td>'
+        +'<td>'+esc(best.pez)+'</td>'
+        +'<td><span class="rf4rec-badge rf4rec-badge-gold">'+esc(best.peso)+'</span></td>'
+        +'</tr>';
+    });
+    el.innerHTML = tbl(head, rows);
+  }
+
+  // Tab 5 — Por ubicación
+  function renderUbicacion(el, q){
+    var data = _records.filter(function(r){
+      return !q || (r.ubicacion||'').toLowerCase().includes(q) || r.pez.toLowerCase().includes(q);
+    });
+    var grouped = groupBy(data, 'ubicacion');
+    var sorted  = Object.keys(grouped).sort(function(a,b){ return grouped[b].length - grouped[a].length; });
+    if(!sorted.length){ el.innerHTML='<div class="rf4rec-empty">Sin resultados</div>'; return; }
+    var head = '<th>Ubicación</th><th>Records</th><th>Pez más capturado</th><th>Mayor peso</th>';
+    var rows = sorted.map(function(loc){
+      var items = grouped[loc];
+      items.sort(function(a,b){ return parseFloat(b.peso)||0 - parseFloat(a.peso)||0; });
+      var pezCount = {};
+      items.forEach(function(r){ pezCount[r.pez]=(pezCount[r.pez]||0)+1; });
+      var topPez = Object.keys(pezCount).sort(function(a,b){return pezCount[b]-pezCount[a];})[0]||'—';
+      return '<tr>'
+        +'<td style="font-weight:700;">'+esc(loc)+'</td>'
+        +'<td><span class="rf4rec-badge">'+items.length+'</span></td>'
+        +'<td>'+esc(topPez)+'</td>'
+        +'<td><span class="rf4rec-badge rf4rec-badge-gold">'+esc(items[0].peso)+'</span></td>'
+        +'</tr>';
+    });
+    el.innerHTML = tbl(head, rows);
   }
 
   // ── API global ────────────────────────────────────────────────────────────
@@ -4753,35 +4819,21 @@ document.addEventListener('DOMContentLoaded', function(){
   window.rf4RecSearch = function(v){ _q=v; render(); };
 
   window.rf4RecReload = async function(){
-    _d.loaded=false;
+    _loaded=false;
     render();
     try{ await load(); render(); }
     catch(e){
       var el=document.getElementById('rf4recBody');
-      if(el) el.innerHTML='<div class="rf4rec-empty" style="color:var(--red);">❌ Error: '+esc(e.message)+'</div>';
+      if(el) el.innerHTML='<div class="rf4rec-empty" style="color:var(--red);">❌ Error al cargar: '+esc(e.message)+'</div>';
     }
   };
 
-  // ── Cargar cuando se abre la página ──────────────────────────────────────
+  // ── Hook al gp() de la web ────────────────────────────────────────────────
   var _origGp2 = window.gp;
   window.gp = function(page){
     if(typeof _origGp2==='function') _origGp2(page);
-    if(page==='rf4-records' && !_d.loaded){
-      tryLoad();
-    }
+    if(page==='rf4-records' && !_loaded) window.rf4RecReload();
   };
-
-  function tryLoad(){
-    if(window.db && window._fsLib){
-      window.rf4RecReload();
-    } else {
-      var tries=0, iv=setInterval(function(){
-        tries++;
-        if(window.db && window._fsLib){ clearInterval(iv); window.rf4RecReload(); }
-        else if(tries>40) clearInterval(iv);
-      },150);
-    }
-  }
 
 })();
 </script>
