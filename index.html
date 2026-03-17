@@ -24529,14 +24529,41 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
   var _origGp = window.gp;
   window.gp = function(page){
     if(typeof _origGp==='function') _origGp(page);
-    if(page==='faq') loadFaq();
+    if(page==='faq'){
+      if(window.db && window._fsLib){
+        loadFaq();
+      } else {
+        // Esperar a que Firebase esté listo con reintentos cortos
+        var intentos = 0;
+        var retry = setInterval(function(){
+          intentos++;
+          if(window.db && window._fsLib){
+            clearInterval(retry);
+            loadFaq();
+          } else if(intentos >= 20){
+            clearInterval(retry);
+          }
+        }, 150);
+      }
+    }
   };
 
-  // Cargar si ya está en la página
+  // Cargar si ya está en la página (sin delay innecesario)
   document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(function(){
-      if(window.db && window._fsLib) loadFaq();
-    }, 2000);
+    if(window.db && window._fsLib){
+      loadFaq();
+    } else {
+      var intentos = 0;
+      var retry = setInterval(function(){
+        intentos++;
+        if(window.db && window._fsLib){
+          clearInterval(retry);
+          loadFaq();
+        } else if(intentos >= 40){
+          clearInterval(retry);
+        }
+      }, 150);
+    }
   });
 
 })();
