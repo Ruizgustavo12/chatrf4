@@ -25422,34 +25422,23 @@ Respondés solo sobre RF4. Si la pregunta no es del juego, lo aclarás amablemen
 
     try {
       var messages = _history.map(function(m){ return { role: m.role, content: m.content }; });
-      // Limitar historial a últimos 10 mensajes para no exceder tokens
       if(messages.length > 10) messages = messages.slice(messages.length - 10);
 
-      var response = await fetch('https://api.anthropic.com/v1/messages', {
+      var response = await fetch('https://wrf4-ai.synxyes.workers.dev', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          system: SYSTEM_PROMPT,
-          messages: messages
-        })
+        body: JSON.stringify({ messages: messages })
       });
 
       var data = await response.json();
       typingEl.remove();
 
-      var reply = '';
-      if(data.content && data.content.length){
-        reply = data.content.filter(function(b){ return b.type === 'text'; }).map(function(b){ return b.text; }).join('');
-      } else if(data.error){
-        reply = '⚠️ Error: ' + (data.error.message || 'No se pudo conectar con la IA.');
-      }
+      var reply = data.reply || '';
+      if(!reply) reply = '⚠️ No pude obtener respuesta.';
 
-      if(reply){
-        _history.push({ role: 'assistant', content: reply });
-        addMessage('bot', reply);
-      }
+      _history.push({ role: 'assistant', content: reply });
+      addMessage('bot', reply);
+
     } catch(err){
       typingEl.remove();
       addMessage('bot', '⚠️ No se pudo conectar con el asistente. Revisá tu conexión e intentá de nuevo.');
