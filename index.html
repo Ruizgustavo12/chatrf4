@@ -4620,19 +4620,42 @@ document.addEventListener('DOMContentLoaded', function(){
 
   function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+  // Helper para imágenes rotas — reemplaza la img con un emoji span
+  window._rf4ImgErr = function(el, emoji){
+    el.onerror = null;
+    el.style.display = 'none';
+    var span = document.createElement('span');
+    span.className = 'rf4rec-img';
+    span.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;';
+    span.textContent = emoji || '🐟';
+    if(el.parentNode) el.parentNode.insertBefore(span, el);
+  };
+
   // ── Cargar records.json del repo ──────────────────────────────────────────
   async function load(){
     // Cache busting con timestamp redondeado a 30 min
     var bust = Math.floor(Date.now() / (30*60*1000));
-    var res  = await fetch('/records.json?v=' + bust);
-    if(!res.ok) throw new Error('No se pudo cargar records.json ('+res.status+')');
-    var json = await res.json();
-    _records = json.records || [];
-    _updated = json.updated || '';
-    _loaded  = true;
-
-    var metaEl = document.getElementById('rf4recMeta');
-    if(metaEl) metaEl.textContent = '● actualizado ' + esc(_updated);
+    // Intentar primero ruta relativa, luego absoluta con dominio
+    var urls = [
+      '/records.json?v=' + bust,
+      'https://wikipediarf4.uy/records.json?v=' + bust
+    ];
+    var lastErr = null;
+    for(var i=0; i<urls.length; i++){
+      try {
+        var res = await fetch(urls[i]);
+        if(!res.ok) { lastErr = new Error('HTTP ' + res.status); continue; }
+        var json = await res.json();
+        _records = json.records || [];
+        _updated = json.updated || '';
+        _loaded  = true;
+        var metaEl = document.getElementById('rf4recMeta');
+        if(metaEl) metaEl.textContent = '● actualizado ' + esc(_updated);
+        return; // éxito
+      } catch(e){ lastErr = e; }
+    }
+    // Si llegamos aquí, ambas URLs fallaron
+    throw lastErr || new Error('No se pudo cargar records.json');
   }
 
   // ── Agrupar por campo ─────────────────────────────────────────────────────
@@ -4684,11 +4707,11 @@ document.addEventListener('DOMContentLoaded', function(){
     var head = '<th>Pez</th><th>Peso</th><th>Señuelo</th><th>Ubicación</th><th>Jugador</th><th>Fecha</th>';
     var rows = data.map(function(r){
       var imgPez = r.img_pez
-        ? '<img class="rf4rec-img" src="'+esc(r.img_pez)+'" alt="" onerror="this.style.display=\'none\'">'
-        : '';
+        ? '<img class="rf4rec-img" src="'+esc(r.img_pez)+'" alt="" onerror="_rf4ImgErr(this,\'🐟\')">'
+        : '<span class="rf4rec-img" style="display:inline-flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">🐟</span>';
       var imgSen = r.img_senuelo
-        ? '<img class="rf4rec-img" src="'+esc(r.img_senuelo)+'" alt="" onerror="this.style.display=\'none\'">'
-        : '';
+        ? '<img class="rf4rec-img" src="'+esc(r.img_senuelo)+'" alt="" onerror="_rf4ImgErr(this,\'🪱\')">'
+        : '<span class="rf4rec-img" style="display:inline-flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">🪱</span>';
       return '<tr>'
         +'<td><div class="rf4rec-fish-cell">'+imgPez+'<span style="font-weight:600;">'+esc(r.pez)+'</span></div></td>'
         +'<td><span class="rf4rec-badge rf4rec-badge-gold">'+esc(r.peso)+'</span></td>'
@@ -4714,8 +4737,8 @@ document.addEventListener('DOMContentLoaded', function(){
       items.sort(function(a,b){ return parseFloat(b.peso)||0 - parseFloat(a.peso)||0; });
       var best = items[0];
       var img  = best.img_pez
-        ? '<img class="rf4rec-img" src="'+esc(best.img_pez)+'" alt="" onerror="this.style.display=\'none\'">'
-        : '';
+        ? '<img class="rf4rec-img" src="'+esc(best.img_pez)+'" alt="" onerror="_rf4ImgErr(this,\'🐟\')">'
+        : '<span class="rf4rec-img" style="display:inline-flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">🐟</span>';
       return '<tr>'
         +'<td><div class="rf4rec-fish-cell">'+img+'<span style="font-weight:600;">'+esc(pez)+'</span></div></td>'
         +'<td><span class="rf4rec-badge">'+items.length+'</span></td>'
@@ -4739,8 +4762,8 @@ document.addEventListener('DOMContentLoaded', function(){
     var rows = sorted.map(function(sen){
       var items = grouped[sen];
       var img   = items[0].img_senuelo
-        ? '<img class="rf4rec-img" src="'+esc(items[0].img_senuelo)+'" alt="" onerror="this.style.display=\'none\'">'
-        : '';
+        ? '<img class="rf4rec-img" src="'+esc(items[0].img_senuelo)+'" alt="" onerror="_rf4ImgErr(this,\'🪱\')">'
+        : '<span class="rf4rec-img" style="display:inline-flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">🪱</span>';
       // Pez más frecuente
       var pezCount = {};
       items.forEach(function(r){ pezCount[r.pez]=(pezCount[r.pez]||0)+1; });
@@ -4820,11 +4843,18 @@ document.addEventListener('DOMContentLoaded', function(){
 
   window.rf4RecReload = async function(){
     _loaded=false;
-    render();
-    try{ await load(); render(); }
+    var el=document.getElementById('rf4recBody');
+    if(el) el.innerHTML='<div style="display:flex;align-items:center;justify-content:center;gap:12px;padding:56px 20px;color:var(--muted);"><div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:rf4recSpin .7s linear infinite;"></div>Cargando records...</div>';
+    var metaEl=document.getElementById('rf4recMeta');
+    if(metaEl){ metaEl.textContent='● cargando...'; metaEl.style.color='var(--muted)'; }
+    try{
+      await load();
+      render();
+      if(metaEl){ metaEl.style.color='var(--green)'; }
+    }
     catch(e){
-      var el=document.getElementById('rf4recBody');
-      if(el) el.innerHTML='<div class="rf4rec-empty" style="color:var(--red);">❌ Error al cargar: '+esc(e.message)+'</div>';
+      if(el) el.innerHTML='<div class="rf4rec-empty" style="color:var(--red);"><div style="font-size:2rem;margin-bottom:8px;">⚠️</div><div style="margin-bottom:12px;">No se pudo cargar records.json<br><span style="font-size:.78rem;color:var(--muted);">'+esc(e.message)+'</span></div><button onclick="rf4RecReload()" style="background:rgba(46,196,182,.1);border:1px solid var(--accent);color:var(--accent);padding:8px 18px;border-radius:var(--rs);font-family:\'Exo 2\',sans-serif;font-size:.82rem;cursor:pointer;">⟳ Reintentar</button></div>';
+      if(metaEl){ metaEl.textContent='● sin datos'; metaEl.style.color='var(--red)'; }
     }
   };
 
