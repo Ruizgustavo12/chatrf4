@@ -6,7 +6,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.support.ui import WebDriverWait
 import time
 
 options = Options()
@@ -25,12 +24,25 @@ def extract_bg_image(style):
         return url
     return ''
 
+def rf4game_to_stat(url):
+    """Convierte URL de rf4game.com/res/48x48/X.png a en.rf4-stat.ru que sí carga en browser"""
+    if not url:
+        return ''
+    # extraer nombre del archivo
+    m = re.search(r'/48x48/([^/?#]+)', url)
+    if m:
+        return 'https://en.rf4-stat.ru/images/rf4game/' + m.group(1)
+    m2 = re.search(r'/res/[^/]+/([^/?#]+)', url)
+    if m2:
+        return 'https://en.rf4-stat.ru/images/rf4game/' + m2.group(1)
+    return url
+
 try:
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     driver.get('https://rf4game.com/records/weekly/region/EN/')
     time.sleep(8)
 
-    # Hacer visible todos los div.rows (están con display:none)
+    # Hacer visible todos los div.rows
     driver.execute_script("""
         document.querySelectorAll('.records_subtable .rows').forEach(function(el){
             el.style.display = 'block';
@@ -42,30 +54,25 @@ try:
     print(f'Subtablas: {len(subtables)}')
 
     for subtable in subtables:
-        # ── Nombre e imagen del pez desde el header ───────────────────────
         pez = ''
         img_pez = ''
         try:
             header = subtable.find_element(By.CSS_SELECTOR, '.row.header')
             fish_col = header.find_element(By.CSS_SELECTOR, '.col.fish')
-
-            # Nombre
             try:
                 pez = fish_col.find_element(By.CSS_SELECTOR, '.text').text.strip()
             except:
                 pez = fish_col.text.strip()
-
-            # Imagen del pez
             try:
                 icon_style = fish_col.find_element(By.CSS_SELECTOR, '.item_icon').get_attribute('style') or ''
-                img_pez = extract_bg_image(icon_style)
+                img_pez = rf4game_to_stat(extract_bg_image(icon_style))
             except:
                 pass
 
             if not pez:
                 continue
 
-            # ── Rank 1: datos del propio header ──────────────────────────
+            # Rank 1 desde el header
             peso_r1 = ''
             try:
                 peso_r1 = header.find_element(By.CSS_SELECTOR, '.col.weight').text.strip().replace('\u00a0', ' ')
@@ -84,7 +91,7 @@ try:
                 try:
                     bait_icon = header.find_element(By.CSS_SELECTOR, '.bait_icon')
                     senuelo_r1 = bait_icon.get_attribute('title') or ''
-                    img_senuelo_r1 = extract_bg_image(bait_icon.get_attribute('style') or '')
+                    img_senuelo_r1 = rf4game_to_stat(extract_bg_image(bait_icon.get_attribute('style') or ''))
                 except:
                     pass
 
@@ -110,7 +117,7 @@ try:
         except:
             continue
 
-        # ── Ranks 2-5: filas dentro de .rows ─────────────────────────────
+        # Ranks 2-5
         try:
             rows_container = subtable.find_element(By.CSS_SELECTOR, '.rows')
             player_rows = rows_container.find_elements(By.CSS_SELECTOR, '.row')
@@ -142,7 +149,7 @@ try:
             try:
                 bait_icon = row.find_element(By.CSS_SELECTOR, '.bait_icon')
                 senuelo = bait_icon.get_attribute('title') or ''
-                img_senuelo = extract_bg_image(bait_icon.get_attribute('style') or '')
+                img_senuelo = rf4game_to_stat(extract_bg_image(bait_icon.get_attribute('style') or ''))
             except:
                 pass
 
@@ -168,9 +175,8 @@ try:
     driver.quit()
 
     especies = len(set(r['pez'] for r in records))
-    print(f'Records extraídos: {len(records)} de {especies} especies')
-    print('Ejemplo (primeros 6):')
-    print(json.dumps(records[:6], ensure_ascii=False, indent=2))
+    print(f'Records: {len(records)} de {especies} especies')
+    print('Ejemplo img:', records[0]['img_pez'] if records else 'ninguno')
 
 except Exception as e:
     print(f'Error: {e}')

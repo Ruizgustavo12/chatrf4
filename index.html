@@ -4611,7 +4611,7 @@ document.addEventListener('DOMContentLoaded', function(){
 </style>
 
 <style>
-.rf4rec-fish-block { border-bottom: 1px solid var(--border); }
+.rf4rec-fish-block { border-bottom: 2px solid var(--border); margin-bottom: 0; }
 .rf4rec-fish-block:last-child { border-bottom: none; }
 .rf4rec-fish-row { display:grid; grid-template-columns: 48px 1fr 110px 180px 120px 160px 90px; align-items:center; gap:0; padding:8px 12px; transition:background .15s; }
 .rf4rec-fish-row:hover { background:rgba(255,255,255,.03); }
@@ -4651,15 +4651,18 @@ document.addEventListener('DOMContentLoaded', function(){
 
   function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
-  // Las URLs ya vienen con weserv desde el scraper — usarlas directo
+  // Convertir cualquier URL de imagen a rf4-stat.ru que sí carga
   function imgUrl(url){
     if(!url) return "";
     if(url.startsWith("//")) url = "https:" + url;
-    // Si viene de rf4game.com/res sin proxy, agregar weserv
-    if(url.includes("rf4game.com/res/") && !url.includes("weserv")){
-      var path = url.replace(/^https?:\/\//, "").replace(/^\/\//, "");
-      return "https://images.weserv.nl/?url=" + path;
-    }
+    // rf4game.com/res/48x48/X.png -> rf4-stat.ru
+    var m = url.match(/\/48x48\/([^&?#]+)/);
+    if(m) return "https://en.rf4-stat.ru/images/rf4game/" + m[1];
+    var m2 = url.match(/rf4game\.com\/res\/[^/]+\/([^&?#]+)/);
+    if(m2) return "https://en.rf4-stat.ru/images/rf4game/" + m2[1];
+    // weserv -> extraer nombre
+    var m3 = url.match(/weserv.*?([a-z0-9_]+\.png)/i);
+    if(m3) return "https://en.rf4-stat.ru/images/rf4game/" + m3[1];
     return url;
   }
 
