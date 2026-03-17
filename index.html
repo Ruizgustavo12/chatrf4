@@ -1885,26 +1885,6 @@ document.addEventListener('DOMContentLoaded', function(){
   <div class="layout">
     <!-- LEFT -->
     <div class="sidebar-left">
-
-      <!-- MINI RELOJ RF4 -->
-      <div style="margin:4px 4px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px;">
-        <div style="font-size:.6rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;">
-          <span>⏱ Hora dentro del Juego</span>
-          <span style="display:flex;align-items:center;gap:3px;font-size:.6rem;color:var(--green);font-weight:600;text-transform:none;"><span style="width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block;animation:slClockPulse 2s infinite;"></span>En vivo</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div id="slRF4Clock" style="font-family:'Orbitron',monospace;font-size:1.35rem;font-weight:900;color:var(--accent);letter-spacing:3px;min-width:72px;">--:--</div>
-          <div style="flex:1;">
-            <div id="slRF4Phase" style="font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(46,196,182,.12);color:var(--accent);display:inline-block;margin-bottom:3px;">--</div>
-            <div id="slRF4Season" style="font-size:.62rem;color:var(--muted);">--</div>
-          </div>
-        </div>
-        <div style="margin-top:6px;height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;">
-          <div id="slRF4Bar" style="height:100%;background:var(--accent);border-radius:2px;transition:width 1s linear;width:0%;"></div>
-        </div>
-      </div>
-      <!-- FIN MINI RELOJ RF4 -->
-
       <div class="sl-profile" onclick="gp('profile')">
         <div class="sl-av" id="slAv">👤</div>
         <div class="sl-name" id="slName">Mi Perfil</div>
@@ -1931,6 +1911,7 @@ document.addEventListener('DOMContentLoaded', function(){
       <div class="sl-item" onclick="gp('torneos')"><span class="sl-item-icon">🏆</span> Torneos</div>
       <div class="sl-item" onclick="gp('parches')"><span class="sl-item-icon">🔧</span> Parches y Actualizaciones</div>
       <div class="sl-item" onclick="gp('soporte')"><span class="sl-item-icon">🆘</span> Soporte Técnico</div>
+      <div class="sl-item" onclick="gp('faq')"><span class="sl-item-icon">❓</span> Dudas Frecuentes</div>
       <div class="sl-item" onclick="gp('privacidad')"><span class="sl-item-icon">🔒</span> Privacidad</div>
 
       <div class="divider"></div>
@@ -3835,6 +3816,7 @@ document.addEventListener('DOMContentLoaded', function(){
     <button class="adm-tab" onclick="swAdminTab(this,'admt-insignias');loadInsigniasPanel();" style="background:rgba(46,196,182,.08);border-color:rgba(46,196,182,.3);color:var(--accent);">🎣 Insignias & Roles</button>
     <button class="adm-tab" onclick="swAdminTab(this,'admt-soporte');loadSoporteTickets();" style="background:rgba(255,107,53,.1);border-color:rgba(255,107,53,.35);color:#ff6b35;" id="admTabSoporte">🆘 Soporte <span id="admSoporteBadge" style="display:none;background:#ff6b35;color:#fff;border-radius:100px;padding:1px 6px;font-size:.65rem;font-weight:800;margin-left:3px;">0</span></button>
     <button class="adm-tab" onclick="swAdminTab(this,'admt-sidebar');initSidebarAdmin();" style="background:rgba(46,196,182,.08);border-color:rgba(46,196,182,.3);color:var(--accent);">🗂️ Sidebar</button>
+    <button class="adm-tab" onclick="swAdminTab(this,'admt-faq');loadAdminFaq();" style="background:rgba(46,196,182,.08);border-color:rgba(46,196,182,.3);color:var(--accent);">❓ FAQ <span id="admFaqBadge" style="display:none;background:var(--accent);color:#0d1117;border-radius:100px;padding:1px 6px;font-size:.65rem;font-weight:800;margin-left:3px;">0</span></button>
 
   </div>
 
@@ -4179,7 +4161,77 @@ document.addEventListener('DOMContentLoaded', function(){
 
   <!-- PECES DB ADMIN -->
 
+  <!-- FAQ ADMIN PANEL -->
+  <div id="admt-faq" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+      <div style="font-size:.92rem;font-weight:700;color:var(--text);">❓ Gestión de Preguntas Frecuentes</div>
+      <div style="display:flex;gap:6px;">
+        <button onclick="loadAdminFaq('pendiente')" id="faqf-pend" class="cfbtn" style="color:var(--warn);">⏳ Pendientes</button>
+        <button onclick="loadAdminFaq('aprobado')" id="faqf-apro" class="cfbtn" style="color:var(--green);">✅ Aprobadas</button>
+        <button onclick="loadAdminFaq('todas')" id="faqf-all" class="cfbtn active">Todas</button>
+      </div>
+    </div>
+    <div id="faqAdminList"><div style="text-align:center;padding:32px;color:var(--muted);">Cargando...</div></div>
+  </div>
+
 </div>
+
+<!-- ===== PAGE: FAQ ===== -->
+<div class="page" id="page-faq" style="max-width:760px;margin:0 auto;padding:20px 16px 80px;">
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+    <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#1a7a74);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">❓</div>
+    <div>
+      <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--accent);">Dudas Frecuentes</div>
+      <div style="font-size:.78rem;color:var(--muted);margin-top:2px;">Preguntas de la comunidad RF4 · Respondidas y validadas</div>
+    </div>
+  </div>
+
+  <!-- Filtros por categoría -->
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">
+    <button class="faq-cat-btn active" onclick="faqSetCat('todas',this)">🌐 Todas</button>
+    <button class="faq-cat-btn" onclick="faqSetCat('carnadas',this)">🪱 Carnadas</button>
+    <button class="faq-cat-btn" onclick="faqSetCat('aparejos',this)">🎣 Aparejos</button>
+    <button class="faq-cat-btn" onclick="faqSetCat('nivel',this)">📈 Nivel y Progreso</button>
+  </div>
+
+  <!-- Búsqueda -->
+  <input id="faqSearch" type="text" placeholder="🔍 Buscar pregunta..." oninput="faqRender()"
+    style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:8px 16px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.82rem;outline:none;margin-bottom:16px;box-sizing:border-box;">
+
+  <!-- Lista de FAQ -->
+  <div id="faqList"><div style="text-align:center;padding:40px;color:var(--muted);">🎣 Cargando preguntas...</div></div>
+
+  <!-- Proponer pregunta -->
+  <div id="faqPropBox" style="display:none;margin-top:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;">
+    <div style="font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:12px;">💬 Proponer una pregunta</div>
+    <select id="faqPropCat" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:8px 12px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.82rem;margin-bottom:8px;outline:none;">
+      <option value="carnadas">🪱 Carnadas y señuelos</option>
+      <option value="aparejos">🎣 Aparejos y equipo</option>
+      <option value="nivel">📈 Nivel y progreso</option>
+    </select>
+    <textarea id="faqPropQ" placeholder="¿Cuál es tu pregunta?" rows="2"
+      style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:8px 12px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.82rem;resize:none;outline:none;margin-bottom:8px;box-sizing:border-box;"></textarea>
+    <textarea id="faqPropA" placeholder="Si sabés la respuesta, escribila acá (opcional)" rows="2"
+      style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:8px 12px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.82rem;resize:none;outline:none;margin-bottom:10px;box-sizing:border-box;"></textarea>
+    <button onclick="faqSubmit()" style="background:var(--accent);border:none;color:#0d1117;padding:8px 20px;border-radius:var(--rs);font-family:'Exo 2',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;">Enviar propuesta</button>
+  </div>
+  <div id="faqPropBtn" style="margin-top:20px;text-align:center;">
+    <button onclick="faqShowProp()" style="background:var(--bg2);border:1px solid var(--border);color:var(--accent);padding:9px 20px;border-radius:var(--rs);font-family:'Exo 2',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;">💬 Proponer una pregunta</button>
+  </div>
+</div>
+<!-- ===== FIN PAGE: FAQ ===== -->
+
+<style>
+.faq-cat-btn{background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:100px;font-size:.74rem;cursor:pointer;font-family:'Exo 2',sans-serif;transition:all .15s;}
+.faq-cat-btn.active,.faq-cat-btn:hover{background:var(--accent);border-color:var(--accent);color:#0d1117;font-weight:700;}
+.faq-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden;cursor:pointer;transition:border-color .15s;}
+.faq-item:hover,.faq-item.open{border-color:var(--accent);}
+.faq-q{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.faq-a{display:none;padding:10px 14px 14px;border-top:1px solid var(--border);font-size:.8rem;color:var(--muted);line-height:1.7;background:var(--bg);}
+.faq-item.open .faq-a{display:block;}
+.faq-item.open .faq-chevron{transform:rotate(180deg);}
+.faq-chevron{transition:transform .2s;font-size:.7rem;color:var(--muted);flex-shrink:0;}
+</style>
 
 <!-- SPOTS PAGE -->
 <!-- ── PÁGINA TIENDA (solo admin) ── -->
@@ -13500,7 +13552,7 @@ async function submitReport(){
 function swAdminTab(el, tabId){
   document.querySelectorAll('.adm-tab').forEach(t=>t.classList.remove('adm-on'));
   el.classList.add('adm-on');
-  ['admt-reports','admt-posts','admt-users','admt-verif','admt-site','admt-parches','admt-torneos','admt-grupos','admt-ads','admt-live','admt-pezdelsemana','admt-xplevels','admt-insignias','admt-soporte']
+  ['admt-reports','admt-posts','admt-users','admt-verif','admt-site','admt-parches','admt-torneos','admt-grupos','admt-ads','admt-live','admt-pezdelsemana','admt-xplevels','admt-insignias','admt-soporte','admt-faq']
     .forEach(id=>{ const e=document.getElementById(id); if(e) e.style.display='none'; });
   const tab = document.getElementById(tabId);
   if(tab) tab.style.display='block';
@@ -13513,6 +13565,7 @@ function swAdminTab(el, tabId){
   if(tabId==='admt-ads') loadAdminAds();
   if(tabId==='admt-live') loadAdminLive();
   if(tabId==='admt-soporte') loadSoporteTickets();
+  if(tabId==='admt-faq') loadAdminFaq();
 }
 
 async function loadAdminData(){
@@ -24273,5 +24326,190 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
 })();
 </script>
 <!-- FIN MINI RELOJ SIDEBAR IZQUIERDO -->
+
+<!-- ===== JS FAQ RF4 ===== -->
+<script>
+(function(){
+
+  var _faqAll = [];
+  var _faqCat = 'todas';
+
+  // ── Helpers ──────────────────────────────────────────────────
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  var CAT_LABELS = { carnadas:'🪱 Carnadas', aparejos:'🎣 Aparejos', nivel:'📈 Nivel y Progreso' };
+
+  // ── Cargar FAQ pública ────────────────────────────────────────
+  async function loadFaq(){
+    if(!window.db || !window._fsLib) return;
+    var fs = window._fsLib;
+    try {
+      var snap = await fs.getDocs(fs.query(
+        fs.collection(window.db,'faq'),
+        fs.where('estado','==','aprobado'),
+        fs.orderBy('cat','asc'),
+        fs.orderBy('time','desc')
+      ));
+      _faqAll = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+      faqRender();
+      // Badge admin
+      var pendSnap = await fs.getDocs(fs.query(fs.collection(window.db,'faq'), fs.where('estado','==','pendiente')));
+      var badge = document.getElementById('admFaqBadge');
+      if(badge && pendSnap.size > 0){ badge.style.display='inline'; badge.textContent=pendSnap.size; }
+    } catch(e){ console.log('FAQ load error',e); }
+  }
+
+  // ── Render público ────────────────────────────────────────────
+  window.faqRender = function(){
+    var el = document.getElementById('faqList');
+    if(!el) return;
+    var q = (document.getElementById('faqSearch')||{}).value||'';
+    var list = _faqAll.filter(function(f){
+      var matchCat = _faqCat==='todas' || f.cat===_faqCat;
+      var matchQ = !q || (f.pregunta||'').toLowerCase().includes(q.toLowerCase()) || (f.respuesta||'').toLowerCase().includes(q.toLowerCase());
+      return matchCat && matchQ;
+    });
+    if(!list.length){ el.innerHTML='<div style="text-align:center;padding:32px;color:var(--muted);font-size:.85rem;">Sin preguntas en esta categoría aún. ¡Sé el primero en proponer una!</div>'; return; }
+    // Agrupar por categoría
+    var groups = {};
+    list.forEach(function(f){ if(!groups[f.cat]) groups[f.cat]=[]; groups[f.cat].push(f); });
+    var html = '';
+    Object.keys(groups).forEach(function(cat){
+      if(_faqCat==='todas') html+='<div style="font-size:.7rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;margin:12px 0 6px;">'+(CAT_LABELS[cat]||cat)+'</div>';
+      groups[cat].forEach(function(f){
+        html+='<div class="faq-item" id="faqitem-'+f.id+'" onclick="faqToggle(\''+f.id+'\')">';
+        html+='<div class="faq-q"><span style="font-size:.84rem;font-weight:700;color:var(--text);flex:1;">'+esc(f.pregunta)+'</span><span class="faq-chevron">▼</span></div>';
+        html+='<div class="faq-a">'+esc(f.respuesta||'Sin respuesta aún.')+'<div style="margin-top:8px;font-size:.65rem;color:#555;">Por '+esc(f.userNick||'comunidad')+'</div></div>';
+        html+='</div>';
+      });
+    });
+    el.innerHTML = html;
+  };
+
+  window.faqToggle = function(id){
+    var el = document.getElementById('faqitem-'+id);
+    if(el) el.classList.toggle('open');
+  };
+
+  window.faqSetCat = function(cat, btn){
+    _faqCat = cat;
+    document.querySelectorAll('.faq-cat-btn').forEach(function(b){ b.classList.remove('active'); });
+    if(btn) btn.classList.add('active');
+    faqRender();
+  };
+
+  window.faqShowProp = function(){
+    var box = document.getElementById('faqPropBox');
+    var btn = document.getElementById('faqPropBtn');
+    if(!window.CU){ toast('Necesitás iniciar sesión para proponer una pregunta','err'); return; }
+    if(box) box.style.display='block';
+    if(btn) btn.style.display='none';
+  };
+
+  window.faqSubmit = async function(){
+    if(!window.CU){ toast('Iniciá sesión primero','err'); return; }
+    if(!window.db || !window._fsLib){ toast('Sin conexión','err'); return; }
+    var q = (document.getElementById('faqPropQ')||{}).value||'';
+    var a = (document.getElementById('faqPropA')||{}).value||'';
+    var cat = (document.getElementById('faqPropCat')||{}).value||'carnadas';
+    if(!q.trim()){ toast('Escribí tu pregunta','err'); return; }
+    var fs = window._fsLib;
+    try {
+      await fs.addDoc(fs.collection(window.db,'faq'),{
+        pregunta: q.trim(),
+        respuesta: a.trim(),
+        cat: cat,
+        estado: 'pendiente',
+        userId: window.CU.id,
+        userNick: window.CU.nick||'',
+        time: fs.serverTimestamp ? fs.serverTimestamp() : Date.now()
+      });
+      toast('¡Pregunta enviada! El admin la revisará pronto 🎣','ok');
+      document.getElementById('faqPropQ').value='';
+      document.getElementById('faqPropA').value='';
+      document.getElementById('faqPropBox').style.display='none';
+      document.getElementById('faqPropBtn').style.display='block';
+    } catch(e){ toast('Error al enviar','err'); }
+  };
+
+  // ── Admin FAQ ─────────────────────────────────────────────────
+  var _faqAdminFilter = 'todas';
+
+  window.loadAdminFaq = async function(filtro){
+    if(filtro) _faqAdminFilter = filtro;
+    var el = document.getElementById('faqAdminList');
+    if(!el) return;
+    if(!window.db || !window._fsLib){ el.innerHTML='<div style="color:var(--muted);padding:20px;">Sin conexión</div>'; return; }
+    el.innerHTML='<div style="text-align:center;padding:32px;color:var(--muted);">Cargando...</div>';
+    var fs = window._fsLib;
+    try {
+      var q;
+      if(_faqAdminFilter==='todas') q=fs.query(fs.collection(window.db,'faq'), fs.orderBy('time','desc'));
+      else q=fs.query(fs.collection(window.db,'faq'), fs.where('estado','==',_faqAdminFilter), fs.orderBy('time','desc'));
+      var snap = await fs.getDocs(q);
+      if(!snap.docs.length){ el.innerHTML='<div style="text-align:center;padding:32px;color:var(--muted);">Sin preguntas</div>'; return; }
+      var html='';
+      snap.docs.forEach(function(d){
+        var f=Object.assign({id:d.id},d.data());
+        var estadoColor=f.estado==='aprobado'?'var(--green)':f.estado==='rechazado'?'var(--red)':'var(--warn)';
+        html+='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;">';
+        html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">';
+        html+='<span style="font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(46,196,182,.1);color:var(--accent);">'+(CAT_LABELS[f.cat]||f.cat)+'</span>';
+        html+='<span style="font-size:.65rem;font-weight:700;color:'+estadoColor+';">● '+esc(f.estado||'pendiente')+'</span>';
+        html+='<span style="font-size:.65rem;color:var(--muted);margin-left:auto;">Por '+esc(f.userNick||'?')+'</span>';
+        html+='</div>';
+        html+='<div style="font-size:.84rem;font-weight:700;color:var(--text);margin-bottom:6px;">'+esc(f.pregunta)+'</div>';
+        html+='<textarea id="faqResp-'+f.id+'" rows="2" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:7px 10px;color:var(--text);font-family:\'Exo 2\',sans-serif;font-size:.78rem;resize:none;outline:none;margin-bottom:8px;box-sizing:border-box;" placeholder="Respuesta...">'+esc(f.respuesta||'')+'</textarea>';
+        html+='<div style="display:flex;gap:6px;flex-wrap:wrap;">';
+        html+='<button onclick="faqAdminAction(\''+f.id+'\',\'aprobado\')" style="background:rgba(63,185,80,.15);border:1px solid var(--green);color:var(--green);padding:5px 12px;border-radius:var(--rs);font-size:.74rem;cursor:pointer;font-family:\'Exo 2\',sans-serif;font-weight:700;">✅ Aprobar</button>';
+        html+='<button onclick="faqAdminAction(\''+f.id+'\',\'rechazado\')" style="background:rgba(248,81,73,.1);border:1px solid var(--red);color:var(--red);padding:5px 12px;border-radius:var(--rs);font-size:.74rem;cursor:pointer;font-family:\'Exo 2\',sans-serif;font-weight:700;">❌ Rechazar</button>';
+        html+='<button onclick="faqAdminDelete(\''+f.id+'\')" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:var(--rs);font-size:.74rem;cursor:pointer;font-family:\'Exo 2\',sans-serif;">🗑 Eliminar</button>';
+        html+='</div></div>';
+      });
+      el.innerHTML=html;
+    } catch(e){ el.innerHTML='<div style="color:var(--red);padding:20px;">Error: '+esc(String(e.message||e))+'</div>'; }
+  };
+
+  window.faqAdminAction = async function(id, estado){
+    if(!window.db || !window._fsLib) return;
+    var fs = window._fsLib;
+    var respEl = document.getElementById('faqResp-'+id);
+    var resp = respEl ? respEl.value.trim() : '';
+    try {
+      var ref = fs.doc(window.db,'faq',id);
+      await fs.updateDoc(ref,{ estado:estado, respuesta:resp, revisadoPor: window.CU&&window.CU.nick||'admin' });
+      toast(estado==='aprobado'?'✅ Aprobada':'❌ Rechazada','ok');
+      loadAdminFaq();
+      loadFaq();
+    } catch(e){ toast('Error','err'); }
+  };
+
+  window.faqAdminDelete = async function(id){
+    if(!confirm('¿Eliminar esta pregunta?')) return;
+    if(!window.db || !window._fsLib) return;
+    var fs = window._fsLib;
+    try {
+      await fs.deleteDoc(fs.doc(window.db,'faq',id));
+      toast('Eliminada','ok');
+      loadAdminFaq();
+    } catch(e){ toast('Error','err'); }
+  };
+
+  // ── Hook gp para cargar FAQ al abrir la página ────────────────
+  var _origGp = window.gp;
+  window.gp = function(page){
+    if(typeof _origGp==='function') _origGp(page);
+    if(page==='faq') loadFaq();
+  };
+
+  // Cargar si ya está en la página
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(function(){
+      if(window.db && window._fsLib) loadFaq();
+    }, 2000);
+  });
+
+})();
+</script>
+<!-- ===== FIN JS FAQ RF4 ===== -->
 </body>
 </html>
