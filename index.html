@@ -20328,6 +20328,10 @@ function trofeoFeedCardHTML(t){
         </div>
       </div>
       <button class="act-btn" style="flex:1;justify-content:center;" onclick="toggleComments('trofeo_${tid}')">💬 Comentar</button>
+      <button class="act-btn" style="flex:1;justify-content:center;gap:5px;color:#2ec4b6;" onclick="leerEquipoTrofeo('${tid}','${imgUrl}')"
+        onmouseover="this.style.background='rgba(46,196,182,.1)'" onmouseout="this.style.background=''" title="La IA lee la imagen y detecta el equipo usado">
+        🔍 <span style="font-size:.78rem;">Leer equipo</span>
+      </button>
       <button class="act-btn" style="flex:1;justify-content:center;" onclick="sharePost('trofeo_${tid}')">↗️ Compartir</button>
       <button class="act-btn" style="flex:1;justify-content:center;gap:5px;color:#1877F2;" onclick="shareTrofeoFacebook('${tid}','${fish}','${map}',${weight},'${nick}')"
         onmouseover="this.style.background='rgba(24,119,242,.12)'" onmouseout="this.style.background=''">
@@ -25126,5 +25130,103 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
 <!-- ===== FIN JS FAQ RF4 ===== -->
 
 
+
+<!-- ===== LEER EQUIPO IA RF4 ===== -->
+<script>
+(function(){
+
+  var GEMINI_KEY = 'AIzaSyBrrqapuR42QDrgEbUg9-W760nWvVLC9uw';
+
+  // Modal container
+  function getOrCreateModal(){
+    var m = document.getElementById('_rf4EquipoModal');
+    if(m) return m;
+    m = document.createElement('div');
+    m.id = '_rf4EquipoModal';
+    m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9998;display:flex;align-items:center;justify-content:center;padding:16px;';
+    m.onclick = function(e){ if(e.target===m) m.remove(); };
+    document.body.appendChild(m);
+    return m;
+  }
+
+  window.leerEquipoTrofeo = async function(tid, imgUrl){
+    if(!imgUrl){ toast('Este trofeo no tiene imagen','err'); return; }
+
+    // Show modal with loading
+    var modal = getOrCreateModal();
+    modal.innerHTML = '<div style="background:#161b22;border:1px solid rgba(46,196,182,.35);border-radius:16px;padding:24px 20px;max-width:420px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.7);">'
+      + '<div style="font-size:1.5rem;margin-bottom:10px;">🔍</div>'
+      + '<div style="font-family:Orbitron,monospace;font-size:.9rem;font-weight:900;color:#2ec4b6;margin-bottom:6px;">ANALIZANDO IMAGEN</div>'
+      + '<div style="font-size:.78rem;color:#8b949e;margin-bottom:16px;">La IA está leyendo el equipo del trofeo...</div>'
+      + '<div style="display:flex;justify-content:center;gap:6px;">'
+      + '<span style="width:8px;height:8px;border-radius:50%;background:#2ec4b6;animation:rf4dot 1.2s ease-in-out infinite;"></span>'
+      + '<span style="width:8px;height:8px;border-radius:50%;background:#2ec4b6;animation:rf4dot 1.2s ease-in-out .2s infinite;"></span>'
+      + '<span style="width:8px;height:8px;border-radius:50%;background:#2ec4b6;animation:rf4dot 1.2s ease-in-out .4s infinite;"></span>'
+      + '</div></div>';
+
+    try {
+      // Fetch image as base64
+      var imgRes = await fetch(imgUrl);
+      var imgBlob = await imgRes.blob();
+      var base64 = await new Promise(function(res){
+        var reader = new FileReader();
+        reader.onload = function(){ res(reader.result.split(',')[1]); };
+        reader.readAsDataURL(imgBlob);
+      });
+      var mimeType = imgBlob.type || 'image/jpeg';
+
+      var prompt = 'Esta es una captura de pantalla del videojuego Russian Fishing 4 (RF4). Por favor analizá la imagen y extraé SOLO la información del equipo usado que sea visible: caña, carrete, línea, líder, anzuelo, señuelo o carnada. Si no podés ver el equipo, indicalo. Respondé en español, de forma concisa y en formato de lista.';
+
+      var apiRes = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_KEY, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: prompt },
+              { inline_data: { mime_type: mimeType, data: base64 } }
+            ]
+          }]
+        })
+      });
+
+      var apiData = await apiRes.json();
+      var reply = apiData.candidates?.[0]?.content?.parts?.[0]?.text || 'No se pudo leer el equipo de la imagen.';
+
+      // Format reply
+      var formatted = reply
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')
+        .replace(/\*(.*?)\*/g,'<i>$1</i>')
+        .replace(/\n/g,'<br>');
+
+      modal.innerHTML = '<div style="background:#161b22;border:1px solid rgba(46,196,182,.35);border-radius:16px;padding:24px 20px;max-width:460px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.7);max-height:80vh;overflow-y:auto;">'
+        + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">'
+        + '<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2ec4b6,#1a6a64);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">🔍</div>'
+        + '<div><div style="font-family:Orbitron,monospace;font-size:.85rem;font-weight:900;color:#2ec4b6;">EQUIPO DETECTADO</div>'
+        + '<div style="font-size:.7rem;color:#8b949e;">Análisis IA de la imagen</div></div>'
+        + '<button onclick="document.getElementById(&quot;_rf4EquipoModal&quot;).remove()" style="margin-left:auto;background:none;border:none;color:#8b949e;font-size:1.1rem;cursor:pointer;padding:4px;">✕</button>'
+        + '</div>'
+        + '<div style="background:#1c2128;border:1px solid #30363d;border-radius:10px;padding:14px;font-size:.84rem;line-height:1.7;color:#e6edf3;">'
+        + formatted
+        + '</div>'
+        + '<div style="margin-top:12px;font-size:.68rem;color:#8b949e;text-align:center;">Powered by WikiPediaRF4.UY · Gemini Vision</div>'
+        + '</div>';
+
+    } catch(e) {
+      modal.innerHTML = '<div style="background:#161b22;border:1px solid rgba(248,81,73,.35);border-radius:16px;padding:24px 20px;max-width:400px;width:100%;text-align:center;">'
+        + '<div style="font-size:1.5rem;margin-bottom:8px;">⚠️</div>'
+        + '<div style="font-size:.85rem;color:#f85149;margin-bottom:12px;">No se pudo analizar la imagen</div>'
+        + '<button onclick="document.getElementById(&quot;_rf4EquipoModal&quot;).remove()" style="background:#21262d;border:1px solid #30363d;color:#e6edf3;padding:8px 20px;border-radius:8px;cursor:pointer;font-family:Exo 2,sans-serif;">Cerrar</button>'
+        + '</div>';
+    }
+  };
+
+})();
+</script>
+<style>
+@keyframes rf4dot { 0%,80%,100%{transform:scale(.7);opacity:.3;} 40%{transform:scale(1);opacity:1;} }
+</style>
+<!-- ===== FIN LEER EQUIPO IA RF4 ===== -->
 </body>
 </html>
