@@ -13320,7 +13320,7 @@ function openImgLightbox(src, allImgs, postId){
 
     <!-- IMAGE -->
     <div id="_igImgCol" style="flex:1;min-width:0;background:#000;display:flex;align-items:center;justify-content:center;position:relative;">
-      <img id="_igImg" src="${_galImages[_galIdx]||''}" style="max-width:100%;max-height:100%;object-fit:contain;display:block;user-select:none;transition:opacity .12s;">
+      <img id="_igImg" src="${_galImages[_galIdx]||''}" style="max-width:100%;max-height:100%;object-fit:contain;display:block;user-select:none;transition:opacity .12s;" oncontextmenu="rf4ContextMenu(event)">
       ${_galImages.length>1?`
         <button onclick="igNav(-1)" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:1.5rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">‹</button>
         <button onclick="igNav(1)"  style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:1.5rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">›</button>
@@ -25129,6 +25129,150 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
 
 
 
+<!-- ===== MENU CONTEXTUAL RF4 ===== -->
+<style>
+#_rf4CtxMenu {
+  position: fixed;
+  background: #1c2128;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  padding: 6px 0;
+  z-index: 99999;
+  box-shadow: 0 8px 28px rgba(0,0,0,.7);
+  min-width: 200px;
+  display: none;
+}
+#_rf4CtxMenu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: none;
+  border: none;
+  color: #e6edf3;
+  padding: 9px 16px;
+  font-family: 'Exo 2', sans-serif;
+  font-size: .84rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background .12s;
+}
+#_rf4CtxMenu button:hover { background: #21262d; }
+#_rf4CtxMenu .ctx-sep { height: 1px; background: #30363d; margin: 4px 0; }
+</style>
+<div id="_rf4CtxMenu">
+  <button onclick="rf4CtxLeerZoom()">🔍 Leer zona visible con IA</button>
+  <button onclick="rf4CtxLeerCompleta()">🖼️ Leer imagen completa con IA</button>
+  <div class="ctx-sep"></div>
+  <button onclick="document.getElementById('_rf4CtxMenu').style.display='none'">✕ Cerrar</button>
+</div>
+<script>
+(function(){
+  var _ctxImgSrc = '';
+  var _ctxScale = 1, _ctxPosX = 0, _ctxPosY = 0;
+
+  // Interceptar variables de zoom del lightbox
+  window._rf4ZoomState = { scale: 1, posX: 0, posY: 0 };
+
+  window.rf4ContextMenu = function(e){
+    e.preventDefault();
+    var menu = document.getElementById('_rf4CtxMenu');
+    if(!menu) return;
+    // Posicionar menú
+    var x = e.clientX, y = e.clientY;
+    menu.style.display = 'block';
+    menu.style.left = Math.min(x, window.innerWidth - 220) + 'px';
+    menu.style.top = Math.min(y, window.innerHeight - 120) + 'px';
+    // Guardar src
+    _ctxImgSrc = e.target.src || '';
+    // Guardar estado zoom
+    var igImg = document.getElementById('_igImg');
+    if(igImg){
+      var t = igImg.style.transform || '';
+      var scMatch = t.match(/scale\(([\d.]+)\)/);
+      var txMatch = t.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
+      _ctxScale = scMatch ? parseFloat(scMatch[1]) : 1;
+      _ctxPosX = txMatch ? parseFloat(txMatch[1]) : 0;
+      _ctxPosY = txMatch ? parseFloat(txMatch[2]) : 0;
+    }
+  };
+
+  // Cerrar menú al click fuera
+  document.addEventListener('click', function(e){
+    var menu = document.getElementById('_rf4CtxMenu');
+    if(menu && !menu.contains(e.target)) menu.style.display = 'none';
+  });
+
+  window.rf4CtxLeerCompleta = function(){
+    document.getElementById('_rf4CtxMenu').style.display = 'none';
+    if(!_ctxImgSrc){ alert('No se encontró la imagen'); return; }
+    window.leerEquipoTrofeo('ctx', _ctxImgSrc);
+  };
+
+  window.rf4CtxLeerZoom = function(){
+    document.getElementById('_rf4CtxMenu').style.display = 'none';
+    var igImg = document.getElementById('_igImg');
+    var igCol = document.getElementById('_igImgCol');
+    if(!igImg || !igCol){ alert('No se encontró la imagen'); return; }
+
+    // Si no hay zoom, leer imagen completa
+    if(_ctxScale <= 1.05){
+      window.leerEquipoTrofeo('ctx', igImg.src);
+      return;
+    }
+
+    // Capturar zona visible usando canvas
+    try {
+      var natW = igImg.naturalWidth;
+      var natH = igImg.naturalHeight;
+      var colW = igCol.clientWidth;
+      var colH = igCol.clientHeight;
+
+      // Calcular tamaño renderizado
+      var ratio = Math.min(colW / natW, colH / natH);
+      var rendW = natW * ratio;
+      var rendH = natH * ratio;
+
+      // Offset del centro
+      var offX = (colW - rendW) / 2;
+      var offY = (colH - rendH) / 2;
+
+      // Con zoom y pan, la zona visible en coordenadas de imagen
+      var visW = colW / _ctxScale;
+      var visH = colH / _ctxScale;
+      var centerX = (colW / 2 - _ctxPosX) / _ctxScale;
+      var centerY = (colH / 2 - _ctxPosY) / _ctxScale;
+
+      // Convertir a coordenadas de imagen natural
+      var imgX = ((centerX - offX) / rendW) * natW;
+      var imgY = ((centerY - offY) / rendH) * natH;
+      var imgW = (visW / rendW) * natW;
+      var imgH = (visH / rendH) * natH;
+
+      // Clamp
+      imgX = Math.max(0, imgX - imgW/2);
+      imgY = Math.max(0, imgY - imgH/2);
+      imgW = Math.min(natW - imgX, imgW);
+      imgH = Math.min(natH - imgY, imgH);
+
+      var canvas = document.createElement('canvas');
+      canvas.width = Math.round(imgW);
+      canvas.height = Math.round(imgH);
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(igImg, imgX, imgY, imgW, imgH, 0, 0, canvas.width, canvas.height);
+      var croppedUrl = canvas.toDataURL('image/jpeg', 0.92);
+
+      // Convertir a blob y mandar al Worker como base64 embebida
+      window.leerEquipoTrofeo('ctx_zoom', croppedUrl);
+    } catch(err) {
+      // Fallback: imagen completa
+      window.leerEquipoTrofeo('ctx', igImg.src);
+    }
+  };
+})();
+</script>
+<!-- ===== FIN MENU CONTEXTUAL RF4 ===== -->
+
 <!-- ===== LEER EQUIPO IA RF4 ===== -->
 <script>
 (function(){
@@ -25177,11 +25321,18 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
       + '</div></div>';
 
     try {
-      // Llamar al Worker con la URL de la imagen
+      // Si es base64 (zona con zoom), mandarlo como dataUrl
+      var reqBody;
+      if(imgUrl.startsWith('data:')) {
+        reqBody = { action: 'leer_equipo_base64', imageData: imgUrl };
+      } else {
+        reqBody = { action: 'leer_equipo', imageUrl: imgUrl };
+      }
+
       var apiRes = await fetch('https://wrf4-ai.synxyes.workers.dev', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'leer_equipo', imageUrl: imgUrl })
+        body: JSON.stringify(reqBody)
       });
 
       var apiData = await apiRes.json();
