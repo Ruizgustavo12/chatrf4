@@ -6337,6 +6337,11 @@ async function uploadImage(fileOrBase64, folder) {
     blob = await _compressImage(blob, 1200, 0.82);
   }
 
+  // Agregar marca de agua si es imagen de trofeo
+  if (blob.type.startsWith('image/') && folder && folder.includes('trofeo')) {
+    blob = await _addWatermark(blob);
+  }
+
   const formData = new FormData();
   formData.append('file', blob);
   formData.append('upload_preset', CLOUDINARY_PRESET);
@@ -6349,6 +6354,54 @@ async function uploadImage(fileOrBase64, folder) {
   const data = await res.json();
   if (!data.secure_url) throw new Error(data.error?.message || 'Error subiendo imagen a Cloudinary');
   return data.secure_url;
+}
+
+// Agregar marca de agua www.wikipediarf4.uy
+function _addWatermark(blob) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(blob);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+
+      // Dibujar imagen original
+      ctx.drawImage(img, 0, 0);
+
+      // Configurar marca de agua
+      const text = 'www.wikipediarf4.uy';
+      const fontSize = Math.max(14, Math.round(img.width * 0.028));
+      ctx.font = `bold ${fontSize}px Exo 2, Arial, sans-serif`;
+
+      const padding = Math.round(fontSize * 0.6);
+      const textWidth = ctx.measureText(text).width;
+      const boxW = textWidth + padding * 2;
+      const boxH = fontSize + padding * 1.2;
+      const x = img.width - boxW - 12;
+      const y = img.height - boxH - 12;
+
+      // Fondo semitransparente
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.52)';
+      ctx.beginPath();
+      ctx.roundRect(x, y, boxW, boxH, 6);
+      ctx.fill();
+
+      // Texto blanco con borde teal
+      ctx.fillStyle = '#2ec4b6';
+      ctx.fillText(text, x + padding, y + boxH - padding * 0.7);
+      ctx.fillStyle = '#ffffff';
+      ctx.globalAlpha = 0.92;
+      ctx.fillText(text, x + padding - 1, y + boxH - padding * 0.7 - 1);
+      ctx.globalAlpha = 1;
+
+      canvas.toBlob(b => resolve(b || blob), 'image/jpeg', 0.92);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(blob); };
+    img.src = url;
+  });
 }
 
 // Comprimir imagen antes de subir
