@@ -1,6 +1,18 @@
 {
-  "updated": "2026-03-19 21:09",
+  "updated": "2026-03-19 21:10",
   "orders": [
+    {
+      "id": 8,
+      "map": "Old Burg Lake",
+      "fish": "Lota",
+      "fishImg": "https://en.rf4-stat.ru/images/rf4game/burbot.png",
+      "trophyWeight": "9 kg",
+      "weight": 1.2,
+      "qty": 1,
+      "reward": 39.18,
+      "addedAt": "2026-03-19T21:10:34Z",
+      "expiresAt": "2026-03-19T22:40:56Z"
+    },
     {
       "id": 7,
       "map": "Old Burg Lake",
