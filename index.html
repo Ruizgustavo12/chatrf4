@@ -5488,41 +5488,45 @@ document.addEventListener('DOMContentLoaded', function(){
 #page-cafe .cafe-map-btn{background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--muted);padding:5px 11px;font-family:'Exo 2',sans-serif;font-size:.76rem;font-weight:700;cursor:pointer;transition:all .18s;white-space:nowrap;}
 #page-cafe .cafe-map-btn:hover{background:var(--bg4);color:var(--text);}
 #page-cafe .cafe-map-btn.active{background:rgba(255,140,0,.15);border-color:#ff8c00;color:#ff8c00;}
-#page-cafe .cafe-body{padding:12px 16px;overflow-y:auto;flex:1;}
-#page-cafe .cafe-order-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;transition:border-color .2s;}
-#page-cafe .cafe-order-card:hover{border-color:var(--muted);}
-#page-cafe .cafe-order-card.urgent{border-color:#f85149;background:rgba(248,81,73,.06);}
-#page-cafe .cafe-order-card.warning{border-color:#d29922;background:rgba(210,153,34,.05);}
-#page-cafe .cafe-fish-img{width:52px;height:52px;border-radius:8px;background:rgba(255,140,0,.08);border:1px solid rgba(255,140,0,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
-#page-cafe .cafe-fish-img img{width:100%;height:100%;object-fit:contain;padding:4px;}
-#page-cafe .cafe-fish-img.urgent{background:rgba(248,81,73,.1);border-color:rgba(248,81,73,.35);}
-#page-cafe .cafe-info{flex:1;min-width:0;}
-#page-cafe .cafe-fish-name{font-size:.92rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#page-cafe .cafe-fish-detail{font-size:.75rem;color:var(--muted);margin-top:2px;}
-#page-cafe .cafe-fish-trophy{font-size:.7rem;color:var(--gold);margin-top:1px;}
-#page-cafe .cafe-right{text-align:right;flex-shrink:0;}
-#page-cafe .cafe-reward{font-size:.88rem;font-weight:700;color:#3fb950;}
-#page-cafe .cafe-timer-wrap{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:5px;}
-#page-cafe .cafe-bar-bg{width:72px;height:4px;border-radius:2px;background:var(--bg4);overflow:hidden;}
-#page-cafe .cafe-bar-fill{height:100%;border-radius:2px;transition:width 1s linear;}
-#page-cafe .cafe-timer-label{font-size:.8rem;font-weight:700;font-variant-numeric:tabular-nums;min-width:38px;text-align:right;}
-#page-cafe .cafe-badge{display:inline-block;background:var(--bg4);color:var(--muted);font-size:.68rem;padding:1px 7px;border-radius:20px;margin-left:5px;font-weight:700;}
-#page-cafe .cafe-empty{text-align:center;padding:48px 16px;color:var(--muted);font-size:.85rem;}
-#cafeAdminPanel{background:var(--bg2);border-bottom:1px solid rgba(255,140,0,.3);padding:12px 16px;display:none;}
-#cafeAdminPanel.visible{display:block;}
-.cafe-admin-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
-.cafe-admin-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
-.cafe-admin-label{font-size:.7rem;color:var(--muted);margin-bottom:3px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
-.cafe-admin-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:7px 10px;font-family:'Exo 2',sans-serif;font-size:.82rem;outline:none;box-sizing:border-box;}
-.cafe-admin-input:focus{border-color:#ff8c00;}
-.cafe-admin-btn{width:100%;padding:8px;border-radius:6px;border:none;background:#ff8c00;color:#fff;font-family:'Exo 2',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;margin-top:4px;}
-.cafe-admin-btn:hover{background:#e07800;}
-.cafe-del-btn{background:none;border:none;color:var(--muted);font-size:.9rem;cursor:pointer;padding:4px 8px;border-radius:4px;transition:color .15s;flex-shrink:0;}
-.cafe-del-btn:hover{color:var(--red);}
-.cafe-fish-select-wrap{position:relative;}
-.cafe-fish-preview{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 10px;margin-top:6px;min-height:36px;}
-.cafe-fish-preview img{width:32px;height:32px;object-fit:contain;}
-.cafe-fish-preview span{font-size:.8rem;color:var(--text);font-weight:600;}
+#page-cafe .cafe-body{padding:14px 16px;overflow-y:auto;flex:1;}
+#page-cafe .cafe-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+/* Tarjeta estilo rf4-cafe */
+#page-cafe .cafe-card{background:#1a1f26;border:1px solid #2a313a;border-radius:12px;overflow:hidden;transition:border-color .2s,transform .15s;position:relative;}
+#page-cafe .cafe-card:hover{border-color:#3a4550;transform:translateY(-2px);}
+#page-cafe .cafe-card.urgent{border-color:rgba(248,81,73,.5);box-shadow:0 0 12px rgba(248,81,73,.12);}
+#page-cafe .cafe-card.warning{border-color:rgba(210,153,34,.5);}
+/* Imagen superior */
+#page-cafe .cafe-card-img{width:100%;height:130px;background:linear-gradient(135deg,#0d1117,#1c2128);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;border-bottom:1px solid #2a313a;}
+#page-cafe .cafe-card-img img{max-width:85%;max-height:110px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,.6));}
+#page-cafe .cafe-card-img .cafe-no-img{font-size:3.5rem;opacity:.3;}
+/* Candado */
+#page-cafe .cafe-lock{position:absolute;top:8px;left:8px;width:20px;height:20px;opacity:.5;font-size:.85rem;}
+/* Cuerpo tarjeta */
+#page-cafe .cafe-card-body{padding:12px 14px 14px;}
+#page-cafe .cafe-card-name{font-size:.95rem;font-weight:700;color:#e6edf3;margin-bottom:2px;}
+#page-cafe .cafe-card-map{font-size:.72rem;color:#5a8a6a;margin-bottom:10px;}
+/* Fila datos */
+#page-cafe .cafe-data-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;}
+#page-cafe .cafe-data-block{flex:1;}
+#page-cafe .cafe-data-label{font-size:.6rem;color:#8b949e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
+#page-cafe .cafe-data-value{font-size:.92rem;font-weight:700;color:#e6edf3;}
+#page-cafe .cafe-data-value.green{color:#3fb950;}
+#page-cafe .cafe-data-value.orange{color:#ff8c00;}
+#page-cafe .cafe-data-value.red{color:#f85149;}
+/* Timer circular */
+#page-cafe .cafe-timer-block{text-align:right;flex-shrink:0;}
+#page-cafe .cafe-circle-wrap{position:relative;width:52px;height:52px;margin-left:auto;}
+#page-cafe .cafe-circle-wrap svg{transform:rotate(-90deg);}
+#page-cafe .cafe-circle-wrap .cafe-circle-bg{fill:none;stroke:#2a313a;stroke-width:4;}
+#page-cafe .cafe-circle-wrap .cafe-circle-fg{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 1s linear,stroke .5s;}
+#page-cafe .cafe-circle-time{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:.58rem;font-weight:700;font-variant-numeric:tabular-nums;text-align:center;line-height:1.2;}
+/* Footer tarjeta */
+#page-cafe .cafe-card-footer{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:rgba(0,0,0,.2);border-top:1px solid #2a313a;font-size:.72rem;color:#8b949e;}
+#page-cafe .cafe-finish-time{font-size:.7rem;color:#8b949e;}
+#page-cafe .cafe-reward-pill{background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.25);border-radius:100px;padding:2px 10px;font-size:.75rem;font-weight:700;color:#3fb950;}
+#page-cafe .cafe-empty{text-align:center;padding:60px 16px;color:var(--muted);font-size:.88rem;}
+@media(max-width:600px){#page-cafe .cafe-grid{grid-template-columns:1fr 1fr;}#page-cafe .cafe-card-img{height:100px;}}
+@media(max-width:400px){#page-cafe .cafe-grid{grid-template-columns:1fr;}}
 </style>
 
 <div style="height:calc(100vh - 56px);display:flex;flex-direction:column;overflow:hidden;">
@@ -5610,6 +5614,26 @@ document.addEventListener('DOMContentLoaded', function(){
     s = Math.max(0, Math.round(s));
     return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
   }
+  function fmtTimeShort(s){
+    s = Math.max(0, Math.round(s));
+    var h = Math.floor(s/3600);
+    var m = Math.floor((s%3600)/60);
+    var sec = s%60;
+    if(h > 0) return h+'h\n'+String(m).padStart(2,'0')+'m';
+    return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+  }
+  function fmtTimeLong(s){
+    s = Math.max(0, Math.round(s));
+    var h = Math.floor(s/3600);
+    var m = Math.floor((s%3600)/60);
+    var sec = s%60;
+    if(h > 0) return h+' hora'+(h>1?'s':'')+' '+m+' minutos '+sec+' segundos';
+    if(m > 0) return m+' minutos '+sec+' segundos';
+    return sec+' segundos';
+  }
+    s = Math.max(0, Math.round(s));
+    return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+  }
   function barColor(r){
     if(r > 0.5) return '#3fb950';
     if(r > 0.2) return '#d29922';
@@ -5655,36 +5679,69 @@ document.addEventListener('DOMContentLoaded', function(){
       return;
     }
 
-    list.innerHTML = active.map(function(o){
+    var CIRC = 2 * Math.PI * 20; // circunferencia círculo r=20
+
+    list.innerHTML = '<div class="cafe-grid">'
+      + active.map(function(o){
       var sl    = secsLeft(o.expiresAt);
       var ts    = totalSecs(o.expiresAt, o.addedAt) || 30*60;
-      var ratio = sl / ts;
+      var ratio = Math.max(0, Math.min(1, sl / ts));
       var isUrgent = sl <= 5*60;
       var isWarn   = sl <= 10*60 && !isUrgent;
       var cls = isUrgent?' urgent':isWarn?' warning':'';
-      var bc  = barColor(ratio);
-      var pct = Math.max(0, ratio*100).toFixed(1);
-      var tc  = isUrgent?'#f85149':isWarn?'#d29922':'#3fb950';
+      var sc  = isUrgent?'#f85149':isWarn?'#d29922':'#3fb950';
+      var tc  = isUrgent?'red':isWarn?'orange':'green';
+      var dash = CIRC * (1 - ratio);
+      var finishTime = new Date(o.expiresAt).toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'});
+      var finishDate = new Date(o.expiresAt).toLocaleDateString('es-UY',{day:'numeric',month:'long',year:'numeric'});
+
       var imgHtml = o.fishImg
-        ? '<img src="'+esc(o.fishImg)+'" alt="'+esc(o.fish)+'" onerror="this.style.display=\'none\'">'
-        : '<span style="font-size:1.3rem;">🐟</span>';
-      return '<div class="cafe-order-card'+cls+'">'
-        +'<div class="cafe-fish-img'+(isUrgent?' urgent':'')+'">'+imgHtml+'</div>'
-        +'<div class="cafe-info">'
-        +'<div class="cafe-fish-name">'+esc(o.fish)+' <span class="cafe-badge">0/'+esc(o.qty)+'</span></div>'
-        +'<div class="cafe-fish-detail">Peso: <b style="color:var(--text);">'+fmtWeight(o.weight)+'</b></div>'
-        +(o.trophyWeight?'<div class="cafe-fish-trophy">🏆 Trofeo desde: '+esc(o.trophyWeight)+'</div>':'')
+        ? '<img src="'+esc(o.fishImg)+'" alt="'+esc(o.fish)+'" onerror="this.parentNode.innerHTML=\'<span class=cafe-no-img>🐟</span>\'">'
+        : '<span class="cafe-no-img">🐟</span>';
+
+      return '<div class="cafe-card'+cls+'">'
+        // Imagen
+        +'<div class="cafe-card-img">'
+        +'<span class="cafe-lock">🔒</span>'
+        +imgHtml
         +'</div>'
-        +'<div class="cafe-right">'
-        +'<div class="cafe-reward">💰 '+esc(o.reward)+' <span style="font-size:.68rem;color:var(--muted);font-weight:400;">monedas</span></div>'
-        +'<div class="cafe-timer-wrap">'
-        +'<div style="font-size:.62rem;color:var(--muted);text-align:right;margin-bottom:2px;">Tiempo restante</div>'
-        +'<div style="display:flex;align-items:center;gap:6px;">'
-        +'<div class="cafe-bar-bg"><div class="cafe-bar-fill" style="width:'+pct+'%;background:'+bc+'"></div></div>'
-        +'<div class="cafe-timer-label" style="color:'+tc+'">'+fmtTime(sl)+'</div>'
-        +'</div></div></div>'
+        // Cuerpo
+        +'<div class="cafe-card-body">'
+        +'<div class="cafe-card-name">'+esc(o.fish)+'</div>'
+        +'<div class="cafe-card-map">'+esc(o.map)+'</div>'
+        +'<div class="cafe-data-row">'
+        // Peso
+        +'<div class="cafe-data-block">'
+        +'<div class="cafe-data-label">Peso</div>'
+        +'<div class="cafe-data-value orange">'+fmtWeight(o.weight)+'</div>'
+        +'</div>'
+        // Cantidad
+        +'<div class="cafe-data-block">'
+        +'<div class="cafe-data-label">Cantidad</div>'
+        +'<div class="cafe-data-value">'+esc(o.qty)+' unidad'+(o.qty>1?'es':'')+'</div>'
+        +'</div>'
+        // Timer circular
+        +'<div class="cafe-timer-block">'
+        +'<div class="cafe-data-label" style="text-align:right;">Tiempo</div>'
+        +'<div class="cafe-circle-wrap">'
+        +'<svg width="52" height="52" viewBox="0 0 48 48">'
+        +'<circle class="cafe-circle-bg" cx="24" cy="24" r="20"/>'
+        +'<circle class="cafe-circle-fg" cx="24" cy="24" r="20" stroke="'+sc+'" stroke-dasharray="'+CIRC+'" stroke-dashoffset="'+dash+'"/>'
+        +'</svg>'
+        +'<div class="cafe-circle-time" style="color:'+sc+'">'+fmtTimeShort(sl)+'</div>'
+        +'</div>'
+        +'</div>'
+        +'</div>'
+        // Tiempo restante en texto
+        +'<div style="font-size:.75rem;color:#8b949e;margin-top:2px;">Izquierda: <span style="color:'+sc+';font-weight:700;">'+fmtTimeLong(sl)+'</span></div>'
+        +'</div>'
+        // Footer
+        +'<div class="cafe-card-footer">'
+        +'<div class="cafe-finish-time">Finalización: '+finishDate+', a las '+finishTime+'.</div>'
+        +'<div class="cafe-reward-pill">💰 '+esc(o.reward)+'</div>'
+        +'</div>'
         +'</div>';
-    }).join('');
+    }).join('')+'</div>';
   }
 
   // ── Tick cada segundo (solo actualiza timers del mapa activo) ─
