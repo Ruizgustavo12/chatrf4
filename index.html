@@ -5531,23 +5531,24 @@ document.addEventListener('DOMContentLoaded', function(){
   <div class="cafe-header">
     <span style="font-family:'Orbitron',monospace;font-size:.95rem;font-weight:900;color:#ff8c00;flex-shrink:0;">☕ Café</span>
     <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1;">
-      <button class="cafe-map-btn active" onclick="cafeSelectMap(this,'komarinoe','Mosquito Lake')">Komarinoe</button>
-      <button class="cafe-map-btn" onclick="cafeSelectMap(this,'losinoe','Moose Lake')">Losinoe</button>
-      <button class="cafe-map-btn" onclick="cafeSelectMap(this,'vjunok','Winding Rivulet')">Vjunok</button>
-      <button class="cafe-map-btn" onclick="cafeSelectMap(this,'ostrog','Old Burg Lake')">Ostrog</button>
+      <button class="cafe-map-btn active" onclick="cafeSelectMap(this,'mosquito','Mosquito Lake')">Mosquito</button>
+      <button class="cafe-map-btn" onclick="cafeSelectMap(this,'winding','Winding Rivulet')">Winding</button>
+      <button class="cafe-map-btn" onclick="cafeSelectMap(this,'oldburg','Old Burg Lake')">Old Burg</button>
       <button class="cafe-map-btn" onclick="cafeSelectMap(this,'belaya','Belaya River')">Belaya</button>
-      <button class="cafe-map-btn" onclick="cafeSelectMap(this,'kuori','Kuori Lake')">Kuori</button>
-      <button class="cafe-map-btn" onclick="cafeSelectMap(this,'volhov','Volkhov River')">Volkhov</button>
+      <button class="cafe-map-btn" onclick="cafeSelectMap(this,'volkhov','Volkhov River')">Volkhov</button>
       <button class="cafe-map-btn" onclick="cafeSelectMap(this,'donets','Seversky Donets River')">Donets</button>
       <button class="cafe-map-btn" onclick="cafeSelectMap(this,'sura','Sura River')">Sura</button>
       <button class="cafe-map-btn" onclick="cafeSelectMap(this,'ladoga','Ladoga Lake')">Ladoga</button>
-      <button class="cafe-map-btn" onclick="cafeSelectMap(this,'yantarnoe','The Amber Lake')">Yantarnoe</button>
       <button class="cafe-map-btn" onclick="cafeSelectMap(this,'archipelago','Ladoga archipelago')">Archipiélago</button>
-      <button class="cafe-map-btn" onclick="cafeSelectMap(this,'ahtuba','Akhtuba River')">Akhtuba</button>
-      <button class="cafe-map-btn" onclick="cafeSelectMap(this,'mednoe','Copper lake')">Mednoe</button>
+      <button class="cafe-map-btn" onclick="cafeSelectMap(this,'amber','Amber Lake')">Amber</button>
+      <button class="cafe-map-btn" onclick="cafeSelectMap(this,'bear','Bear Lake')">Bear</button>
+      <button class="cafe-map-btn" onclick="cafeSelectMap(this,'kuori','Kuori Lake')">Kuori</button>
+      <button class="cafe-map-btn" onclick="cafeSelectMap(this,'akhtuba','Akhtuba River')">Akhtuba</button>
       <button class="cafe-map-btn" onclick="cafeSelectMap(this,'tunguska','Lower Tunguska River')">Tunguska</button>
       <button class="cafe-map-btn" onclick="cafeSelectMap(this,'yama','Yama River')">Yama</button>
+      <button class="cafe-map-btn" onclick="cafeSelectMap(this,'copper','Copper lake')">Cooper</button>
       <button class="cafe-map-btn" onclick="cafeSelectMap(this,'sea','Norwegian Sea')">Mar Noruega</button>
+      <button class="cafe-map-btn" onclick="cafeSelectMap(this,'elk','Lago Elk')">Lago Elk</button>
     </div>
     <span id="cafeMeta" style="font-size:.7rem;color:var(--muted);flex-shrink:0;">● cargando...</span>
   </div>
@@ -5570,7 +5571,7 @@ document.addEventListener('DOMContentLoaded', function(){
   var _orders      = [];   // todos los pedidos cargados del JSON
   var _updated     = '';
   var _loaded      = false;
-  var _cafeMap     = 'Mosquito Lake';  // mapa activo (nombre completo del JSON)
+  var _cafeMap     = 'Mosquito Lake'; // mapa activo (nombre completo del JSON)
   var _tick        = null;
 
   // Mapa clave-botón → nombre completo igual al cafe.json
