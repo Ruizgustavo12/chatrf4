@@ -313,7 +313,7 @@ async function publishOrder(){
     id: maxId+1,
     map: map,
     fish: fish,
-    fishImg: fishData.img ? BASE_IMG+fishData.img : '',
+    fishImg: fishData.img || '',
     trophyWeight: fishData.t||'',
     weight: weight,
     qty: qty,
@@ -398,7 +398,7 @@ function onFishChange(){
   if(!fish||!FISH_BY_MAP[map]){ prev.style.display='none'; return; }
   var f = FISH_BY_MAP[map].find(function(x){ return x.n===fish; });
   if(!f){ prev.style.display='none'; return; }
-  document.getElementById('fpImg').src   = BASE_IMG+(f.img||'');
+  document.getElementById('fpImg').src   = f.img||'';
   document.getElementById('fpName').textContent  = f.n;
   document.getElementById('fpTrophy').textContent = '🏆 '+f.t;
   document.getElementById('weightRef').textContent = f.t;
