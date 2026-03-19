@@ -7770,14 +7770,6 @@ window.navigateTo = navigateTo;
 })();
 // ===== FIN FACEBOOK SHARE DEEP LINK HANDLER =====
 
-window.loadCafeMap = function(water) {
-  const iframe = document.getElementById('cafeIframe');
-  if(!iframe) return;
-  const url = 'https://rf4-cafe.ru/' + water;
-  iframe.setAttribute('data-url', url);
-  iframe.src = url;
-};
-
 window.gp = (id, pushState = true) => {
   // Al salir del perfil ajeno: detener sus partículas y restaurar las del usuario propio
   const currentPage = document.querySelector('.page.active');
