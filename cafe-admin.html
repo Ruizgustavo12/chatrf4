@@ -97,27 +97,27 @@ input:focus,select:focus{border-color:#ff8c00;}
   <div class="card-title">+ Nuevo Pedido</div>
   <div class="g2" style="margin-bottom:10px;">
     <div class="field">
-      <label>Mapa</label>
+      <label>Mapa (nombre del juego)</label>
       <select id="addMap" onchange="onMapChange()">
         <option value="">— Seleccioná mapa —</option>
-        <option value="Mosquito Lake">Mosquito Lake</option>
-        <option value="Winding Rivulet">Winding Rivulet</option>
-        <option value="Old Burg Lake">Old Burg Lake</option>
-        <option value="Belaya River">Belaya River</option>
-        <option value="Volkhov River">Volkhov River</option>
-        <option value="Seversky Donets River">Seversky Donets River</option>
-        <option value="Sura River">Sura River</option>
-        <option value="Ladoga Lake">Ladoga Lake</option>
-        <option value="Ladoga archipelago">Ladoga archipelago</option>
-        <option value="Amber Lake">Amber Lake</option>
-        <option value="Bear Lake">Bear Lake</option>
-        <option value="Kuori Lake">Kuori Lake</option>
-        <option value="Akhtuba River">Akhtuba River</option>
-        <option value="Lower Tunguska River">Lower Tunguska River</option>
-        <option value="Yama River">Yama River</option>
-        <option value="Copper lake">Copper lake</option>
-        <option value="Norwegian Sea">Norwegian Sea</option>
+        <option value="Mosquito Lake">Lago Mosquito</option>
         <option value="Lago Elk">Lago Elk</option>
+        <option value="Winding Rivulet">Rivulet sinuoso</option>
+        <option value="Old Burg Lake">Lago del viejo castillo</option>
+        <option value="Belaya River">Río Bélaya</option>
+        <option value="Kuori Lake">Lago Kuori</option>
+        <option value="Volkhov River">Río Vóljov</option>
+        <option value="Seversky Donets River">Río Don</option>
+        <option value="Sura River">Río Surá</option>
+        <option value="Ladoga Lake">Lago de Ládoga</option>
+        <option value="Amber Lake">El lago Ámbar</option>
+        <option value="Bear Lake">Lago del Oso</option>
+        <option value="Ladoga archipelago">El archipiélago del Ládoga</option>
+        <option value="Akhtuba River">Río Ajtuba</option>
+        <option value="Copper lake">Copper Lake</option>
+        <option value="Lower Tunguska River">Río Tunguska Inferior</option>
+        <option value="Yama River">Río Yama</option>
+        <option value="Norwegian Sea">Mar de Noruega</option>
       </select>
     </div>
     <div class="field">
@@ -153,19 +153,23 @@ input:focus,select:focus{border-color:#ff8c00;}
       <input type="number" id="addReward" placeholder="0">
     </div>
   </div>
-  <div class="field" style="max-width:300px;">
-    <label>Tiempo del juego (como muestra RF4)</label>
-    <div style="display:flex;gap:6px;align-items:center;">
-      <input type="number" id="gameDays" min="0" value="0" placeholder="0" style="width:60px;" oninput="convertGameTime()">
-      <span style="font-size:.8rem;color:#8b949e;">días</span>
-      <input type="number" id="gameHours" min="0" max="23" value="0" placeholder="0" style="width:60px;" oninput="convertGameTime()">
-      <span style="font-size:.8rem;color:#8b949e;">horas</span>
-      <input type="number" id="gameMins" min="0" max="59" value="0" placeholder="0" style="width:60px;" oninput="convertGameTime()">
-      <span style="font-size:.8rem;color:#8b949e;">min</span>
+  <div class="field" style="max-width:280px;">
+    <label>Horas del juego (ej: 110.09)</label>
+    <div style="position:relative;">
+      <input type="number" id="gameMin" min="0" step="0.01" placeholder="ej: 110.09"
+        oninput="convertGameTime()"
+        onmouseenter="showGameTooltip(true)"
+        onmouseleave="showGameTooltip(false)"
+        style="width:100%;">
+      <div id="gameTooltip" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;
+        background:#1c2128;border:1px solid #ff8c00;border-radius:8px;padding:10px 14px;
+        font-size:.82rem;color:#e6edf3;white-space:nowrap;z-index:10;pointer-events:none;line-height:1.8;">
+        <div style="font-size:.7rem;color:#8b949e;margin-bottom:2px;">🎮 En el juego equivale a:</div>
+        <div id="gameTooltipText" style="font-weight:700;color:#ff8c00;">—</div>
+      </div>
     </div>
-    <div style="margin-top:5px;background:#21262d;border:1px solid #30363d;border-radius:6px;padding:7px 10px;display:flex;align-items:center;justify-content:space-between;">
-      <span style="font-size:.72rem;color:#8b949e;">⏱️ Tiempo real:</span>
-      <span id="gameTimeResult" style="font-size:.88rem;font-weight:700;color:#ff8c00;">— min</span>
+    <div style="margin-top:5px;background:#21262d;border:1px solid #30363d;border-radius:6px;padding:6px 10px;font-size:.78rem;" id="gameTimeResult">
+      ⏱️ Ingresá las horas del juego
     </div>
     <input type="hidden" id="addExpires" value="30">
   </div>
@@ -385,10 +389,9 @@ async function save(msg){
     document.getElementById('addFish').innerHTML='<option value="">— Primero elegí mapa —</option>';
     document.getElementById('addFish').disabled=true;
     document.getElementById('fishPreview').style.display='none';
-    document.getElementById('gameDays').value='0';
-    document.getElementById('gameHours').value='0';
-    document.getElementById('gameMins').value='0';
-    document.getElementById('gameTimeResult').textContent='— min';
+    document.getElementById('gameMin').value='';
+    document.getElementById('gameSec').value='';
+    document.getElementById('gameTimeResult').innerHTML='⏱️ Ingresá el tiempo como aparece en el juego';
     document.getElementById('addExpires').value='30';
     document.getElementById('addWeightUnit').value='kg';
     document.getElementById('addQty').value='1';
@@ -402,25 +405,38 @@ async function save(msg){
 
 // ── UI helpers ────────────────────────────────────────────────
 function convertGameTime(){
-  var days  = parseFloat(document.getElementById('gameDays').value)||0;
-  var hours = parseFloat(document.getElementById('gameHours').value)||0;
-  var mins  = parseFloat(document.getElementById('gameMins').value)||0;
-  // 1 día juego = 1 hora real → 1 hora juego = 60/24 = 2.5 min reales
-  var totalGameMins = (days*24*60) + (hours*60) + mins;
-  var realMins = Math.ceil(totalGameMins / 24);
+  var gameHours = parseFloat(document.getElementById('gameMin').value)||0;
   var res = document.getElementById('gameTimeResult');
   var hidden = document.getElementById('addExpires');
-  if(totalGameMins > 0){
-    var rh = Math.floor(realMins/60);
-    var rm = realMins%60;
-    var label = rh > 0 ? rh+'h '+rm+'min reales' : realMins+' min reales';
-    res.textContent = label;
-    res.style.color = '#ff8c00';
-    hidden.value = realMins;
-  } else {
-    res.textContent = '— min';
-    hidden.value = 30;
+  if(gameHours <= 0){
+    res.innerHTML='⏱️ Ingresá las horas del juego';
+    hidden.value=30;
+    document.getElementById('gameTooltipText').textContent='—';
+    return;
   }
+  // horas de juego ÷ 24 = horas reales
+  var realMins = Math.ceil((gameHours / 24) * 60);
+  realMins = Math.max(1, realMins);
+  hidden.value = realMins;
+  var rh = Math.floor(realMins/60);
+  var rm = realMins%60;
+  var realStr = rh > 0 ? rh+'h '+rm+'min' : realMins+' min';
+  res.innerHTML = '⏱️ Tiempo real: <b style="color:#ff8c00;">'+realStr+'</b>';
+
+  // Calcular días/horas/min de juego para el tooltip
+  var gd = Math.floor(gameHours / 24);
+  var gh = Math.floor(gameHours % 24);
+  var gm = Math.round((gameHours % 1) * 60);
+  var parts = [];
+  if(gd > 0) parts.push(gd+' día'+(gd>1?'s':''));
+  if(gh > 0) parts.push(gh+' hora'+(gh>1?'s':''));
+  if(gm > 0) parts.push(gm+' min');
+  document.getElementById('gameTooltipText').textContent = parts.join(', ') || '< 1 min';
+}
+
+function showGameTooltip(show){
+  var val = parseFloat(document.getElementById('gameMin').value)||0;
+  document.getElementById('gameTooltip').style.display = (show && val > 0) ? 'block' : 'none';
 }
 
 function onMapChange(){
