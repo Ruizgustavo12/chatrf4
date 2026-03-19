@@ -5836,12 +5836,10 @@ document.addEventListener('DOMContentLoaded', function(){
   // FISH_BY_MAP simplificado para el modal (usa el mismo que el admin)
   var CAFE_FISH_BY_MAP = null;
   function getCafeFishForMap(mapFull){
-    if(typeof FISH_DB !== 'undefined'){
-      return FISH_DB.filter(function(f){
-        return f.maps && f.maps.some(function(m){ return m.n === mapFull; });
-      }).sort(function(a,b){ return a.n.localeCompare(b.n); });
-    }
-    return [];
+    var db = window.FISH_DB || (typeof FISH_DB !== 'undefined' ? FISH_DB : []);
+    return db.filter(function(f){
+      return f.maps && f.maps.some(function(m){ return m.n === mapFull; });
+    }).sort(function(a,b){ return a.n.localeCompare(b.n); });
   }
 
   window.cafeOpenReport = function(){
@@ -8102,6 +8100,7 @@ let FISH_DB = [
     {n:"Carpa Herbívora Albina",img:"https://en.rf4-stat.ru/images/rf4game/g_carp_albino.png",t:"28 kg",r:"40 kg",maps:[]},
   {n:"Orenji",img:"https://en.rf4h.ru/templates/rf4m/fish/V90JXd1TrvE9Bw_128.webp",t:"25 kg",r:"35 kg",maps:[{"n": "Copper lake", "i": "https://en.rf4h.ru/templates/rf4m/maps/img/copper_83.webp"}]},
 ]
+window.FISH_DB = FISH_DB;
 
 
 let _trofChip = '';
