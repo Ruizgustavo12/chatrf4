@@ -5643,7 +5643,7 @@ document.addEventListener('DOMContentLoaded', function(){
   // ── Carga desde cafe.json (igual que records.json) ───────
   async function load(){
     var bust = Math.floor(Date.now() / (60*1000)); // cache bust cada 1 min
-    var urls = ['/cafe.json?v='+bust];
+    var urls = ['/cafe.json?v='+bust, 'https://wikipediarf4.github.io/cafe.json?v='+bust];
     for(var i=0;i<urls.length;i++){
       try{
         var res = await fetch(urls[i]);
