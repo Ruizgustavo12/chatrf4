@@ -5489,44 +5489,34 @@ document.addEventListener('DOMContentLoaded', function(){
 #page-cafe .cafe-map-btn:hover{background:var(--bg4);color:var(--text);}
 #page-cafe .cafe-map-btn.active{background:rgba(255,140,0,.15);border-color:#ff8c00;color:#ff8c00;}
 #page-cafe .cafe-body{padding:14px 16px;overflow-y:auto;flex:1;}
-#page-cafe .cafe-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
-/* Tarjeta estilo rf4-cafe */
-#page-cafe .cafe-card{background:#1a1f26;border:1px solid #2a313a;border-radius:12px;overflow:hidden;transition:border-color .2s,transform .15s;position:relative;}
-#page-cafe .cafe-card:hover{border-color:#3a4550;transform:translateY(-2px);}
-#page-cafe .cafe-card.urgent{border-color:rgba(248,81,73,.5);box-shadow:0 0 12px rgba(248,81,73,.12);}
-#page-cafe .cafe-card.warning{border-color:rgba(210,153,34,.5);}
-/* Imagen superior */
-#page-cafe .cafe-card-img{width:100%;height:130px;background:linear-gradient(135deg,#0d1117,#1c2128);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;border-bottom:1px solid #2a313a;}
-#page-cafe .cafe-card-img img{max-width:85%;max-height:110px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,.6));}
-#page-cafe .cafe-card-img .cafe-no-img{font-size:3.5rem;opacity:.3;}
-/* Candado */
-#page-cafe .cafe-lock{position:absolute;top:8px;left:8px;width:20px;height:20px;opacity:.5;font-size:.85rem;}
-/* Cuerpo tarjeta */
-#page-cafe .cafe-card-body{padding:12px 14px 14px;}
-#page-cafe .cafe-card-name{font-size:.95rem;font-weight:700;color:#e6edf3;margin-bottom:2px;}
-#page-cafe .cafe-card-map{font-size:.72rem;color:#5a8a6a;margin-bottom:10px;}
-/* Fila datos */
-#page-cafe .cafe-data-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;}
-#page-cafe .cafe-data-block{flex:1;}
-#page-cafe .cafe-data-label{font-size:.6rem;color:#8b949e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
-#page-cafe .cafe-data-value{font-size:.92rem;font-weight:700;color:#e6edf3;}
-#page-cafe .cafe-data-value.green{color:#3fb950;}
-#page-cafe .cafe-data-value.orange{color:#ff8c00;}
-#page-cafe .cafe-data-value.red{color:#f85149;}
-/* Timer circular */
-#page-cafe .cafe-timer-block{text-align:right;flex-shrink:0;}
-#page-cafe .cafe-circle-wrap{position:relative;width:52px;height:52px;margin-left:auto;}
-#page-cafe .cafe-circle-wrap svg{transform:rotate(-90deg);}
-#page-cafe .cafe-circle-wrap .cafe-circle-bg{fill:none;stroke:#2a313a;stroke-width:4;}
-#page-cafe .cafe-circle-wrap .cafe-circle-fg{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 1s linear,stroke .5s;}
-#page-cafe .cafe-circle-time{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:.58rem;font-weight:700;font-variant-numeric:tabular-nums;text-align:center;line-height:1.2;}
-/* Footer tarjeta */
-#page-cafe .cafe-card-footer{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:rgba(0,0,0,.2);border-top:1px solid #2a313a;font-size:.72rem;color:#8b949e;}
-#page-cafe .cafe-finish-time{font-size:.7rem;color:#8b949e;}
-#page-cafe .cafe-reward-pill{background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.25);border-radius:100px;padding:2px 10px;font-size:.75rem;font-weight:700;color:#3fb950;}
+#page-cafe .cafe-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+/* Tarjeta estilo RF4 */
+#page-cafe .cafe-card{background:#1a1e24;border:1px solid #2a313a;border-radius:10px;overflow:hidden;transition:border-color .2s,transform .15s;cursor:default;position:relative;}
+#page-cafe .cafe-card:hover{border-color:#3d4a55;transform:translateY(-2px);}
+#page-cafe .cafe-card.urgent{border-color:rgba(248,81,73,.6);}
+#page-cafe .cafe-card.warning{border-color:rgba(210,153,34,.6);}
+/* Imagen */
+#page-cafe .cafe-card-img{width:100%;height:145px;background:linear-gradient(180deg,#232a33 0%,#161b22 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+#page-cafe .cafe-card-img img{max-width:90%;max-height:130px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,.7));}
+#page-cafe .cafe-card-img .cafe-no-img{font-size:4rem;opacity:.25;}
+/* Círculo timer azul superpuesto */
+#page-cafe .cafe-timer-circle{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);width:52px;height:52px;border-radius:50%;background:#2196f3;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:900;color:#fff;font-variant-numeric:tabular-nums;text-align:center;line-height:1.2;z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.5);border:2px solid #1a1e24;}
+#page-cafe .cafe-timer-circle.urgent{background:#f85149;}
+#page-cafe .cafe-timer-circle.warning{background:#d29922;}
+/* Cuerpo */
+#page-cafe .cafe-card-body{padding:26px 14px 10px;text-align:center;}
+#page-cafe .cafe-card-name{font-size:1rem;font-weight:700;color:#e6edf3;margin-bottom:2px;}
+#page-cafe .cafe-card-mapname{font-size:.72rem;color:#5a8060;margin-bottom:12px;}
+#page-cafe .cafe-card-qty{font-size:.8rem;color:#b0bec5;margin-bottom:3px;}
+#page-cafe .cafe-card-weight{font-size:.8rem;color:#b0bec5;margin-bottom:10px;}
+/* Línea separadora */
+#page-cafe .cafe-card-sep{height:1px;background:#2a313a;margin:0 14px 8px;}
+/* Monedas footer */
+#page-cafe .cafe-card-reward{display:flex;align-items:center;justify-content:center;gap:6px;padding:0 14px 12px;font-size:.88rem;font-weight:700;color:#b0bec5;}
+#page-cafe .cafe-coin-icon{width:16px;height:16px;background:#8b6914;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;color:#ffd700;border:1px solid #c49a2a;}
 #page-cafe .cafe-empty{text-align:center;padding:60px 16px;color:var(--muted);font-size:.88rem;}
-@media(max-width:600px){#page-cafe .cafe-grid{grid-template-columns:1fr 1fr;}#page-cafe .cafe-card-img{height:100px;}}
-@media(max-width:400px){#page-cafe .cafe-grid{grid-template-columns:1fr;}}
+@media(max-width:600px){#page-cafe .cafe-grid{grid-template-columns:1fr 1fr;gap:10px;}#page-cafe .cafe-card-img{height:110px;}}
+@media(max-width:380px){#page-cafe .cafe-grid{grid-template-columns:1fr;}}
 </style>
 
 <div style="height:calc(100vh - 56px);display:flex;flex-direction:column;overflow:hidden;">
@@ -5686,56 +5676,39 @@ document.addEventListener('DOMContentLoaded', function(){
       var isUrgent = sl <= 5*60;
       var isWarn   = sl <= 10*60 && !isUrgent;
       var cls = isUrgent?' urgent':isWarn?' warning':'';
-      var sc  = isUrgent?'#f85149':isWarn?'#d29922':'#3fb950';
-      var tc  = isUrgent?'red':isWarn?'orange':'green';
-      var dash = CIRC * (1 - ratio);
-      var finishTime = new Date(o.expiresAt).toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'});
-      var finishDate = new Date(o.expiresAt).toLocaleDateString('es-UY',{day:'numeric',month:'long',year:'numeric'});
+      var timerCls = isUrgent?' urgent':isWarn?' warning':'';
+
+      // Formato HH:MM para el círculo
+      var sh = Math.floor(sl/3600);
+      var sm = Math.floor((sl%3600)/60);
+      var ss = sl%60;
+      var timerDisplay = sh > 0
+        ? sh+':'+String(sm).padStart(2,'0')
+        : String(sm).padStart(2,'0')+':'+String(ss).padStart(2,'0');
 
       var imgHtml = o.fishImg
         ? '<img src="'+esc(o.fishImg)+'" alt="'+esc(o.fish)+'" onerror="this.parentNode.innerHTML=\'<span class=cafe-no-img>🐟</span>\'">'
         : '<span class="cafe-no-img">🐟</span>';
 
+      var mapLabel = esc(o.map);
+
       return '<div class="cafe-card'+cls+'">'
-        // Imagen
+        // Imagen con timer superpuesto
         +'<div class="cafe-card-img">'
-        +'<span class="cafe-lock">🔒</span>'
         +imgHtml
+        +'<div class="cafe-timer-circle'+timerCls+'">'+timerDisplay+'</div>'
         +'</div>'
         // Cuerpo
         +'<div class="cafe-card-body">'
         +'<div class="cafe-card-name">'+esc(o.fish)+'</div>'
-        +'<div class="cafe-card-map">'+esc(o.map)+'</div>'
-        +'<div class="cafe-data-row">'
-        // Peso
-        +'<div class="cafe-data-block">'
-        +'<div class="cafe-data-label">Peso</div>'
-        +'<div class="cafe-data-value orange">'+fmtWeight(o.weight)+'</div>'
+        +'<div class="cafe-card-mapname">'+mapLabel+'</div>'
+        +'<div class="cafe-card-qty">Cantidad '+esc(o.qty)+' pcs</div>'
+        +'<div class="cafe-card-weight">Peso a partir de '+fmtWeight(o.weight)+'</div>'
         +'</div>'
-        // Cantidad
-        +'<div class="cafe-data-block">'
-        +'<div class="cafe-data-label">Cantidad</div>'
-        +'<div class="cafe-data-value">'+esc(o.qty)+' unidad'+(o.qty>1?'es':'')+'</div>'
-        +'</div>'
-        // Timer circular
-        +'<div class="cafe-timer-block">'
-        +'<div class="cafe-data-label" style="text-align:right;">Tiempo</div>'
-        +'<div class="cafe-circle-wrap">'
-        +'<svg width="52" height="52" viewBox="0 0 48 48">'
-        +'<circle class="cafe-circle-bg" cx="24" cy="24" r="20"/>'
-        +'<circle class="cafe-circle-fg" cx="24" cy="24" r="20" stroke="'+sc+'" stroke-dasharray="'+CIRC+'" stroke-dashoffset="'+dash+'"/>'
-        +'</svg>'
-        +'<div class="cafe-circle-time" style="color:'+sc+'">'+fmtTimeShort(sl)+'</div>'
-        +'</div>'
-        +'</div>'
-        +'</div>'
-        // Tiempo restante en texto
-        +'<div style="font-size:.75rem;color:#8b949e;margin-top:2px;">Izquierda: <span style="color:'+sc+';font-weight:700;">'+fmtTimeLong(sl)+'</span></div>'
-        +'</div>'
-        // Footer
-        +'<div class="cafe-card-footer">'
-        +'<div class="cafe-finish-time">Finalización: '+finishDate+', a las '+finishTime+'.</div>'
-        +'<div class="cafe-reward-pill">💰 '+esc(o.reward)+'</div>'
+        +'<div class="cafe-card-sep"></div>'
+        +'<div class="cafe-card-reward">'
+        +'<span class="cafe-coin-icon">☽</span>'
+        +esc(o.reward)
         +'</div>'
         +'</div>';
     }).join('')+'</div>';
