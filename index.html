@@ -2074,6 +2074,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
       <div class="sl-item" onclick="gp('ranking-semanal')"><span class="sl-item-icon">🏅</span> Ranking Semanal</div>
       <div class="sl-item" onclick="gp('cafe')" style="background:linear-gradient(90deg,rgba(255,140,0,.08),transparent);border-left:3px solid #ff8c00;"><span class="sl-item-icon">☕</span> Pedidos Café</div>
+      <div class="sl-item" id="slTiendaBtn" style="display:none;background:linear-gradient(90deg,rgba(255,215,0,.08),transparent);border-left:3px solid #ffd700;" onclick="gp('tienda')"><span class="sl-item-icon">🛒</span> Tienda</div>
       <div class="sl-item" onclick="gp('casitrofeo')"><span class="sl-item-icon">🏅</span> Casi Trofeo</div>
       <div class="sl-item" onclick="gp('rf4-records')" style="background:linear-gradient(90deg,rgba(46,196,182,.08),transparent);border-left:3px solid var(--accent);"><span class="sl-item-icon">🎣</span> Records RF4</div>
       <div class="sl-item" onclick="gp('trofeos-feed');setNav(document.querySelector('.tb-nav-btn'))"><span class="sl-item-icon">🥇</span> Trofeos Recientes</div>
@@ -6208,6 +6209,107 @@ document.addEventListener('DOMContentLoaded', function(){
   });
 })();
 </script>
+
+
+<!-- ===== TIENDA RF4 ===== -->
+<div class="page" id="page-tienda" style="max-width:960px;margin:0 auto;padding:20px 16px 80px;">
+<style>
+#page-tienda .tienda-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+#page-tienda .tienda-search{flex:1;min-width:200px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 14px;font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;}
+#page-tienda .tienda-search:focus{border-color:var(--accent);}
+#page-tienda .tienda-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
+#page-tienda .tienda-card{background:#1a1e24;border:1px solid #2a313a;border-radius:10px;overflow:hidden;transition:border-color .2s,transform .15s;}
+#page-tienda .tienda-card:hover{border-color:#3d4a55;transform:translateY(-2px);}
+#page-tienda .tienda-card-img{width:100%;height:130px;background:linear-gradient(180deg,#232a33 0%,#161b22 100%);display:flex;align-items:center;justify-content:center;}
+#page-tienda .tienda-card-img img{max-width:85%;max-height:110px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,.7));}
+#page-tienda .tienda-card-body{padding:10px 12px 12px;}
+#page-tienda .tienda-card-name{font-size:.88rem;font-weight:700;color:#e6edf3;margin-bottom:4px;}
+#page-tienda .tienda-card-type{font-size:.7rem;color:#2ec4b6;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
+#page-tienda .tienda-card-stats{font-size:.74rem;color:#8b949e;line-height:1.6;}
+#page-tienda .tienda-card-del{width:100%;margin-top:8px;padding:4px;border-radius:5px;border:1px solid rgba(248,81,73,.4);background:rgba(248,81,73,.08);color:#f85149;font-family:Exo 2,sans-serif;font-size:.7rem;font-weight:700;cursor:pointer;}
+#page-tienda .tienda-empty{text-align:center;padding:60px 16px;color:var(--muted);font-size:.88rem;}
+#page-tienda .tienda-filter{background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 10px;font-family:'Exo 2',sans-serif;font-size:.82rem;outline:none;}
+</style>
+
+<!-- Header -->
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+  <span style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:#ffd700;">🛒 Tienda RF4</span>
+  <span style="font-size:.72rem;color:#8b949e;background:rgba(248,81,73,.15);border:1px solid rgba(248,81,73,.3);border-radius:100px;padding:2px 8px;">Solo admins</span>
+</div>
+
+<!-- Barra de búsqueda y filtros -->
+<div class="tienda-header">
+  <input class="tienda-search" id="tiendaSearch" placeholder="🔍 Buscar equipo por nombre..." oninput="tiendaRender()" autocomplete="off">
+  <select class="tienda-filter" id="tiendaFilter" onchange="tiendaRender()">
+    <option value="">Todos los tipos</option>
+    <option value="Carrete">Carrete</option>
+    <option value="Caña">Caña</option>
+    <option value="Línea">Línea</option>
+    <option value="Anzuelo">Anzuelo</option>
+    <option value="Cebo">Cebo</option>
+    <option value="Accesorio">Accesorio</option>
+  </select>
+  <button onclick="tiendaAbrirIA()" style="background:linear-gradient(135deg,rgba(255,215,0,.15),rgba(255,215,0,.08));border:1px solid rgba(255,215,0,.4);border-radius:6px;color:#ffd700;padding:8px 14px;font-family:'Exo 2',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap;">📸 Agregar con IA</button>
+</div>
+
+<!-- Lista -->
+<div id="tiendaList"></div>
+
+<!-- Modal IA -->
+<div id="tiendaIAModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#161b22;border:1px solid rgba(255,215,0,.35);border-radius:16px;padding:24px 20px;max-width:480px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.7);">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#ffd700,#b8860b);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">🛒</div>
+      <div>
+        <div style="font-family:Orbitron,monospace;font-size:.85rem;font-weight:900;color:#ffd700;">AGREGAR EQUIPO CON IA</div>
+        <div style="font-size:.7rem;color:#8b949e;">Subí una captura del ítem en RF4</div>
+      </div>
+      <button onclick="document.getElementById('tiendaIAModal').style.display='none'" style="margin-left:auto;background:none;border:none;color:#8b949e;font-size:1.2rem;cursor:pointer;">✕</button>
+    </div>
+
+    <!-- Tipo de equipo -->
+    <div style="margin-bottom:12px;">
+      <div style="font-size:.72rem;color:#8b949e;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">Tipo de equipo</div>
+      <select id="tiendaIATipo" style="width:100%;background:#21262d;border:1px solid rgba(255,215,0,.4);border-radius:6px;color:#e6edf3;padding:8px 11px;font-family:'Exo 2',sans-serif;font-size:.85rem;outline:none;">
+        <option value="Carrete">Carrete</option>
+        <option value="Caña">Caña</option>
+        <option value="Línea">Línea</option>
+        <option value="Anzuelo">Anzuelo</option>
+        <option value="Cebo">Cebo</option>
+        <option value="Accesorio">Accesorio</option>
+      </select>
+    </div>
+
+    <div id="tiendaIADropZone" onclick="document.getElementById('tiendaIAFileInput').click()" style="border:2px dashed rgba(255,215,0,.4);border-radius:12px;padding:22px 16px;text-align:center;cursor:pointer;margin-bottom:14px;background:rgba(255,215,0,.03);">
+      <div style="font-size:2rem;margin-bottom:6px;">🖼️</div>
+      <div style="color:#ffd700;font-weight:700;font-size:.9rem;margin-bottom:4px;">Tocá para cargar capturas</div>
+      <div style="color:#8b949e;font-size:.75rem;">Podés seleccionar hasta 5 imágenes a la vez</div>
+    </div>
+    <input type="file" id="tiendaIAFileInput" accept="image/*" multiple style="display:none" onchange="tiendaLeerIA(this)">
+
+    <!-- Previews de las imágenes seleccionadas -->
+    <div id="tiendaIAPreviews" style="display:none;margin-bottom:14px;display:none;gap:8px;flex-wrap:wrap;"></div>
+
+    <!-- Progress bar mientras procesa -->
+    <div id="tiendaIALoading" style="display:none;padding:14px 0;">
+      <div style="font-size:.82rem;color:#ffd700;font-weight:700;margin-bottom:8px;" id="tiendaIALoadingText">🤖 Procesando imagen 1 de 1...</div>
+      <div style="background:#21262d;border-radius:100px;height:6px;overflow:hidden;">
+        <div id="tiendaIAProgressBar" style="height:100%;background:linear-gradient(90deg,#ffd700,#ff8c00);border-radius:100px;transition:width .4s ease;width:0%;"></div>
+      </div>
+    </div>
+
+    <div id="tiendaIAResult" style="display:none;">
+      <div id="tiendaIAResultText" style="font-size:.84rem;line-height:1.7;color:#e6edf3;margin-bottom:12px;"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="tiendaIAPublishBtn" onclick="tiendaIAPublicar()" style="flex:1;min-width:160px;padding:10px;border-radius:6px;border:none;background:#ffd700;color:#000;font-family:Exo 2,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;">🚀 Agregar todos a la Tienda</button>
+        <button onclick="tiendaIAReset()" style="padding:10px 14px;border-radius:6px;border:1px solid rgba(255,215,0,.4);background:rgba(255,215,0,.1);color:#ffd700;font-family:Exo 2,sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;">📸 Nueva</button>
+      </div>
+    </div>
+    <div id="tiendaIAError" style="display:none;background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);border-radius:8px;padding:12px;text-align:center;color:#f85149;font-size:.82rem;"></div>
+  </div>
+</div>
+</div>
+<!-- ===== FIN TIENDA RF4 ===== -->
 
 <div class="page" id="page-soporte" style="max-width:680px;margin:0 auto;padding:24px 16px 80px;">
 
@@ -23709,6 +23811,7 @@ const _SIDEBAR_DEFAULT = [
   { id:'reels',            icon:'🎬', label:'Reels' },
   { id:'ranking-semanal',  icon:'🏅', label:'Ranking Semanal' },
   { id:'cafe',             icon:'☕', label:'Pedidos Café' },
+  { id:'tienda',           icon:'🛒', label:'Tienda' },
   { id:'guardados',        icon:'🔖', label:'Guardados' },
   { id:'faq',              icon:'❓', label:'Dudas Frecuentes' },
   { id:'privacidad',       icon:'🔒', label:'Privacidad' },
@@ -26715,5 +26818,259 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
 })();
 </script>
 <!-- ===== FIN AUTOCOMPLETADO DE PECES RF4 ===== -->
+
+<!-- ===== TIENDA RF4 ===== -->
+<script>
+(function(){
+  'use strict';
+
+  var _tiendaItems = [];
+  var _tiendaIAData = null;     // single result (legacy)
+  var _tiendaIADataMulti = [];  // array of results for multi-image
+
+  // ── Mostrar sección solo a admins ────────────────────────
+  function tiendaCheckAdmin(){
+    var btn = document.getElementById('slTiendaBtn');
+    if(btn) btn.style.display = (window.CU && isAdminUser(window.CU)) ? 'flex' : 'none';
+  }
+  setInterval(tiendaCheckAdmin, 1000);
+
+  // ── Cargar items desde Firestore ─────────────────────────
+  function tiendaLoad(){
+    if(!window.db) return;
+    try{
+      var { collection, query, orderBy, onSnapshot } = window._fsImports || {};
+      if(!collection) return;
+      var q = query(collection(window.db, 'tienda_items'), orderBy('nombre', 'asc'));
+      onSnapshot(q, function(snap){
+        _tiendaItems = snap.docs.map(function(d){ return Object.assign({_id: d.id}, d.data()); });
+        tiendaRender();
+      });
+    }catch(e){}
+  }
+
+  // ── Render ───────────────────────────────────────────────
+  window.tiendaRender = function(){
+    var list = document.getElementById('tiendaList');
+    if(!list) return;
+    var q = (document.getElementById('tiendaSearch')?.value || '').toLowerCase().trim();
+    var tipo = document.getElementById('tiendaFilter')?.value || '';
+    var isAdmin = window.CU && isAdminUser(window.CU);
+
+    var items = _tiendaItems.filter(function(it){
+      var matchQ = !q || (it.nombre||'').toLowerCase().includes(q) || (it.tipo||'').toLowerCase().includes(q);
+      var matchT = !tipo || it.tipo === tipo;
+      return matchQ && matchT;
+    });
+
+    if(!items.length){
+      list.innerHTML = '<div class="tienda-empty">No se encontraron ítems.<br><span style="font-size:.74rem;">Agregá equipos con el botón 📸 Agregar con IA</span></div>';
+      return;
+    }
+
+    list.innerHTML = '<div class="tienda-grid">' + items.map(function(it){
+      var img = it.imagen ? '<img src="'+it.imagen+'" alt="'+it.nombre+'" onerror="this.style.display=\'none\'">' : '<span style="font-size:3rem;opacity:.25;">🎣</span>';
+      var stats = '';
+      if(it.stats){
+        stats = Object.entries(it.stats).map(function(e){ return '<div>'+e[0]+': <b style="color:#e6edf3;">'+e[1]+'</b></div>'; }).join('');
+      }
+      var delBtn = isAdmin ? '<button class="tienda-card-del" onclick="tiendaDelete(\''+it._id+'\',this)">🗑 Borrar</button>' : '';
+      return '<div class="tienda-card">'
+        +'<div class="tienda-card-img">'+img+'</div>'
+        +'<div class="tienda-card-body">'
+        +'<div class="tienda-card-type">'+it.tipo+'</div>'
+        +'<div class="tienda-card-name">'+it.nombre+'</div>'
+        +'<div class="tienda-card-stats">'+stats+'</div>'
+        +delBtn
+        +'</div></div>';
+    }).join('') + '</div>';
+  };
+
+  // ── Borrar ítem ──────────────────────────────────────────
+  window.tiendaDelete = async function(docId, btn){
+    if(!confirm('¿Borrar este ítem?')) return;
+    btn.disabled = true; btn.textContent = '⏳ Borrando...';
+    try{
+      var { doc, deleteDoc } = window._fsLib || {};
+      if(!deleteDoc) throw new Error('Firestore no disponible');
+      await deleteDoc(doc(window.db, 'tienda_items', docId));
+    }catch(e){ alert('Error: '+e.message); btn.disabled=false; btn.textContent='🗑 Borrar'; }
+  };
+
+  // ── Modal IA ─────────────────────────────────────────────
+  window.tiendaAbrirIA = function(){
+    if(!window.CU || !isAdminUser(window.CU)){ alert('Solo admins.'); return; }
+    var m = document.getElementById('tiendaIAModal');
+    if(m) m.style.display = 'flex';
+    tiendaIAReset();
+  };
+
+  window.tiendaIAReset = function(){
+    _tiendaIAData = null;
+    _tiendaIADataMulti = [];
+    ['tiendaIALoading','tiendaIAResult','tiendaIAError'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) el.style.display = 'none';
+    });
+    var dz = document.getElementById('tiendaIADropZone');
+    if(dz) dz.style.display = 'block';
+    var pv = document.getElementById('tiendaIAPreviews');
+    if(pv){ pv.style.display = 'none'; pv.innerHTML = ''; }
+    var inp = document.getElementById('tiendaIAFileInput');
+    if(inp) inp.value = '';
+    var pb = document.getElementById('tiendaIAPublishBtn');
+    if(pb) pb.style.display = '';
+  };
+
+  // Lee hasta 5 imágenes de a una y acumula resultados
+  window.tiendaLeerIA = async function(input){
+    if(!input.files || !input.files.length) return;
+    var files = Array.from(input.files).slice(0, 5);
+    var tipo = document.getElementById('tiendaIATipo')?.value || 'Equipo';
+
+    // Mostrar previews
+    var pvBox = document.getElementById('tiendaIAPreviews');
+    if(pvBox){
+      pvBox.style.display = 'flex';
+      pvBox.innerHTML = '';
+      files.forEach(function(f){
+        var url = URL.createObjectURL(f);
+        pvBox.innerHTML += '<img src="'+url+'" style="height:60px;width:auto;border-radius:6px;border:1px solid #30363d;object-fit:cover;">';
+      });
+    }
+    document.getElementById('tiendaIADropZone').style.display = 'none';
+    document.getElementById('tiendaIALoading').style.display = 'block';
+    document.getElementById('tiendaIAResult').style.display = 'none';
+    document.getElementById('tiendaIAError').style.display = 'none';
+
+    _tiendaIADataMulti = [];
+    var errores = 0;
+
+    for(var i = 0; i < files.length; i++){
+      var pct = Math.round((i / files.length) * 100);
+      var pb = document.getElementById('tiendaIAProgressBar');
+      var lt = document.getElementById('tiendaIALoadingText');
+      if(pb) pb.style.width = pct + '%';
+      if(lt) lt.textContent = '🤖 Procesando imagen ' + (i+1) + ' de ' + files.length + '...';
+
+      try{
+        var dataUrl = await new Promise(function(resolve, reject){
+          var r = new FileReader();
+          r.onload = function(ev){ resolve(ev.target.result); };
+          r.onerror = reject;
+          r.readAsDataURL(files[i]);
+        });
+
+        var res = await fetch('https://wrf4-ai.synxyes.workers.dev', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ action: 'leer_equipo_tienda', imageData: dataUrl, tipo: tipo })
+        });
+        var data = await res.json();
+        var reply = (data.reply || '').trim();
+        var parsed = null;
+        try{ parsed = JSON.parse(reply.replace(/```json|```/g,'').trim()); }catch(pe){}
+        if(parsed && parsed.nombre){
+          _tiendaIADataMulti.push(Object.assign({ tipo: tipo }, parsed));
+        } else { errores++; }
+      }catch(err){ errores++; }
+    }
+
+    if(pb) pb.style.width = '100%';
+    document.getElementById('tiendaIALoading').style.display = 'none';
+
+    var rt = document.getElementById('tiendaIAResultText');
+    if(_tiendaIADataMulti.length === 0){
+      rt.innerHTML = '<div style="color:#f85149;">⚠️ La IA no pudo leer ningún ítem. Probá con capturas más claras.</div>';
+      document.getElementById('tiendaIAResult').style.display = 'block';
+      document.getElementById('tiendaIAPublishBtn').style.display = 'none';
+      return;
+    }
+
+    var html = '<div style="color:#ffd700;font-weight:700;font-size:.88rem;margin-bottom:10px;">✅ '+_tiendaIADataMulti.length+' ítem'
+      +(_tiendaIADataMulti.length!==1?'s':'')+' detectado'+(_tiendaIADataMulti.length!==1?'s':'')+':'
+      +(errores?' <span style="color:#f85149;font-size:.75rem;">('+errores+' sin detectar)</span>':'')+'</div>';
+
+    _tiendaIADataMulti.forEach(function(it, idx){
+      var statsHtml = '';
+      if(it.stats) Object.entries(it.stats).forEach(function(e){ statsHtml += e[0]+': <b>'+e[1]+'</b>  '; });
+      html += '<div style="background:#1c2128;border:1px solid #30363d;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">'
+        +(it.imagen ? '<img src="'+it.imagen+'" style="width:44px;height:36px;object-fit:contain;flex-shrink:0;" onerror="this.style.display=\'none\'">' : '<span style="font-size:1.5rem;">🎣</span>')
+        +'<div style="flex:1;min-width:0;">'
+        +'<div style="font-weight:700;font-size:.85rem;color:#ffd700;">'+it.nombre+'</div>'
+        +'<div style="font-size:.7rem;color:#2ec4b6;">'+it.tipo+'</div>'
+        +(statsHtml ? '<div style="font-size:.7rem;color:#8b949e;margin-top:2px;">'+statsHtml+'</div>' : '')
+        +'</div>'
+        +'<input type="checkbox" checked data-idx="'+idx+'" style="width:16px;height:16px;accent-color:#ffd700;cursor:pointer;">'
+        +'</div>';
+    });
+
+    rt.innerHTML = html;
+    document.getElementById('tiendaIAResult').style.display = 'block';
+    document.getElementById('tiendaIAPublishBtn').style.display = '';
+  };
+
+  window.tiendaIAPublicar = async function(){
+    if(!_tiendaIADataMulti.length) return;
+    var btn = document.getElementById('tiendaIAPublishBtn');
+    btn.disabled = true; btn.textContent = '⏳ Guardando...';
+
+    // Filtrar los que tienen checkbox marcado
+    var checkboxes = document.querySelectorAll('#tiendaIAResultText input[type=checkbox]');
+    var seleccionados = _tiendaIADataMulti.filter(function(_, i){
+      return checkboxes[i] ? checkboxes[i].checked : true;
+    });
+
+    if(!seleccionados.length){
+      alert('Seleccioná al menos un ítem.');
+      btn.disabled = false; btn.textContent = '🚀 Agregar todos a la Tienda';
+      return;
+    }
+
+    try{
+      var { collection, addDoc } = window._fsImports || {};
+      if(!addDoc) throw new Error('Firestore no disponible');
+      var addedAt = new Date().toISOString().slice(0,19)+'Z';
+      var nick = window.CU.nick || window.CU.id;
+      var ok = 0;
+      for(var i = 0; i < seleccionados.length; i++){
+        var it = seleccionados[i];
+        try{
+          await addDoc(collection(window.db, 'tienda_items'), {
+            nombre:      it.nombre      || '',
+            tipo:        it.tipo        || 'Equipo',
+            imagen:      it.imagen      || '',
+            descripcion: it.descripcion || '',
+            stats:       it.stats       || {},
+            addedBy:     nick,
+            addedAt:     addedAt
+          });
+          ok++;
+        }catch(fe){}
+      }
+      var rt = document.getElementById('tiendaIAResultText');
+      if(rt) rt.innerHTML = '<div style="color:#3fb950;font-weight:700;text-align:center;padding:12px;">✅ '+ok+' ítem'+(ok!==1?'s':'')+' agregado'+(ok!==1?'s':'')+' a la Tienda</div>';
+      document.getElementById('tiendaIAPublishBar') && (document.getElementById('tiendaIAPublishBar').style.display = 'none');
+      setTimeout(function(){
+        document.getElementById('tiendaIAModal').style.display = 'none';
+        tiendaIAReset();
+      }, 2000);
+    }catch(e){
+      alert('Error al guardar: '+e.message);
+      btn.disabled = false; btn.textContent = '🚀 Agregar todos a la Tienda';
+    }
+  };
+
+  // ── Init ─────────────────────────────────────────────────
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', tiendaLoad);
+  } else {
+    tiendaLoad();
+  }
+
+})();
+</script>
+<!-- ===== FIN TIENDA RF4 ===== -->
+
 </body>
 </html>
