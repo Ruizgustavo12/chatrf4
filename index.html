@@ -27297,6 +27297,12 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
   var WORKER_URL = 'https://wrf4-ai.synxyes.workers.dev';
   var _ytUploading = false;
 
+  // Toast seguro — usa el global si existe, si no usa alert
+  function _toast(msg, type){
+    if(typeof window.toast === 'function') window.toast(msg, type||'inf');
+    else if(type === 'err') alert(msg);
+  }
+
   // ── Bloquear/desbloquear botón Publicar ─────────────────
   function _lockPublish(lock){
     _ytUploading = lock;
@@ -27355,7 +27361,7 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
   // ── Iniciar subida ───────────────────────────────────────
   window.ytSubirVideo = function(){
     if(!window.CU){ alert('Tenés que estar logueado.'); return; }
-    if(_ytUploading){ toast('Ya hay un video subiendo, esperá','inf'); return; }
+    if(_ytUploading){ _toast('Ya hay un video subiendo, esperá','inf'); return; }
 
     var inp = document.getElementById('_ytFileInput');
     if(!inp) return;
@@ -27365,7 +27371,7 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
       if(!inp.files || !inp.files[0]) return;
       var file = inp.files[0];
       if(file.size > 100 * 1024 * 1024){
-        toast('El video no puede superar los 100MB','err');
+        _toast('El video no puede superar los 100MB','err');
         return;
       }
       _showLocalPreview(file);
@@ -27383,10 +27389,10 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
       var resp = await fetch(WORKER_URL, {
         method: 'POST',
         headers: {
-          'X-Action':    'yt_upload',
-          'X-File-Type': file.type,
-          'X-File-Size': String(file.size),
-          'X-User-Nick': window.CU.nick || window.CU.id,
+          'X-Action':     'yt_upload',
+          'X-File-Type':  file.type,
+          'X-File-Size':  String(file.size),
+          'X-User-Nick':  window.CU.nick || window.CU.id,
           'Content-Type': file.type
         },
         body: file
@@ -27425,11 +27431,11 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
       window._ytUploadedThisSession = true;
       _lockPublish(false);
       _setStatusMsg('✅ Video listo! Podés publicar — quedará pendiente de aprobación', 'var(--green)');
-      toast('✅ Video subido — ahora hacé click en Publicar','ok');
+      _toast('✅ Video subido — ahora hacé click en Publicar','ok');
 
     }catch(e){
       _setStatusMsg('❌ Error: ' + e.message, 'var(--red)');
-      toast('Error al subir: ' + e.message, 'err');
+      _toast('Error al subir: ' + e.message, 'err');
       _lockPublish(false);
     }
   }
