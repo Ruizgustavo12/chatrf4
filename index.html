@@ -7708,6 +7708,8 @@ async function doReg(){
 }
 
 function onLogin(){
+  // Mostrar sección Tienda si es admin
+  if(typeof tiendaCheckAdmin === 'function') setTimeout(tiendaCheckAdmin, 200);
   // Iniciar push notifications
   setTimeout(async () => {
     await initPushNotifications();
@@ -26831,9 +26833,23 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
   // ── Mostrar sección solo a admins ────────────────────────
   function tiendaCheckAdmin(){
     var btn = document.getElementById('slTiendaBtn');
-    if(btn) btn.style.display = (window.CU && isAdminUser(window.CU)) ? 'flex' : 'none';
+    if(!btn) return;
+    var u = window.CU;
+    var isAdmin = u && (u.role==='admin' || u.nick==='ruizgustavo12' || u.email==='synxyes@gmail.com');
+    btn.style.display = isAdmin ? 'flex' : 'none';
   }
-  setInterval(tiendaCheckAdmin, 1000);
+  setInterval(tiendaCheckAdmin, 500);
+  // También chequear cuando el DOM esté listo
+  if(document.readyState !== 'loading'){
+    setTimeout(tiendaCheckAdmin, 100);
+    setTimeout(tiendaCheckAdmin, 1000);
+    setTimeout(tiendaCheckAdmin, 3000);
+  } else {
+    document.addEventListener('DOMContentLoaded', function(){
+      setTimeout(tiendaCheckAdmin, 500);
+      setTimeout(tiendaCheckAdmin, 2000);
+    });
+  }
 
   // ── Cargar items desde Firestore ─────────────────────────
   function tiendaLoad(){
