@@ -26915,10 +26915,16 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
 
   // ── Modal IA ─────────────────────────────────────────────
   window.tiendaAbrirIA = function(){
-    if(!window.CU || !isAdminUser(window.CU)){ alert('Solo admins.'); return; }
+    var isAdmin = window.CU && (
+      window.CU.role === 'admin' ||
+      window.CU.nick === 'ruizgustavo12' ||
+      window.CU.email === 'synxyes@gmail.com'
+    );
+    if(!window.CU){ alert('Tenés que estar logueado.'); return; }
+    if(!isAdmin){ alert('Solo admins.'); return; }
     var m = document.getElementById('tiendaIAModal');
-    if(m) m.style.display = 'flex';
-    tiendaIAReset();
+    if(m){ m.style.display = 'flex'; }
+    window.tiendaIAReset();
   };
 
   window.tiendaIAReset = function(){
