@@ -27268,6 +27268,9 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
 
 
 <!-- ===== YOUTUBE OAUTH UPLOAD ===== -->
+<!-- Input oculto permanente en el DOM para evitar bloqueo de navegadores -->
+<input type="file" id="_ytFileInput" accept="video/*" style="display:none;position:fixed;left:-9999px;top:-9999px;">
+
 <script>
 (function(){
   'use strict';
@@ -27276,6 +27279,22 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
   var YT_SCOPE = 'https://www.googleapis.com/auth/youtube.upload';
   var _ytAccessToken = null;
   var _ytPendingFile  = null;
+
+  // ── Mostrar vista previa local del video ─────────────────
+  function _ytShowLocalPreview(file){
+    var status = document.getElementById('ytUploadStatus');
+    if(!status) return;
+    status.style.display = 'block';
+    status.style.color = 'var(--muted)';
+
+    var sizeMB = (file.size / (1024*1024)).toFixed(1);
+    var localUrl = URL.createObjectURL(file);
+
+    status.innerHTML =
+      '<div style="margin-bottom:6px;font-size:.78rem;color:var(--accent);font-weight:700;">📁 '+file.name+' ('+sizeMB+' MB)</div>'
+      + '<video src="'+localUrl+'" controls style="width:100%;max-height:180px;border-radius:var(--rs);background:#000;display:block;" preload="metadata"></video>'
+      + '<div style="margin-top:6px;font-size:.76rem;color:var(--muted);">⏳ Esperando autorización de Google para subir...</div>';
+  }
 
   // ── Toggle link input ────────────────────────────────────
   window.ytToggleLink = function(){
@@ -27286,10 +27305,14 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
   // ── Iniciar subida ───────────────────────────────────────
   window.ytSubirVideo = function(){
     if(!window.CU){ alert('Tenés que estar logueado.'); return; }
-    // Abrir selector de archivo
-    var inp = document.createElement('input');
-    inp.type = 'file';
-    inp.accept = 'video/*';
+
+    // Usar el input fijo en el DOM para evitar bloqueo por popup en Chrome/Firefox
+    var inp = document.getElementById('_ytFileInput');
+    if(!inp) return;
+
+    // Limpiar valor anterior para permitir reseleccionar el mismo archivo
+    inp.value = '';
+
     inp.onchange = function(){
       if(!inp.files || !inp.files[0]) return;
       var file = inp.files[0];
@@ -27298,6 +27321,8 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
         return;
       }
       _ytPendingFile = file;
+      // Mostrar vista previa local inmediatamente
+      _ytShowLocalPreview(file);
       // Pedir autorización OAuth
       _ytAuthorize();
     };
@@ -27343,7 +27368,23 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
   // ── Subir a YouTube ──────────────────────────────────────
   async function _ytUpload(file, token){
     var status = document.getElementById('ytUploadStatus');
-    if(status){ status.style.display = 'block'; status.textContent = '⏳ Subiendo video a YouTube...'; }
+
+    function setMsg(msg, color){
+      if(!status) return;
+      // Mantener la vista previa del video y solo actualizar el mensaje de estado
+      var msgEl = status.querySelector('._ytMsg');
+      if(!msgEl){
+        msgEl = document.createElement('div');
+        msgEl.className = '_ytMsg';
+        msgEl.style.cssText = 'margin-top:6px;font-size:.76rem;';
+        status.appendChild(msgEl);
+      }
+      msgEl.style.color = color || 'var(--muted)';
+      msgEl.textContent = msg;
+    }
+
+    if(status){ status.style.display = 'block'; }
+    setMsg('⏳ Iniciando subida a YouTube...', 'var(--muted)');
 
     try{
       var title = (window.CU.nick || 'Usuario') + ' — RF4 ' + new Date().toLocaleDateString('es-UY');
@@ -27372,7 +27413,7 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
       if(!uploadUrl) throw new Error('No se obtuvo URL de upload');
 
       // 2. Subir el archivo
-      if(status) status.textContent = '📤 Enviando video... (puede tardar unos minutos)';
+      setMsg('📤 Enviando video... (puede tardar unos minutos)', 'var(--muted)');
 
       var uploadResp = await fetch(uploadUrl, {
         method: 'PUT',
@@ -27399,15 +27440,12 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
         if(typeof previewYtEmbed === 'function') previewYtEmbed(ytLink);
       }
 
-      if(status){
-        status.textContent = '✅ Video subido! Ya aparece en tu publicación.';
-        status.style.color = 'var(--green)';
-      }
+      setMsg('✅ Video subido! Ya aparece en tu publicación.', 'var(--green)');
       toast('✅ Video subido a YouTube exitosamente','ok');
       _ytPendingFile  = null;
 
     }catch(e){
-      if(status){ status.textContent = '❌ Error: ' + e.message; status.style.color = 'var(--red)'; }
+      setMsg('❌ Error: ' + e.message, 'var(--red)');
       toast('Error al subir: ' + e.message, 'err');
     }
   }
