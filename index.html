@@ -5709,7 +5709,7 @@ document.addEventListener('DOMContentLoaded', function(){
     <span style="font-size:.75rem;color:var(--muted);">Pedidos en <b id="cafeCurrentMapLabel" style="color:#ff8c00;">Komarinoe</b>:</span>
     <span id="cafeOrderCount" style="font-size:.75rem;font-weight:700;color:var(--text);">0</span>
     <button id="cafeReportBtn" onclick="cafeOpenReport()" style="display:none;margin-left:auto;background:rgba(255,140,0,.15);border:1px solid rgba(255,140,0,.4);border-radius:6px;color:#ff8c00;padding:4px 12px;font-family:'Exo 2',sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;">+ Agregar pedido</button>
-    <button onclick="cafeAbrirLectorIA()" style="background:linear-gradient(135deg,rgba(46,196,182,.15),rgba(46,196,182,.08));border:1px solid rgba(46,196,182,.4);border-radius:6px;color:#2ec4b6;padding:4px 12px;font-family:Exo 2,sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap;">🤖 Leer con IA</button>
+    <button onclick="cafeAbrirLectorIA()" style="background:linear-gradient(135deg,rgba(46,196,182,.15),rgba(46,196,182,.08));border:1px solid rgba(46,196,182,.4);border-radius:6px;color:#2ec4b6;padding:4px 12px;font-family:Exo 2,sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap;">📸 Publicar pedidos con IA</button>
     <input type="file" id="cafeIAInput" accept="image/*" style="display:none" onchange="cafeLeerImagenIA(this)">
     <span id="cafeMetaRight" style="font-size:.68rem;color:var(--muted);margin-left:auto;">🔴 Expiran solos</span>
   </div>
@@ -5720,8 +5720,8 @@ document.addEventListener('DOMContentLoaded', function(){
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
         <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2ec4b6,#1a6a64);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">☕</div>
         <div>
-          <div style="font-family:Orbitron,monospace;font-size:.85rem;font-weight:900;color:#2ec4b6;">LECTOR DE PEDIDOS IA</div>
-          <div style="font-size:.7rem;color:#8b949e;">Subí una captura del Café de RF4</div>
+          <div style="font-family:Orbitron,monospace;font-size:.85rem;font-weight:900;color:#2ec4b6;">PUBLICAR PEDIDOS DEL CAFÉ</div>
+          <div style="font-size:.7rem;color:#8b949e;">Sacá una captura de pantalla del Café en RF4 y subila acá</div>
         </div>
         <button onclick="document.getElementById('cafeIAModal').style.display='none'" style="margin-left:auto;background:none;border:none;color:#8b949e;font-size:1.2rem;cursor:pointer;">✕</button>
       </div>
@@ -5749,13 +5749,13 @@ document.addEventListener('DOMContentLoaded', function(){
         </select>
       </div>
       <div id="cafeIADropZone" onclick="document.getElementById('cafeIAInput').click()" style="border:2px dashed rgba(46,196,182,.4);border-radius:12px;padding:30px 16px;text-align:center;cursor:pointer;margin-bottom:14px;background:rgba(46,196,182,.03);">
-        <div style="font-size:2rem;margin-bottom:8px;">📸</div>
-        <div style="color:#2ec4b6;font-weight:700;font-size:.9rem;margin-bottom:4px;">Hacé clic para subir imagen</div>
-        <div style="color:#8b949e;font-size:.75rem;">Captura de pantalla del Café de RF4</div>
+        <div style="font-size:2rem;margin-bottom:8px;">🖼️</div>
+        <div style="color:#2ec4b6;font-weight:700;font-size:.9rem;margin-bottom:4px;">Tocá acá para cargar la captura</div>
+        <div style="color:#8b949e;font-size:.75rem;">Foto o captura de pantalla del panel de pedidos del Café</div>
       </div>
       <div id="cafeIAPreview" style="display:none;margin-bottom:14px;text-align:center;"><img id="cafeIAPreviewImg" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid #30363d;"></div>
       <div id="cafeIALoading" style="display:none;text-align:center;padding:16px;">
-        <div style="font-size:.85rem;color:#2ec4b6;font-weight:700;margin-bottom:10px;">🤖 La IA está leyendo los pedidos...</div>
+        <div style="font-size:.85rem;color:#2ec4b6;font-weight:700;margin-bottom:10px;">🤖 Analizando la imagen, aguantá un momento...</div>
         <div style="display:flex;justify-content:center;gap:6px;">
           <span style="width:8px;height:8px;border-radius:50%;background:#2ec4b6;animation:rf4dot 1.2s ease-in-out infinite;"></span>
           <span style="width:8px;height:8px;border-radius:50%;background:#2ec4b6;animation:rf4dot 1.2s ease-in-out .2s infinite;"></span>
@@ -8306,22 +8306,22 @@ let FISH_DB = [
   {n:"Sander (Lucioperca)",img:"https://en.rf4-stat.ru/images/rf4game/e.pikeperch.png",t:"8 kg",r:"12 kg",maps:[{"n": "Winding Rivulet", "i": "https://en.rf4h.ru/templates/rf4m/maps/img/bindweed_83.webp"}, {"n": "Belaya River", "i": "https://en.rf4h.ru/templates/rf4m/maps/img/white_83.webp"}, {"n": "Volkhov River", "i": "https://en.rf4h.ru/templates/rf4m/maps/img/volhov_83.webp"}, {"n": "Seversky Donets River", "i": "https://en.rf4h.ru/templates/rf4m/maps/img/don_83.webp"}, {"n": "Sura River", "i": "https://en.rf4h.ru/templates/rf4m/maps/img/sura_83.webp"}, {"n": "Akhtuba River", "i": "https://en.rf4h.ru/templates/rf4m/maps/img/ahtuba_83.webp"}, {"n": "Lower Tunguska River", "i": "https://en.rf4h.ru/templates/rf4m/maps/img/tunguska_83.webp"}]},
   {n:"Mejillón Cebra",img:"https://en.rf4-stat.ru/images/rf4game/dreissena.png",t:"150 g",r:"210 g",maps:[{"n": "Winding Rivulet", "i": "https://en.rf4h.ru/templates/rf4m/maps/img/bindweed_83.webp"}, {"n": "Volkhov River", "i": "https://en.rf4h.ru/templates/rf4m/maps/img/volhov_83.webp"}, {"n": "Seversky Donets River", "i": "https://en.rf4h.ru/templates/rf4m/maps/img/don_83.webp"}, {"n": "Sura River", "i": "https://en.rf4h.ru/templates/rf4m/maps/img/sura_83.webp"}, {"n": "Akhtuba River", "i": "https://en.rf4h.ru/templates/rf4m/maps/img/ahtuba_83.webp"}]},
   {n:"Lubina Negra",img:"https://en.rf4-stat.ru/images/rf4game/lm_b_bass.png",t:"6 kg",r:"7.500 kg",maps:[]},
-  {n:"Sábalo de Molleja",img:"https://en.rf4-stat.ru/images/rf4game/fish.png",t:"1.100 kg",r:"1.600 kg",maps:[]},
+  {n:"Sábalo de Molleja",img:"https://en.rf4-stat.ru/images/rf4game/tiulka.png",t:"1.100 kg",r:"1.600 kg",maps:[]},
   {n:"Bagre de Cabeza Plana",img:"https://en.rf4-stat.ru/images/rf4game/fhcatfish.png",t:"30 kg",r:"45 kg",maps:[]},
-  {n:"Bagre de Canal",img:"https://en.rf4-stat.ru/images/rf4game/fish.png",t:"14 kg",r:"20 kg",maps:[]},
+  {n:"Bagre de Canal",img:"https://en.rf4-stat.ru/images/rf4game/fhcatfish.png",t:"14 kg",r:"20 kg",maps:[]},
   {n:"Pavón",img:"https://en.rf4-stat.ru/images/rf4game/bp_bass.png",t:"4 kg",r:"5.500 kg",maps:[]},
   {n:"Pez Agallas Azules",img:"https://en.rf4-stat.ru/images/rf4game/b_gill.png",t:"1.200 kg",r:"1.700 kg",maps:[]},
   {n:"Black Crappie",img:"https://en.rf4-stat.ru/images/rf4game/black_crappie.png",t:"1.600 kg",r:"2.200 kg",maps:[]},
-  {n:"Butterfly Peacock Bass",img:"https://en.rf4-stat.ru/images/rf4game/fish.png",t:"4 kg",r:"5.500 kg",maps:[]},
+  {n:"Butterfly Peacock Bass",img:"https://en.rf4-stat.ru/images/rf4game/bp_bass.png",t:"4 kg",r:"5.500 kg",maps:[]},
   {n:"Freshwater Drum",img:"https://en.rf4-stat.ru/images/rf4game/fwdrum.png",t:"13.500 kg",r:"19 kg",maps:[]},
-  {n:"Gizzard Shad",img:"https://en.rf4-stat.ru/images/rf4game/fish.png",t:"1.100 kg",r:"1.600 kg",maps:[]},
-  {n:"Hybrid Striped Bass",img:"https://en.rf4-stat.ru/images/rf4game/fish.png",t:"8 kg",r:"10 kg",maps:[]},
+  {n:"Gizzard Shad",img:"https://en.rf4-stat.ru/images/rf4game/tiulka.png",t:"1.100 kg",r:"1.600 kg",maps:[]},
+  {n:"Hybrid Striped Bass",img:"https://en.rf4-stat.ru/images/rf4game/wh_bass.png",t:"8 kg",r:"10 kg",maps:[]},
   {n:"Largemouth Bass",img:"https://en.rf4-stat.ru/images/rf4game/lm_b_bass.png",t:"6 kg",r:"7.500 kg",maps:[]},
   {n:"Redear Sunfish",img:"https://en.rf4-stat.ru/images/rf4game/resfish.png",t:"1.700 kg",r:"2.300 kg",maps:[]},
   {n:"Smallmouth Bass",img:"https://en.rf4-stat.ru/images/rf4game/sm_bass.png",t:"3 kg",r:"4 kg",maps:[]},
-  {n:"Spotted Gar",img:"https://en.rf4-stat.ru/images/rf4game/fish.png",t:"3 kg",r:"—",maps:[]},
+  {n:"Spotted Gar",img:"https://en.rf4-stat.ru/images/rf4game/n.pike.png",t:"3 kg",r:"—",maps:[]},
   {n:"Spotted Bass",img:"https://en.rf4-stat.ru/images/rf4game/sp_bass.png",t:"3 kg",r:"4.500 kg",maps:[]},
-  {n:"Striped Bass (Striper)",img:"https://en.rf4-stat.ru/images/rf4game/fish.png",t:"30 kg",r:"45 kg",maps:[]},
+  {n:"Striped Bass (Striper)",img:"https://en.rf4-stat.ru/images/rf4game/lm_b_bass.png",t:"30 kg",r:"45 kg",maps:[]},
   {n:"Walleye",img:"https://en.rf4-stat.ru/images/rf4game/walleye.png",t:"7 kg",r:"9 kg",maps:[]},
   {n:"Warmouth",img:"https://en.rf4-stat.ru/images/rf4game/warm.png",t:"650 g",r:"850 g",maps:[]},
   {n:"White Bass",img:"https://en.rf4-stat.ru/images/rf4game/wh_bass.png",t:"1.700 kg",r:"2.500 kg",maps:[]},
