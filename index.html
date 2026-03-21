@@ -26491,11 +26491,7 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
         var res = await fetch('https://wrf4-ai.synxyes.workers.dev', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'leer_cafe_base64',
-            imageData: dataUrl,
-            forcePrompt: 'Sos un asistente del juego Russian Fishing 4. Analizá esta imagen de la tienda. Para CADA ítem visible extraé todos sus datos. Respondé ÚNICAMENTE con un array JSON sin texto extra ni markdown. Estructura: [{"nombre":"nombre exacto","tipo":"Carrete","imagen":"","descripcion":"","stats":{"Precio":"349,80","Tamaño":"10 - 30","Relación de equipo":"4,3:1 - 5,1:1","Arrastre máximo":"5,5 - 7,3 kg"}}]. Si hay varios ítems ponelos todos en el array.'
-          })
+          body: JSON.stringify({ action: 'leer_cafe_base64', imageData: dataUrl })
         });
         var data = await res.json();
         var reply = (data.reply || '').trim();
@@ -26889,20 +26885,10 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
     }
 
     list.innerHTML = '<div class="tienda-grid">' + items.map(function(it){
-      var img = it.imagen
-        ? '<img src="'+it.imagen+'" alt="'+it.nombre+'" style="max-width:90%;max-height:110px;object-fit:contain;" onerror="this.style.opacity=\'0.1\'">'
-        : '<span style="font-size:3rem;opacity:.2;">🎣</span>';
+      var img = it.imagen ? '<img src="'+it.imagen+'" alt="'+it.nombre+'" onerror="this.style.display=\'none\'">' : '<span style="font-size:3rem;opacity:.25;">🎣</span>';
       var stats = '';
-      var precio = '';
       if(it.stats){
-        Object.entries(it.stats).forEach(function(e){
-          var k = (e[0]||'').toLowerCase();
-          if(k.includes('precio') || k.includes('price')){
-            precio = '<div style="color:#ffd700;font-weight:700;font-size:.88rem;margin:5px 0;">₴ '+e[1]+'</div>';
-          } else {
-            stats += '<div><span style="color:#8b949e;font-size:.7rem;">'+e[0]+':</span> <b style="color:#e6edf3;font-size:.7rem;">'+e[1]+'</b></div>';
-          }
-        });
+        stats = Object.entries(it.stats).map(function(e){ return '<div>'+e[0]+': <b style="color:#e6edf3;">'+e[1]+'</b></div>'; }).join('');
       }
       var delBtn = isAdmin ? '<button class="tienda-card-del" onclick="tiendaDelete(\''+it._id+'\',this)">🗑 Borrar</button>' : '';
       return '<div class="tienda-card">'
@@ -26910,7 +26896,6 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
         +'<div class="tienda-card-body">'
         +'<div class="tienda-card-type">'+it.tipo+'</div>'
         +'<div class="tienda-card-name">'+it.nombre+'</div>'
-        +precio
         +'<div class="tienda-card-stats">'+stats+'</div>'
         +delBtn
         +'</div></div>';
@@ -26995,48 +26980,14 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
         var res = await fetch('https://wrf4-ai.synxyes.workers.dev', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ action: 'leer_cafe_base64', imageData: dataUrl })
+          body: JSON.stringify({ action: 'leer_equipo_tienda', imageData: dataUrl, tipo: tipo })
         });
         var data = await res.json();
         var reply = (data.reply || '').trim();
-
-        // Intentar parsear JSON (array o objeto)
-        var parsedItems = null;
-        try{
-          var clean = reply.replace(/```json|```/g,'').trim();
-          var arrM = clean.match(/\[[\s\S]*\]/);
-          var objM = clean.match(/\{[\s\S]*\}/);
-          if(arrM){ parsedItems = JSON.parse(arrM[0]); if(!Array.isArray(parsedItems)) parsedItems=[parsedItems]; }
-          else if(objM){ parsedItems = [JSON.parse(objM[0])]; }
-        }catch(pe){ parsedItems = null; }
-
-        if(parsedItems && parsedItems.length > 0){
-          parsedItems.forEach(function(it){
-            if(!it || !it.nombre) return;
-            // Buscar imagen en rf4-stat.ru basada en el nombre
-            var imgKey = it.nombre.toLowerCase()
-              .replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u')
-              .replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
-            var imgUrl = it.imagen || 'https://en.rf4-stat.ru/images/rf4game/' + imgKey + '.png';
-            _tiendaIADataMulti.push({
-              nombre: it.nombre,
-              tipo: it.tipo || tipo,
-              imagen: imgUrl,
-              descripcion: it.descripcion || '',
-              stats: it.stats || (it.precio ? { 'Precio': it.precio, 'Tamaño': it.tamano||it.tamaño||'', 'Relación de equipo': it.relacion||'', 'Arrastre máximo': it.arrastre||'' } : {})
-            });
-          });
-        } else if(reply && reply.length > 10){
-          // Fallback texto libre — parsear líneas
-          var rlines = reply.split('\n').filter(function(l){ return l.trim(); });
-          var nombre = rlines[0].replace(/[*#_\d\.:\-]/g,'').trim();
-          if(!nombre) nombre = 'Ítem '+(i+1);
-          var stats = {};
-          rlines.slice(1).forEach(function(l){
-            var m = l.match(/^[\*\-]?\s*([^:]+):\s*(.+)/);
-            if(m) stats[m[1].replace(/[*_]/g,'').trim()] = m[2].replace(/[*_]/g,'').trim();
-          });
-          _tiendaIADataMulti.push({ nombre: nombre, tipo: tipo, imagen: '', descripcion: '', stats: stats });
+        var parsed = null;
+        try{ parsed = JSON.parse(reply.replace(/```json|```/g,'').trim()); }catch(pe){}
+        if(parsed && parsed.nombre){
+          _tiendaIADataMulti.push(Object.assign({ tipo: tipo }, parsed));
         } else { errores++; }
       }catch(err){ errores++; }
     }
@@ -27058,16 +27009,26 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
 
     _tiendaIADataMulti.forEach(function(it, idx){
       var statsHtml = '';
-      if(it.stats) Object.entries(it.stats).forEach(function(e){ statsHtml += e[0]+': <b>'+e[1]+'</b>  '; });
-      html += '<div style="background:#1c2128;border:1px solid #30363d;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">'
-        +(it.imagen ? '<img src="'+it.imagen+'" style="width:44px;height:36px;object-fit:contain;flex-shrink:0;" onerror="this.style.display=\'none\'">' : '<span style="font-size:1.5rem;">🎣</span>')
-        +'<div style="flex:1;min-width:0;">'
-        +'<div style="font-weight:700;font-size:.85rem;color:#ffd700;">'+it.nombre+'</div>'
-        +'<div style="font-size:.7rem;color:#2ec4b6;">'+it.tipo+'</div>'
-        +(statsHtml ? '<div style="font-size:.7rem;color:#8b949e;margin-top:2px;">'+statsHtml+'</div>' : '')
-        +'</div>'
-        +'<input type="checkbox" checked data-idx="'+idx+'" style="width:16px;height:16px;accent-color:#ffd700;cursor:pointer;">'
-        +'</div>';
+      if(it.stats) Object.entries(it.stats).forEach(function(e){ statsHtml += '<span style="margin-right:8px;">'+e[0]+': <b>'+e[1]+'</b></span>'; });
+      html += '<div style="background:#1c2128;border:1px solid #30363d;border-radius:10px;padding:12px;margin-bottom:10px;">'
+        + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'
+        + '<div id="tiendaImgPreview_'+idx+'" style="width:50px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#161b22;border-radius:6px;border:1px solid #30363d;">'
+        + (it.imagen ? '<img src="'+it.imagen+'" style="max-width:100%;max-height:100%;object-fit:contain;">' : '<span style="font-size:1.2rem;">🎣</span>')
+        + '</div>'
+        + '<div style="flex:1;min-width:0;">'
+        + '<div style="font-weight:700;font-size:.88rem;color:#ffd700;">'+it.nombre+'</div>'
+        + '<div style="font-size:.7rem;color:#2ec4b6;">'+it.tipo+'</div>'
+        + (statsHtml ? '<div style="font-size:.68rem;color:#8b949e;margin-top:2px;">'+statsHtml+'</div>' : '')
+        + '</div>'
+        + '<input type="checkbox" checked data-img-check="'+idx+'" style="width:16px;height:16px;accent-color:#ffd700;cursor:pointer;flex-shrink:0;">'
+        + '</div>'
+        + '<div style="display:flex;align-items:center;gap:6px;">'
+        + '<span style="font-size:.68rem;color:#8b949e;white-space:nowrap;">🖼 URL imagen:</span>'
+        + '<input type="text" data-img-idx="'+idx+'" placeholder="https://raw.githubusercontent.com/tu-usuario/tu-repo/main/img/carrete.png"'
+        + ' oninput="tiendaPreviewImg(this,'+idx+')"'
+        + ' style="flex:1;background:#0d1117;border:1px solid #30363d;border-radius:5px;color:#e6edf3;padding:5px 8px;font-size:.72rem;font-family:monospace;outline:none;">'
+        + '</div>'
+        + '</div>';
     });
 
     rt.innerHTML = html;
@@ -27075,15 +27036,37 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
     document.getElementById('tiendaIAPublishBtn').style.display = '';
   };
 
+  // Preview imagen en tarjeta al pegar URL
+  window.tiendaPreviewImg = function(input, idx){
+    var url = input.value.trim();
+    var preview = document.getElementById('tiendaImgPreview_'+idx);
+    if(!preview) return;
+    if(url){
+      preview.innerHTML = '<img src="'+url+'" style="max-width:100%;max-height:100%;object-fit:contain;" onerror="this.parentNode.innerHTML=\'<span style=\\\"font-size:1.2rem;\\\">🎣</span>\'">';
+    } else {
+      preview.innerHTML = '<span style="font-size:1.2rem;">🎣</span>';
+    }
+  };
+
   window.tiendaIAPublicar = async function(){
     if(!_tiendaIADataMulti.length) return;
     var btn = document.getElementById('tiendaIAPublishBtn');
     btn.disabled = true; btn.textContent = '⏳ Guardando...';
 
-    // Filtrar los que tienen checkbox marcado
-    var checkboxes = document.querySelectorAll('#tiendaIAResultText input[type=checkbox]');
+    // Leer URLs de imagen ingresadas y checkboxes
+    var checkboxes = document.querySelectorAll('#tiendaIAResultText input[data-img-check]');
+    var urlInputs  = document.querySelectorAll('#tiendaIAResultText input[data-img-idx]');
     var seleccionados = _tiendaIADataMulti.filter(function(_, i){
       return checkboxes[i] ? checkboxes[i].checked : true;
+    });
+    // Pegar URL de imagen en cada ítem seleccionado
+    var urlMap = {};
+    urlInputs.forEach(function(inp){ urlMap[inp.dataset.imgIdx] = inp.value.trim(); });
+    seleccionados = seleccionados.map(function(it, si){
+      // Find original index
+      var origIdx = _tiendaIADataMulti.indexOf(it);
+      var url = urlMap[String(origIdx)] || it.imagen || '';
+      return Object.assign({}, it, { imagen: url });
     });
 
     if(!seleccionados.length){
