@@ -6047,8 +6047,8 @@ document.addEventListener('DOMContentLoaded', function(){
     try {
       btn.disabled = true;
       btn.textContent = '⏳ Borrando...';
-      var { doc, deleteDoc } = window._fsImports || {};
-      if(!deleteDoc) throw new Error('Firestore no disponible');
+      var { doc, deleteDoc } = window._fsLib || window._fsImports || {};
+      if(!deleteDoc || !doc) throw new Error('Firestore no disponible');
       await deleteDoc(doc(window.db, 'cafe_pedidos', docId));
       btn.closest('.cafe-card').style.opacity = '0.3';
       setTimeout(function(){ btn.closest('.cafe-card').remove(); }, 400);
