@@ -27288,7 +27288,6 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
 
 
 <!-- ===== YOUTUBE OAUTH UPLOAD ===== -->
-<!-- Input fijo en el DOM — evita bloqueo de navegadores -->
 <input type="file" id="_ytFileInput" accept="video/*" style="display:none;position:fixed;left:-9999px;top:-9999px;">
 
 <script>
@@ -27376,47 +27375,30 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
     inp.click();
   };
 
-  // ── Subir via Worker (sin OAuth popup) ──────────────────
+  // ── Subir via Worker ─────────────────────────────────────
   async function _ytUpload(file){
     try{
-      // 1. Pedir upload URL al worker (usa tu refresh_token guardado)
-      _setStatusMsg('⏳ Iniciando subida...', 'var(--warn)');
+      _setStatusMsg('⏳ Subiendo a YouTube via servidor...', 'var(--warn)');
 
-      var initResp = await fetch(WORKER_URL, {
+      var resp = await fetch(WORKER_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action:   'yt_init_upload',
-          fileName: file.name,
-          fileType: file.type,
-          fileSize: file.size,
-          userNick: window.CU.nick || window.CU.id
-        })
-      });
-
-      var initData = await initResp.json();
-      if(initData.error) throw new Error(initData.error);
-      if(!initData.uploadUrl) throw new Error('No se obtuvo URL de subida');
-
-      // 2. Subir el archivo directo a YouTube con esa URL
-      _setStatusMsg('📤 Enviando video... no cierres esta ventana', 'var(--warn)');
-
-      var uploadResp = await fetch(initData.uploadUrl, {
-        method: 'PUT',
         headers: {
-          'Content-Type':   file.type,
-          'Content-Length': file.size
+          'X-Action':    'yt_upload',
+          'X-File-Type': file.type,
+          'X-File-Size': String(file.size),
+          'X-User-Nick': window.CU.nick || window.CU.id,
+          'Content-Type': file.type
         },
         body: file
       });
 
-      if(!uploadResp.ok) throw new Error('Error subiendo: ' + uploadResp.status);
-      var videoData = await uploadResp.json();
-      var videoId = videoData.id;
-      if(!videoId) throw new Error('No se obtuvo ID del video');
+      var data = await resp.json();
+      if(data.error) throw new Error(data.error);
+      if(!data.videoId) throw new Error('No se obtuvo ID del video');
 
-      // 3. Guardar URL en el input del post
-      var ytLink = 'https://www.youtube.com/watch?v=' + videoId;
+      var ytLink = data.videoUrl;
+
+      // Guardar URL en el input del post
       var ytInp = document.getElementById('ytUrlInput');
       if(ytInp){
         var linkBox = document.getElementById('ytLinkBox');
@@ -27424,12 +27406,12 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
         ytInp.value = ytLink;
       }
 
-      // 4. Guardar en Firestore como pendiente
+      // Guardar en Firestore como pendiente
       try{
         var fi = window._fsLib || {};
         if(fi.addDoc && fi.collection && window.db){
           await fi.addDoc(fi.collection(window.db,'videoPendientes'),{
-            videoId:     videoId,
+            videoId:     data.videoId,
             videoUrl:    ytLink,
             userId:      window.CU.id,
             userNick:    window.CU.nick || window.CU.id,
@@ -27440,10 +27422,9 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
         }
       }catch(fe){ console.warn('videoPendientes:', fe); }
 
-      // 5. Desbloquear y listo
       window._ytUploadedThisSession = true;
       _lockPublish(false);
-      _setStatusMsg('✅ Video listo! Ahora podés publicar — quedará pendiente de aprobación', 'var(--green)');
+      _setStatusMsg('✅ Video listo! Podés publicar — quedará pendiente de aprobación', 'var(--green)');
       toast('✅ Video subido — ahora hacé click en Publicar','ok');
 
     }catch(e){
