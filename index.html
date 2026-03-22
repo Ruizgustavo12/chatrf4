@@ -7392,6 +7392,21 @@ function init(){
         const snap = await getDoc(doc(db, 'users', user.uid));
         if (snap.exists()) {
           window.CU = {id: user.uid, ...snap.data()};
+          // ── Chequear vencimiento de premium automático ──
+          if(window.CU.role === 'premium' && window.CU.premiumReason === 'auto_5trofeos' && window.CU.premiumExpiry){
+            const expiry = new Date(window.CU.premiumExpiry);
+            if(new Date() > expiry){
+              // Vencido: revocar premium y mostrar mensaje
+              try{
+                await updateDoc(doc(db,'users',user.uid),{ role:'pescador', premiumExpired: true });
+                window.CU.role = 'pescador';
+                setTimeout(function(){
+                  toast('⭐ Tu Premium de 15 días venció. ¡Suscribite por $1/mes para seguir disfrutando los beneficios!','inf');
+                  setTimeout(openPremiumModal, 2500);
+                }, 2000);
+              }catch(e){ console.warn('Expiry check error:',e); }
+            }
+          }
           if(window._userInfoCache) window._userInfoCache[user.uid] = {nick: window.CU.nick||'', av: window.CU.av||'', gender: window.CU.gender||'', country: window.CU.country||''};
           document.getElementById('mAuth').style.display = 'none';
           hideSplash();
@@ -23533,6 +23548,30 @@ window.wkSubmitTrophy = async () => {
     }catch(e){ console.warn('No se pudo actualizar config/lastTrophy:',e); }
     // Actualizar contador de trofeos del usuario
     try{ await updateDoc(doc(db,'users',window.CU.id),{trophyCount:increment(1)}); }catch(e){}
+    // ── AUTO PREMIUM 15 DÍAS: si llega a 5 trofeos aprobados ──
+    try{
+      if(window.CU.role !== 'premium'){
+        const _tSnap = await getDocs(query(
+          collection(db,'trofeosPendientes'),
+          where('userId','==',window.CU.id),
+          where('status','==','approved')
+        ));
+        if(_tSnap.size >= 5){
+          const _premExpiry = new Date();
+          _premExpiry.setDate(_premExpiry.getDate() + 15);
+          await updateDoc(doc(db,'users',window.CU.id),{
+            role: 'premium',
+            premiumSince: new Date().toISOString(),
+            premiumExpiry: _premExpiry.toISOString(),
+            premiumReason: 'auto_5trofeos'
+          });
+          window.CU.role = 'premium';
+          setTimeout(function(){
+            toast('🏆⭐ ¡Felicitaciones! Por compartir 5 trofeos ganaste 15 días de Premium gratis. Al vencer podés renovarlo por $1/mes 🎣','ok');
+          }, 1200);
+        }
+      }
+    }catch(e){ console.warn('Auto premium error:',e); }
     // Notificar a todos los suscriptores
     try{ _notifyNewTrophy(fish, weight, window.CU.nick||'?', imageUrls[0]||''); }catch(e){}
     wkCm('wkMPublish'); wkResetForm();
