@@ -12848,7 +12848,12 @@ function filterTrofeoFeed(filter, btn){
 
 
 window.filterTrofeoFeed = filterTrofeoFeed;
-window.renderShopPage = renderShopPage;
+// renderShopPage viene de firebase.js (ESM) — si no está disponible aún, usar fallback
+if(typeof renderShopPage === 'undefined'){
+  window.renderShopPage = function(){ if(typeof renderShopGrid==='function') renderShopGrid(); };
+} else {
+  window.renderShopPage = renderShopPage;
+}
 window.renderShopGrid = renderShopGrid;
 window.filterShopCat = filterShopCat;
 window.toggleEquipItem = toggleEquipItem;
