@@ -313,7 +313,14 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
 
   /* Perfil mobile */
   .profile-layout{grid-template-columns:1fr !important;}
-  .profile-cover{height:140px;}
+  .profile-cover{height:180px;}
+  .profile-av-big{width:110px !important;height:110px !important;font-size:2.2rem !important;}
+  #upAv{width:110px !important;height:110px !important;font-size:2.2rem !important;}
+  .profile-av-wrap{margin-top:-55px !important;}
+  #upAvWrap{margin-top:-55px !important;}
+  #upCover{height:180px !important;}
+  .profile-name,.profile-name #upName,[id="upName"]{font-size:1.25rem !important;}
+  #profName{font-size:1.25rem !important;}
 
   /* Modales full screen en mobile */
   .modal-box{width:100% !important;max-width:100% !important;border-radius:16px 16px 0 0 !important;position:fixed !important;bottom:0 !important;top:auto !important;left:0 !important;right:0 !important;max-height:90vh;overflow-y:auto;}
@@ -827,9 +834,9 @@ select.fi option{background:var(--bg3);color:var(--text);}
 .btn-full{width:100%;}
 
 /* ===== PROFILE PAGE ===== */
-.profile-cover{height:320px;background:linear-gradient(135deg,#0a1628,#0d2040,#112a1a);background-size:cover;background-position:center;position:relative;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.5);}
+.profile-cover{height:360px;background:linear-gradient(135deg,#0a1628,#0d2040,#112a1a);background-size:cover;background-position:center;position:relative;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.5);}
 /* Overlay sutil en el cover para profundidad */
-.profile-cover::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(0,0,0,.55) 100%);pointer-events:none;z-index:1;}
+.profile-cover::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(0,0,0,.7) 100%);pointer-events:none;z-index:1;}
 
 /* ── GALERÍA INSTAGRAM ── */
 @keyframes _igFadeIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
@@ -905,45 +912,57 @@ select.fi option{background:var(--bg3);color:var(--text);}
   backdrop-filter:blur(6px);transition:background .2s;}
 .profile-cover-edit:hover{background:rgba(0,0,0,.9);}
 
-.profile-info-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px 0;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+.profile-info-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 0 0;box-shadow:0 2px 12px rgba(0,0,0,.4);}
 
 /* Avatar wrap con sombra mejorada */
 .profile-av-wrap{position:relative;width:fit-content;}
 .profile-av-big{
-  width:160px;height:160px;border-radius:50%;
-  border:4px solid var(--bg2);
-  outline:3px solid var(--accent);
-  outline-offset:2px;
+  width:180px;height:180px;border-radius:50%;
+  border:5px solid var(--bg2);
   overflow:hidden;
-  display:flex;align-items:center;justify-content:center;font-size:3.2rem;font-weight:800;color:var(--accent);background:var(--bg3);
-  box-shadow:0 4px 24px rgba(0,0,0,.6),0 0 0 2px var(--bg2);
-  transition:outline-color .3s;
+  display:flex;align-items:center;justify-content:center;font-size:3.6rem;font-weight:800;color:var(--accent);background:var(--bg3);
+  box-shadow:0 6px 28px rgba(0,0,0,.7),0 0 0 3px var(--bg2);
+  transition:outline-color .3s, box-shadow .3s;
 }
 .profile-av-big img{width:100%;height:100%;object-fit:cover;}
-.profile-av-big:hover{outline-color:var(--gold);}
+.profile-av-big:hover{box-shadow:0 6px 28px rgba(0,0,0,.7),0 0 0 3px var(--accent);}
 .profile-av-edit{position:absolute;bottom:8px;right:8px;background:var(--bg3);border:2px solid var(--bg2);
   width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;
   box-shadow:0 2px 8px rgba(0,0,0,.5);transition:background .2s;}
 .profile-av-edit:hover{background:var(--bg4);}
 
 .profile-name-row{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:10px;padding-bottom:14px;}
-.profile-name{font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:900;letter-spacing:.01em;}
-.profile-bio{font-size:.88rem;color:var(--muted);margin-top:4px;line-height:1.5;}
+.profile-name{font-family:'Orbitron',monospace;font-size:1.75rem;font-weight:900;letter-spacing:.01em;}
+.profile-bio{font-size:.88rem;color:var(--muted);margin-top:6px;line-height:1.6;}
 
 /* Stat pills debajo del nombre */
-.profile-stats-row{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap;}
-.profile-stat-pill{display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:4px 12px;font-size:.8rem;}
+.profile-stats-row{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.profile-stat-pill{display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-size:.82rem;cursor:pointer;transition:background .15s;}
+.profile-stat-pill:hover{background:var(--bg4);}
 .profile-stat-pill strong{color:var(--text);font-weight:800;}
 .profile-stat-pill span{color:var(--muted);}
 
-.profile-tabs{display:flex;border-top:1px solid var(--border);gap:0;overflow-x:auto;}
+.profile-tabs{display:flex;border-top:1px solid var(--border);gap:0;overflow-x:auto;background:var(--bg2);}
 .profile-tabs::-webkit-scrollbar{height:2px;}
-.ptab{padding:14px 20px;font-size:.85rem;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;}
-.ptab:hover{background:var(--bg3);color:var(--text);border-radius:8px 8px 0 0;}
+.ptab{padding:16px 22px;font-size:.87rem;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;position:relative;}
+.ptab:hover{background:var(--bg3);color:var(--text);}
 .ptab.on{color:var(--accent);border-bottom-color:var(--accent);background:rgba(46,196,182,.06);}
 
 /* userprofile cover igual de alto */
-#upCover{height:320px !important;}
+/* ── Botones de acción en perfil ajeno (Mensaje, Amigos, etc.) ── */
+#upActions .btn{padding:8px 18px;font-size:.86rem;font-weight:700;display:flex;align-items:center;gap:6px;}
+#upActions .btn-p{background:var(--accent);color:#000;}
+#upActions .btn-p:hover{opacity:.88;}
+
+/* ── Meta info (📍 ciudad, 📅 miembro desde) debajo de bio ── */
+#upMeta span{display:inline-flex;align-items:center;gap:4px;color:var(--muted);font-size:.78rem;}
+#upMeta span strong{color:var(--text);}
+
+/* ── Ubicación + join en perfil propio también ── */
+.prof-meta-row{display:flex;gap:16px;flex-wrap:wrap;margin-top:5px;}
+.prof-meta-item{display:flex;align-items:center;gap:5px;font-size:.8rem;color:var(--muted);}
+.prof-meta-item strong{color:var(--text);font-weight:600;}
+#upCover{height:360px !important;}
 /* MÚSICA */
 .music-type-btn{padding:7px 14px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:100px;font-size:.78rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Exo 2',sans-serif;}
 .music-type-btn:hover{border-color:#1ed760;color:#1ed760;}
@@ -2286,29 +2305,30 @@ document.addEventListener('DOMContentLoaded', function(){
 <!-- PAGE: USER PROFILE (perfil de otros usuarios) -->
 <div class="page" id="page-userprofile">
   <!-- Cover -->
-  <div id="upCover" style="height:260px;background:linear-gradient(135deg,#0a1628,#1a2a3a);background-size:cover;background-position:center;position:relative;overflow:hidden;cursor:pointer;">
+  <div id="upCover" style="height:360px;background:linear-gradient(135deg,#0a1628,#1a2a3a);background-size:cover;background-position:center;position:relative;overflow:hidden;cursor:pointer;box-shadow:0 4px 24px rgba(0,0,0,.5);">
     <div id="upCoverInner" style="width:100%;height:100%;pointer-events:none;"></div>
-
+    <!-- Overlay degradado abajo -->
+    <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(0,0,0,.7) 100%);pointer-events:none;z-index:1;"></div>
     <canvas id="upVerifParticles" style="display:none;position:absolute;inset:0;pointer-events:none;"></canvas>
     <div id="upVerifSeal" style="display:none;"></div>
   </div>
 
   <!-- Info bar estilo Facebook -->
-  <div style="background:var(--bg2);border-bottom:1px solid var(--border);">
-    <div style="max-width:980px;margin:0 auto;padding:0 20px;">
+  <div style="background:var(--bg2);border-bottom:1px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,.4);">
+    <div style="max-width:980px;margin:0 auto;padding:0 24px;">
 
       <!-- Fila principal: avatar + info + acciones -->
-      <div style="display:flex;align-items:flex-end;gap:20px;padding-bottom:16px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:flex-end;gap:20px;padding-bottom:14px;flex-wrap:wrap;">
 
         <!-- Avatar grande sobresaliendo del cover -->
-        <div id="upAvWrap" style="margin-top:-70px;position:relative;flex-shrink:0;z-index:2;">
-          <div id="upAv" style="width:160px;height:160px;border-radius:50%;border:4px solid var(--bg2);outline:3px solid var(--accent);outline-offset:2px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:3rem;font-weight:800;color:var(--accent);background:var(--bg3);cursor:pointer;box-shadow:0 4px 24px rgba(0,0,0,.6);">👤</div>
+        <div id="upAvWrap" style="margin-top:-80px;position:relative;flex-shrink:0;z-index:2;">
+          <div id="upAv" style="width:180px;height:180px;border-radius:50%;border:5px solid var(--bg2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:3.6rem;font-weight:800;color:var(--accent);background:var(--bg3);cursor:pointer;box-shadow:0 6px 28px rgba(0,0,0,.7),0 0 0 3px var(--bg2);">👤</div>
         </div>
 
         <!-- Nombre + stats + bio -->
-        <div style="flex:1;min-width:0;padding-top:10px;padding-bottom:4px;">
+        <div style="flex:1;min-width:0;padding-top:12px;padding-bottom:4px;">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <div id="upName" style="font-size:1.6rem;font-weight:900;font-family:'Orbitron',monospace;line-height:1.1;"></div>
+            <div id="upName" style="font-family:'Orbitron',monospace;font-size:1.75rem;font-weight:900;line-height:1.1;"></div>
             <span id="upVerifBadge" style="display:none;" title="Verificado">✅</span>
             <span id="upShopBadge" style="font-size:1.1rem;" title=""></span>
           </div>
@@ -2317,7 +2337,7 @@ document.addEventListener('DOMContentLoaded', function(){
             ✅<span style="font-size:.68rem;font-weight:800;color:gold;letter-spacing:.05em;">CUENTA VERIFICADA</span><span style="font-size:.7rem;">✨</span>
           </div>
 
-          <!-- Stats como pills -->
+          <!-- Stats como pills clicables -->
           <div class="profile-stats-row">
             <div class="profile-stat-pill">👥 <strong id="upFriendCount">0</strong><span>amigos</span></div>
             <div class="profile-stat-pill">📝 <strong id="upPostCount">0</strong><span>posts</span></div>
@@ -2325,18 +2345,18 @@ document.addEventListener('DOMContentLoaded', function(){
             <div class="profile-stat-pill" id="upMutualPill" style="display:none;">🤝 <strong id="upMutualCount">0</strong><span id="upMutualLbl">en común</span></div>
           </div>
 
-          <div id="upBio" style="font-size:.85rem;color:var(--muted);margin-top:5px;"></div>
-          <div id="upMeta" style="font-size:.78rem;color:var(--muted);margin-top:3px;display:flex;gap:12px;flex-wrap:wrap;"></div>
+          <div id="upBio" style="font-size:.88rem;color:var(--muted);margin-top:6px;line-height:1.6;"></div>
+          <div id="upMeta" style="font-size:.78rem;color:var(--muted);margin-top:4px;display:flex;gap:12px;flex-wrap:wrap;"></div>
           <div id="upLevel" style="margin-top:4px;"></div>
           <div id="upLastSeen" style="margin-top:3px;"></div>
         </div>
 
-        <!-- Botones de acción a la derecha -->
+        <!-- Botones de acción a la derecha estilo Facebook -->
         <div id="upActions" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding-bottom:16px;"></div>
       </div>
 
       <!-- Tabs -->
-      <div style="display:flex;border-top:1px solid var(--border);gap:2px;" id="upTabs">
+      <div style="display:flex;border-top:1px solid var(--border);gap:0;background:var(--bg2);" id="upTabs">
         <div class="ptab on" onclick="swUpTab(this,'upTabPosts')">Publicaciones</div>
         <div class="ptab" onclick="swUpTab(this,'upTabInfo')">Información</div>
         <div class="ptab" onclick="swUpTab(this,'upTabFotos')">🖼 Fotos</div>
@@ -2426,32 +2446,33 @@ document.addEventListener('DOMContentLoaded', function(){
     <button class="profile-cover-edit" onclick="event.stopPropagation();document.getElementById('coverFileInput').click()">📷 Editar foto de portada<input type="file" id="coverFileInput" accept="image/*" style="display:none" onchange="changeCover(this)"></button>
   </div>
   <div class="profile-info-bar">
-    <div style="max-width:1080px;margin:0 auto;padding:0 20px;">
+    <div style="max-width:1080px;margin:0 auto;padding:0 24px;">
 
       <!-- Fila principal: avatar + info + botones -->
-      <div style="display:flex;align-items:flex-end;gap:20px;padding-bottom:16px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:flex-end;gap:20px;padding-bottom:14px;flex-wrap:wrap;">
 
         <!-- Avatar grande sobresaliendo -->
-        <div class="profile-av-wrap" style="margin-top:-70px;z-index:2;">
+        <div class="profile-av-wrap" style="margin-top:-80px;z-index:2;">
           <div class="profile-av-big" id="profAvBig" style="cursor:pointer;">👤</div>
           <div class="profile-av-edit" onclick="document.getElementById('avatarFileInput').click()">📷<input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="changeAvatar(this)"></div>
         </div>
 
         <!-- Nombre + stats + bio -->
-        <div style="flex:1;min-width:0;padding-top:10px;padding-bottom:4px;">
+        <div style="flex:1;min-width:0;padding-top:12px;padding-bottom:2px;">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <div class="profile-name" id="profName" style="font-size:1.6rem;">Mi Perfil</div>
+            <div class="profile-name" id="profName" style="font-size:1.75rem;">Mi Perfil</div>
             <span id="profVerifiedBadge" style="display:none;" title="Usuario Verificado">✅</span>
           </div>
 
-          <!-- Stats como pills -->
+          <!-- Amigos como texto clicable estilo Facebook -->
           <div class="profile-stats-row">
-            <div class="profile-stat-pill">👥 <strong id="profFriendCount">0</strong><span>amigos</span></div>
+            <div class="profile-stat-pill" onclick="swPTab(document.querySelector('#page-profile .ptab:nth-child(4)'),'ptFriends')">👥 <strong id="profFriendCount">0</strong><span>amigos</span></div>
             <div class="profile-stat-pill">📝 <strong id="profPostCount">0</strong><span>posts</span></div>
             <div class="profile-stat-pill">❤️ <strong id="profLikeCount">0</strong><span>me gusta</span></div>
           </div>
 
-          <div class="profile-bio" id="profBioEl" style="margin-top:5px;font-size:.88rem;"></div>
+          <div class="profile-bio" id="profBioEl" style="margin-top:6px;font-size:.88rem;"></div>
+          <div id="profMetaRow" class="prof-meta-row" style="display:none;margin-top:6px;"></div>
           <div style="display:none;" id="profBadges"></div>
 
           <!-- XP + Streak bar -->
@@ -2469,12 +2490,11 @@ document.addEventListener('DOMContentLoaded', function(){
           <div id="profVerifBtn" style="margin-top:6px;display:none;"></div>
         </div>
 
-        <!-- Botones a la derecha -->
+        <!-- Botones a la derecha estilo Facebook -->
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding-bottom:16px;">
-          <button class="btn btn-s" onclick="om('mCreatePost')" style="display:flex;align-items:center;gap:6px;">✏ Publicar</button>
-          <button class="btn btn-p" onclick="openEditProfile()" style="display:flex;align-items:center;gap:6px;">⚙ Editar perfil</button>
-          <a href="https://ko-fi.com/wikipediarf4" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--rs);background:linear-gradient(135deg,#ff5e5b,#e03e3a);color:#fff;font-family:'Exo 2',sans-serif;font-size:.82rem;font-weight:700;text-decoration:none;transition:opacity .2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">☕ Ko-fi</a>
-
+          <button class="btn btn-p" onclick="om('mCreatePost')" style="display:flex;align-items:center;gap:6px;padding:8px 18px;font-size:.86rem;font-weight:700;">✏️ Publicar</button>
+          <button class="btn btn-s" onclick="openEditProfile()" style="display:flex;align-items:center;gap:6px;padding:8px 18px;font-size:.86rem;font-weight:700;">⚙️ Editar perfil</button>
+          <a href="https://ko-fi.com/wikipediarf4" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--rs);background:rgba(255,94,91,.15);border:1px solid rgba(255,94,91,.4);color:#ff5e5b;font-family:'Exo 2',sans-serif;font-size:.86rem;font-weight:700;text-decoration:none;transition:all .2s;" onmouseover="this.style.background='rgba(255,94,91,.25)'" onmouseout="this.style.background='rgba(255,94,91,.15)'">☕ Ko-fi</a>
         </div>
       </div>
 
@@ -12222,6 +12242,16 @@ function renderProfile(){
   const verifBtn = document.getElementById('profVerifBtn');
   if(verifBtn) verifBtn.style.display='none';
   document.getElementById('profBioEl').textContent = window.CU.bio||'';
+  // ── Meta info debajo de bio (ciudad, país, desde) ──
+  const _profMetaEl = document.getElementById('profMetaRow');
+  if(_profMetaEl){
+    const _metaItems = [];
+    if(window.CU.city) _metaItems.push(`<span class="prof-meta-item">📍 <strong>${window.CU.city}${window.CU.country ? ', '+window.CU.country : ''}</strong></span>`);
+    else if(window.CU.country) _metaItems.push(`<span class="prof-meta-item">🌎 <strong>${window.CU.country}</strong></span>`);
+    if(window.CU.joined) _metaItems.push(`<span class="prof-meta-item">📅 Miembro desde <strong>${window.CU.joined}</strong></span>`);
+    _profMetaEl.innerHTML = _metaItems.join('');
+    _profMetaEl.style.display = _metaItems.length ? 'flex' : 'none';
+  }
   // Exclusivos verificados
   const _ab=document.getElementById('btnAnonMode'); if(_ab) _ab.style.display='none'; // Modo anónimo desactivado
   if(isVerified){ loadProfileVisitors(); } else { const _vc=document.getElementById('profVisitorsCard'); if(_vc)_vc.style.display='none'; }
@@ -17610,8 +17640,13 @@ async function _loadUserProfilePage(uid, nick){
     const lvl = getLevel(u.xp||0);
     document.getElementById('upLevel').innerHTML = '';
     document.getElementById('upBio').textContent = u.bio||'';
-    const meta = [u.country, u.favFish?'🎣 '+u.favFish:'', u.favMap?'📍 '+u.favMap:''].filter(Boolean).join(' · ');
-    document.getElementById('upMeta').textContent = meta;
+    // Meta info con iconos estilo Facebook
+    const metaParts = [];
+    if(u.city)    metaParts.push(`<span>📍 <strong>${u.city}${u.country ? ', '+u.country : ''}</strong></span>`);
+    else if(u.country) metaParts.push(`<span>🌎 <strong>${u.country}</strong></span>`);
+    if(u.favFish) metaParts.push(`<span>🎣 <strong>${u.favFish}</strong></span>`);
+    if(u.favMap)  metaParts.push(`<span>🗺️ <strong>${u.favMap}</strong></span>`);
+    document.getElementById('upMeta').innerHTML = metaParts.join('');
     // ── ÚLTIMA CONEXIÓN ──
     const lastSeenEl = document.getElementById('upLastSeen');
     if(lastSeenEl){
