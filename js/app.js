@@ -14228,7 +14228,18 @@ function openChatMenu(e, uid, nick, hasUnread, isArchived){
     btn.innerHTML = `<span style="font-size:1rem;">${item.icon}</span>${item.label}`;
     btn.onmouseover = ()=>btn.style.background='var(--bg3)';
     btn.onmouseout  = ()=>btn.style.background='none';
-    btn.onclick = (ev)=>{ ev.stopPropagation(); document.getElementById('chatContextMenu')?.remove(); new Function(item.fn)(); };
+    btn.onclick = (ev)=>{
+      ev.stopPropagation();
+      document.getElementById('chatContextMenu')?.remove();
+      const fnMap = {
+        [`archiveChat('${uid}','${safeNick}')`]:      ()=> typeof archiveChat      ==='function' && archiveChat(uid, safeNick),
+        [`unarchiveChat('${uid}')`]:                  ()=> typeof unarchiveChat    ==='function' && unarchiveChat(uid),
+        [`markChatRead('${uid}')`]:                   ()=> typeof markChatRead     ==='function' && markChatRead(uid),
+        [`markChatUnread('${uid}','${safeNick}')`]:   ()=> typeof markChatUnread   ==='function' && markChatUnread(uid, safeNick),
+        [`deleteChatConfirm('${uid}','${safeNick}')`]:()=> typeof deleteChatConfirm==='function' && deleteChatConfirm(uid, safeNick),
+      };
+      if(fnMap[item.fn]) fnMap[item.fn]();
+    };
     menu.appendChild(btn);
   });
 
