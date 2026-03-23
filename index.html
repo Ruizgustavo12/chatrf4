@@ -4097,31 +4097,30 @@
      SCRIPTS — al final del body, en orden de dependencia
      ═══════════════════════════════════════════ -->
 
-<!-- Firebase (type="module" porque usa ESM imports) -->
+<!-- Firebase — usa ESM imports, debe ir como module -->
 <script type="module" src="js/firebase.js"></script>
 
-<!-- Módulos principales -->
-<script type="module" src="js/trofeos.js"></script>
-<script type="module" src="js/stories.js"></script>
-<script type="module" src="js/posts.js"></script>
-<script type="module" src="js/comments.js"></script>
-<script type="module" src="js/profile.js"></script>
-<script type="module" src="js/messenger.js"></script>
-<script type="module" src="js/ui-utils.js"></script>
-<script type="module" src="js/reels.js"></script>
-<script type="module" src="js/admin.js"></script>
-
-<!-- Módulos de features específicas -->
-<script type="module" src="js/chat.js"></script>
-<script type="module" src="js/faq.js"></script>
-<script type="module" src="js/tienda.js"></script>
-<script type="module" src="js/traduccion.js"></script>
-<script type="module" src="js/menu-contextual.js"></script>
-<script type="module" src="js/autocomplete-peces.js"></script>
-<script type="module" src="js/ia-equipo.js"></script>
-<script type="module" src="js/ia-cafe.js"></script>
-<script type="module" src="js/youtube-upload.js"></script>
-<script type="module" src="js/admin-videos.js"></script>
+<!-- Resto de scripts — clásicos con variables globales, SIN type="module" -->
+<script src="js/app.js"></script>
+<script src="js/trofeos.js"></script>
+<script src="js/stories.js"></script>
+<script src="js/posts.js"></script>
+<script src="js/comments.js"></script>
+<script src="js/profile.js"></script>
+<script src="js/messenger.js"></script>
+<script src="js/ui-utils.js"></script>
+<script src="js/reels.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/faq.js"></script>
+<script src="js/tienda.js"></script>
+<script src="js/traduccion.js"></script>
+<script src="js/menu-contextual.js"></script>
+<script src="js/autocomplete-peces.js"></script>
+<script src="js/ia-equipo.js"></script>
+<script src="js/ia-cafe.js"></script>
+<script src="js/youtube-upload.js"></script>
+<script src="js/admin-videos.js"></script>
 
 </body>
 </html>
