@@ -27628,5 +27628,1045 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
 </script>
 <!-- ===== FIN ADMIN VIDEO MODERATION ===== -->
 
+<!-- =====================================================================
+     RF4 CHAT & VOZ MODULE — WikiPediaRF4.UY
+     Pegá todo este bloque ANTES de </body> en tu index.html
+     Requiere: Firebase ya inicializado (window.db, window.CU, window._fsLib)
+     ===================================================================== -->
+
+<!-- ═══════════════════════════════════════════════
+     ESTILOS DEL MÓDULO
+     ═══════════════════════════════════════════════ -->
+<style>
+/* ── Botón flotante para abrir el chat ── */
+#rf4ChatFab{
+  position:fixed;bottom:76px;right:18px;z-index:1200;
+  width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 18px rgba(46,196,182,.45);
+  transition:transform .2s,box-shadow .2s;
+  font-size:1.4rem;
+}
+#rf4ChatFab:hover{transform:scale(1.08);box-shadow:0 6px 24px rgba(46,196,182,.6);}
+#rf4ChatFab .fab-badge{
+  position:absolute;top:-2px;right:-2px;
+  background:var(--red);color:#fff;font-size:.55rem;font-weight:900;
+  min-width:18px;height:18px;border-radius:100px;padding:0 4px;
+  display:none;align-items:center;justify-content:center;
+  border:2px solid var(--bg);
+}
+
+/* ── Panel principal ── */
+#rf4ChatPanel{
+  position:fixed;bottom:76px;right:18px;z-index:1199;
+  width:360px;height:560px;max-height:80vh;
+  background:var(--bg2);border:1px solid var(--border);border-radius:14px;
+  display:none;flex-direction:column;overflow:hidden;
+  box-shadow:0 12px 48px rgba(0,0,0,.65);
+  animation:chatSlideIn .22s ease;
+}
+@media(max-width:480px){
+  #rf4ChatPanel{right:0;bottom:56px;width:100vw;height:100svh;max-height:100svh;border-radius:0;}
+}
+@keyframes chatSlideIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+#rf4ChatPanel.open{display:flex;}
+
+/* ── Header ── */
+.cv-header{
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg3);border-bottom:1px solid var(--border);
+  padding:10px 12px;flex-shrink:0;
+}
+.cv-header-title{font-family:'Orbitron',monospace;font-size:.82rem;font-weight:900;color:var(--accent);flex:1;}
+.cv-header-close{background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:4px;border-radius:6px;transition:color .15s;}
+.cv-header-close:hover{color:var(--red);}
+
+/* ── Tabs ── */
+.cv-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg3);}
+.cv-tab{flex:1;padding:9px 0;font-size:.74rem;font-weight:700;color:var(--muted);background:none;border:none;cursor:pointer;
+  font-family:'Exo 2',sans-serif;border-bottom:2px solid transparent;transition:all .15s;}
+.cv-tab:hover{color:var(--text);}
+.cv-tab.on{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* ── Vistas ── */
+.cv-view{display:none;flex-direction:column;flex:1;overflow:hidden;}
+.cv-view.on{display:flex;}
+
+/* ── Lista de canales (sidebar del canal) ── */
+.cv-channels-bar{
+  display:flex;gap:4px;padding:8px 10px;background:var(--bg3);
+  border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;
+}
+.cv-channels-bar::-webkit-scrollbar{height:2px;}
+.cv-ch-btn{
+  flex-shrink:0;padding:5px 10px;border-radius:100px;border:1px solid var(--border);
+  background:var(--bg4);color:var(--muted);font-size:.72rem;font-weight:700;cursor:pointer;
+  font-family:'Exo 2',sans-serif;transition:all .15s;white-space:nowrap;
+}
+.cv-ch-btn:hover{color:var(--text);}
+.cv-ch-btn.on{background:rgba(46,196,182,.15);border-color:var(--accent);color:var(--accent);}
+
+/* ── Mensajes ── */
+.cv-msgs{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;}
+.cv-msgs::-webkit-scrollbar{width:3px;}
+.cv-msg{display:flex;gap:8px;align-items:flex-start;}
+.cv-msg.mine{flex-direction:row-reverse;}
+.cv-msg-av{
+  width:28px;height:28px;border-radius:50%;flex-shrink:0;overflow:hidden;
+  background:var(--bg4);display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;font-weight:800;color:var(--accent);
+}
+.cv-msg-av img{width:100%;height:100%;object-fit:cover;}
+.cv-msg-bubble{
+  max-width:75%;background:var(--bg3);border:1px solid var(--border);
+  border-radius:12px;padding:7px 11px;font-size:.8rem;line-height:1.45;color:var(--text);
+}
+.cv-msg.mine .cv-msg-bubble{background:rgba(46,196,182,.14);border-color:rgba(46,196,182,.3);}
+.cv-msg-nick{font-size:.65rem;font-weight:700;color:var(--accent);margin-bottom:2px;}
+.cv-msg.mine .cv-msg-nick{text-align:right;color:var(--accent2);}
+.cv-msg-time{font-size:.58rem;color:var(--muted);margin-top:3px;}
+.cv-msg.mine .cv-msg-time{text-align:right;}
+.cv-msg-system{text-align:center;font-size:.7rem;color:var(--muted);padding:4px 0;font-style:italic;}
+
+/* ── Input de mensaje ── */
+.cv-input-bar{
+  display:flex;gap:8px;padding:10px 10px;border-top:1px solid var(--border);
+  background:var(--bg3);flex-shrink:0;align-items:center;
+}
+.cv-input{
+  flex:1;background:var(--bg4);border:1px solid var(--border);color:var(--text);
+  font-family:'Exo 2',sans-serif;font-size:.82rem;padding:8px 12px;
+  border-radius:100px;outline:none;transition:border-color .15s;
+}
+.cv-input:focus{border-color:var(--accent);}
+.cv-send-btn{
+  width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:1rem;flex-shrink:0;transition:transform .15s;
+}
+.cv-send-btn:hover{transform:scale(1.1);}
+
+/* ── Lista de DMs ── */
+.cv-dm-list{flex:1;overflow-y:auto;padding:8px;}
+.cv-dm-list::-webkit-scrollbar{width:3px;}
+.cv-dm-item{
+  display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;
+  cursor:pointer;transition:background .15s;
+}
+.cv-dm-item:hover{background:var(--bg3);}
+.cv-dm-item.on{background:rgba(46,196,182,.1);}
+.cv-dm-av{
+  width:36px;height:36px;border-radius:50%;overflow:hidden;background:var(--bg4);
+  display:flex;align-items:center;justify-content:center;font-size:.85rem;
+  font-weight:800;color:var(--accent);flex-shrink:0;position:relative;
+}
+.cv-dm-av img{width:100%;height:100%;object-fit:cover;}
+.cv-online-dot{
+  position:absolute;bottom:0;right:0;width:10px;height:10px;
+  background:var(--green);border-radius:50%;border:2px solid var(--bg2);
+}
+.cv-dm-info{flex:1;min-width:0;}
+.cv-dm-nick{font-size:.82rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cv-dm-preview{font-size:.7rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cv-dm-unread{
+  background:var(--red);color:#fff;font-size:.6rem;font-weight:900;
+  min-width:18px;height:18px;border-radius:100px;padding:0 4px;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* ── Back button en DM ── */
+.cv-back-btn{
+  background:none;border:none;color:var(--muted);font-size:.8rem;cursor:pointer;
+  padding:6px 10px;border-radius:8px;display:flex;align-items:center;gap:5px;
+  font-family:'Exo 2',sans-serif;font-weight:700;transition:color .15s;
+}
+.cv-back-btn:hover{color:var(--accent);}
+
+/* ── Barra de búsqueda DM ── */
+.cv-dm-search{
+  margin:8px 10px 4px;background:var(--bg4);border:1px solid var(--border);
+  color:var(--text);font-family:'Exo 2',sans-serif;font-size:.8rem;
+  padding:7px 12px;border-radius:100px;outline:none;width:calc(100% - 20px);
+  transition:border-color .15s;
+}
+.cv-dm-search:focus{border-color:var(--accent);}
+.cv-dm-search::placeholder{color:var(--muted);}
+
+/* ═══════════════════════════════════
+   PANEL DE LLAMADA DE VOZ
+   ═══════════════════════════════════ */
+#rf4VoicePanel{
+  position:fixed;bottom:76px;left:18px;z-index:1300;
+  width:300px;background:var(--bg2);border:1px solid rgba(46,196,182,.35);
+  border-radius:14px;overflow:hidden;
+  box-shadow:0 8px 36px rgba(0,0,0,.7);
+  display:none;flex-direction:column;
+  animation:chatSlideIn .22s ease;
+}
+#rf4VoicePanel.open{display:flex;}
+@media(max-width:480px){
+  #rf4VoicePanel{left:0;right:0;bottom:56px;width:100vw;border-radius:0;}
+}
+
+.vp-header{
+  background:linear-gradient(135deg,rgba(46,196,182,.15),rgba(46,196,182,.05));
+  border-bottom:1px solid rgba(46,196,182,.2);
+  padding:12px 14px;display:flex;align-items:center;gap:8px;
+}
+.vp-title{font-family:'Orbitron',monospace;font-size:.8rem;font-weight:900;color:var(--accent);flex:1;}
+.vp-room-tag{font-size:.65rem;background:rgba(46,196,182,.15);border:1px solid rgba(46,196,182,.3);
+  color:var(--accent);padding:3px 8px;border-radius:100px;font-family:'Exo 2',sans-serif;font-weight:700;}
+
+/* Partícipes en la llamada */
+.vp-participants{
+  display:flex;flex-wrap:wrap;gap:10px;padding:14px;justify-content:center;min-height:80px;
+}
+.vp-part{
+  display:flex;flex-direction:column;align-items:center;gap:5px;width:70px;
+}
+.vp-part-av{
+  width:48px;height:48px;border-radius:50%;background:var(--bg4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;font-weight:800;color:var(--accent);overflow:hidden;
+  border:2px solid var(--border);transition:border-color .2s;position:relative;
+}
+.vp-part-av img{width:100%;height:100%;object-fit:cover;}
+.vp-part-av.speaking{border-color:var(--accent);box-shadow:0 0 0 3px rgba(46,196,182,.3);}
+@keyframes voiceRing{0%,100%{box-shadow:0 0 0 3px rgba(46,196,182,.3)}50%{box-shadow:0 0 0 6px rgba(46,196,182,.15)}}
+.vp-part-av.speaking{animation:voiceRing 1s ease-in-out infinite;}
+.vp-part-nick{font-size:.65rem;color:var(--muted);text-align:center;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:70px;}
+.vp-part-muted::after{content:'🔇';position:absolute;bottom:-2px;right:-2px;font-size:.7rem;}
+
+/* Timer de la llamada */
+.vp-timer{text-align:center;font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;
+  color:var(--accent);padding:4px 0 10px;letter-spacing:2px;}
+
+/* Controles */
+.vp-controls{
+  display:flex;justify-content:center;gap:10px;padding:10px 14px 14px;
+  border-top:1px solid var(--border);background:var(--bg3);
+}
+.vp-btn{
+  width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:1.1rem;
+  transition:transform .15s,background .15s;background:var(--bg4);
+}
+.vp-btn:hover{transform:scale(1.08);}
+.vp-btn.active{background:rgba(46,196,182,.2);border:1.5px solid var(--accent);}
+.vp-btn.danger{background:rgba(248,81,73,.2);border:1.5px solid var(--red);}
+.vp-btn.danger:hover{background:rgba(248,81,73,.35);}
+
+/* Botón unirse a canal de voz */
+.cv-voice-join-btn{
+  display:flex;align-items:center;gap:8px;padding:8px 12px;
+  background:rgba(46,196,182,.08);border:1px solid rgba(46,196,182,.2);
+  border-radius:10px;cursor:pointer;margin:8px 10px;transition:background .15s;
+  font-size:.78rem;font-weight:700;color:var(--accent);font-family:'Exo 2',sans-serif;
+}
+.cv-voice-join-btn:hover{background:rgba(46,196,182,.15);}
+.cv-voice-in-channel{
+  display:flex;flex-wrap:wrap;gap:4px;padding:0 10px 8px;
+}
+.cv-voice-pip{
+  display:flex;align-items:center;gap:5px;background:var(--bg4);
+  border-radius:100px;padding:3px 8px;font-size:.65rem;color:var(--muted);
+}
+.cv-voice-pip-av{width:16px;height:16px;border-radius:50%;background:var(--bg3);
+  display:flex;align-items:center;justify-content:center;font-size:.5rem;color:var(--accent);overflow:hidden;}
+.cv-voice-pip-av img{width:100%;height:100%;object-fit:cover;}
+
+/* Notificación de llamada entrante */
+#rf4IncomingCall{
+  position:fixed;top:60px;right:18px;z-index:2000;
+  background:var(--bg2);border:1px solid var(--accent);border-radius:12px;
+  padding:14px 16px;width:280px;
+  box-shadow:0 8px 32px rgba(46,196,182,.3);
+  display:none;animation:chatSlideIn .2s ease;
+}
+#rf4IncomingCall.open{display:block;}
+.ic-title{font-size:.75rem;color:var(--muted);margin-bottom:4px;}
+.ic-caller{font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:10px;}
+.ic-btns{display:flex;gap:8px;}
+.ic-ans{flex:1;background:var(--green);color:#fff;border:none;border-radius:8px;padding:8px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;}
+.ic-dec{flex:1;background:var(--red);color:#fff;border:none;border-radius:8px;padding:8px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;}
+</style>
+
+<!-- ═══════════════════════════════════════════════
+     HTML DEL MÓDULO
+     ═══════════════════════════════════════════════ -->
+
+<!-- Botón flotante FAB -->
+<button id="rf4ChatFab" title="Chat & Voz" onclick="rf4Chat.toggle()">
+  💬
+  <span class="fab-badge" id="rf4ChatBadge">0</span>
+</button>
+
+<!-- Panel principal -->
+<div id="rf4ChatPanel">
+  <div class="cv-header">
+    <span style="font-size:1.1rem;">💬</span>
+    <div class="cv-header-title">Chat RF4</div>
+    <button class="cv-header-close" onclick="rf4Chat.toggle()" title="Cerrar">✕</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="cv-tabs">
+    <button class="cv-tab on" id="cvTabCanales" onclick="rf4Chat.showTab('canales')">📢 Canales</button>
+    <button class="cv-tab" id="cvTabDMs" onclick="rf4Chat.showTab('dms')">💬 Privados</button>
+    <button class="cv-tab" id="cvTabVoz" onclick="rf4Chat.showTab('voz')">🎙 Voz</button>
+  </div>
+
+  <!-- Vista: Canales -->
+  <div class="cv-view on" id="cvViewCanales">
+    <div class="cv-channels-bar" id="cvChannelBar"></div>
+    <div class="cv-msgs" id="cvChannelMsgs">
+      <div class="cv-msg-system">Seleccioná un canal 👆</div>
+    </div>
+    <div class="cv-input-bar">
+      <input class="cv-input" id="cvChannelInput" placeholder="Escribí un mensaje..." maxlength="500"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){rf4Chat.sendChannelMsg();event.preventDefault();}">
+      <button class="cv-send-btn" onclick="rf4Chat.sendChannelMsg()" title="Enviar">➤</button>
+    </div>
+  </div>
+
+  <!-- Vista: DMs -->
+  <div class="cv-view" id="cvViewDMs">
+    <!-- Lista de conversaciones -->
+    <div id="cvDmListView" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+      <input class="cv-dm-search" id="cvDmSearch" placeholder="🔍 Buscar usuario..." oninput="rf4Chat.filterDmList(this.value)">
+      <div class="cv-dm-list" id="cvDmList">
+        <div style="text-align:center;padding:24px;color:var(--muted);font-size:.8rem;">Cargando...</div>
+      </div>
+    </div>
+    <!-- Vista de conversación -->
+    <div id="cvDmChatView" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--border);background:var(--bg3);flex-shrink:0;">
+        <button class="cv-back-btn" onclick="rf4Chat.closeDmChat()">← Volver</button>
+        <div id="cvDmChatAvatar" class="cv-dm-av" style="width:28px;height:28px;font-size:.7rem;flex-shrink:0;"></div>
+        <div id="cvDmChatNick" style="font-size:.82rem;font-weight:700;color:var(--text);flex:1;"></div>
+        <button onclick="rf4Chat.callUser()" title="Llamada de voz"
+          style="background:none;border:none;cursor:pointer;font-size:1rem;padding:4px;color:var(--accent);">📞</button>
+      </div>
+      <div class="cv-msgs" id="cvDmMsgs"></div>
+      <div class="cv-input-bar">
+        <input class="cv-input" id="cvDmInput" placeholder="Mensaje privado..." maxlength="500"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){rf4Chat.sendDm();event.preventDefault();}">
+        <button class="cv-send-btn" onclick="rf4Chat.sendDm()">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vista: Voz -->
+  <div class="cv-view" id="cvViewVoz">
+    <div style="padding:12px 10px 6px;font-size:.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;">Canales de voz</div>
+    <div id="cvVozChannels"></div>
+    <div style="flex:1;"></div>
+    <div style="padding:10px;font-size:.7rem;color:var(--muted);text-align:center;line-height:1.6;">
+      🎙 Las llamadas de voz usan WebRTC directo.<br>No se graba nada. Solo necesitás micrófono.
+    </div>
+  </div>
+</div>
+
+<!-- Panel de llamada de voz activa -->
+<div id="rf4VoicePanel">
+  <div class="vp-header">
+    <span style="font-size:1.1rem;">🎙</span>
+    <div class="vp-title">En llamada</div>
+    <span class="vp-room-tag" id="vpRoomTag">General</span>
+  </div>
+  <div class="vp-timer" id="vpTimer">00:00</div>
+  <div class="vp-participants" id="vpParticipants"></div>
+  <div class="vp-controls">
+    <button class="vp-btn" id="vpMuteBtn" title="Silenciar" onclick="rf4Voice.toggleMute()">🎤</button>
+    <button class="vp-btn" id="vpDeafBtn" title="Ensordecer" onclick="rf4Voice.toggleDeaf()">🔊</button>
+    <button class="vp-btn danger" title="Colgar" onclick="rf4Voice.leave()">📵</button>
+  </div>
+</div>
+
+<!-- Notificación llamada entrante -->
+<div id="rf4IncomingCall">
+  <div class="ic-title">📞 Llamada entrante de</div>
+  <div class="ic-caller" id="icCallerName">—</div>
+  <div class="ic-btns">
+    <button class="ic-ans" onclick="rf4Voice.answerCall()">✅ Contestar</button>
+    <button class="ic-dec" onclick="rf4Voice.declineCall()">❌ Rechazar</button>
+  </div>
+</div>
+
+<!-- Audio elements (ocultos) -->
+<div id="rf4AudioContainer" style="display:none;"></div>
+
+<!-- ═══════════════════════════════════════════════
+     JAVASCRIPT DEL MÓDULO
+     ═══════════════════════════════════════════════ -->
+<script type="module">
+// ── Importar lo que ya tiene el sitio ────────────────────────────────────────
+import {
+  collection, doc, addDoc, onSnapshot, query,
+  orderBy, limit, serverTimestamp, setDoc, getDoc,
+  getDocs, updateDoc, where, deleteDoc
+} from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+
+// ── Esperar a que Firebase esté listo ───────────────────────────────────────
+function waitForFirebase(cb){
+  if(window.db && window.CU !== undefined){ cb(); return; }
+  const t = setInterval(()=>{
+    if(window.db){ clearInterval(t); cb(); }
+  }, 300);
+}
+
+// ═══════════════════════════════════════════════════════════
+// MÓDULO CHAT
+// ═══════════════════════════════════════════════════════════
+const rf4Chat = {
+
+  // ── Estado ──
+  open: false,
+  tab: 'canales',
+  currentChannel: null,
+  currentDmUid: null,
+  currentDmNick: '',
+  dmListUnsub: null,
+  channelUnsub: null,
+  dmUnsub: null,
+  unreadCounts: {},
+  totalUnread: 0,
+  dmFriends: [],
+
+  // ── Canales disponibles ──
+  channels: [
+    { id: 'general',     label: '🌐 General'    },
+    { id: 'trofeos',     label: '🏆 Trofeos'    },
+    { id: 'mapas',       label: '🗺 Mapas'      },
+    { id: 'equipo',      label: '🎣 Equipo'     },
+    { id: 'ayuda',       label: '🆘 Ayuda'      },
+    { id: 'off-topic',   label: '💬 Off-topic'  },
+  ],
+
+  // ── Toggle panel ──
+  toggle(){
+    this.open = !this.open;
+    const p = document.getElementById('rf4ChatPanel');
+    if(this.open){
+      p.classList.add('open');
+      if(!this.currentChannel) this.selectChannel('general');
+      if(this.tab === 'dms') this.loadDmList();
+    } else {
+      p.classList.remove('open');
+    }
+  },
+
+  // ── Cambiar tab ──
+  showTab(t){
+    this.tab = t;
+    ['canales','dms','voz'].forEach(id=>{
+      document.getElementById('cvTab'+id.charAt(0).toUpperCase()+id.slice(1)).classList.toggle('on', id===t);
+      document.getElementById('cvView'+id.charAt(0).toUpperCase()+id.slice(1)).classList.toggle('on', id===t);
+    });
+    if(t === 'dms') this.loadDmList();
+    if(t === 'voz') this.renderVozChannels();
+  },
+
+  // ── Renderizar barra de canales ──
+  renderChannelBar(){
+    const bar = document.getElementById('cvChannelBar');
+    bar.innerHTML = this.channels.map(c=>`
+      <button class="cv-ch-btn${this.currentChannel===c.id?' on':''}"
+        onclick="window.rf4Chat.selectChannel('${c.id}')">${c.label}</button>
+    `).join('');
+  },
+
+  // ── Seleccionar canal ──
+  selectChannel(id){
+    if(this.channelUnsub){ this.channelUnsub(); this.channelUnsub = null; }
+    this.currentChannel = id;
+    this.renderChannelBar();
+    const msgsEl = document.getElementById('cvChannelMsgs');
+    msgsEl.innerHTML = '<div class="cv-msg-system">Cargando...</div>';
+    // Limpiar unread de este canal
+    this.unreadCounts[id] = 0;
+    this.updateBadge();
+
+    if(!window.db){ return; }
+    const q = query(
+      collection(window.db, 'chatChannels', id, 'messages'),
+      orderBy('ts','asc'), limit(60)
+    );
+    this.channelUnsub = onSnapshot(q, snap=>{
+      msgsEl.innerHTML = '';
+      snap.forEach(d=> this._renderChannelMsg(msgsEl, d.data(), d.id));
+      msgsEl.scrollTop = msgsEl.scrollHeight;
+    });
+  },
+
+  // ── Renderizar mensaje de canal ──
+  _renderChannelMsg(container, data, id){
+    const mine = window.CU && data.uid === window.CU.id;
+    const div = document.createElement('div');
+    div.className = 'cv-msg' + (mine ? ' mine' : '');
+    const nick = this._esc(data.nick || 'Usuario');
+    const av = data.av
+      ? `<img src="${data.av}" alt="">`
+      : nick.charAt(0).toUpperCase();
+    const time = data.ts ? new Date(data.ts.toDate()).toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}) : '';
+    div.innerHTML = `
+      <div class="cv-msg-av">${av}</div>
+      <div>
+        <div class="cv-msg-nick">${nick}</div>
+        <div class="cv-msg-bubble">${this._esc(data.text)}</div>
+        <div class="cv-msg-time">${time}</div>
+      </div>`;
+    container.appendChild(div);
+  },
+
+  // ── Enviar mensaje en canal ──
+  async sendChannelMsg(){
+    if(!window.CU){ if(typeof toast==='function') toast('Tenés que estar logueado','err'); return; }
+    const inp = document.getElementById('cvChannelInput');
+    const text = (inp.value || '').trim();
+    if(!text || !this.currentChannel) return;
+    inp.value = '';
+    try{
+      await addDoc(collection(window.db, 'chatChannels', this.currentChannel, 'messages'),{
+        uid: window.CU.id,
+        nick: window.CU.nick || window.CU.displayName || 'Anónimo',
+        av: window.CU.av || '',
+        text,
+        ts: serverTimestamp()
+      });
+    }catch(e){ console.error('[Chat] Error enviando:', e); }
+  },
+
+  // ── Cargar lista de DMs (amigos / seguidores) ──
+  async loadDmList(){
+    if(!window.CU || !window.db){ return; }
+    const listEl = document.getElementById('cvDmList');
+    listEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:.78rem;">Cargando amigos...</div>';
+    try{
+      // Traer amigos del usuario (campo friends[] en su perfil)
+      const userDoc = await getDoc(doc(window.db, 'users', window.CU.id));
+      const userData = userDoc.exists() ? userDoc.data() : {};
+      const friends = userData.friends || [];
+      if(friends.length === 0){
+        // Si no tiene amigos cargados, mostrar todos los usuarios activos
+        const snap = await getDocs(query(collection(window.db,'users'), limit(30)));
+        this.dmFriends = [];
+        snap.forEach(d=>{
+          if(d.id !== window.CU.id) this.dmFriends.push({ uid: d.id, ...d.data() });
+        });
+      } else {
+        this.dmFriends = [];
+        for(const fid of friends.slice(0,40)){
+          try{
+            const fd = await getDoc(doc(window.db,'users',fid));
+            if(fd.exists()) this.dmFriends.push({ uid: fid, ...fd.data() });
+          }catch(e){}
+        }
+      }
+      this._renderDmList(this.dmFriends);
+    }catch(e){
+      listEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:.78rem;">No se pudo cargar. Reintentá.</div>';
+    }
+  },
+
+  // ── Renderizar lista de DMs ──
+  _renderDmList(users){
+    const listEl = document.getElementById('cvDmList');
+    if(users.length === 0){
+      listEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:.78rem;">No hay usuarios para mostrar.</div>';
+      return;
+    }
+    listEl.innerHTML = users.map(u=>{
+      const nick = this._esc(u.nick || u.displayName || 'Usuario');
+      const av = u.av ? `<img src="${u.av}" alt="">` : nick.charAt(0).toUpperCase();
+      const unread = this.unreadCounts['dm_'+u.uid] || 0;
+      return `<div class="cv-dm-item" onclick="window.rf4Chat.openDmChat('${u.uid}','${nick}','${u.av||''}')">
+        <div class="cv-dm-av">${av}<span class="cv-online-dot" style="display:${u.online?'block':'none'}"></span></div>
+        <div class="cv-dm-info">
+          <div class="cv-dm-nick">${nick}</div>
+          <div class="cv-dm-preview">${this._esc(u.country||'')} ${u.fish?'🎣 '+this._esc(u.fish):''}</div>
+        </div>
+        ${unread>0?`<div class="cv-dm-unread">${unread}</div>`:''}
+      </div>`;
+    }).join('');
+  },
+
+  // ── Filtrar lista DM ──
+  filterDmList(q){
+    if(!q){ this._renderDmList(this.dmFriends); return; }
+    const f = q.toLowerCase();
+    this._renderDmList(this.dmFriends.filter(u=>(u.nick||u.displayName||'').toLowerCase().includes(f)));
+  },
+
+  // ── Abrir chat privado ──
+  openDmChat(uid, nick, av){
+    if(this.dmUnsub){ this.dmUnsub(); this.dmUnsub = null; }
+    this.currentDmUid = uid;
+    this.currentDmNick = nick;
+    document.getElementById('cvDmListView').style.display = 'none';
+    const chatView = document.getElementById('cvDmChatView');
+    chatView.style.display = 'flex';
+    document.getElementById('cvDmChatNick').textContent = nick;
+    const avEl = document.getElementById('cvDmChatAvatar');
+    avEl.innerHTML = av ? `<img src="${av}" alt="">` : nick.charAt(0).toUpperCase();
+    const msgsEl = document.getElementById('cvDmMsgs');
+    msgsEl.innerHTML = '<div class="cv-msg-system">Cargando mensajes...</div>';
+    // Canal de DM: combinar IDs ordenados para ser único
+    const dmId = [window.CU.id, uid].sort().join('__');
+    const q2 = query(collection(window.db,'chatDMs',dmId,'messages'), orderBy('ts','asc'), limit(80));
+    this.dmUnsub = onSnapshot(q2, snap=>{
+      msgsEl.innerHTML = '';
+      snap.forEach(d=> this._renderChannelMsg(msgsEl, d.data(), d.id));
+      msgsEl.scrollTop = msgsEl.scrollHeight;
+    });
+    // Limpiar unread
+    this.unreadCounts['dm_'+uid] = 0;
+    this.updateBadge();
+  },
+
+  // ── Cerrar chat DM ──
+  closeDmChat(){
+    if(this.dmUnsub){ this.dmUnsub(); this.dmUnsub = null; }
+    this.currentDmUid = null;
+    document.getElementById('cvDmListView').style.display = 'flex';
+    document.getElementById('cvDmChatView').style.display = 'none';
+  },
+
+  // ── Enviar DM ──
+  async sendDm(){
+    if(!window.CU || !this.currentDmUid) return;
+    const inp = document.getElementById('cvDmInput');
+    const text = (inp.value||'').trim();
+    if(!text) return;
+    inp.value = '';
+    const dmId = [window.CU.id, this.currentDmUid].sort().join('__');
+    try{
+      await addDoc(collection(window.db,'chatDMs',dmId,'messages'),{
+        uid: window.CU.id,
+        nick: window.CU.nick || window.CU.displayName || 'Anónimo',
+        av: window.CU.av || '',
+        text,
+        ts: serverTimestamp()
+      });
+      // Actualizar meta del DM para notif
+      await setDoc(doc(window.db,'chatDMsMeta',dmId),{
+        uids: [window.CU.id, this.currentDmUid],
+        lastText: text,
+        lastNick: window.CU.nick || '?',
+        lastTs: serverTimestamp(),
+        [`unread_${this.currentDmUid}`]: (await this._getUnreadCount(dmId, this.currentDmUid)) + 1
+      }, { merge: true });
+    }catch(e){ console.error('[DM] Error:', e); }
+  },
+
+  async _getUnreadCount(dmId, uid){
+    try{
+      const d = await getDoc(doc(window.db,'chatDMsMeta',dmId));
+      return d.exists() ? (d.data()['unread_'+uid] || 0) : 0;
+    }catch(e){ return 0; }
+  },
+
+  // ── Escuchar nuevos DMs ──
+  startDmListener(){
+    if(!window.CU || !window.db) return;
+    // Escuchar metas donde hay unread para este usuario
+    const q2 = query(collection(window.db,'chatDMsMeta'), where('uids','array-contains', window.CU.id));
+    onSnapshot(q2, snap=>{
+      let total = this.totalUnread - Object.values(this.unreadCounts).filter((_,i)=>Object.keys(this.unreadCounts)[i].startsWith('dm_')).reduce((a,b)=>a+b,0);
+      snap.forEach(d=>{
+        const data = d.data();
+        const count = data['unread_'+window.CU.id] || 0;
+        const otherUid = data.uids.find(u=>u!==window.CU.id);
+        if(otherUid && this.currentDmUid !== otherUid){
+          this.unreadCounts['dm_'+otherUid] = count;
+          total += count;
+        }
+      });
+      this.totalUnread = Math.max(0, total);
+      this.updateBadge();
+    });
+  },
+
+  // ── Actualizar badge FAB ──
+  updateBadge(){
+    const total = Object.values(this.unreadCounts).reduce((a,b)=>a+b,0);
+    const badge = document.getElementById('rf4ChatBadge');
+    if(total > 0){
+      badge.textContent = total > 99 ? '99+' : total;
+      badge.style.display = 'flex';
+    } else {
+      badge.style.display = 'none';
+    }
+  },
+
+  // ── Renderizar canales de voz ──
+  renderVozChannels(){
+    const voiceChannels = [
+      { id: 'voz-general', label: '🔊 General' },
+      { id: 'voz-trofeos', label: '🏆 Trofeos Talk' },
+      { id: 'voz-amigos',  label: '🎣 Pesca en vivo' },
+    ];
+    const el = document.getElementById('cvVozChannels');
+    el.innerHTML = voiceChannels.map(c=>`
+      <div>
+        <button class="cv-voice-join-btn" onclick="window.rf4Voice.joinChannel('${c.id}','${c.label}')">
+          🎙 ${c.label} — Entrar
+        </button>
+        <div class="cv-voice-in-channel" id="voice_in_${c.id}"></div>
+      </div>
+    `).join('');
+    // Escuchar quiénes están en cada canal
+    voiceChannels.forEach(c=>{
+      onSnapshot(collection(window.db,'voiceChannels',c.id,'participants'), snap=>{
+        const el2 = document.getElementById('voice_in_'+c.id);
+        if(!el2) return;
+        const parts = [];
+        snap.forEach(d=> parts.push(d.data()));
+        el2.innerHTML = parts.map(p=>{
+          const av = p.av ? `<img src="${p.av}" alt="">` : (p.nick||'?').charAt(0).toUpperCase();
+          return `<div class="cv-voice-pip"><div class="cv-voice-pip-av">${av}</div>${this._esc(p.nick||'?')}</div>`;
+        }).join('');
+      });
+    });
+  },
+
+  // ── Iniciar llamada a usuario desde DM ──
+  callUser(){
+    if(!this.currentDmUid){ return; }
+    rf4Voice.startCall(this.currentDmUid, this.currentDmNick);
+  },
+
+  // ── Utilidad: escapar HTML ──
+  _esc(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); },
+
+  // ── Init ──
+  init(){
+    waitForFirebase(()=>{
+      this.renderChannelBar();
+      this.startDmListener();
+      // Marcar usuario como online
+      if(window.CU){
+        setDoc(doc(window.db,'users',window.CU.id),{ online: true, lastSeen: serverTimestamp() },{ merge: true }).catch(()=>{});
+        window.addEventListener('beforeunload',()=>{
+          setDoc(doc(window.db,'users',window.CU.id),{ online: false, lastSeen: serverTimestamp() },{ merge: true }).catch(()=>{});
+        });
+      }
+    });
+    // Escuchar cambios de auth
+    const check = setInterval(()=>{
+      if(window.CU && window.db){
+        clearInterval(check);
+        this.renderChannelBar();
+        this.startDmListener();
+      }
+    }, 1000);
+  }
+};
+
+// ═══════════════════════════════════════════════════════════
+// MÓDULO VOZ (WebRTC + Firebase Signaling)
+// ═══════════════════════════════════════════════════════════
+const rf4Voice = {
+
+  // ── Estado ──
+  inCall: false,
+  channelId: null,
+  channelLabel: '',
+  localStream: null,
+  peers: {},          // uid -> RTCPeerConnection
+  muted: false,
+  deaf: false,
+  participants: {},   // uid -> { nick, av, muted }
+  timerInterval: null,
+  timerSecs: 0,
+  signalUnsub: null,
+  participantsUnsub: null,
+  pendingCallUid: null,
+
+  // ── ICE config (STUN público gratuito) ──
+  iceConfig:{
+    iceServers:[
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun.cloudflare.com:3478'  }
+    ]
+  },
+
+  // ── Unirse a canal de voz ──
+  async joinChannel(channelId, label){
+    if(!window.CU){ if(typeof toast==='function') toast('Tenés que loguearte para unirte a voz','err'); return; }
+    if(this.inCall){ this.leave(); return; }
+    try{
+      this.localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    }catch(e){
+      if(typeof toast==='function') toast('No se pudo acceder al micrófono: '+e.message,'err');
+      return;
+    }
+    this.channelId = channelId;
+    this.channelLabel = label;
+    this.inCall = true;
+    this.timerSecs = 0;
+    // Mostrar panel de voz
+    document.getElementById('vpRoomTag').textContent = label;
+    document.getElementById('rf4VoicePanel').classList.add('open');
+    // Registrarse en Firestore
+    await setDoc(doc(window.db,'voiceChannels',channelId,'participants',window.CU.id),{
+      uid: window.CU.id, nick: window.CU.nick || '?', av: window.CU.av || '',
+      muted: false, joinedAt: serverTimestamp()
+    }).catch(()=>{});
+    // Escuchar participantes
+    this.participantsUnsub = onSnapshot(
+      collection(window.db,'voiceChannels',channelId,'participants'),
+      async snap=>{
+        const current = {};
+        snap.forEach(d=>{ current[d.id] = d.data(); });
+        // Conectar con nuevos
+        for(const uid in current){
+          if(uid !== window.CU.id && !this.peers[uid]){
+            await this._connectToPeer(uid, true);
+          }
+        }
+        // Desconectar salidos
+        for(const uid in this.peers){
+          if(!current[uid]){ this._removePeer(uid); }
+        }
+        this.participants = current;
+        this.renderParticipants();
+      }
+    );
+    // Escuchar señalización
+    this._listenSignals();
+    // Timer
+    this.timerInterval = setInterval(()=>{
+      this.timerSecs++;
+      const m = String(Math.floor(this.timerSecs/60)).padStart(2,'0');
+      const s = String(this.timerSecs%60).padStart(2,'0');
+      const t = document.getElementById('vpTimer');
+      if(t) t.textContent = m+':'+s;
+    }, 1000);
+    this.renderParticipants();
+    if(typeof toast === 'function') toast('🎙 Conectado a '+label,'ok');
+  },
+
+  // ── Crear y configurar RTCPeerConnection ──
+  async _connectToPeer(uid, isInitiator){
+    const pc = new RTCPeerConnection(this.iceConfig);
+    this.peers[uid] = pc;
+    // Añadir tracks locales
+    this.localStream.getTracks().forEach(t=> pc.addTrack(t, this.localStream));
+    // Recibir audio remoto
+    pc.ontrack = e=>{
+      let audio = document.getElementById('rf4audio_'+uid);
+      if(!audio){
+        audio = document.createElement('audio');
+        audio.id = 'rf4audio_'+uid;
+        audio.autoplay = true;
+        document.getElementById('rf4AudioContainer').appendChild(audio);
+      }
+      if(e.streams && e.streams[0]) audio.srcObject = e.streams[0];
+    };
+    // ICE candidates
+    pc.onicecandidate = async e=>{
+      if(e.candidate){
+        await addDoc(collection(window.db,'voiceChannels',this.channelId,'signals'),{
+          from: window.CU.id, to: uid, type: 'candidate', candidate: JSON.stringify(e.candidate), ts: serverTimestamp()
+        }).catch(()=>{});
+      }
+    };
+    if(isInitiator){
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      await addDoc(collection(window.db,'voiceChannels',this.channelId,'signals'),{
+        from: window.CU.id, to: uid, type: 'offer', sdp: offer.sdp, ts: serverTimestamp()
+      }).catch(()=>{});
+    }
+    return pc;
+  },
+
+  // ── Escuchar señalización ──
+  _listenSignals(){
+    if(this.signalUnsub){ this.signalUnsub(); }
+    const q2 = query(
+      collection(window.db,'voiceChannels',this.channelId,'signals'),
+      where('to','==',window.CU.id),
+      orderBy('ts','asc')
+    );
+    this.signalUnsub = onSnapshot(q2, snap=>{
+      snap.docChanges().forEach(async change=>{
+        if(change.type !== 'added') return;
+        const data = change.doc.data();
+        const from = data.from;
+        if(data.type === 'offer'){
+          let pc = this.peers[from];
+          if(!pc) pc = await this._connectToPeer(from, false);
+          await pc.setRemoteDescription({ type:'offer', sdp: data.sdp });
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          await addDoc(collection(window.db,'voiceChannels',this.channelId,'signals'),{
+            from: window.CU.id, to: from, type: 'answer', sdp: answer.sdp, ts: serverTimestamp()
+          }).catch(()=>{});
+        } else if(data.type === 'answer'){
+          const pc = this.peers[from];
+          if(pc && pc.signalingState !== 'stable'){
+            await pc.setRemoteDescription({ type:'answer', sdp: data.sdp }).catch(()=>{});
+          }
+        } else if(data.type === 'candidate'){
+          const pc = this.peers[from];
+          if(pc) await pc.addIceCandidate(JSON.parse(data.candidate)).catch(()=>{});
+        }
+        // Borrar señal procesada
+        deleteDoc(change.doc.ref).catch(()=>{});
+      });
+    });
+  },
+
+  // ── Remover peer ──
+  _removePeer(uid){
+    if(this.peers[uid]){ this.peers[uid].close(); delete this.peers[uid]; }
+    const audio = document.getElementById('rf4audio_'+uid);
+    if(audio) audio.remove();
+  },
+
+  // ── Iniciar llamada directa (DM) ──
+  async startCall(uid, nick){
+    if(!window.CU) return;
+    // Usar canal único
+    const dmId = 'dm__'+[window.CU.id, uid].sort().join('__');
+    // Notificar al otro usuario
+    await setDoc(doc(window.db,'voiceInvites',uid),{
+      from: window.CU.id, fromNick: window.CU.nick || '?', channelId: dmId, ts: serverTimestamp()
+    }).catch(()=>{});
+    await this.joinChannel(dmId, '📞 '+nick);
+    if(typeof toast==='function') toast('📞 Llamando a '+nick+'...','inf');
+  },
+
+  // ── Escuchar invitaciones entrantes ──
+  startInviteListener(){
+    if(!window.CU || !window.db) return;
+    onSnapshot(doc(window.db,'voiceInvites',window.CU.id), snap=>{
+      if(!snap.exists()) return;
+      const data = snap.data();
+      if(!data.from) return;
+      this.pendingCallUid = data.from;
+      this._pendingChannelId = data.channelId;
+      document.getElementById('icCallerName').textContent = data.fromNick || '?';
+      document.getElementById('rf4IncomingCall').classList.add('open');
+      // Auto-rechazar en 30s
+      setTimeout(()=>{ this.declineCall(); }, 30000);
+    });
+  },
+
+  // ── Contestar llamada ──
+  async answerCall(){
+    document.getElementById('rf4IncomingCall').classList.remove('open');
+    if(this._pendingChannelId){
+      await this.joinChannel(this._pendingChannelId, '📞 Llamada');
+    }
+    // Borrar invitación
+    if(window.CU) deleteDoc(doc(window.db,'voiceInvites',window.CU.id)).catch(()=>{});
+  },
+
+  // ── Rechazar llamada ──
+  async declineCall(){
+    document.getElementById('rf4IncomingCall').classList.remove('open');
+    if(window.CU) deleteDoc(doc(window.db,'voiceInvites',window.CU.id)).catch(()=>{});
+    this.pendingCallUid = null;
+    this._pendingChannelId = null;
+  },
+
+  // ── Silenciar mic ──
+  toggleMute(){
+    this.muted = !this.muted;
+    if(this.localStream) this.localStream.getAudioTracks().forEach(t=>{ t.enabled = !this.muted; });
+    document.getElementById('vpMuteBtn').textContent = this.muted ? '🔇' : '🎤';
+    document.getElementById('vpMuteBtn').classList.toggle('active', this.muted);
+    // Actualizar estado en Firestore
+    if(window.CU && this.channelId){
+      setDoc(doc(window.db,'voiceChannels',this.channelId,'participants',window.CU.id),{ muted: this.muted },{ merge: true }).catch(()=>{});
+    }
+  },
+
+  // ── Ensordecer (mute de audio remoto) ──
+  toggleDeaf(){
+    this.deaf = !this.deaf;
+    document.querySelectorAll('#rf4AudioContainer audio').forEach(a=>{ a.muted = this.deaf; });
+    document.getElementById('vpDeafBtn').textContent = this.deaf ? '🔇' : '🔊';
+    document.getElementById('vpDeafBtn').classList.toggle('active', this.deaf);
+  },
+
+  // ── Salir de la llamada ──
+  async leave(){
+    if(!this.inCall) return;
+    // Detener timer
+    clearInterval(this.timerInterval);
+    // Cerrar peers
+    Object.keys(this.peers).forEach(uid=> this._removePeer(uid));
+    this.peers = {};
+    // Detener stream
+    if(this.localStream){ this.localStream.getTracks().forEach(t=>t.stop()); this.localStream = null; }
+    // Borrar de Firestore
+    if(window.CU && this.channelId){
+      await deleteDoc(doc(window.db,'voiceChannels',this.channelId,'participants',window.CU.id)).catch(()=>{});
+    }
+    // Desuscribir
+    if(this.signalUnsub){ this.signalUnsub(); this.signalUnsub = null; }
+    if(this.participantsUnsub){ this.participantsUnsub(); this.participantsUnsub = null; }
+    this.inCall = false;
+    this.channelId = null;
+    this.muted = false;
+    this.deaf = false;
+    // Ocultar panel
+    document.getElementById('rf4VoicePanel').classList.remove('open');
+    if(typeof toast==='function') toast('👋 Saliste de la llamada','inf');
+  },
+
+  // ── Renderizar participantes en el panel de voz ──
+  renderParticipants(){
+    const el = document.getElementById('vpParticipants');
+    if(!el) return;
+    const parts = Object.values(this.participants);
+    if(parts.length === 0){
+      el.innerHTML = '<div style="color:var(--muted);font-size:.78rem;text-align:center;width:100%;padding:10px 0;">Esperando participantes...</div>';
+      return;
+    }
+    el.innerHTML = parts.map(p=>{
+      const nick = String(p.nick||'?').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+      const av = p.av ? `<img src="${p.av}" alt="">` : nick.charAt(0).toUpperCase();
+      const isMe = window.CU && p.uid === window.CU.id;
+      return `<div class="vp-part">
+        <div class="vp-part-av${p.muted?' vp-part-muted':''}">${av}</div>
+        <div class="vp-part-nick">${nick}${isMe?' (vos)':''}</div>
+      </div>`;
+    }).join('');
+  },
+
+  // ── Init ──
+  init(){
+    waitForFirebase(()=>{
+      this.startInviteListener();
+    });
+    const check = setInterval(()=>{
+      if(window.CU && window.db){ clearInterval(check); this.startInviteListener(); }
+    }, 1000);
+  }
+};
+
+// ── Exponer globalmente ──
+window.rf4Chat  = rf4Chat;
+window.rf4Voice = rf4Voice;
+
+// ── Arrancar ──
+rf4Chat.init();
+rf4Voice.init();
+
+// Reparar botón voz en DM chat (acceso al scope global)
+document.getElementById('cvViewDMs') && (() => {
+  // ya usa window.rf4Voice.callUser a través del onclick en el HTML
+})();
+</script>
+<!-- ===== FIN RF4 CHAT & VOZ MODULE ===== -->
+
 </body>
 </html>
