@@ -27946,8 +27946,10 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
         <button class="cv-back-btn" onclick="rf4Chat.closeDmChat()">← Volver</button>
         <div id="cvDmChatAvatar" class="cv-dm-av" style="width:28px;height:28px;font-size:.7rem;flex-shrink:0;"></div>
         <div id="cvDmChatNick" style="font-size:.82rem;font-weight:700;color:var(--text);flex:1;"></div>
-        <button onclick="rf4Chat.callUser()" title="Llamada de voz"
-          style="background:none;border:none;cursor:pointer;font-size:1rem;padding:4px;color:var(--accent);">📞</button>
+        <button onclick="window.rf4Chat.callUser()" title="Llamada de voz"
+          style="background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;cursor:pointer;font-size:.75rem;font-weight:800;padding:6px 12px;border-radius:100px;color:#000;font-family:'Exo 2',sans-serif;display:flex;align-items:center;gap:5px;">
+          📞 Llamar
+        </button>
       </div>
       <div class="cv-msgs" id="cvDmMsgs"></div>
       <div class="cv-input-bar">
@@ -27959,12 +27961,58 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
   </div>
 
   <!-- Vista: Voz -->
-  <div class="cv-view" id="cvViewVoz">
-    <div style="padding:12px 10px 6px;font-size:.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;">Canales de voz</div>
-    <div id="cvVozChannels"></div>
-    <div style="flex:1;"></div>
-    <div style="padding:10px;font-size:.7rem;color:var(--muted);text-align:center;line-height:1.6;">
-      🎙 Las llamadas de voz usan WebRTC directo.<br>No se graba nada. Solo necesitás micrófono.
+  <div class="cv-view" id="cvViewVoz" style="overflow-y:auto;">
+    <div style="padding:14px 12px 6px;font-size:.7rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;">🎙 Canales de voz — hacé click para entrar</div>
+
+    <!-- Botones de canales de voz: estáticos y siempre visibles -->
+    <div style="display:flex;flex-direction:column;gap:8px;padding:8px 10px;">
+
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+        <button onclick="window.rf4Voice.joinChannel('voz-general','🔊 General')"
+          style="width:100%;background:none;border:none;cursor:pointer;padding:12px 14px;display:flex;align-items:center;gap:10px;font-family:'Exo 2',sans-serif;color:var(--text);transition:background .15s;"
+          onmouseover="this.style.background='rgba(46,196,182,.08)'" onmouseout="this.style.background='none'">
+          <span style="font-size:1.4rem;">🔊</span>
+          <div style="flex:1;text-align:left;">
+            <div style="font-size:.85rem;font-weight:700;">General</div>
+            <div style="font-size:.68rem;color:var(--muted);">Canal de voz general</div>
+          </div>
+          <span style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;font-size:.7rem;font-weight:900;padding:5px 12px;border-radius:100px;">ENTRAR</span>
+        </button>
+        <div class="cv-voice-in-channel" id="voice_in_voz-general" style="padding:0 12px 8px;display:flex;flex-wrap:wrap;gap:4px;min-height:0;"></div>
+      </div>
+
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+        <button onclick="window.rf4Voice.joinChannel('voz-trofeos','🏆 Trofeos Talk')"
+          style="width:100%;background:none;border:none;cursor:pointer;padding:12px 14px;display:flex;align-items:center;gap:10px;font-family:'Exo 2',sans-serif;color:var(--text);transition:background .15s;"
+          onmouseover="this.style.background='rgba(46,196,182,.08)'" onmouseout="this.style.background='none'">
+          <span style="font-size:1.4rem;">🏆</span>
+          <div style="flex:1;text-align:left;">
+            <div style="font-size:.85rem;font-weight:700;">Trofeos Talk</div>
+            <div style="font-size:.68rem;color:var(--muted);">Charlá sobre tus trofeos</div>
+          </div>
+          <span style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;font-size:.7rem;font-weight:900;padding:5px 12px;border-radius:100px;">ENTRAR</span>
+        </button>
+        <div class="cv-voice-in-channel" id="voice_in_voz-trofeos" style="padding:0 12px 8px;display:flex;flex-wrap:wrap;gap:4px;min-height:0;"></div>
+      </div>
+
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+        <button onclick="window.rf4Voice.joinChannel('voz-amigos','🎣 Pesca en vivo')"
+          style="width:100%;background:none;border:none;cursor:pointer;padding:12px 14px;display:flex;align-items:center;gap:10px;font-family:'Exo 2',sans-serif;color:var(--text);transition:background .15s;"
+          onmouseover="this.style.background='rgba(46,196,182,.08)'" onmouseout="this.style.background='none'">
+          <span style="font-size:1.4rem;">🎣</span>
+          <div style="flex:1;text-align:left;">
+            <div style="font-size:.85rem;font-weight:700;">Pesca en vivo</div>
+            <div style="font-size:.68rem;color:var(--muted);">Coordiná partidas con amigos</div>
+          </div>
+          <span style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;font-size:.7rem;font-weight:900;padding:5px 12px;border-radius:100px;">ENTRAR</span>
+        </button>
+        <div class="cv-voice-in-channel" id="voice_in_voz-amigos" style="padding:0 12px 8px;display:flex;flex-wrap:wrap;gap:4px;min-height:0;"></div>
+      </div>
+
+    </div>
+
+    <div style="padding:12px 10px;font-size:.7rem;color:var(--muted);text-align:center;line-height:1.7;margin-top:4px;">
+      🎙 WebRTC directo · sin grabación · necesitás micrófono
     </div>
   </div>
 </div>
@@ -28661,10 +28709,28 @@ window.rf4Voice = rf4Voice;
 rf4Chat.init();
 rf4Voice.init();
 
-// Reparar botón voz en DM chat (acceso al scope global)
-document.getElementById('cvViewDMs') && (() => {
-  // ya usa window.rf4Voice.callUser a través del onclick en el HTML
-})();
+// Iniciar listeners de participantes de voz inmediatamente
+waitForFirebase(()=>{
+  const vozChs = ['voz-general','voz-trofeos','voz-amigos'];
+  vozChs.forEach(cid=>{
+    onSnapshot(collection(window.db,'voiceChannels',cid,'participants'), snap=>{
+      const el = document.getElementById('voice_in_'+cid);
+      if(!el) return;
+      const parts = [];
+      snap.forEach(d=> parts.push(d.data()));
+      el.innerHTML = parts.length === 0
+        ? ''
+        : parts.map(p=>{
+            const av = p.av ? `<img src="${p.av}" style="width:100%;height:100%;object-fit:cover;" alt="">` : (p.nick||'?').charAt(0).toUpperCase();
+            return `<div style="display:flex;align-items:center;gap:5px;background:rgba(46,196,182,.1);border:1px solid rgba(46,196,182,.2);border-radius:100px;padding:3px 8px;font-size:.65rem;color:var(--accent);">
+              <div style="width:16px;height:16px;border-radius:50%;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:.5rem;overflow:hidden;">${av}</div>
+              ${String(p.nick||'?').replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+              ${p.muted?'🔇':''}
+            </div>`;
+          }).join('');
+    });
+  });
+});
 </script>
 <!-- ===== FIN RF4 CHAT & VOZ MODULE ===== -->
 
