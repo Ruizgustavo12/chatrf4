@@ -27634,5 +27634,196 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
 </script>
 <!-- ===== FIN ADMIN VIDEO MODERATION ===== -->
 
+<!-- ===== PUBLICACIÓN AUTOMÁTICA GANADORES RANKING SEMANAL ===== -->
+<script>
+(function(){
+'use strict';
+
+// ── Constantes ───────────────────────────────────────────────────────────────
+const RANKING_POST_KEY  = 'rf4_ranking_post_fired'; // localStorage key
+const WINDOW_MINUTES    = 30;   // ventana de detección tras el reset (30 min)
+const BOT_USER_ID       = 'sistema_rf4';
+const BOT_NICK          = 'WikiRF4.UY';
+const BOT_AV            = 'https://wikipediarf4.uy/og-image.png';
+const MEDALS            = ['🥇','🥈','🥉'];
+
+// ── Calcular inicio de la semana anterior ────────────────────────────────────
+function getPrevWeekRange(){
+  const { mon: thisStart } = getRankWeekRange();
+  const prevEnd   = new Date(thisStart.getTime() - 1);
+  const prevStart = new Date(thisStart.getTime() - 7*24*60*60*1000);
+  return { start: prevStart, end: prevEnd };
+}
+
+// ── Verificar si estamos en la ventana del reset ─────────────────────────────
+function isInResetWindow(){
+  const now   = new Date();
+  const nowUY = new Date(now.getTime() - 3*60*60*1000);
+  const day   = nowUY.getUTCDay();   // 0 = domingo
+  const hour  = nowUY.getUTCHours();
+  const min   = nowUY.getUTCMinutes();
+  const totalMin = hour * 60 + min;
+  const resetMin = 16 * 60; // 16:00 UY
+  return day === 0 && totalMin >= resetMin && totalMin < (resetMin + WINDOW_MINUTES);
+}
+
+// ── Clave única por semana para evitar doble publicación ─────────────────────
+function getWeekKey(){
+  const { start } = getPrevWeekRange();
+  return RANKING_POST_KEY + '_' + start.toISOString().slice(0,10);
+}
+
+// ── Obtener Top 3 de la semana anterior ──────────────────────────────────────
+async function fetchPrevTop3(){
+  const { start, end } = getPrevWeekRange();
+
+  // Cargar usuarios
+  const usersSnap = await getDocs(collection(db,'users'));
+  const users = {};
+  usersSnap.docs.forEach(d=>{ users[d.id]=d.data(); });
+
+  const isExcluded = uid => {
+    const u = users[uid]; if(!u) return false;
+    return EXCLUDED_FROM_RANKING.includes(u.nick)
+        || EXCLUDED_FROM_RANKING.includes(u.nickLower)
+        || EXCLUDED_EMAILS_RANKING.includes(u.email)
+        || u.role==='admin';
+  };
+
+  const getT = x => x?.toDate ? x.toDate() : (x?.toMillis ? new Date(x.toMillis()) : new Date(x||0));
+  const inRange = t => t >= start && t <= end;
+
+  // Cargar trofeos de la semana anterior
+  const trofSnap = await getDocs(query(
+    collection(db,'trofeosPendientes'),
+    where('status','==','approved'),
+    limit(500)
+  ));
+
+  const counts = {}, weights = {};
+  trofSnap.docs.forEach(d=>{
+    const t = d.data();
+    const uid = t.userId || t.uid;
+    if(!uid || isExcluded(uid) || !inRange(getT(t.createdAt))) return;
+    counts[uid]  = (counts[uid]||0) + 1;
+    weights[uid] = (weights[uid]||0) + parseFloat(t.weight||t.peso||0);
+  });
+
+  // Ordenar por trofeos (modo principal)
+  const ranking = Object.entries(counts)
+    .map(([uid, tc]) => ({ uid, tc, kg: weights[uid]||0 }))
+    .sort((a,b) => b.tc - a.tc || b.kg - a.kg);
+
+  // Enriquecer con datos de usuario
+  return ranking.slice(0,3).map((r,i) => {
+    const u = users[r.uid] || {};
+    return {
+      pos:  i+1,
+      uid:  r.uid,
+      nick: u.nick || u.displayName || '?',
+      tc:   r.tc,
+      kg:   r.kg.toFixed(2),
+    };
+  });
+}
+
+// ── Construir texto del post ─────────────────────────────────────────────────
+function buildPostText(top3, weekStart){
+  const desde = weekStart.toLocaleDateString('es',{day:'numeric',month:'long',timeZone:'America/Montevideo'});
+  let txt = `🏆 ¡Finalizó la semana del ${desde} en WikiRF4.UY!\n\n`;
+  txt += `🎣 Estos son los campeones del ranking semanal:\n\n`;
+  top3.forEach(u=>{
+    txt += `${MEDALS[u.pos-1]} ${u.pos}° lugar — @${u.nick} · ${u.tc} trofeo${u.tc!==1?'s':''} (${u.kg} kg)\n`;
+  });
+  txt += `\n¡Felicitaciones a todos los participantes! La nueva semana ya comenzó. 💪🔥\n\n#WikiRF4 #RankingSemanal #RussianFishing4`;
+  return txt;
+}
+
+// ── Publicar el post en Firestore ────────────────────────────────────────────
+async function publishRankingPost(top3, weekStart){
+  const text = buildPostText(top3, weekStart);
+  const tagged = top3.map(u=>({ id:u.uid, nick:u.nick, av:'' }));
+
+  const ref = await addDoc(collection(db,'posts'),{
+    userId:      BOT_USER_ID,
+    userNick:    BOT_NICK,
+    userAv:      BOT_AV,
+    userVerified: true,
+    text,
+    taggedPeople: tagged,
+    isRankingPost: true,
+    rankingWeek:  weekStart.toISOString().slice(0,10),
+    fish:'', weight:'', map:'', tech:'',
+    images:[], video:null, link:null, feeling:null,
+    time: serverTimestamp(),
+    likes:0, comments:[], reactions:{}, reactionCounts:{}
+  });
+
+  // Notificar a cada ganador
+  for(const u of top3){
+    if(u.uid === BOT_USER_ID) continue;
+    try{
+      await sendNotifToUserWithPost(
+        u.uid,
+        `🏆 ¡Quedaste ${MEDALS[u.pos-1]} en el ranking semanal de WikiRF4! Felicitaciones 🎣`,
+        ref.id
+      );
+    }catch(e){ console.warn('notif ranking:', e); }
+  }
+
+  console.log('[RF4 Ranking] Post de ganadores publicado:', ref.id);
+}
+
+// ── Función principal — se ejecuta al cargar ─────────────────────────────────
+async function checkAndFireRankingPost(){
+  // Esperar a que Firebase esté listo
+  if(!window.db || !window.addDoc){
+    setTimeout(checkAndFireRankingPost, 3000);
+    return;
+  }
+
+  if(!isInResetWindow()) return;
+
+  const key = getWeekKey();
+  if(localStorage.getItem(key)) return; // ya se publicó esta semana
+
+  // Marcar ANTES de publicar para evitar doble disparo en otras pestañas
+  localStorage.setItem(key, '1');
+
+  try{
+    const top3 = await fetchPrevTop3();
+    if(!top3.length){
+      console.log('[RF4 Ranking] Sin datos para publicar ganadores.');
+      return;
+    }
+    const { start } = getPrevWeekRange();
+    await publishRankingPost(top3, start);
+  }catch(e){
+    // Si falla, remover la marca para que pueda reintentarse
+    localStorage.removeItem(key);
+    console.error('[RF4 Ranking] Error al publicar ganadores:', e);
+  }
+}
+
+// Ejecutar 5 segundos después del load para asegurar que Firebase esté inicializado
+window.addEventListener('load', ()=> setTimeout(checkAndFireRankingPost, 5000));
+
+// Exponer para pruebas manuales desde consola: testRankingPost()
+window.testRankingPost = async function(){
+  console.log('[RF4 Ranking] Ejecutando test manual...');
+  try{
+    const top3 = await fetchPrevTop3();
+    console.log('[RF4 Ranking] Top 3 encontrado:', top3);
+    if(!top3.length){ console.warn('Sin datos.'); return; }
+    const { start } = getPrevWeekRange();
+    await publishRankingPost(top3, start);
+    console.log('[RF4 Ranking] ✅ Post publicado en modo test.');
+  }catch(e){ console.error(e); }
+};
+
+})();
+</script>
+<!-- ===== FIN PUBLICACIÓN AUTOMÁTICA RANKING SEMANAL ===== -->
+
 </body>
 </html>
