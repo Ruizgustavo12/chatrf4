@@ -27825,5 +27825,142 @@ window.testRankingPost = async function(){
 </script>
 <!-- ===== FIN PUBLICACIÓN AUTOMÁTICA RANKING SEMANAL ===== -->
 
+<!-- ===== LIMPIEZA AUTOMÁTICA SEMANAL (POSTS + IMÁGENES CLOUDINARY) ===== -->
+<script>
+(function(){
+'use strict';
+
+const CLEANUP_KEY         = 'rf4_cleanup_last_run';
+const CLEANUP_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000; // 7 días
+const POST_MAX_AGE_MS     = 7 * 24 * 60 * 60 * 1000; // borrar posts > 7 días
+const CLOUDINARY_CLOUD    = 'da0n5tg3g';
+const CLOUDINARY_API_KEY  = '761146859697835';
+const CLOUDINARY_SECRET   = 'bPb9nh0TSTOe0RtGhpZdYZTTe7I';
+
+// ── Extraer public_id de una URL de Cloudinary ──────────────────────────────
+// Ejemplo URL: https://res.cloudinary.com/da0n5tg3g/image/upload/v123/posts/abc.jpg
+// public_id  : posts/abc
+function extractPublicId(url) {
+  try {
+    const match = url.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[a-z0-9]+)?$/i);
+    return match ? match[1] : null;
+  } catch(e) { return null; }
+}
+
+// ── Borrar imagen de Cloudinary vía API firmada ─────────────────────────────
+async function deleteFromCloudinary(publicId) {
+  try {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const strToSign = `public_id=${publicId}&timestamp=${timestamp}${CLOUDINARY_SECRET}`;
+
+    // SHA-1 en el browser
+    const msgBuffer  = new TextEncoder().encode(strToSign);
+    const hashBuffer = await crypto.subtle.digest('SHA-1', msgBuffer);
+    const hashArray  = Array.from(new Uint8Array(hashBuffer));
+    const signature  = hashArray.map(b => b.toString(16).padStart(2,'0')).join('');
+
+    const form = new FormData();
+    form.append('public_id', publicId);
+    form.append('timestamp',  timestamp);
+    form.append('api_key',    CLOUDINARY_API_KEY);
+    form.append('signature',  signature);
+
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/destroy`,
+      { method: 'POST', body: form }
+    );
+    const data = await res.json();
+    return data.result === 'ok';
+  } catch(e) {
+    console.warn('[RF4 Cleanup] Error borrando de Cloudinary:', e);
+    return false;
+  }
+}
+
+// ── Borrar un post y sus imágenes ───────────────────────────────────────────
+async function deletePost(docId, images) {
+  try {
+    // 1. Borrar imágenes de Cloudinary
+    if (images && images.length) {
+      for (const url of images) {
+        if (typeof url === 'string' && url.includes('cloudinary.com')) {
+          const pid = extractPublicId(url);
+          if (pid) {
+            const ok = await deleteFromCloudinary(pid);
+            console.log(`[RF4 Cleanup] Cloudinary ${pid}: ${ok ? '✅ borrada' : '⚠️ falló'}`);
+          }
+        }
+      }
+    }
+    // 2. Borrar documento de Firestore
+    await deleteDoc(doc(db, 'posts', docId));
+    console.log(`[RF4 Cleanup] Post ${docId} borrado de Firestore ✅`);
+  } catch(e) {
+    console.warn('[RF4 Cleanup] Error borrando post:', docId, e);
+  }
+}
+
+// ── Función principal de limpieza ───────────────────────────────────────────
+async function runCleanup() {
+  // Esperar Firebase
+  if (!window.db || !window.getDocs || !window.deleteDoc || !window.doc) {
+    setTimeout(runCleanup, 4000);
+    return;
+  }
+
+  // Solo admins ejecutan la limpieza para no generar carga en todos los clientes
+  if (!window.CU || window.CU.role !== 'admin') return;
+
+  // No correr más de una vez por semana
+  const lastRun = parseInt(localStorage.getItem(CLEANUP_KEY) || '0', 10);
+  if (Date.now() - lastRun < CLEANUP_INTERVAL_MS) return;
+  localStorage.setItem(CLEANUP_KEY, Date.now().toString());
+
+  console.log('[RF4 Cleanup] 🧹 Iniciando limpieza de posts > 7 días...');
+
+  try {
+    const cutoff   = new Date(Date.now() - POST_MAX_AGE_MS);
+    const snap     = await getDocs(
+      query(
+        collection(db, 'posts'),
+        where('time', '<', cutoff),
+        limit(100)  // procesar de a 100 para no bloquear
+      )
+    );
+
+    if (snap.empty) {
+      console.log('[RF4 Cleanup] No hay posts viejos para borrar.');
+      return;
+    }
+
+    console.log(`[RF4 Cleanup] Encontrados ${snap.size} posts para borrar.`);
+    for (const d of snap.docs) {
+      const data = d.data();
+      // Nunca borrar posts del ranking ni posts fijados
+      if (data.isRankingPost || data.pinned) continue;
+      await deletePost(d.id, data.images || []);
+    }
+    console.log('[RF4 Cleanup] ✅ Limpieza completada.');
+  } catch(e) {
+    console.error('[RF4 Cleanup] Error general:', e);
+    // Si falla, resetear para que reintente la próxima visita
+    localStorage.removeItem(CLEANUP_KEY);
+  }
+}
+
+// Ejecutar 10 segundos después del load para asegurar que Firebase y el usuario estén listos
+window.addEventListener('load', () => setTimeout(runCleanup, 10000));
+
+// Exponer para pruebas manuales desde consola: testCleanup()
+window.testCleanup = async function() {
+  localStorage.removeItem(CLEANUP_KEY);
+  console.log('[RF4 Cleanup] Ejecutando test manual...');
+  await runCleanup();
+};
+
+})();
+</script>
+<!-- ===== FIN LIMPIEZA AUTOMÁTICA SEMANAL ===== -->
+
 </body>
 </html>
