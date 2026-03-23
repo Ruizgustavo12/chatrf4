@@ -23548,7 +23548,7 @@ window.wkSubmitTrophy = async () => {
     }catch(e){ console.warn('No se pudo actualizar config/lastTrophy:',e); }
     // Actualizar contador de trofeos del usuario
     try{ await updateDoc(doc(db,'users',window.CU.id),{trophyCount:increment(1)}); }catch(e){}
-    // ── AUTO PREMIUM 15 DÍAS: si llega a 5 trofeos aprobados ──
+    // ── AUTO PREMIUM 15 DÍAS: si llega a 15 trofeos aprobados ──
     try{
       if(window.CU.role !== 'premium'){
         const _tSnap = await getDocs(query(
@@ -23556,18 +23556,30 @@ window.wkSubmitTrophy = async () => {
           where('userId','==',window.CU.id),
           where('status','==','approved')
         ));
-        if(_tSnap.size >= 5){
+        if(_tSnap.size >= 15){
           const _premExpiry = new Date();
           _premExpiry.setDate(_premExpiry.getDate() + 15);
           await updateDoc(doc(db,'users',window.CU.id),{
             role: 'premium',
             premiumSince: new Date().toISOString(),
             premiumExpiry: _premExpiry.toISOString(),
-            premiumReason: 'auto_5trofeos'
+            premiumReason: 'auto_15trofeos'
           });
           window.CU.role = 'premium';
+          // Notificación interna al usuario
+          try{
+            await addDoc(collection(db,'notifications'),{
+              toUid: window.CU.id,
+              fromId: 'system',
+              fromNick: 'WikiPediaRF4.UY',
+              type: 'premium',
+              text: '⭐🏆 ¡Tu cuenta fue actualizada a Premium! Publicaste 15 trofeos en la comunidad y te ganaste 15 días de Premium gratis. ¡Gracias por contribuir a WikiPediaRF4.UY! 🎣',
+              time: serverTimestamp(),
+              read: false
+            });
+          }catch(e2){ console.warn('Notif premium error:',e2); }
           setTimeout(function(){
-            toast('🏆⭐ ¡Felicitaciones! Por compartir 5 trofeos ganaste 15 días de Premium gratis. Al vencer podés renovarlo por $1/mes 🎣','ok');
+            toast('🏆⭐ ¡Felicitaciones! Por compartir 15 trofeos ganaste 15 días de Premium gratis. Al vencer podés renovarlo por $1/mes 🎣','ok');
           }, 1200);
         }
       }
