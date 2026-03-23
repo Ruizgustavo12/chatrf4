@@ -13324,7 +13324,16 @@ function closeMusicPlayer(){
 
 // ===== EXPOSE TO HTML — sobreescribe los stubs =====
 const _expose = {
-  doLogin,doReg,doGoogleLogin,showReg,showLogin,showTerms,closeTerms,acceptTermsAndRegister,
+  // Estas funciones vienen de firebase.js — se asignan como proxies lazy
+  get doLogin(){ return window._fbDoLogin; },
+  get doReg(){ return window._fbDoReg; },
+  get doGoogleLogin(){ return window._fbDoGoogleLogin; },
+  get showReg(){ return window._fbShowReg; },
+  get showLogin(){ return window._fbShowLogin; },
+  get showTerms(){ return window._fbShowTerms; },
+  get closeTerms(){ return window._fbCloseTerms; },
+  get acceptTermsAndRegister(){ return window._fbAcceptTerms; },
+  get renderShopPage(){ return window._fbRenderShopPage; },
   submitPost,submitStory,submitComment,toggleLinkInput,clearPostLink,debounceLinkPreview,fetchLinkPreview,_autoLinkDetect,handleMentionInput,insertMention,searchMentionedUser,handlePostMentionInput,insertPostMention,focusPostTextAndAt,
   doReact,quickReact,
   togglePassVis, maskEmail, startEmailChange, cancelEmailChange, sendVerifEmailForChange, confirmEmailChange,

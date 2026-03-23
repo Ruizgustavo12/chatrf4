@@ -1246,3 +1246,14 @@ window.gp = (id, pushState = true) => {
 function setNav(el){ document.querySelectorAll('.tb-nav-btn').forEach(b=>b.classList.remove('on')); el.classList.add('on'); }
 window.setNav = setNav;
 
+
+// Exponer funciones para app.js (evitar ReferenceError por carga asíncrona)
+window._fbDoLogin              = doLogin;
+window._fbDoReg                = doReg;
+window._fbDoGoogleLogin        = doGoogleLogin;
+window._fbShowReg              = showReg;
+window._fbShowLogin            = showLogin;
+window._fbShowTerms            = showTerms;
+window._fbCloseTerms           = closeTerms;
+window._fbAcceptTerms          = acceptTermsAndRegister;
+window._fbRenderShopPage       = renderShopPage;
