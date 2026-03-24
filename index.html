@@ -5191,6 +5191,10 @@ document.addEventListener('DOMContentLoaded', function(){
     </div>
     <button onclick="openCreateRoomModal()" id="createRoomBtn" style="display:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;border:none;border-radius:8px;padding:9px 20px;font-family:'Exo 2',sans-serif;font-size:.85rem;font-weight:800;cursor:pointer;">+ Crear Sala</button>
   </div>
+  <!-- Aviso reglas Firestore — solo admin ve esto si hay error -->
+  <div id="vrFirestoreWarning" style="display:none;background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.3);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:.78rem;color:var(--red);">
+    ⚠️ <strong>Falta configurar Firestore:</strong> Agregá en las reglas de seguridad permisos para <code>voiceRooms</code> y su subcolección <code>voiceSignals</code>.
+  </div>
   <!-- Lista de salas -->
   <div id="voiceRoomsList">
     <div style="text-align:center;padding:60px 20px;color:var(--muted);">
@@ -28027,15 +28031,36 @@ function renderVoiceRooms(rooms){
 }
 // ── Cargar salas en tiempo real ───────────────────────────────────────────────
 function listenVoiceRooms(){
-  if(!window.db || !window.onSnapshot) return;
+  if(!window.db || !window.onSnapshot){
+    setTimeout(listenVoiceRooms, 800); return;
+  }
+
+  // Mostrar botón crear sala si está logueado
+  const createBtn = document.getElementById('createRoomBtn');
+  if(createBtn) createBtn.style.display = window.CU ? 'block' : 'none';
+
   if(_vrRoomsUnsub) _vrRoomsUnsub();
+
+  // Sin orderBy para evitar requerir índice compuesto — ordenamos en JS
   _vrRoomsUnsub = onSnapshot(
-    query(collection(db, VR_COL), orderBy('createdAt','asc')),
+    collection(db, VR_COL),
     snap => {
-      const rooms = snap.docs.map(d => ({id:d.id, ...d.data()}));
+      const rooms = snap.docs
+        .map(d => ({id:d.id, ...d.data()}))
+        .sort((a,b) => {
+          const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt||0);
+          const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt||0);
+          return ta - tb;
+        });
       renderVoiceRooms(rooms);
     },
-    err => vrErr('listenVoiceRooms:', err)
+    err => {
+      vrErr('listenVoiceRooms:', err);
+      // Mostrar aviso si hay error de permisos
+      const warn = document.getElementById('vrFirestoreWarning');
+      if(warn) warn.style.display = 'block';
+      renderVoiceRooms([]);
+    }
   );
 }
 
@@ -28367,11 +28392,15 @@ const _origGp = window.gp;
 window.gp = function(page, ...args){
   if(page === 'voice-rooms'){
     const r = _origGp ? _origGp(page, ...args) : null;
-    if(window.db && window.onSnapshot && window.orderBy){
-      listenVoiceRooms();
-    } else {
-      setTimeout(listenVoiceRooms, 1500);
-    }
+    // Esperar a Firebase y a CU antes de cargar
+    const _tryLoad = (tries) => {
+      if(window.db && window.onSnapshot){
+        listenVoiceRooms();
+      } else if(tries > 0){
+        setTimeout(() => _tryLoad(tries-1), 600);
+      }
+    };
+    _tryLoad(5);
     return r;
   }
   return _origGp ? _origGp(page, ...args) : undefined;
