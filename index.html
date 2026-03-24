@@ -28483,22 +28483,37 @@ const _vrPollInterval = setInterval(() => {
   }
 }, 400);
 
-// ── Override de gp para capturar cuando el usuario navega a voice-rooms ──────
-const _origGp = window.gp;
-window.gp = function(page, ...args){
-  const r = _origGp ? _origGp(page, ...args) : undefined;
-  if(page === 'voice-rooms'){
-    // Actualizar botón crear sala
-    const createBtn = document.getElementById('createRoomBtn');
-    if(createBtn) createBtn.style.display = window.CU ? 'block' : 'none';
-    // Si Firebase ya está listo, arrancar listener inmediatamente
+// ── Arrancar listener cuando se navega a voice-rooms ─────────────────────────
+// No sobreescribimos window.gp (ya hay muchos overrides).
+// En su lugar, usamos un MutationObserver sobre la página de salas de voz.
+(function(){
+  function tryListenVR(tries){
     if(window.db && window._fsLib){
       if(!_vrRoomsUnsub) listenVoiceRooms();
+      const btn = document.getElementById('createRoomBtn');
+      if(btn) btn.style.display = window.CU ? 'block' : 'none';
+    } else if(tries > 0){
+      setTimeout(function(){ tryListenVR(tries-1); }, 500);
     }
-    // Si no, el polling de arriba lo va a arrancar en cuanto Firebase esté listo
   }
-  return r;
-};
+
+  // Observar cuando page-voice-rooms se vuelve visible
+  var _vrObserver = new MutationObserver(function(){
+    var pg = document.getElementById('page-voice-rooms');
+    if(pg && pg.style.display !== 'none'){
+      tryListenVR(20);
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function(){
+    var pg = document.getElementById('page-voice-rooms');
+    if(pg){
+      _vrObserver.observe(pg, { attributes: true, attributeFilter: ['style'] });
+      // Si ya está visible al cargar
+      if(pg.style.display !== 'none') tryListenVR(20);
+    }
+  });
+})();
 
 // Exponer funciones globales
 window.joinVoiceRoom     = joinVoiceRoom;
@@ -28510,8 +28525,8 @@ window.toggleVoiceDeaf   = toggleVoiceDeaf;
 window.openCreateRoomModal  = openCreateRoomModal;
 window.closeCreateRoomModal = closeCreateRoomModal;
 window.listenVoiceRooms  = listenVoiceRooms;
-// Exponer getter para que código externo pueda chequear si el listener está activo
-Object.defineProperty(window, '_vrRoomsUnsub', { get: () => _vrRoomsUnsub });
+
+
 
 // Limpiar al cerrar ventana
 window.addEventListener('beforeunload', () => {
