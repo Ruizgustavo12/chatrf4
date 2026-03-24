@@ -716,20 +716,17 @@ img[title="Verificado"]:hover{
 /* REACTION POPUP */
 .rxn-wrap{position:relative;padding-bottom:6px;margin-bottom:-6px;}
 .rxn-popup{display:none;position:absolute;bottom:0;left:0;z-index:9500;
-  background:#161b22;border:1px solid var(--border);border-radius:16px;
-  padding:8px;box-shadow:0 4px 24px rgba(0,0,0,.5);
-  transform:translateY(calc(-100% - 6px));width:280px;max-width:92vw;}
-.rxn-popup.show{display:block;animation:rxnPop .16s ease;}
-@keyframes rxnPop{from{opacity:0;transform:translateY(calc(-100% - 6px)) scale(.85)}to{opacity:1;transform:translateY(calc(-100% - 6px)) scale(1)}}
-.rxn-cats{display:flex;gap:3px;overflow-x:auto;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:6px;scrollbar-width:none;}
-.rxn-cats::-webkit-scrollbar{display:none;}
-.rxn-cat-btn{background:none;border:none;font-size:.7rem;color:#8b949e;cursor:pointer;padding:3px 7px;border-radius:8px;white-space:nowrap;transition:background .15s,color .15s;}
-.rxn-cat-btn:hover,.rxn-cat-btn.active{background:rgba(255,255,255,.1);color:#e6edf3;}
-.rxn-grid{display:flex;flex-wrap:wrap;gap:2px;max-height:130px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#30363d transparent;}
-.rxn-btn{background:none;border:none;font-size:1.3rem;cursor:pointer;padding:3px 4px;border-radius:8px;transition:transform .13s,background .13s;line-height:1;position:relative;}
-.rxn-btn:hover{transform:scale(1.5) translateY(-3px);background:rgba(255,255,255,.08);}
+  background:#161b22;border:1px solid var(--border);border-radius:100px;
+  padding:6px 10px;box-shadow:0 4px 16px rgba(0,0,0,.5);
+  transform:translateY(calc(-100% - 6px));}
+.rxn-popup.show{display:flex;gap:2px;align-items:center;animation:rxnPop .16s ease;}
+@keyframes rxnPop{from{opacity:0;transform:translateY(calc(-100% - 6px)) scale(.7)}to{opacity:1;transform:translateY(calc(-100% - 6px)) scale(1)}}
+.rxn-cats{display:none;}
+.rxn-grid{display:flex;gap:2px;}
+.rxn-btn{background:none;border:none;font-size:1.5rem;cursor:pointer;padding:2px 3px;border-radius:50%;transition:transform .13s;line-height:1;position:relative;}
+.rxn-btn:hover{transform:scale(1.6) translateY(-5px);}
 .rxn-btn:hover .rxn-tooltip{opacity:1!important;}
-.rxn-btn.rxn-active{background:rgba(46,196,182,.15);}
+.rxn-btn.rxn-active{background:rgba(46,196,182,.2);}
 
 /* ===== COMMENTS - FACEBOOK STYLE ===== */
 .comments-section{display:none;padding:0 12px 8px;border-top:1px solid #ced0d4;}
@@ -7138,65 +7135,19 @@ let _rxnTimers = {};
 let _unsubPosts = null;
 let _unsubStories = null;
 
-const REACTION_CATEGORIES = [
-  { cat:'😀 Caras', emojis:[
-    {emoji:'😀',label:'Feliz',color:'#f7b125'},{emoji:'😂',label:'¡Jajaja!',color:'#f7b125'},
-    {emoji:'🥰',label:'Con amor',color:'#f33e58'},{emoji:'😍',label:'¡Me encanta!',color:'#f33e58'},
-    {emoji:'🤩',label:'¡Wow!',color:'#a78bfa'},{emoji:'😎',label:'¡Genial!',color:'#2ec4b6'},
-    {emoji:'🥳',label:'¡Fiesta!',color:'#ff6b35'},{emoji:'😮',label:'Me asombra',color:'#a78bfa'},
-    {emoji:'😢',label:'Me pone mal',color:'#60a5fa'},{emoji:'😡',label:'¡No me gusta!',color:'#f33e58'},
-    {emoji:'🤯',label:'¡Mente volada!',color:'#ff6b35'},{emoji:'🤣',label:'¡Muerto de risa!',color:'#f7b125'},
-  ]},
-  { cat:'👋 Gestos', emojis:[
-    {emoji:'👍',label:'¡Bueno!',color:'#4ade80'},{emoji:'👎',label:'No me gusta',color:'#f33e58'},
-    {emoji:'👏',label:'¡Bravo!',color:'#f7b125'},{emoji:'🙌',label:'¡Arriba!',color:'#ff6b35'},
-    {emoji:'🤝',label:'De acuerdo',color:'#2ec4b6'},{emoji:'🙏',label:'Por favor',color:'#a78bfa'},
-    {emoji:'💪',label:'¡Fuerza!',color:'#f7b125'},{emoji:'✌️',label:'Paz',color:'#4ade80'},
-    {emoji:'🤙',label:'¡Buena onda!',color:'#2ec4b6'},{emoji:'👌',label:'Perfecto',color:'#4ade80'},
-    {emoji:'🤞',label:'¡Suerte!',color:'#a78bfa'},{emoji:'🫶',label:'Con cariño',color:'#f33e58'},
-  ]},
-  { cat:'❤️ Corazones', emojis:[
-    {emoji:'❤️',label:'Me encanta',color:'#f33e58'},{emoji:'🧡',label:'Me gusta mucho',color:'#ff6b35'},
-    {emoji:'💛',label:'Felicidad',color:'#f7b125'},{emoji:'💚',label:'Esperanza',color:'#4ade80'},
-    {emoji:'💙',label:'Tranquilidad',color:'#60a5fa'},{emoji:'💜',label:'Admiración',color:'#a78bfa'},
-    {emoji:'💔',label:'Me rompe el corazón',color:'#f33e58'},{emoji:'💕',label:'Doble amor',color:'#f33e58'},
-    {emoji:'💯',label:'¡100%!',color:'#4ade80'},{emoji:'✨',label:'¡Brillante!',color:'#f7b125'},
-    {emoji:'🔥',label:'¡Fuego!',color:'#ff6b35'},{emoji:'⭐',label:'¡Estrella!',color:'#f7b125'},
-  ]},
-  { cat:'🐟 Pesca', emojis:[
-    {emoji:'🎣',label:'¡A pescar!',color:'#2ec4b6'},{emoji:'🐟',label:'¡Pescado!',color:'#60a5fa'},
-    {emoji:'🐬',label:'Delfín',color:'#60a5fa'},{emoji:'🐳',label:'Ballena',color:'#60a5fa'},
-    {emoji:'🦈',label:'Tiburón',color:'#8b949e'},{emoji:'🐙',label:'Pulpo',color:'#f33e58'},
-    {emoji:'🦞',label:'Langosta',color:'#ff6b35'},{emoji:'🦀',label:'Cangrejo',color:'#ff6b35'},
-    {emoji:'🐊',label:'Cocodrilo',color:'#4ade80'},{emoji:'🦅',label:'Águila',color:'#f7b125'},
-    {emoji:'🏆',label:'¡Campeón!',color:'#f7b125'},{emoji:'🥇',label:'¡Primer lugar!',color:'#f7b125'},
-  ]},
-  { cat:'🎮 Entretenimiento', emojis:[
-    {emoji:'🎉',label:'¡Celebración!',color:'#f7b125'},{emoji:'🎊',label:'¡Confeti!',color:'#ff6b35'},
-    {emoji:'🎮',label:'¡A jugar!',color:'#a78bfa'},{emoji:'🎯',label:'¡En el blanco!',color:'#f33e58'},
-    {emoji:'🎲',label:'¡Suerte!',color:'#a78bfa'},{emoji:'🎸',label:'Rock',color:'#ff6b35'},
-    {emoji:'🎵',label:'Música',color:'#a78bfa'},{emoji:'🎬',label:'Acción',color:'#8b949e'},
-    {emoji:'🏅',label:'Medalla',color:'#f7b125'},{emoji:'🥈',label:'Segundo lugar',color:'#8b949e'},
-    {emoji:'🥉',label:'Tercer lugar',color:'#ff6b35'},{emoji:'🎆',label:'Fuegos',color:'#ff6b35'},
-  ]},
-  { cat:'🌍 Naturaleza', emojis:[
-    {emoji:'🌈',label:'Arcoíris',color:'#a78bfa'},{emoji:'☀️',label:'Sol',color:'#f7b125'},
-    {emoji:'🌊',label:'Olas',color:'#60a5fa'},{emoji:'⚡',label:'¡Rayo!',color:'#f7b125'},
-    {emoji:'❄️',label:'Frío',color:'#60a5fa'},{emoji:'🌿',label:'Naturaleza',color:'#4ade80'},
-    {emoji:'🍀',label:'Suerte',color:'#4ade80'},{emoji:'🌸',label:'Flores',color:'#f33e58'},
-    {emoji:'🌋',label:'Volcán',color:'#ff6b35'},{emoji:'🌌',label:'Galaxia',color:'#a78bfa'},
-    {emoji:'🌙',label:'Luna',color:'#a78bfa'},{emoji:'💧',label:'Agua',color:'#60a5fa'},
-  ]},
-  { cat:'🍕 Comida', emojis:[
-    {emoji:'🍺',label:'¡Salud!',color:'#f7b125'},{emoji:'🍻',label:'¡Brindemos!',color:'#f7b125'},
-    {emoji:'☕',label:'Café',color:'#ff6b35'},{emoji:'🍕',label:'Pizza',color:'#ff6b35'},
-    {emoji:'🍔',label:'Hamburguesa',color:'#f7b125'},{emoji:'🌮',label:'Taco',color:'#f7b125'},
-    {emoji:'🍣',label:'Sushi',color:'#f33e58'},{emoji:'🎂',label:'Torta',color:'#f33e58'},
-    {emoji:'🍾',label:'¡A celebrar!',color:'#f7b125'},{emoji:'🍓',label:'Frutilla',color:'#f33e58'},
-    {emoji:'💎',label:'¡Diamante!',color:'#60a5fa'},{emoji:'💰',label:'¡Dinero!',color:'#4ade80'},
-  ]},
+const REACTIONS = [
+  {emoji:'🎣', label:'¡A pescar!', color:'#2ec4b6'},
+  {emoji:'🔥', label:'¡Fuego!',    color:'#ff6b35'},
+  {emoji:'❤️', label:'Me encanta', color:'#f33e58'},
+  {emoji:'👍', label:'N1',         color:'#4ade80'},
+  {emoji:'💰', label:'Monedas',    color:'#f7b125'},
+  {emoji:'🍀', label:'Suerte',     color:'#4ade80'},
+  {emoji:'😂', label:'Jajaja',     color:'#f7b125'},
+  {emoji:'💀', label:'F',          color:'#8b949e'},
+  {emoji:'🎉', label:'GZ',         color:'#a78bfa'},
+  {emoji:'😮', label:'Wow',        color:'#60a5fa'},
 ];
-const REACTIONS = REACTION_CATEGORIES.flatMap(c=>c.emojis);
+const REACTION_CATEGORIES = [{ cat:'', emojis: REACTIONS }];
 const REACTION_EMOJIS = REACTIONS.map(r=>r.emoji);
 const FISH_EMOJIS = {'Pike':'🐟','Catfish':'🦈','Bream':'🐡','Perch':'🐠','Carp':'🐟','Trout':'🐟','Salmon':'🐟','Burbot':'🐟','Ruffe':'🐟','Tench':'🐟'};
 
@@ -10480,7 +10431,7 @@ function postHTML(p){
   const totalRxn = Object.values(p.reactionCounts||{}).reduce((a,b)=>a+b,0);
   const topRxn = Object.entries(p.reactionCounts||{}).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([e])=>e).join('');
   const myRxnObj = REACTIONS.find(r=>r.emoji===myRxn);
-  const rxnBtns = `<div class="rxn-cats">${REACTION_CATEGORIES.map((c,i)=>`<button class="rxn-cat-btn${i===0?' active':''}" onclick="rxnSwitchCat(this,'${p.id}',${i})">${c.cat}</button>`).join('')}</div><div class="rxn-grid" id="rxn-grid-${p.id}">${REACTION_CATEGORIES[0].emojis.map(r=>`<button class="rxn-btn${myRxn===r.emoji?' rxn-active':''}" onclick="doReact('${p.id}','${r.emoji}');schedHideRxnPop('${p.id}')" title="${r.label}">${r.emoji}<span style="position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;font-size:.58rem;white-space:nowrap;padding:2px 6px;border-radius:4px;pointer-events:none;opacity:0;transition:opacity .15s;" class="rxn-tooltip">${r.label}</span></button>`).join('')}</div>`;
+  const rxnBtns = REACTIONS.map(r=>`<button class="rxn-btn${myRxn===r.emoji?' rxn-active':''}" onclick="doReact('${p.id}','${r.emoji}');schedHideRxnPop('${p.id}')" title="${r.label}">${r.emoji}<span style="position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;font-size:.58rem;white-space:nowrap;padding:2px 6px;border-radius:4px;pointer-events:none;opacity:0;transition:opacity .15s;" class="rxn-tooltip">${r.label}</span></button>`).join('');
   const fishTag = p.fish ? `<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,198,255,.08);border:1px solid rgba(0,198,255,.2);border-radius:100px;padding:4px 12px;font-size:.78rem;margin-bottom:10px;margin-left:14px"><span>🎣</span><strong>${p.fish}</strong>${p.weight?` · ${fmtKg(p.weight)}`:''} ${p.map?`· ${p.map}`:''} ${p.tech?`· ${p.tech}`:''}</div>` : '';
   // Store images globally for lightbox
   window._postImgsMap = window._postImgsMap || {};
@@ -21451,8 +21402,7 @@ function trofeoFeedCardHTML(t){
         <div class="rxn-popup" id="rxnp_trofeo_${tid}"
           onmouseenter="cancelHideRxnPop('trofeo_${tid}')"
           onmouseleave="schedHideRxnPop('trofeo_${tid}')">
-          <div class="rxn-cats">${REACTION_CATEGORIES.map((c,i)=>`<button class="rxn-cat-btn${i===0?' active':''}" onclick="rxnSwitchCat(this,'trofeo_${tid}',${i})">${c.cat}</button>`).join('')}</div>
-          <div class="rxn-grid" id="rxn-grid-trofeo_${tid}">${REACTION_CATEGORIES[0].emojis.map(r=>`<button class="rxn-btn" onclick="doReact('trofeo_${tid}','${r.emoji}');schedHideRxnPop('trofeo_${tid}')" title="${r.label}">${r.emoji}<span style="position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;font-size:.58rem;white-space:nowrap;padding:2px 6px;border-radius:4px;pointer-events:none;opacity:0;transition:opacity .15s;" class="rxn-tooltip">${r.label}</span></button>`).join('')}</div>
+          ${REACTIONS.map(r=>`<button class="rxn-btn" onclick="doReact('trofeo_${tid}','${r.emoji}');schedHideRxnPop('trofeo_${tid}')" title="${r.label}">${r.emoji}<span style="position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;font-size:.58rem;white-space:nowrap;padding:2px 6px;border-radius:4px;pointer-events:none;opacity:0;transition:opacity .15s;" class="rxn-tooltip">${r.label}</span></button>`).join('')}
         </div>
       </div>
       <button class="act-btn" style="flex:1;justify-content:center;gap:5px;color:var(--muted);" onclick="openTrofeoViewers('${tid}')">
