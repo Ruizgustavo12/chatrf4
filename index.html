@@ -18714,47 +18714,8 @@ function getCountryFlag(country){
 }
 
 function renderContacts(onlineUsers){
-  const users = onlineUsers || [];
-  const el = document.getElementById('contactsList');
-  if(!el) return;
-
-  function fancyNick(u){
-    const nick = esc(u.nick||'?');
-    const isAdmin = u.nick==='ruizgustavo12'||u.role==='admin';
-    const isVerif = !!u.verified;
-    const uXp = u.xp||0;
-    const isLegend = uXp>=2000, isHighLvl = uXp>=500;
-    const lvl = getLevel(uXp);
-    if(isAdmin) return `<span class="admin-name">${nick}</span><span class="admin-crown">👑</span>`;
-    if(isVerif) return `<span style="font-weight:800;background:linear-gradient(90deg,#f5a623,#ffe082,#f5a623);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:_vShine 2s linear infinite;">${nick}</span><span style="-webkit-text-fill-color:initial;filter:drop-shadow(0 0 3px gold);">✅</span>`;
-    if(isLegend) return `<span style="font-weight:800;background:linear-gradient(90deg,#ce93d8,#f48fb1,#b39ddb,#ce93d8);background-size:250% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:_legShine 2.5s linear infinite;">${nick}</span><span style="-webkit-text-fill-color:initial;filter:drop-shadow(0 0 3px #b39ddb);">⚡</span>`;
-    if(isHighLvl) return `<span style="font-weight:700;color:${lvl.color};text-shadow:0 0 6px ${lvl.color}44;">${nick}</span>`;
-    return `<span style="font-weight:600;">${nick}</span>`;
-  }
-
-  el.innerHTML = users.length ? users.map(u=>{
-    const isAdmin = u.nick==='ruizgustavo12'||u.role==='admin';
-    const dev = u.device||'desktop';
-    const dotColor = dev==='mobile'?'#00e676':'#1877f2';
-    const borderColor = isAdmin?'rgba(255,180,0,.8)':dotColor;
-    const avShadow = isAdmin?'box-shadow:0 0 8px rgba(255,120,0,.5),0 0 18px rgba(255,60,0,.25);':'';
-    return `<div class="contact-item" onclick="openUserProfile('${u.id}','${esc(u.nick)}')" style="position:relative;">
-      <div class="contact-av" style="border:2px solid ${borderColor};${avShadow}position:relative;">
-        ${u.av?`<img src="${u.av}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:`<span style="font-size:.9rem;">${(u.nick||'?')[0].toUpperCase()}</span>`}
-        <div class="online-dot" style="background:${dotColor};border-color:var(--bg2);box-shadow:0 0 5px ${dotColor};"></div>
-      </div>
-      <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:4px;overflow:hidden;">${fancyNick(u)} <span style="font-size:.8rem;flex-shrink:0;">${getCountryFlag(u.country)||''}</span></div>
-        <div class="contact-status" style="color:${dotColor};">● ${dev==='mobile'?'📱 Móvil':'🖥️ PC'} · En línea</div>
-      </div>
-      <button onclick="event.stopPropagation();openChatWith('${u.id}','${esc(u.nick)}')" title="Enviar mensaje" style="background:rgba(255,255,255,.07);border:1px solid ${borderColor};border-radius:6px;color:${borderColor};font-size:.8rem;cursor:pointer;padding:3px 7px;margin-right:4px;font-family:'Exo 2',sans-serif;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.15)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">💬</button>
-    </div>`;
-  }).join('')
-    : `<div style="display:flex;flex-direction:column;align-items:center;padding:14px 8px;gap:6px;">
-        <div style="font-size:1.5rem;opacity:.35;">🎣</div>
-        <div style="font-size:.75rem;color:var(--muted);text-align:center;">Nadie conectado aún</div>
-      </div>`;
-  // Also update my groups sidebar
+  // renderSidebarOnline ya maneja el sidebarOnlineList con nicks estilizados.
+  // Esta función solo actualiza el sidebar de grupos.
   updateMyGroupsSidebar();
 }
 
