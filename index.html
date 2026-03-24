@@ -574,6 +574,31 @@ img[title="Verificado"]:hover{
 #carretesTable tbody tr:hover{background:rgba(0,198,255,.05);}
 #carretesTable tbody td{padding:8px 8px;vertical-align:middle;}
 
+
+/* ===== SALAS DE VOZ ===== */
+.voice-room-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:12px;transition:border-color .2s,box-shadow .2s;cursor:pointer;}
+.voice-room-card:hover{border-color:var(--accent);box-shadow:0 0 14px rgba(46,196,182,.12);}
+.voice-room-card.active{border-color:var(--accent);background:rgba(46,196,182,.05);}
+.voice-room-card .vr-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.voice-room-card .vr-icon{font-size:1.6rem;width:42px;height:42px;display:flex;align-items:center;justify-content:center;background:rgba(46,196,182,.1);border-radius:10px;flex-shrink:0;}
+.voice-room-card .vr-name{font-family:'Orbitron',monospace;font-size:.9rem;font-weight:900;color:var(--text);}
+.voice-room-card .vr-desc{font-size:.75rem;color:var(--muted);margin-top:2px;}
+.voice-room-card .vr-members{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px;}
+.vr-member-chip{display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:3px 10px 3px 5px;font-size:.72rem;font-weight:700;}
+.vr-member-chip .vr-av{width:20px;height:20px;border-radius:50%;object-fit:cover;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:var(--accent);overflow:hidden;flex-shrink:0;}
+.vr-member-chip.speaking{border-color:var(--accent);background:rgba(46,196,182,.1);}
+.vr-member-chip.muted{opacity:.5;}
+.vr-join-btn{margin-left:auto;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;border:none;border-radius:8px;padding:7px 18px;font-family:'Exo 2',sans-serif;font-size:.8rem;font-weight:800;cursor:pointer;flex-shrink:0;transition:opacity .15s;}
+.vr-join-btn:hover{opacity:.85;}
+.vr-join-btn.in-room{background:var(--red);color:#fff;}
+.room-emoji-opt{font-size:1.5rem;cursor:pointer;padding:4px 6px;border-radius:6px;border:2px solid transparent;transition:all .15s;}
+.room-emoji-opt:hover,.room-emoji-opt.selected{border-color:var(--accent);background:rgba(46,196,182,.12);}
+.vr-speaking-indicator{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);animation:vrPulse 1s ease-in-out infinite;margin-left:4px;}
+@keyframes vrPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
+.vr-admin-del{background:none;border:none;color:var(--muted);font-size:.8rem;cursor:pointer;padding:2px 6px;border-radius:4px;transition:color .15s;}
+.vr-admin-del:hover{color:var(--red);}
+/* ===== FIN SALAS DE VOZ ===== */
+
 /* ===== POST BOX ===== */
 .post-box{background:#161b22;border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.1);}
 .post-box-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
@@ -1996,6 +2021,7 @@ document.addEventListener('DOMContentLoaded', function(){
     <button class="tb-nav-btn" onclick="openPremiumModal()" title="Premium" style="font-size:.75rem;font-weight:800;background:linear-gradient(135deg,rgba(255,215,0,.15),rgba(255,165,0,.08));border-bottom:2px solid #ffd700;color:#ffd700;">⭐ Premium</button>
     <button class="tb-nav-btn" id="pezSemanalNavBtn" onclick="openPezSemanalModal();setNav(this)" title="Pez de la Semana" style="font-size:.75rem;font-weight:700;">🐟 Pez Semanal</button>
     <button class="tb-nav-btn" onclick="gp('peso-del-trofeo');setNav(this)" title="Peso del Trofeo" style="font-size:.75rem;font-weight:700;">🏆 Peso del Trofeo</button>
+    <button class="tb-nav-btn" onclick="gp('voice-rooms');setNav(this)" title="Salas de Voz" style="font-size:.75rem;font-weight:700;">🎙️ Salas de Voz</button>
 
     <button class="tb-nav-btn" id="adminNavBtn" style="display:none;font-size:.75rem;font-weight:700;" onclick="gp('admin');setNav(this)" title="Panel Admin">🛡️ Admin</button>
   </div>
@@ -2098,6 +2124,7 @@ document.addEventListener('DOMContentLoaded', function(){
       <div class="sl-item" onclick="gp('reels');setNav(document.querySelectorAll('.tb-nav-btn')[4])"><span class="sl-item-icon">🎬</span> Reels</div>
 
       <div class="sl-item" onclick="gp('ranking-semanal')"><span class="sl-item-icon">🏅</span> Ranking Semanal</div>
+      <div class="sl-item" onclick="gp('voice-rooms')" style="background:linear-gradient(90deg,rgba(46,196,182,.08),transparent);border-left:3px solid var(--accent);"><span class="sl-item-icon">🎙️</span> Salas de Voz</div>
       <div class="sl-item" onclick="gp('cafe')" style="background:linear-gradient(90deg,rgba(255,140,0,.08),transparent);border-left:3px solid #ff8c00;"><span class="sl-item-icon">☕</span> Pedidos Café</div>
       <div class="sl-item" id="slTiendaBtn" style="display:none;background:linear-gradient(90deg,rgba(255,215,0,.08),transparent);border-left:3px solid #ffd700;" onclick="gp('tienda')"><span class="sl-item-icon">🛒</span> Tienda</div>
       <div class="sl-item" onclick="gp('casitrofeo')"><span class="sl-item-icon">🏅</span> Casi Trofeo</div>
@@ -5154,6 +5181,79 @@ document.addEventListener('DOMContentLoaded', function(){
 
 <!-- PAGE: REELS (placeholder inside layout — el real es el overlay fixed) -->
 <div class="page" id="page-reels" style="height:0;overflow:hidden;padding:0!important;"></div>
+<!-- ===== SALAS DE VOZ ===== -->
+<div class="page" id="page-voice-rooms" style="max-width:860px;margin:0 auto;padding:24px 16px 80px;">
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+    <div>
+      <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--accent);">🎙️ Salas de Voz</div>
+      <div style="font-size:.75rem;color:var(--muted);margin-top:3px;">Hablá en tiempo real con la comunidad RF4</div>
+    </div>
+    <button onclick="openCreateRoomModal()" id="createRoomBtn" style="display:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;border:none;border-radius:8px;padding:9px 20px;font-family:'Exo 2',sans-serif;font-size:.85rem;font-weight:800;cursor:pointer;">+ Crear Sala</button>
+  </div>
+  <!-- Lista de salas -->
+  <div id="voiceRoomsList">
+    <div style="text-align:center;padding:60px 20px;color:var(--muted);">
+      <div style="font-size:2.5rem;margin-bottom:10px;">🎙️</div>
+      <div>Cargando salas...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal crear sala -->
+<div id="createRoomModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;display:none;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#161b22;border:1px solid var(--border);border-radius:14px;width:100%;max-width:400px;padding:24px;box-shadow:0 8px 40px rgba(0,0,0,.6);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <span style="font-family:'Orbitron',monospace;font-size:.95rem;font-weight:900;color:var(--accent);">🎙️ Nueva Sala de Voz</span>
+      <button onclick="closeCreateRoomModal()" style="background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div>
+        <label style="font-size:.75rem;color:var(--muted);font-weight:700;display:block;margin-bottom:4px;">Nombre de la sala *</label>
+        <input id="roomNameInput" maxlength="40" placeholder="Ej: Pesca en Mosquito Lake" style="width:100%;background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;">
+      </div>
+      <div>
+        <label style="font-size:.75rem;color:var(--muted);font-weight:700;display:block;margin-bottom:4px;">Descripción (opcional)</label>
+        <input id="roomDescInput" maxlength="80" placeholder="Ej: Hablamos de spots y técnicas" style="width:100%;background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;">
+      </div>
+      <div>
+        <label style="font-size:.75rem;color:var(--muted);font-weight:700;display:block;margin-bottom:4px;">Ícono</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;" id="roomEmojiPicker">
+          <span class="room-emoji-opt selected" data-emoji="🎙️">🎙️</span>
+          <span class="room-emoji-opt" data-emoji="🎣">🎣</span>
+          <span class="room-emoji-opt" data-emoji="🐟">🐟</span>
+          <span class="room-emoji-opt" data-emoji="🏆">🏆</span>
+          <span class="room-emoji-opt" data-emoji="🗺️">🗺️</span>
+          <span class="room-emoji-opt" data-emoji="☕">☕</span>
+          <span class="room-emoji-opt" data-emoji="🎮">🎮</span>
+          <span class="room-emoji-opt" data-emoji="💬">💬</span>
+        </div>
+      </div>
+      <button onclick="createVoiceRoom()" style="margin-top:4px;padding:11px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;border:none;border-radius:8px;font-family:'Exo 2',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer;">Crear Sala</button>
+    </div>
+  </div>
+</div>
+
+<!-- Panel de sala activa (overlay fixed) -->
+<div id="voiceRoomPanel" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#161b22;border-top:2px solid var(--accent);z-index:9998;box-shadow:0 -4px 24px rgba(0,0,0,.5);">
+  <div style="max-width:860px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:.78rem;font-weight:800;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="vrPanelName">Sala</div>
+      <div style="font-size:.68rem;color:var(--muted);" id="vrPanelStatus">Conectando...</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button id="vrMuteBtn" onclick="toggleVoiceMute()" title="Silenciar/Activar micrófono"
+        style="width:42px;height:42px;border-radius:50%;border:2px solid var(--accent);background:rgba(46,196,182,.1);font-size:1.2rem;cursor:pointer;transition:all .2s;">🎙️</button>
+      <button id="vrDeafBtn" onclick="toggleVoiceDeaf()" title="Ensordecer"
+        style="width:42px;height:42px;border-radius:50%;border:2px solid var(--border);background:var(--bg3);font-size:1.2rem;cursor:pointer;transition:all .2s;">🔊</button>
+      <button onclick="leaveVoiceRoom()" title="Salir de la sala"
+        style="width:42px;height:42px;border-radius:50%;border:2px solid var(--red);background:rgba(248,81,73,.1);font-size:1.1rem;cursor:pointer;transition:all .2s;">📵</button>
+    </div>
+    <div id="vrPanelMembers" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"></div>
+  </div>
+</div>
+<!-- ===== FIN SALAS DE VOZ ===== -->
+
 
 <!-- ===== PAGE: LAGOS RF4 ===== -->
 <div class="page" id="page-lagos-rf4" style="max-width:900px;margin:0 auto;padding:20px 16px 80px;">
@@ -7466,21 +7566,22 @@ function init(){
 function loadAuthTrofeos(){
   const el = document.getElementById('authTrofeosList');
   if(!el) return;
-  if(!window.db){ setTimeout(loadAuthTrofeos, 1200); return; }
-  // Lee config/lastTrophy — se actualiza cada vez que alguien publica un trofeo.
-  // El documento guarda: fish, weight, map, nick (no userNick), imageUrl (no images[])
   getDoc(doc(db,'config','lastTrophy')).then(snap => {
     if(!snap.exists()){
       el.innerHTML='<div style="font-size:.75rem;color:#8b949e;text-align:center;padding:8px;">Sin trofeos aun</div>';
       return;
     }
     const t = snap.data();
-    const img  = t.imageUrl || t.img || (Array.isArray(t.images) && t.images[0]) || '';
-    const fish = (t.fish || t.especie || '?').substring(0,28);
-    const kg   = parseFloat(t.weight || t.peso || 0);
-    const map  = (t.map || t.mapa || '').substring(0,22);
-    const nick = (t.nick || t.userNick || t.submittedBy || 'Anonimo').substring(0,20);
-    const w    = kg >= 1 ? kg.toFixed(3)+' kg' : (kg > 0 ? Math.round(kg*1000)+' g' : '');
+    const img = t.imageUrl||'';
+    const fish = (t.fish||'?').substring(0,28);
+    const kg = t.weight||0;
+    const map = (t.map||'').substring(0,22);
+    const nick = (t.nick||'Anonimo').substring(0,20);
+    let w = '';
+    if(kg){
+      const n = Number(kg);
+      w = n >= 1 ? (n.toFixed(3)+' kg') : (Math.round(n*1000)+' g');
+    }
     el.innerHTML = `<div style="display:flex;align-items:center;gap:12px;background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.25);border-radius:12px;padding:10px 14px;">
       ${img
         ? `<img src="${img}" style="width:72px;height:72px;object-fit:cover;border-radius:10px;flex-shrink:0;border:1.5px solid rgba(255,215,0,.3);" onerror="this.style.display='none'">`
@@ -21191,10 +21292,7 @@ function trofeoFeedCardHTML(t){
         </div>
         <div class="post-time">🌐 ${fmtT(approvedAt)} · WikiPediaRF4.UY</div>
       </div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        ${(()=>{const isOwner=window.CU&&(window.CU.id===userId||(window.CU.nick||'').toLowerCase()===(t.userNick||t.submittedBy||t.nick||'').toLowerCase());const isAdmin=window.CU?.role==='admin'||window.CU?.nick==='ruizgustavo12'||window.CU?.email==='synxyes@gmail.com';return(isOwner||isAdmin)?`<button onclick="editTrofeoCard('${tid}')" style="background:none;border:1px solid rgba(255,215,0,.3);color:var(--gold);padding:4px 10px;border-radius:var(--rs);font-size:.7rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;" onmouseover="this.style.background='rgba(255,215,0,.12)'" onmouseout="this.style.background='none'">✏️ Editar</button><button onclick="deleteTrofeoCard('${tid}')" style="background:none;border:1px solid rgba(248,81,73,.35);color:var(--red);padding:4px 10px;border-radius:var(--rs);font-size:.7rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;" onmouseover="this.style.background='rgba(248,81,73,.1)'" onmouseout="this.style.background='none'">🗑 Borrar</button>`:''})()}
-        <a href="#" onclick="gp('wiki-trofeos')" target="_blank" style="background:none;border:1px solid rgba(255,215,0,.3);color:var(--gold);padding:4px 10px;border-radius:var(--rs);font-size:.7rem;font-weight:700;cursor:pointer;text-decoration:none;font-family:'Exo 2',sans-serif;">↗ Wiki</a>
-      </div>
+      <a href="#" onclick="gp('wiki-trofeos')" target="_blank" style="background:none;border:1px solid rgba(255,215,0,.3);color:var(--gold);padding:4px 10px;border-radius:var(--rs);font-size:.7rem;font-weight:700;cursor:pointer;text-decoration:none;font-family:'Exo 2',sans-serif;">↗ Wiki</a>
     </div>
     <!-- Fish info highlight -->
     <div style="margin:0 14px 12px;background:linear-gradient(135deg,rgba(255,215,0,.1),rgba(255,165,0,.05));border:1px solid rgba(255,215,0,.25);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
@@ -21281,85 +21379,6 @@ function renderTrofeoSidebar(items){
   }).join('');
   document.querySelectorAll('[id="trofeoSidebarList"]').forEach(e => e.innerHTML = html);
 }
-
-// ===== EDITAR / BORRAR TROFEO (desde feed) =====
-async function deleteTrofeoCard(tid){
-  if(!tid) return;
-  if(!confirm('¿Seguro que querés borrar este trofeo? Esta acción no se puede deshacer.')) return;
-  try{
-    await deleteDoc(doc(db,'trofeosPendientes',tid));
-    window._trofeosFeedData = (window._trofeosFeedData||[]).filter(t=>t.id!==tid);
-    const el = document.getElementById('trofeo_'+tid);
-    if(el){ el.style.transition='opacity .3s'; el.style.opacity='0'; setTimeout(()=>el.remove(),320); }
-    toast('Trofeo eliminado ✅','ok');
-  }catch(e){ toast('Error al borrar: '+e.message,'err'); }
-}
-window.deleteTrofeoCard = deleteTrofeoCard;
-
-function editTrofeoCard(tid){
-  if(!tid) return;
-  const trofeo = (window._trofeosFeedData||[]).find(t=>t.id===tid);
-  if(!trofeo){ toast('No se encontró el trofeo','err'); return; }
-  const existing = document.getElementById('_editTrofeoModal');
-  if(existing) existing.remove();
-  const modal = document.createElement('div');
-  modal.id = '_editTrofeoModal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
-  const fishVal  = (trofeo.fish||trofeo.especie||'').replace(/"/g,'&quot;');
-  const mapVal   = (trofeo.map||trofeo.mapa||'').replace(/"/g,'&quot;');
-  const techVal  = (trofeo.technique||trofeo.tecnica||trofeo.tech||'').replace(/"/g,'&quot;');
-  const baitVal  = (trofeo.bait||trofeo.carnada||'').replace(/"/g,'&quot;');
-  const descVal  = (trofeo.description||trofeo.notes||trofeo.nota||'').replace(/</g,'&lt;');
-  const wVal     = trofeo.weight||trofeo.peso||'';
-  modal.innerHTML = `
-    <div style="background:#161b22;border:1px solid rgba(255,215,0,.3);border-radius:14px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:24px;box-shadow:0 8px 40px rgba(0,0,0,.6);">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
-        <span style="font-family:'Orbitron',monospace;font-size:.95rem;font-weight:900;color:var(--gold);">✏️ Editar Trofeo</span>
-        <button onclick="document.getElementById('_editTrofeoModal').remove()" style="background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1;">✕</button>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <div><label style="font-size:.75rem;color:var(--muted);font-weight:700;display:block;margin-bottom:4px;">🐟 Especie</label>
-          <input id="_etFish" value="${fishVal}" style="width:100%;background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;" placeholder="Nombre del pez"></div>
-        <div><label style="font-size:.75rem;color:var(--muted);font-weight:700;display:block;margin-bottom:4px;">⚖️ Peso (kg)</label>
-          <input id="_etWeight" type="number" step="0.001" value="${wVal}" style="width:100%;background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;" placeholder="Ej: 12.345"></div>
-        <div><label style="font-size:.75rem;color:var(--muted);font-weight:700;display:block;margin-bottom:4px;">📍 Mapa / Lago</label>
-          <input id="_etMap" value="${mapVal}" style="width:100%;background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;" placeholder="Ej: Mosquito Lake"></div>
-        <div><label style="font-size:.75rem;color:var(--muted);font-weight:700;display:block;margin-bottom:4px;">🎣 Técnica</label>
-          <input id="_etTech" value="${techVal}" style="width:100%;background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;" placeholder="Ej: Spinning, Float..."></div>
-        <div><label style="font-size:.75rem;color:var(--muted);font-weight:700;display:block;margin-bottom:4px;">🪱 Carnada</label>
-          <input id="_etBait" value="${baitVal}" style="width:100%;background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;" placeholder="Ej: Carp Boilie"></div>
-        <div><label style="font-size:.75rem;color:var(--muted);font-weight:700;display:block;margin-bottom:4px;">📝 Descripción</label>
-          <textarea id="_etDesc" rows="3" style="width:100%;background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;resize:vertical;" placeholder="Comentario adicional...">${descVal}</textarea></div>
-        <div style="display:flex;gap:10px;margin-top:6px;">
-          <button onclick="document.getElementById('_editTrofeoModal').remove()" style="flex:1;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'Exo 2',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;">Cancelar</button>
-          <button onclick="saveTrofeoEdit('${tid}')" style="flex:2;padding:10px;background:linear-gradient(135deg,rgba(255,215,0,.2),rgba(255,165,0,.1));border:1px solid rgba(255,215,0,.5);border-radius:8px;color:var(--gold);font-family:'Exo 2',sans-serif;font-size:.88rem;font-weight:800;cursor:pointer;">💾 Guardar cambios</button>
-        </div>
-      </div>
-    </div>`;
-  document.body.appendChild(modal);
-  modal.addEventListener('click', e=>{ if(e.target===modal) modal.remove(); });
-}
-window.editTrofeoCard = editTrofeoCard;
-
-async function saveTrofeoEdit(tid){
-  const fish   = (document.getElementById('_etFish')?.value||'').trim();
-  const weight = parseFloat(document.getElementById('_etWeight')?.value||'') || 0;
-  const map    = (document.getElementById('_etMap')?.value||'').trim();
-  const tech   = (document.getElementById('_etTech')?.value||'').trim();
-  const bait   = (document.getElementById('_etBait')?.value||'').trim();
-  const desc   = (document.getElementById('_etDesc')?.value||'').trim();
-  if(!fish){ toast('Ingresá el nombre del pez','err'); return; }
-  try{
-    await updateDoc(doc(db,'trofeosPendientes',tid),{ fish, weight, map, technique:tech, bait, description:desc });
-    const idx = (window._trofeosFeedData||[]).findIndex(t=>t.id===tid);
-    if(idx>=0) Object.assign(window._trofeosFeedData[idx],{ fish, weight, map, technique:tech, bait, description:desc });
-    document.getElementById('_editTrofeoModal')?.remove();
-    window._trofeosFeedLastLoad = 0;
-    renderTrofeosFeed();
-    toast('Trofeo actualizado ✅','ok');
-  }catch(e){ toast('Error al guardar: '+e.message,'err'); }
-}
-window.saveTrofeoEdit = saveTrofeoEdit;
 
 // ===== VER/OCULTAR CONTRASEÑA =====
 function togglePassVis(inputId, btn){
@@ -27905,6 +27924,477 @@ window.testRankingPost = async function(){
 })();
 </script>
 <!-- ===== FIN PUBLICACIÓN AUTOMÁTICA RANKING SEMANAL ===== -->
+
+
+<!-- ===== SALAS DE VOZ — WebRTC + Firebase ===== -->
+<script>
+(function(){
+'use strict';
+
+// ── Estado global ─────────────────────────────────────────────────────────────
+let _vrCurrentRoom  = null;   // id de la sala en la que estoy
+let _vrLocalStream  = null;   // MediaStream local
+let _vrPeers        = {};     // { uid: RTCPeerConnection }
+let _vrMuted        = false;
+let _vrDeafened     = false;
+let _vrRoomsUnsub   = null;
+let _vrMembersUnsub = null;
+let _vrSelectedEmoji = '🎙️';
+
+const VR_COL   = 'voiceRooms';
+const VR_SIG   = 'voiceSignals';   // señalización WebRTC
+const ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' }
+];
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function vrLog(...a){ console.log('[VoiceRoom]', ...a); }
+function vrErr(...a){ console.error('[VoiceRoom]', ...a); }
+function vrToast(msg, type){ if(window.toast) window.toast(msg, type||'inf'); }
+
+function vrEsc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Render lista de salas ─────────────────────────────────────────────────────
+function renderVoiceRooms(rooms){
+  const el = document.getElementById('voiceRoomsList');
+  if(!el) return;
+
+  const createBtn = document.getElementById('createRoomBtn');
+  if(createBtn) createBtn.style.display = window.CU ? 'block' : 'none';
+
+  if(!rooms || !rooms.length){
+    el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--muted);"><div style="font-size:3rem;margin-bottom:12px;">🎙️</div><div style="font-size:.95rem;font-weight:700;margin-bottom:6px;">No hay salas activas</div><div style="font-size:.8rem;">¡Creá la primera sala y empezá a charlar!</div></div>';
+    return;
+  }
+
+  const isAdmin = window.CU?.role==='admin' || window.CU?.nick==='ruizgustavo12' || window.CU?.email==='synxyes@gmail.com';
+  const myUid   = window.CU?.id || '';
+
+  const cards = rooms.map(room => {
+    const members  = room.members || {};
+    const mList    = Object.values(members);
+    const count    = mList.length;
+    const inRoom   = _vrCurrentRoom === room.id;
+    const rid      = room.id;
+    const canDelete = isAdmin || room.createdBy === myUid;
+
+    // Members HTML
+    let membersHtml = '';
+    if(count){
+      membersHtml = mList.slice(0,8).map(m => {
+        const speaking = m.speaking && !m.muted;
+        const av  = m.av || '';
+        const nick = vrEsc((m.nick||'?').substring(0,14));
+        let chip = '<div class="vr-member-chip' + (speaking?' speaking':'') + (m.muted?' muted':'') + '">';
+        chip += '<div class="vr-av">' + (av ? '<img src="'+av+'" style="width:100%;height:100%;object-fit:cover;">' : nick[0].toUpperCase()) + '</div>';
+        chip += nick;
+        if(speaking) chip += '<span class="vr-speaking-indicator"></span>';
+        if(m.muted) chip += '<span style="font-size:.6rem;margin-left:2px;">🔇</span>';
+        chip += '</div>';
+        return chip;
+      }).join('');
+      if(mList.length > 8) membersHtml += '<span style="font-size:.72rem;color:var(--muted);">+' + (mList.length-8) + '</span>';
+    } else {
+      membersHtml = '<span style="font-size:.72rem;color:var(--muted);">Sin participantes — ¡sé el primero!</span>';
+    }
+
+    // Armar card con concatenación simple para evitar backtick anidados con comillas
+    let html = '<div class="voice-room-card' + (inRoom?' active':'') + '" id="vrc_' + rid + '">';
+    html += '<div class="vr-header">';
+    html += '<div class="vr-icon">' + (room.icon||'🎙️') + '</div>';
+    html += '<div style="flex:1;min-width:0;">';
+    html += '<div class="vr-name">' + vrEsc(room.name||'Sala') + '</div>';
+    if(room.desc) html += '<div class="vr-desc">' + vrEsc(room.desc) + '</div>';
+    html += '</div>';
+    if(canDelete){
+      html += '<button class="vr-admin-del" onclick="event.stopPropagation();deleteVoiceRoom(\'' + rid + '\')" title="Eliminar sala">🗑</button>';
+    }
+    // Botón join/leave — sin backticks anidados
+    if(inRoom){
+      html += '<button class="vr-join-btn in-room" onclick="event.stopPropagation();leaveVoiceRoom()">📵 Salir</button>';
+    } else {
+      const label = count > 0 ? '🎙️ Unirse (' + count + ')' : '🎙️ Unirse';
+      html += '<button class="vr-join-btn" onclick="event.stopPropagation();joinVoiceRoom(\'' + rid + '\')">' + label + '</button>';
+    }
+    html += '</div>';
+    html += '<div class="vr-members">' + membersHtml + '</div>';
+    html += '</div>';
+    return html;
+  });
+
+  el.innerHTML = cards.join('');
+}
+// ── Cargar salas en tiempo real ───────────────────────────────────────────────
+function listenVoiceRooms(){
+  if(!window.db || !window.onSnapshot) return;
+  if(_vrRoomsUnsub) _vrRoomsUnsub();
+  _vrRoomsUnsub = onSnapshot(
+    query(collection(db, VR_COL), orderBy('createdAt','asc')),
+    snap => {
+      const rooms = snap.docs.map(d => ({id:d.id, ...d.data()}));
+      renderVoiceRooms(rooms);
+    },
+    err => vrErr('listenVoiceRooms:', err)
+  );
+}
+
+// ── Crear sala ────────────────────────────────────────────────────────────────
+async function createVoiceRoom(){
+  if(!window.CU){ vrToast('Tenés que estar logueado','err'); return; }
+  const name = (document.getElementById('roomNameInput')?.value||'').trim();
+  if(!name){ vrToast('Ingresá un nombre para la sala','err'); return; }
+  const desc = (document.getElementById('roomDescInput')?.value||'').trim();
+  try{
+    await addDoc(collection(db, VR_COL), {
+      name, desc, icon: _vrSelectedEmoji,
+      createdBy: window.CU.id,
+      createdByNick: window.CU.nick||'?',
+      createdAt: serverTimestamp(),
+      members: {}
+    });
+    closeCreateRoomModal();
+    vrToast('Sala creada ✅','ok');
+  }catch(e){ vrToast('Error: '+e.message,'err'); }
+}
+
+// ── Eliminar sala ─────────────────────────────────────────────────────────────
+async function deleteVoiceRoom(roomId){
+  if(!confirm('¿Eliminar esta sala de voz?')) return;
+  if(_vrCurrentRoom === roomId) await leaveVoiceRoom();
+  try{
+    await deleteDoc(doc(db, VR_COL, roomId));
+    vrToast('Sala eliminada','ok');
+  }catch(e){ vrToast('Error: '+e.message,'err'); }
+}
+
+// ── Unirse a sala ─────────────────────────────────────────────────────────────
+async function joinVoiceRoom(roomId){
+  if(!window.CU){ vrToast('Tenés que estar logueado para usar las salas de voz','err'); return; }
+  if(_vrCurrentRoom){ await leaveVoiceRoom(); }
+
+  // Pedir permiso de micrófono
+  try{
+    _vrLocalStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+  }catch(e){
+    vrToast('No se pudo acceder al micrófono: '+e.message,'err');
+    return;
+  }
+
+  _vrCurrentRoom = roomId;
+  _vrMuted = false;
+  _vrDeafened = false;
+
+  // Registrarme como miembro en Firestore
+  const memberData = {
+    nick: window.CU.nick||'?',
+    av:   window.CU.av||'',
+    uid:  window.CU.id,
+    muted: false,
+    speaking: false,
+    joinedAt: Date.now()
+  };
+  try{
+    await updateDoc(doc(db, VR_COL, roomId), {
+      [`members.${window.CU.id}`]: memberData
+    });
+  }catch(e){ vrErr('joinVoiceRoom updateDoc:', e); }
+
+  // Mostrar panel inferior
+  showVoicePanel(roomId);
+
+  // Escuchar señales WebRTC para esta sala
+  listenSignals(roomId);
+
+  vrToast('Conectado a la sala 🎙️','ok');
+  vrLog('joined room:', roomId);
+}
+
+// ── Salir de sala ─────────────────────────────────────────────────────────────
+async function leaveVoiceRoom(){
+  if(!_vrCurrentRoom) return;
+  const roomId = _vrCurrentRoom;
+  _vrCurrentRoom = null;
+
+  // Cerrar peers
+  Object.values(_vrPeers).forEach(pc => { try{ pc.close(); }catch(e){} });
+  _vrPeers = {};
+
+  // Detener micrófono
+  if(_vrLocalStream){
+    _vrLocalStream.getTracks().forEach(t => t.stop());
+    _vrLocalStream = null;
+  }
+
+  // Removerme de Firestore
+  if(window.CU){
+    try{
+      await updateDoc(doc(db, VR_COL, roomId), {
+        [`members.${window.CU.id}`]: deleteField()
+      });
+    }catch(e){ vrErr('leaveVoiceRoom:', e); }
+  }
+
+  // Limpiar señales mías
+  try{
+    const sigSnap = await getDocs(query(
+      collection(db, VR_COL, roomId, VR_SIG),
+      where('from','==', window.CU?.id||'')
+    ));
+    sigSnap.docs.forEach(d => deleteDoc(d.ref).catch(()=>{}));
+  }catch(e){}
+
+  if(_vrMembersUnsub){ _vrMembersUnsub(); _vrMembersUnsub=null; }
+
+  hideVoicePanel();
+  vrToast('Saliste de la sala','inf');
+  vrLog('left room:', roomId);
+}
+
+// ── Señalización WebRTC ───────────────────────────────────────────────────────
+function listenSignals(roomId){
+  if(!window.CU) return;
+  if(_vrMembersUnsub) _vrMembersUnsub();
+
+  _vrMembersUnsub = onSnapshot(
+    collection(db, VR_COL, roomId, VR_SIG),
+    async snap => {
+      const myUid = window.CU.id;
+      for(const change of snap.docChanges()){
+        if(change.type === 'removed') continue;
+        const sig = change.doc.data();
+        if(sig.to !== myUid) continue;  // no es para mí
+
+        const fromUid = sig.from;
+        vrLog('signal from', fromUid, 'type:', sig.type);
+
+        if(sig.type === 'offer'){
+          await handleOffer(roomId, fromUid, sig.sdp);
+        } else if(sig.type === 'answer'){
+          const pc = _vrPeers[fromUid];
+          if(pc && pc.signalingState === 'have-local-offer'){
+            await pc.setRemoteDescription({ type:'answer', sdp: sig.sdp });
+          }
+        } else if(sig.type === 'ice'){
+          const pc = _vrPeers[fromUid];
+          if(pc && sig.candidate){
+            try{ await pc.addIceCandidate(new RTCIceCandidate(sig.candidate)); }catch(e){}
+          }
+        } else if(sig.type === 'join'){
+          // Nuevo miembro entró — yo inicio el offer
+          if(fromUid !== myUid && !_vrPeers[fromUid]){
+            await initiateCall(roomId, fromUid);
+          }
+        }
+        // Limpiar señal procesada
+        deleteDoc(change.doc.ref).catch(()=>{});
+      }
+    },
+    err => vrErr('listenSignals:', err)
+  );
+
+  // Anunciar que entré
+  sendSignal(roomId, null, { type:'join', from: window.CU.id, to:'all', nick: window.CU.nick||'?' });
+}
+
+async function initiateCall(roomId, targetUid){
+  const pc = createPeerConnection(roomId, targetUid);
+  try{
+    const offer = await pc.createOffer({ offerToReceiveAudio:true });
+    await pc.setLocalDescription(offer);
+    await sendSignal(roomId, targetUid, { type:'offer', sdp: offer.sdp, from: window.CU.id, to: targetUid });
+    vrLog('offer sent to', targetUid);
+  }catch(e){ vrErr('initiateCall:', e); }
+}
+
+async function handleOffer(roomId, fromUid, sdp){
+  const pc = createPeerConnection(roomId, fromUid);
+  try{
+    await pc.setRemoteDescription({ type:'offer', sdp });
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    await sendSignal(roomId, fromUid, { type:'answer', sdp: answer.sdp, from: window.CU.id, to: fromUid });
+    vrLog('answer sent to', fromUid);
+  }catch(e){ vrErr('handleOffer:', e); }
+}
+
+function createPeerConnection(roomId, targetUid){
+  if(_vrPeers[targetUid]){ try{ _vrPeers[targetUid].close(); }catch(e){} }
+  const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+  _vrPeers[targetUid] = pc;
+
+  // Agregar micrófono local
+  if(_vrLocalStream){
+    _vrLocalStream.getTracks().forEach(t => pc.addTrack(t, _vrLocalStream));
+  }
+
+  // Recibir audio remoto
+  pc.ontrack = e => {
+    const audio = document.getElementById('vrAudio_'+targetUid) || document.createElement('audio');
+    audio.id = 'vrAudio_'+targetUid;
+    audio.autoplay = true;
+    audio.srcObject = e.streams[0];
+    audio.muted = _vrDeafened;
+    if(!document.getElementById('vrAudio_'+targetUid)){
+      document.body.appendChild(audio);
+    }
+    vrLog('got audio track from', targetUid);
+  };
+
+  // ICE candidates
+  pc.onicecandidate = async e => {
+    if(e.candidate){
+      await sendSignal(roomId, targetUid, { type:'ice', candidate: e.candidate.toJSON(), from: window.CU.id, to: targetUid });
+    }
+  };
+
+  pc.onconnectionstatechange = () => {
+    vrLog('peer', targetUid, 'state:', pc.connectionState);
+    if(pc.connectionState === 'failed' || pc.connectionState === 'disconnected'){
+      pc.close();
+      delete _vrPeers[targetUid];
+      const aud = document.getElementById('vrAudio_'+targetUid);
+      if(aud) aud.remove();
+    }
+  };
+
+  return pc;
+}
+
+async function sendSignal(roomId, targetUid, data){
+  try{
+    await addDoc(collection(db, VR_COL, roomId, VR_SIG), {
+      ...data,
+      ts: Date.now()
+    });
+  }catch(e){ vrErr('sendSignal:', e); }
+}
+
+// ── Mute / Deaf ───────────────────────────────────────────────────────────────
+function toggleVoiceMute(){
+  _vrMuted = !_vrMuted;
+  if(_vrLocalStream){
+    _vrLocalStream.getAudioTracks().forEach(t => { t.enabled = !_vrMuted; });
+  }
+  const btn = document.getElementById('vrMuteBtn');
+  if(btn){
+    btn.textContent   = _vrMuted ? '🔇' : '🎙️';
+    btn.style.borderColor = _vrMuted ? 'var(--red)' : 'var(--accent)';
+    btn.style.background  = _vrMuted ? 'rgba(248,81,73,.15)' : 'rgba(46,196,182,.1)';
+  }
+  // Actualizar estado en Firestore
+  if(_vrCurrentRoom && window.CU){
+    updateDoc(doc(db, VR_COL, _vrCurrentRoom), {
+      [`members.${window.CU.id}.muted`]: _vrMuted
+    }).catch(()=>{});
+  }
+  vrToast(_vrMuted ? 'Micrófono silenciado 🔇' : 'Micrófono activado 🎙️','inf');
+}
+
+function toggleVoiceDeaf(){
+  _vrDeafened = !_vrDeafened;
+  // Silenciar todos los audios remotos
+  document.querySelectorAll('[id^="vrAudio_"]').forEach(a => { a.muted = _vrDeafened; });
+  const btn = document.getElementById('vrDeafBtn');
+  if(btn){
+    btn.textContent   = _vrDeafened ? '🔇' : '🔊';
+    btn.style.borderColor = _vrDeafened ? 'var(--red)' : 'var(--border)';
+  }
+  vrToast(_vrDeafened ? 'Audio silenciado 🔇' : 'Audio activado 🔊','inf');
+}
+
+// ── Panel inferior ────────────────────────────────────────────────────────────
+function showVoicePanel(roomId){
+  const panel = document.getElementById('voiceRoomPanel');
+  if(!panel) return;
+  document.getElementById('vrPanelName').textContent = '🎙️ En sala...';
+  document.getElementById('vrPanelStatus').textContent = 'Conectado';
+  panel.style.display = 'block';
+  // Escuchar cambios de la sala para el panel
+  onSnapshot(doc(db, VR_COL, roomId), snap => {
+    if(!snap.exists()) return;
+    const room = snap.data();
+    const nameEl = document.getElementById('vrPanelName');
+    if(nameEl) nameEl.textContent = (room.icon||'🎙️') + ' ' + (room.name||'Sala');
+    const members = Object.values(room.members||{});
+    const statusEl = document.getElementById('vrPanelStatus');
+    if(statusEl) statusEl.textContent = members.length + ' participante' + (members.length!==1?'s':'');
+    const membEl = document.getElementById('vrPanelMembers');
+    if(membEl) membEl.innerHTML = members.slice(0,5).map(m=>{
+      const av = m.av||'';
+      const nick = vrEsc((m.nick||'?').substring(0,10));
+      return `<div style="display:flex;align-items:center;gap:4px;font-size:.7rem;color:var(--text);">
+        <div style="width:22px;height:22px;border-radius:50%;overflow:hidden;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:var(--accent);border:1.5px solid ${m.speaking&&!m.muted?'var(--accent)':'var(--border)'};">
+          ${av?`<img src="${av}" style="width:100%;height:100%;object-fit:cover;">`:nick[0].toUpperCase()}
+        </div>
+        ${m.muted?'🔇':''}
+      </div>`;
+    }).join('');
+  });
+}
+
+function hideVoicePanel(){
+  const panel = document.getElementById('voiceRoomPanel');
+  if(panel) panel.style.display = 'none';
+  // Limpiar audios
+  document.querySelectorAll('[id^="vrAudio_"]').forEach(a => a.remove());
+}
+
+// ── Modal crear sala ──────────────────────────────────────────────────────────
+function openCreateRoomModal(){
+  if(!window.CU){ vrToast('Tenés que estar logueado','err'); return; }
+  const m = document.getElementById('createRoomModal');
+  if(m){ m.style.display='flex'; document.getElementById('roomNameInput')?.focus(); }
+}
+function closeCreateRoomModal(){
+  const m = document.getElementById('createRoomModal');
+  if(m) m.style.display='none';
+}
+
+// Emoji picker
+document.addEventListener('click', e => {
+  const opt = e.target.closest('.room-emoji-opt');
+  if(opt){
+    document.querySelectorAll('.room-emoji-opt').forEach(o=>o.classList.remove('selected'));
+    opt.classList.add('selected');
+    _vrSelectedEmoji = opt.dataset.emoji;
+  }
+  if(e.target.id === 'createRoomModal') closeCreateRoomModal();
+});
+
+// ── Inicializar cuando se entra a la página ───────────────────────────────────
+const _origGp = window.gp;
+window.gp = function(page, ...args){
+  if(page === 'voice-rooms'){
+    const r = _origGp ? _origGp(page, ...args) : null;
+    if(window.db && window.onSnapshot && window.orderBy){
+      listenVoiceRooms();
+    } else {
+      setTimeout(listenVoiceRooms, 1500);
+    }
+    return r;
+  }
+  return _origGp ? _origGp(page, ...args) : undefined;
+};
+
+// Exponer funciones globales
+window.joinVoiceRoom     = joinVoiceRoom;
+window.leaveVoiceRoom    = leaveVoiceRoom;
+window.createVoiceRoom   = createVoiceRoom;
+window.deleteVoiceRoom   = deleteVoiceRoom;
+window.toggleVoiceMute   = toggleVoiceMute;
+window.toggleVoiceDeaf   = toggleVoiceDeaf;
+window.openCreateRoomModal  = openCreateRoomModal;
+window.closeCreateRoomModal = closeCreateRoomModal;
+
+// Limpiar al cerrar ventana
+window.addEventListener('beforeunload', () => {
+  if(_vrCurrentRoom) leaveVoiceRoom();
+});
+
+})();
+</script>
+<!-- ===== FIN SALAS DE VOZ ===== -->
 
 </body>
 </html>
