@@ -2209,24 +2209,6 @@ document.addEventListener('DOMContentLoaded', function(){
         </div>
       </div>
 
-      <!-- ===== WIDGET CONECTADOS EN FEED ===== -->
-      <div id="feedOnlineWidget" style="margin-bottom:12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px 6px;">
-          <div style="display:flex;align-items:center;gap:7px;">
-            <span style="font-size:.75rem;font-weight:800;color:var(--text);text-transform:uppercase;letter-spacing:.5px;">👥 Conectados</span>
-            <span id="feedOnlineCount" style="font-size:.65rem;font-weight:700;background:var(--green);color:#fff;padding:1px 7px;border-radius:100px;">0</span>
-          </div>
-          <button onclick="document.getElementById('feedOnlineScroll').scrollLeft+=160" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem;padding:2px 6px;border-radius:4px;transition:color .15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">›</button>
-        </div>
-        <div id="feedOnlineScroll" style="display:flex;gap:6px;padding:4px 12px 10px;overflow-x:auto;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;"
-             style="scrollbar-width:none;">
-          <div id="feedOnlineList" style="display:flex;gap:8px;align-items:flex-start;min-width:max-content;">
-            <div style="font-size:.75rem;color:var(--muted);padding:6px;">Cargando...</div>
-          </div>
-        </div>
-      </div>
-      <!-- ===== FIN WIDGET CONECTADOS ===== -->
-
       <!-- Spots de amigos en inicio -->
       <div id="friendSpotsHome"></div>
 
@@ -2259,20 +2241,22 @@ document.addEventListener('DOMContentLoaded', function(){
     <!-- RIGHT -->
     <div class="sidebar-right">
 
-      <!-- CONTACTOS estilo Facebook -->
+      <!-- CONECTADOS -->
       <div style="margin-bottom:14px;">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px 8px;">
-          <span style="font-size:.88rem;font-weight:700;color:var(--muted);">Contactos</span>
-          <div style="display:flex;gap:4px;">
-            <div id="sidebarSearchBtn" style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''" onclick="toggleSidebarSearch()" title="Buscar">🔍</div>
-            <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">···</div>
+          <div style="display:flex;align-items:center;gap:7px;">
+            <span style="font-size:.82rem;font-weight:800;color:var(--text);">👥 Conectados</span>
+            <span id="sidebarOnlineCount2" style="font-size:.62rem;font-weight:700;background:var(--green);color:#fff;padding:1px 7px;border-radius:100px;min-width:18px;text-align:center;">0</span>
+          </div>
+          <div style="display:flex;gap:2px;">
+            <div id="sidebarSearchBtn" style="width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.85rem;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''" onclick="toggleSidebarSearch()" title="Buscar">🔍</div>
           </div>
         </div>
         <div id="sidebarSearchBox" style="display:none;padding:0 10px 8px;">
-          <input id="sidebarSearchInput" type="text" placeholder="Buscar contacto..." oninput="filterSidebarContacts(this.value)"
+          <input id="sidebarSearchInput" type="text" placeholder="Buscar usuario..." oninput="filterSidebarContacts(this.value)"
             style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:7px 14px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.82rem;outline:none;">
         </div>
-        <div id="sidebarOnlineList" style="padding:2px 0;"></div>
+        <div id="sidebarOnlineList" style="padding:2px 0;"><div style="text-align:center;padding:14px 8px;color:var(--muted);font-size:.75rem;">🎣 Cargando conectados...</div></div>
       </div>
 
       <!-- ÚLTIMOS TROFEOS WIDGET -->
@@ -18400,7 +18384,7 @@ let _presencePollingInterval = null;
 async function _fetchPresence(){
   try {
     // OPTIMIZADO: solo lee usuarios activos en últimos 5 min (1 query filtrada vs toda la colección)
-    const since = Timestamp.fromMillis(Date.now() - 300000); // 5 minutos
+    const since = Timestamp.fromMillis(Date.now() - 1800000); // 30 minutos
     const onlineSnap = await getDocs(query(collection(db,'presence'), where('last','>',since), limit(50)));
     const now = Date.now();
     const online = onlineSnap.docs.map(d=>({id:d.id,...d.data(),ts:d.data().last?.toMillis?.()||0}));
@@ -18423,10 +18407,9 @@ async function _fetchPresence(){
     // offline: excluir los que ya están en online para evitar duplicados
     const onlineIds = new Set(online.map(u=>u.id));
     const offline = Object.values(window._presenceCache||{})
-      .filter(u=> !onlineIds.has(u.id) && now - u.ts >= 300000 && now - u.ts < 3600000)
+      .filter(u=> !onlineIds.has(u.id) && now - u.ts >= 1800000 && now - u.ts < 7200000)
       .sort((a,b)=>b.ts-a.ts).slice(0,8);
     renderContacts(online);
-    renderFeedOnline(online);
     document.querySelectorAll('#onlineCount,#sidebarOnlineCount').forEach(el=>{ if(el) el.textContent=online.length; });
     renderSidebarOnline(online, offline);
   } catch(err){
@@ -18691,9 +18674,12 @@ function renderSidebarOnline(online, offline){
     html += offline.map(u=>userBanner(u,false)).join('');
   }
   if(!onlineFiltered.length && !offline.length){
-    html = `<div style="text-align:center;padding:16px 8px;color:var(--muted);font-size:.75rem;">🎣 Sin contactos aún</div>`;
+    html = `<div style="text-align:center;padding:14px 8px;color:var(--muted);font-size:.75rem;line-height:1.5;">🎣 Nadie conectado<br><span style="font-size:.68rem;">en los últimos 30 min</span></div>`;
   }
   el.innerHTML = html;
+  // Actualizar contador de conectados
+  const cnt2 = document.getElementById('sidebarOnlineCount2');
+  if(cnt2) cnt2.textContent = onlineFiltered.length;
   // Guardar todos los usuarios para filtrar
   window._sidebarAllOnline = onlineFiltered;
   window._sidebarAllOffline = offline;
