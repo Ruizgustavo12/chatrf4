@@ -793,6 +793,21 @@ img[title="Verificado"]:hover{
 .contact-name{font-size:.83rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .contact-status{font-size:.68rem;color:var(--green);font-weight:500;}
 @keyframes pulse-green{0%,100%{box-shadow:0 0 0 0 rgba(66,183,42,.5);}50%{box-shadow:0 0 0 4px rgba(66,183,42,0);}}
+/* ===== FEED ONLINE WIDGET ===== */
+#feedOnlineScroll::-webkit-scrollbar{height:3px;}
+#feedOnlineScroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+.fow-card{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:4px 6px;border-radius:10px;transition:background .15s;min-width:58px;max-width:68px;}
+.fow-card:hover{background:var(--bg3);}
+.fow-av-wrap{position:relative;width:44px;height:44px;}
+.fow-av{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--border);background:var(--bg3);}
+.fow-dot{position:absolute;bottom:1px;right:1px;width:11px;height:11px;border-radius:50%;border:2px solid var(--bg2);}
+.fow-nick{font-size:.62rem;font-weight:700;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:64px;line-height:1.2;}
+@keyframes _fowPulseGreen{0%,100%{box-shadow:0 0 0 2px #00e676,0 0 7px 2px rgba(0,230,118,.4);}50%{box-shadow:0 0 0 2px #69f0ae,0 0 14px 4px rgba(105,240,174,.65);}}
+@keyframes _fowPulseBlue{0%,100%{box-shadow:0 0 0 2px #1877f2,0 0 7px 2px rgba(24,119,242,.4);}50%{box-shadow:0 0 0 2px #42a5f5,0 0 14px 4px rgba(66,165,245,.65);}}
+@keyframes _fowPulseGold{0%,100%{box-shadow:0 0 0 2px #ffd700,0 0 9px 3px rgba(255,215,0,.45);}50%{box-shadow:0 0 0 2px #ffe066,0 0 18px 6px rgba(255,215,0,.7);}}
+.fow-mob{animation:_fowPulseGreen 1.6s ease-in-out infinite;border-color:#00e676 !important;}
+.fow-pc{animation:_fowPulseBlue 1.8s ease-in-out infinite;border-color:#1877f2 !important;}
+.fow-admin{animation:_fowPulseGold 1.4s ease-in-out infinite;border-color:#ffd700 !important;}
 /* Suggested post preview card */
 .sug-post-card{display:flex;gap:10px;align-items:center;padding:8px;border-radius:var(--rs);cursor:pointer;transition:background .18s;border:1px solid transparent;margin-bottom:6px;}
 .sug-post-card:hover{background:var(--bg3);border-color:var(--border);}
@@ -2193,6 +2208,24 @@ document.addEventListener('DOMContentLoaded', function(){
           <button class="pba" onclick="om('mCreatePost')">😊 Estado</button>
         </div>
       </div>
+
+      <!-- ===== WIDGET CONECTADOS EN FEED ===== -->
+      <div id="feedOnlineWidget" style="margin-bottom:12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px 6px;">
+          <div style="display:flex;align-items:center;gap:7px;">
+            <span style="font-size:.75rem;font-weight:800;color:var(--text);text-transform:uppercase;letter-spacing:.5px;">👥 Conectados</span>
+            <span id="feedOnlineCount" style="font-size:.65rem;font-weight:700;background:var(--green);color:#fff;padding:1px 7px;border-radius:100px;">0</span>
+          </div>
+          <button onclick="document.getElementById('feedOnlineScroll').scrollLeft+=160" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem;padding:2px 6px;border-radius:4px;transition:color .15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">›</button>
+        </div>
+        <div id="feedOnlineScroll" style="display:flex;gap:6px;padding:4px 12px 10px;overflow-x:auto;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;"
+             style="scrollbar-width:none;">
+          <div id="feedOnlineList" style="display:flex;gap:8px;align-items:flex-start;min-width:max-content;">
+            <div style="font-size:.75rem;color:var(--muted);padding:6px;">Cargando...</div>
+          </div>
+        </div>
+      </div>
+      <!-- ===== FIN WIDGET CONECTADOS ===== -->
 
       <!-- Spots de amigos en inicio -->
       <div id="friendSpotsHome"></div>
@@ -18393,6 +18426,7 @@ async function _fetchPresence(){
       .filter(u=> !onlineIds.has(u.id) && now - u.ts >= 300000 && now - u.ts < 3600000)
       .sort((a,b)=>b.ts-a.ts).slice(0,8);
     renderContacts(online);
+    renderFeedOnline(online);
     document.querySelectorAll('#onlineCount,#sidebarOnlineCount').forEach(el=>{ if(el) el.textContent=online.length; });
     renderSidebarOnline(online, offline);
   } catch(err){
@@ -18419,6 +18453,56 @@ function fmtLastSeen(ts){
   if(h < 24) return 'Hace '+h+'h';
   return 'Hace '+d+' día'+(d>1?'s':'');
 }
+
+// ===== WIDGET CONECTADOS EN FEED =====
+function renderFeedOnline(online){
+  const list = document.getElementById('feedOnlineList');
+  const countEl = document.getElementById('feedOnlineCount');
+  const widget = document.getElementById('feedOnlineWidget');
+  if(!list) return;
+  const myId = window.CU?.id;
+  const users = (online||[]).filter(u=>u.id!==myId);
+  if(countEl) countEl.textContent = users.length;
+  if(!users.length){
+    if(widget) widget.style.display = 'none';
+    return;
+  }
+  if(widget) widget.style.display = '';
+
+  list.innerHTML = users.map(u=>{
+    const nick = esc(u.nick||'?');
+    const av   = u.av || getDefaultAv(u.gender||'');
+    const dev  = u.device||'desktop';
+    const isAdmin = u.nick==='ruizgustavo12'||u.role==='admin';
+    const dotColor = isAdmin ? '#ffd700' : (dev==='mobile' ? '#00e676' : '#1877f2');
+    const avClass  = isAdmin ? 'fow-admin' : (dev==='mobile' ? 'fow-mob' : 'fow-pc');
+
+    // Nick hermoso en miniatura
+    let nickHtml;
+    if(isAdmin){
+      nickHtml = `<span style="background:linear-gradient(90deg,#ff8c00,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:800;">${nick}</span>`;
+    } else if(u.verified){
+      nickHtml = `<span style="background:linear-gradient(90deg,#f5a623,#ffe082);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:800;">${nick}</span>`;
+    } else if((u.xp||0)>=2000){
+      nickHtml = `<span style="background:linear-gradient(90deg,#ce93d8,#b39ddb);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:800;">${nick}</span>`;
+    } else if((u.xp||0)>=500){
+      const lvl = getLevel(u.xp||0);
+      nickHtml = `<span style="color:${lvl.color};font-weight:700;">${nick}</span>`;
+    } else {
+      nickHtml = `<span style="color:var(--text);">${nick}</span>`;
+    }
+
+    return `<div class="fow-card" onclick="openUserProfile('${u.id}','${nick.replace(/'/g,"\'")}')">
+      <div class="fow-av-wrap">
+        <img class="fow-av ${avClass}" src="${av}" onerror="this.src='${getDefaultAv()}'">
+        <div class="fow-dot" style="background:${dotColor};box-shadow:0 0 4px ${dotColor};"></div>
+      </div>
+      <div class="fow-nick">${nickHtml}</div>
+      <div style="font-size:.55rem;color:${dotColor};font-weight:700;">${dev==='mobile'?'📱':'🖥️'}</div>
+    </div>`;
+  }).join('');
+}
+// ===== FIN WIDGET CONECTADOS =====
 
 function renderSidebarOnline(online, offline){
   const el = document.getElementById('sidebarOnlineList');
