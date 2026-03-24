@@ -17469,6 +17469,14 @@ document.addEventListener('click', e => {
   }
 });
 async function doLogout(){
+  // Limpiar presencia antes de cerrar sesión
+  if(window.CU?.id){
+    try{
+      await setDoc(doc(db,'presence',window.CU.id),{last: Timestamp.fromMillis(0)},{merge:true});
+    }catch(e){}
+  }
+  if(_presenceInterval){ clearInterval(_presenceInterval); _presenceInterval=null; }
+  if(_presencePollingInterval){ clearInterval(_presencePollingInterval); _presencePollingInterval=null; }
   await signOut(auth);
   window.CU = null;
   if(_unsubPosts){ _unsubPosts(); _unsubPosts=null; }
@@ -17478,6 +17486,42 @@ async function doLogout(){
   showLogin();
   toast('Sesión cerrada 👋','ok');
 }
+
+// Limpiar presencia cuando el usuario cierra el tab o el navegador
+window.addEventListener('pagehide', ()=>{
+  if(!window.CU?.id) return;
+  try{
+    // Usar beacon para que se envíe aunque el tab se esté cerrando
+    const url = `https://firestore.googleapis.com/v1/projects/charlasrf4/databases/(default)/documents/presence/${window.CU.id}`;
+    // Marcar last=0 via setDoc no funciona en pagehide; usamos sendBeacon a nuestro worker si existe
+    // Fallback: al menos intentar con fetch keepalive
+    fetch(url, { method: 'PATCH', keepalive: true }).catch(()=>{});
+  }catch(e){}
+});
+
+// Pausar presencia cuando el tab está en segundo plano, reanudar al volver
+document.addEventListener('visibilitychange', ()=>{
+  if(!window.CU?.id || !window.db) return;
+  if(document.hidden){
+    // Tab oculto: pausar heartbeat
+    if(_presenceInterval){ clearInterval(_presenceInterval); _presenceInterval=null; }
+  } else {
+    // Tab visible de nuevo: actualizar presencia inmediatamente y reanudar heartbeat
+    const presRef = doc(db,'presence',window.CU.id);
+    const _isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+    setDoc(presRef,{ last:serverTimestamp(), device:_isMobile?'mobile':'desktop' },{merge:true}).catch(()=>{});
+    if(!_presenceInterval){
+      _presenceInterval = setInterval(async()=>{
+        if(window.CU) await setDoc(presRef,{
+          nick:window.CU.nick, av:window.CU.av||'', last:serverTimestamp(),
+          device:_isMobile?'mobile':'desktop',
+          role:window.CU.role||'', verified:!!window.CU.verified, xp:window.CU.xp||0,
+          gender:window.CU.gender||'', country:window.CU.country||''
+        },{merge:true});
+      }, 240000);
+    }
+  }
+});
 
 // ===== SEND NOTIFICATION TO ANY USER =====
 async function sendNotifToUserStory(uid, text, storyPreview, storyImg, storyId){
@@ -21103,7 +21147,8 @@ async function listenTrofeosFeed(){
 
 function listenTrofeosSidebar(){
   // Trae los últimos 20 y filtra aprobados en JS para evitar índice compuesto
-  getDocs(query(collection(db,'trofeosPendientes'), orderBy('createdAt','desc'), limit(20)))
+  // Usar limit(60) para no perder trofeos aprobados recientes entre pendientes
+  getDocs(query(collection(db,'trofeosPendientes'), orderBy('createdAt','desc'), limit(60)))
     .then(snap => {
       const items = snap.docs.map(d=>({id:d.id,...d.data()}))
         .filter(d => !d.status || d.status === 'approved')
@@ -23649,6 +23694,9 @@ window.wkSubmitTrophy = async () => {
       createdAt:serverTimestamp()
     };
     const newRef = await addDoc(collection(db,'trofeosPendientes'), data);
+    // Invalidar caché del feed para que el trofeo aparezca inmediatamente
+    window._trofeosFeedLastLoad = 0;
+    window._trofeosFeedData = [];
     // config/stats: incrementar totalTrophies
     try{ await setDoc(doc(db,'config','stats'),{totalTrophies: increment(1)},{merge:true}); }catch(e){}
     // config/lastTrophy: guardar resumen para el login (1 lectura en vez de toda la coleccion)
@@ -23774,6 +23822,9 @@ window.wkApproveTrophy = async (id) => {
   try{
     const tSnap = await getDoc(doc(db,'trofeosPendientes',id));
     await updateDoc(doc(db,'trofeosPendientes',id),{status:'approved', approvedAt: serverTimestamp()});
+    // Invalidar caché del feed para que el trofeo aparezca de inmediato
+    window._trofeosFeedLastLoad = 0;
+    window._trofeosFeedData = [];
     toast('Trofeo aprobado ✅','ok');
     _wkLoaded=false; wkRenderAdmin();
 
