@@ -11393,83 +11393,105 @@ function openTrofeoViewers(tid){
 
 async function doReact(pid, emoji){
   if(!window.CU){ toast('Inicia sesión para reaccionar','err'); return; }
-  // Determine Firestore collection
   const isTrofeo = pid.startsWith('trofeo_');
   const realId = isTrofeo ? pid.replace('trofeo_','') : pid;
   const colName = isTrofeo ? 'trofeosPendientes' : 'posts';
 
+  // Buscar en _posts o en la cache de trofeos
   let p = _posts.find(p=>p.id===pid);
+  if(!p && isTrofeo){
+    const tc = (window._trofeosFeedData||[]).find(x=>x.id===realId) || (window._wkAllTrophies||[]).find(x=>x.id===realId);
+    if(tc){ p = {id:pid, ...tc}; _posts.push(p); }
+  }
   if(!p){
     try {
       const snap = await getDoc(doc(db, colName, realId));
       if(!snap.exists()){ toast('Publicación no encontrada','err'); return; }
       p = {id:pid,...snap.data()};
       _posts.push(p);
-    } catch(e){ toast('Error al cargar publicación','err'); return; }
+    } catch(e){ console.error('doReact getDoc error:',e); toast('Error al cargar publicación','err'); return; }
   }
-  const prev = p.reactions?.[window.CU.id] || null;
+
+  const uid = window.CU.id;
+  const prev = p.reactions?.[uid] || null;
+  const removing = (prev === emoji); // toggle off
   const updates = {};
-  if(prev){ updates[`reactionCounts.${prev}`] = increment(-1); }
-  if(prev === emoji){ updates[`reactions.${window.CU.id}`] = ''; }
-  else {
-    updates[`reactions.${window.CU.id}`] = emoji;
+
+  // Quitar reacción previa del contador
+  if(prev) updates[`reactionCounts.${prev}`] = increment(-1);
+
+  if(removing){
+    // Usar deleteField() — nunca string vacío
+    updates[`reactions.${uid}`] = deleteField();
+  } else {
+    updates[`reactions.${uid}`] = emoji;
     updates[`reactionCounts.${emoji}`] = increment(1);
-    if(emoji && !prev) addXP(1,'reacción');
-    if(p.userId && p.userId !== window.CU.id && !prev){
+    if(!prev) addXP(1,'reacción');
+    if(p.userId && p.userId !== uid && !prev){
       const preview = (p.text||'').slice(0,80) + ((p.text||'').length>80?'...':'');
       const postImg = (p.images&&p.images[0]) || p.imgUrl || null;
-      const msg = `${emoji} ${window.CU.nick} reaccionó a tu publicación`;
-      sendNotifToUserWithPost(p.userId, msg, pid, {
-        postImg,
-        postPreviewText: preview || null
-      });
+      sendNotifToUserWithPost(p.userId, `${emoji} ${window.CU.nick} reaccionó a tu publicación`, pid, { postImg, postPreviewText: preview||null });
     }
   }
+
+  // Cerrar popup
   document.getElementById('rxnp_'+pid)?.classList.remove('show');
-  // Optimistic UI
+
+  // Optimistic UI — actualizar cache local
   if(!p.reactions) p.reactions = {};
   if(!p.reactionCounts) p.reactionCounts = {};
-  if(prev){ p.reactionCounts[prev] = Math.max(0,(p.reactionCounts[prev]||1)-1); }
-  if(prev === emoji){ delete p.reactions[window.CU.id]; }
-  else { p.reactions[window.CU.id] = emoji; p.reactionCounts[emoji] = (p.reactionCounts[emoji]||0)+1; }
+  if(prev) p.reactionCounts[prev] = Math.max(0,(p.reactionCounts[prev]||1)-1);
+  if(removing){ delete p.reactions[uid]; }
+  else { p.reactions[uid] = emoji; p.reactionCounts[emoji] = (p.reactionCounts[emoji]||0)+1; }
 
-  const myNewRxn = prev===emoji ? null : emoji;
+  const myNewRxn = removing ? null : emoji;
   const rxnDef = REACTIONS?.find(r=>r.emoji===myNewRxn);
 
-  // Update reaction button — normal posts
+  // Botón post normal
   const rxnBtn = document.getElementById('rxnt_'+pid);
   if(rxnBtn){
     rxnBtn.innerHTML = (myNewRxn||'🔥') + ' <span style="font-size:.82rem;">' + (rxnDef?.label||'🔥 Reaccionar') + '</span>';
     rxnBtn.style.color = myNewRxn ? (rxnDef?.color||'var(--accent)') : '';
     rxnBtn.classList.toggle('active', !!myNewRxn);
   }
-  // Update reaction button — trofeo cards
+  // Botón trofeo feed card
   const trofeoRxnIcon = document.getElementById('trofeoRxnIcon_'+realId);
-  const trofeoRxnLbl = document.getElementById('trofeoRxnLbl_'+realId);
-  if(trofeoRxnIcon) trofeoRxnIcon.textContent = myNewRxn||'🔥';
+  const trofeoRxnLbl  = document.getElementById('trofeoRxnLbl_'+realId);
+  if(trofeoRxnIcon) trofeoRxnIcon.textContent = myNewRxn||'🎣';
   if(trofeoRxnLbl){ trofeoRxnLbl.textContent = rxnDef?.label||'Reaccionar'; trofeoRxnLbl.closest('button').style.color = myNewRxn ? (rxnDef?.color||'var(--accent)') : ''; }
 
-  // Update reaction summary
+  // Resumen de reacciones
   const rxnSummary = document.getElementById('rxns_'+pid);
   if(rxnSummary){
-    const total = Object.values(p.reactionCounts).reduce((a,b)=>a+(b||0),0);
+    const total = Object.values(p.reactionCounts).reduce((a,b)=>a+(typeof b==='number'?b:0),0);
     const top = Object.entries(p.reactionCounts).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([e])=>e).join('');
     rxnSummary.innerHTML = total>0 ? `<span style="background:var(--bg3);border-radius:100px;padding:2px 8px;font-size:.82rem;">${top}</span><span style="font-size:.78rem;color:var(--muted);"> ${total}</span>` : '';
   }
-  // Update modal reaction button if open
+  // Modal abierto
   const modalRxnBtn = document.getElementById('_modalRxnBtn_'+pid);
   if(modalRxnBtn){
-    const rxnDef2 = REACTIONS?.find(r=>r.emoji===myNewRxn);
     modalRxnBtn.innerHTML = (myNewRxn||'👍') + ' Me gusta';
-    modalRxnBtn.style.color = myNewRxn ? (rxnDef2?.color||'var(--accent)') : '#65676b';
+    modalRxnBtn.style.color = myNewRxn ? (REACTIONS?.find(r=>r.emoji===myNewRxn)?.color||'var(--accent)') : '#65676b';
   }
+
+  // Guardar en Firestore
   try {
     await updateDoc(doc(db, colName, realId), updates);
   } catch(e){
-    console.error('doReact error:', e);
-    toast('Error al reaccionar — intenta de nuevo','err');
-    if(prev === emoji){ p.reactions[window.CU.id] = prev; }
-    else { delete p.reactions[window.CU.id]; }
+    console.error('doReact updateDoc error:', e.code, e.message);
+    // Revertir optimistic UI
+    if(removing){ p.reactions[uid] = prev; if(prev) p.reactionCounts[prev] = (p.reactionCounts[prev]||0)+1; }
+    else { delete p.reactions[uid]; if(prev) p.reactionCounts[prev] = (p.reactionCounts[prev]||0)+1; p.reactionCounts[emoji] = Math.max(0,(p.reactionCounts[emoji]||1)-1); }
+    // Si el documento no existe aún (unlikely) o falta permiso — intentar setDoc merge como fallback
+    if(e.code === 'not-found'){
+      try{
+        await updateDoc(doc(db, colName, realId), { reactions:{}, reactionCounts:{} });
+        await updateDoc(doc(db, colName, realId), updates);
+        return;
+      }catch(e2){ console.error('doReact fallback error:', e2); }
+    }
+    const errMsg = e.code === 'permission-denied' ? 'Sin permiso (reglas Firestore)' : (e.code||e.message||'intenta de nuevo');
+    toast('Error al reaccionar — ' + errMsg, 'err');
   }
 }
 function quickReact(pid){ if(!window.CU){toast('Inicia sesión','err');return;} doReact(pid,'🔥'); }
@@ -21341,7 +21363,15 @@ function renderTrofeosFeed(){
   data.forEach(t => {
     const fakeId = 'trofeo_' + (t.id||'');
     const p = window._posts.find(x=>x.id===fakeId);
-    if(p) setTimeout(()=>{ try{ updateRxnSummary(fakeId); } catch(e){} },0);
+    if(p) setTimeout(()=>{ try{
+      const rxnEl = document.getElementById('rxns_'+fakeId);
+      if(rxnEl){
+        const rc = p.reactionCounts||{};
+        const total = Object.values(rc).reduce((a,b)=>a+(typeof b==='number'?b:0),0);
+        const top = Object.entries(rc).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([e])=>e).join('');
+        rxnEl.innerHTML = total>0 ? `<span style="background:var(--bg3);border-radius:100px;padding:2px 8px;font-size:.82rem;">${top}</span><span style="font-size:.78rem;color:var(--muted);"> ${total}</span>` : '';
+      }
+    } catch(e){} },0);
   });
 }
 
