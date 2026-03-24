@@ -23303,7 +23303,7 @@ function wkLoadHome() {
       }, (err) => {
         window._unsubWkHome = null;
         if(err.code === 'failed-precondition' || err.code === 'unimplemented'){
-          startListen(query(collection(db,'trofeosPendientes'), limit(50)));
+          startListen(query(collection(db,'trofeosPendientes'), orderBy('createdAt','desc'), limit(50)));
         } else {
           grid.innerHTML='<div class="wk-empty"><div class="wk-ei">⚠️</div><div class="wk-et">Error al cargar</div></div>';
         }
@@ -23311,7 +23311,7 @@ function wkLoadHome() {
       window._unsubWkHome = unsub;
     } catch(e){ grid.innerHTML='<div class="wk-empty"><div class="wk-ei">⚠️</div><div class="wk-et">Error al cargar</div></div>'; }
   };
-  startListen(query(collection(db,'trofeosPendientes'), where('status','==','approved'), limit(50)));
+  startListen(query(collection(db,'trofeosPendientes'), where('status','==','approved'), orderBy('createdAt','desc'), limit(50)));
 }
 
 // Home map filter
@@ -23328,7 +23328,7 @@ window.wkOnHomeMapChange = async () => {
   grid.innerHTML = '<div class="wk-ld"><div class="wk-sp"></div></div>';
   empty.style.display='none';
   try {
-    const snap = await getDocs(query(collection(db,'trofeosPendientes'), where('status','==','approved'), where('map','==',map), limit(100)));
+    const snap = await getDocs(query(collection(db,'trofeosPendientes'), where('status','==','approved'), where('map','==',map), orderBy('createdAt','desc'), limit(100)));
     const items = snap.docs.map(d=>({id:d.id,...d.data()}));
     count.textContent = items.length + ' trofeos';
     if(!items.length){ grid.innerHTML=''; empty.style.display='block'; return; }
@@ -23376,7 +23376,7 @@ window.wkRenderTrophies = () => {
       }, (err) => {
         window._unsubWkGallery = null;
         if(err.code === 'failed-precondition' || err.code === 'unimplemented'){
-          startListen(query(collection(db,'trofeosPendientes'), limit(100)));
+          startListen(query(collection(db,'trofeosPendientes'), orderBy('createdAt','desc'), limit(100)));
         } else {
           grid.innerHTML='<div class="wk-empty"><div class="wk-ei">⚠️</div><div class="wk-et">Error al cargar trofeos</div></div>';
         }
@@ -23384,7 +23384,7 @@ window.wkRenderTrophies = () => {
       window._unsubWkGallery = unsub;
     } catch(e){ grid.innerHTML='<div class="wk-empty"><div class="wk-ei">⚠️</div><div class="wk-et">Error al cargar trofeos</div></div>'; }
   };
-  startListen(query(collection(db,'trofeosPendientes'), where('status','==','approved'), limit(100)));
+  startListen(query(collection(db,'trofeosPendientes'), where('status','==','approved'), orderBy('createdAt','desc'), limit(100)));
 };
 
 // Ranking
