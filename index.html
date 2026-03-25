@@ -18932,9 +18932,18 @@ function renderFeedOnline(online){
 
 function renderSidebarOnline(online, offline){
   const el = document.getElementById('sidebarOnlineList');
-  if(!el) return;
   const myId = window.CU?.id;
   const onlineFiltered = online.filter(u=>u.id !== myId);
+  // Guardar siempre aunque no exista el sidebar
+  window._sidebarAllOnline = onlineFiltered;
+  window._sidebarAllOffline = offline;
+  if(!el){
+    // Sin sidebar derecho: igual actualizar el panel de comunidad
+    window._sidebarUserBanner = null;
+    if(typeof _fpRender==='function') _fpRender();
+    if(typeof _fpUpdateBadge==='function') _fpUpdateBadge(new Set(onlineFiltered.map(function(u){return u.id;})), window.CU);
+    return;
+  }
 
   // ── CSS animations para los 4 marcos ──
   if(!document.getElementById('_presenceFrameCSS')){
