@@ -2082,6 +2082,11 @@ document.addEventListener('DOMContentLoaded', function(){
   </div>
   <div class="tb-right">
     <div id="installPwaBtn" onclick="installPwa()" title="Instalar App" style="display:none;align-items:center;gap:5px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;border:none;padding:6px 12px;border-radius:100px;font-size:.75rem;font-weight:800;cursor:pointer;font-family:'Exo 2',sans-serif;">📲 Instalar App</div>
+    <!-- Amigos/Conectados -->
+    <div class="tb-icon-btn" id="friendsPanelBtn" onclick="toggleFriendsPanel()" title="Comunidad" style="position:relative;">
+      <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+      <div id="fpOnlineBadge" style="display:none;position:absolute;top:2px;right:2px;min-width:16px;height:16px;background:var(--green);border-radius:100px;border:2px solid var(--bg2);font-size:.55rem;font-weight:800;color:#fff;align-items:center;justify-content:center;padding:0 3px;"></div>
+    </div>
     <!-- Notificaciones -->
     <div class="tb-icon-btn" onclick="toggleNotifDropdown(event)" title="Notificaciones" style="position:relative;" id="notifBellBtn">
       <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6V11c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 00-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
@@ -2113,7 +2118,48 @@ document.addEventListener('DOMContentLoaded', function(){
   </div>
 </nav>
 
+<!-- ===== PANEL COMUNIDAD (estilo Discord) ===== -->
+<div id="friendsDiscordPanel" style="display:none;position:fixed;top:54px;right:10px;width:310px;max-height:calc(100vh - 68px);background:#1e2124;border:1px solid #2f3136;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.65);z-index:9995;flex-direction:column;overflow:hidden;">
+<style>
+@keyframes _fpIn{from{opacity:0;transform:translateY(-10px) scale(.96)}to{opacity:1;transform:none}}
+#friendsDiscordPanel{animation:_fpIn .18s ease;}
+.fp-tab-btn{flex:1;padding:9px 0;font-size:.8rem;font-weight:700;color:#8e9297;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:'Exo 2',sans-serif;transition:color .15s,border-color .15s;}
+.fp-tab-btn.fp-active{color:#fff;border-bottom-color:#5865f2;}
+.fp-tab-btn:hover:not(.fp-active){color:#dcddde;}
+.fp-user-item{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;cursor:pointer;transition:background .13s;}
+.fp-user-item:hover{background:#32353b;}
+.fp-avatar-wrap{position:relative;flex-shrink:0;width:38px;height:38px;}
+.fp-avatar-wrap img{width:38px;height:38px;border-radius:50%;object-fit:cover;display:block;}
+.fp-status-pip{position:absolute;bottom:0;right:0;width:11px;height:11px;border-radius:50%;border:2px solid #1e2124;}
+.fp-searchbox{width:100%;background:#2a2c30;border:none;outline:none;border-radius:6px;padding:7px 10px;color:#dcddde;font-family:'Exo 2',sans-serif;font-size:.83rem;}
+.fp-searchbox::placeholder{color:#52555a;}
+.fp-section-label{padding:10px 10px 3px;font-size:.68rem;font-weight:700;color:#72767d;letter-spacing:.08em;text-transform:uppercase;}
+</style>
 
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 14px 0;flex-shrink:0;">
+    <span style="font-size:.9rem;font-weight:900;color:#fff;font-family:'Orbitron',monospace;letter-spacing:.5px;">👥 Comunidad</span>
+    <button onclick="toggleFriendsPanel()" style="background:none;border:none;color:#72767d;font-size:1.15rem;cursor:pointer;padding:2px 4px;line-height:1;border-radius:4px;transition:color .15s;" onmouseover="this.style.color='#dcddde'" onmouseout="this.style.color='#72767d'">✕</button>
+  </div>
+
+  <!-- Tabs -->
+  <div style="display:flex;padding:0 10px;margin-top:8px;border-bottom:1px solid #2f3136;flex-shrink:0;">
+    <button class="fp-tab-btn fp-active" id="fpTab-online"   onclick="fpSetTab('online')">En línea</button>
+    <button class="fp-tab-btn"           id="fpTab-friends"  onclick="fpSetTab('friends')">Amigos</button>
+    <button class="fp-tab-btn"           id="fpTab-todos"    onclick="fpSetTab('todos')">Todos</button>
+  </div>
+
+  <!-- Buscador -->
+  <div style="padding:9px 10px 4px;flex-shrink:0;">
+    <input class="fp-searchbox" id="fpSearchInput" type="text" placeholder="🔍  Buscar..." oninput="fpFilterInput(this.value)">
+  </div>
+
+  <!-- Lista scrolleable -->
+  <div id="fpUserList" style="overflow-y:auto;padding:2px 6px 10px;flex:1;">
+    <div style="text-align:center;padding:24px;color:#52555a;font-size:.82rem;">Cargando...</div>
+  </div>
+</div>
+<!-- ===== FIN PANEL COMUNIDAD ===== -->
 
 <!-- TOAST -->
 <div class="toast-ct" id="toastCt"></div>
@@ -28452,7 +28498,223 @@ window.testRankingPost = async function(){
 <!-- ===== FIN PUBLICACIÓN AUTOMÁTICA RANKING SEMANAL ===== -->
 
 
+<!-- ===== PANEL COMUNIDAD JS ===== -->
+<script>
+(function(){
+'use strict';
 
+/* ─── Estado ──────────────────────────────────────────────── */
+var _fpOpen    = false;
+var _fpTab     = 'online';
+var _fpSearch  = '';
+var _fpUsers   = [];       // cache de todos los usuarios
+
+/* ─── Toggle abrir / cerrar ──────────────────────────────── */
+window.toggleFriendsPanel = function(){
+  var panel = document.getElementById('friendsDiscordPanel');
+  if(!panel) return;
+  _fpOpen = !_fpOpen;
+  if(_fpOpen){
+    panel.style.display = 'flex';
+    panel.style.flexDirection = 'column';
+    _fpLoad();
+    setTimeout(function(){ document.addEventListener('click', _fpClickOut); }, 60);
+  } else {
+    panel.style.display = 'none';
+    document.removeEventListener('click', _fpClickOut);
+  }
+};
+
+function _fpClickOut(e){
+  var panel = document.getElementById('friendsDiscordPanel');
+  var btn   = document.getElementById('friendsPanelBtn');
+  if(panel && !panel.contains(e.target) && btn && !btn.contains(e.target)){
+    _fpOpen = false;
+    panel.style.display = 'none';
+    document.removeEventListener('click', _fpClickOut);
+  }
+}
+
+/* ─── Tabs ────────────────────────────────────────────────── */
+window.fpSetTab = function(tab){
+  _fpTab   = tab;
+  _fpSearch = '';
+  var inp = document.getElementById('fpSearchInput');
+  if(inp) inp.value = '';
+  ['online','friends','todos'].forEach(function(t){
+    var el = document.getElementById('fpTab-'+t);
+    if(el) el.classList.toggle('fp-active', t===tab);
+  });
+  _fpRender();
+};
+
+/* ─── Buscador ────────────────────────────────────────────── */
+window.fpFilterInput = function(q){
+  _fpSearch = q.toLowerCase().trim();
+  _fpRender();
+};
+
+/* ─── Cargar usuarios ─────────────────────────────────────── */
+function _fpLoad(){
+  if(_fpUsers.length){ _fpRender(); return; }
+  if(!window.db){ setTimeout(_fpLoad, 1500); return; }
+  var list = document.getElementById('fpUserList');
+  if(list) list.innerHTML = '<div style="text-align:center;padding:24px;color:#52555a;font-size:.82rem;">🎣 Cargando...</div>';
+  getDocs(query(collection(db,'users'), limit(400))).then(function(snap){
+    _fpUsers = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+    _fpRender();
+  }).catch(function(){
+    var list = document.getElementById('fpUserList');
+    if(list) list.innerHTML = '<div style="text-align:center;padding:20px;color:#f04747;font-size:.8rem;">Error al cargar usuarios</div>';
+  });
+}
+
+/* ─── Renderizar ──────────────────────────────────────────── */
+function _fpRender(){
+  var list = document.getElementById('fpUserList');
+  if(!list) return;
+
+  var onlineSet  = new Set((window._sidebarAllOnline || []).map(function(u){ return u.id; }));
+  var cu         = window.CU;
+  var friendSet  = new Set((cu && cu.friendsList ? cu.friendsList : []).map(function(f){ return f.id; }));
+
+  var users = _fpUsers.filter(function(u){ return cu ? u.id !== cu.id : true; });
+
+  /* filtro por tab */
+  if(_fpTab === 'online'){
+    users = users.filter(function(u){ return onlineSet.has(u.id); });
+  } else if(_fpTab === 'friends'){
+    users = users.filter(function(u){ return friendSet.has(u.id); });
+  }
+
+  /* filtro por búsqueda */
+  if(_fpSearch){
+    users = users.filter(function(u){ return (u.nick||'').toLowerCase().includes(_fpSearch); });
+  }
+
+  /* ordenar: online primero, luego alfabético */
+  users.sort(function(a,b){
+    var aOn = onlineSet.has(a.id) ? 1 : 0;
+    var bOn = onlineSet.has(b.id) ? 1 : 0;
+    if(bOn !== aOn) return bOn - aOn;
+    return (a.nick||'').localeCompare(b.nick||'');
+  });
+
+  /* mensajes vacíos */
+  if(!users.length){
+    var msgs = {online:'😴 Nadie conectado ahora', friends:'👋 Sin amigos agregados aún', todos: _fpSearch ? 'Sin resultados para "'+_fpSearch+'"' : '😶 Sin usuarios'};
+    list.innerHTML = '<div style="text-align:center;padding:30px 16px;color:#52555a;font-size:.83rem;">'+msgs[_fpTab]+'</div>';
+    return;
+  }
+
+  var html = '';
+
+  if(_fpTab === 'online'){
+    html += '<div class="fp-section-label">En línea — '+users.length+'</div>';
+    html += users.map(function(u){ return _fpRow(u, true, onlineSet, friendSet, cu); }).join('');
+  } else {
+    var onList  = users.filter(function(u){ return onlineSet.has(u.id); });
+    var offList = users.filter(function(u){ return !onlineSet.has(u.id); });
+    if(onList.length){
+      html += '<div class="fp-section-label">En línea — '+onList.length+'</div>';
+      html += onList.map(function(u){ return _fpRow(u, true, onlineSet, friendSet, cu); }).join('');
+    }
+    if(offList.length){
+      html += '<div class="fp-section-label" style="margin-top:6px;">Desconectados — '+offList.length+'</div>';
+      html += offList.map(function(u){ return _fpRow(u, false, onlineSet, friendSet, cu); }).join('');
+    }
+  }
+
+  list.innerHTML = html;
+
+  /* actualizar badge topbar */
+  _fpUpdateBadge(onlineSet, cu);
+}
+
+function _fpRow(u, isOnline, onlineSet, friendSet, cu){
+  var nick    = (u.nick || '?').replace(/'/g,"&#39;").replace(/"/g,'&quot;');
+  var dev     = u.device || 'desktop';
+  var isMob   = dev === 'mobile';
+  var avSrc   = u.av || (typeof getDefaultAv === 'function' ? getDefaultAv(u.gender||'') : '');
+  var pipColor = isOnline ? '#3ba55d' : '#747f8d';
+  var isAdmin  = u.role === 'admin';
+  var isVerif  = !!u.verified;
+
+  /* nombre con badge */
+  var nameColor = isAdmin ? '#ffa500' : (isVerif ? '#f5a623' : '#dcddde');
+  var badge     = isAdmin ? ' 👑' : (isVerif ? ' ✅' : '');
+  var flag      = typeof getCountryFlag === 'function' ? getCountryFlag(u.country||'') : '';
+
+  /* sub-texto */
+  var sub;
+  if(isOnline){
+    if(u.activity)
+      sub = '<div style="font-size:.7rem;color:#72767d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">'+(u.activityIcon||'🎮')+' '+u.activity+'</div>';
+    else
+      sub = '<div style="font-size:.7rem;color:#3ba55d;">● En línea '+(isMob?'📱':'🖥️')+'</div>';
+  } else {
+    var lastSeen = typeof fmtLastSeen === 'function' ? fmtLastSeen(u.ts) : 'Desconectado';
+    sub = '<div style="font-size:.7rem;color:#72767d;">'+lastSeen+'</div>';
+  }
+
+  /* botones */
+  var btns = '';
+  if(cu && isOnline){
+    btns += '<button onclick="event.stopPropagation();openChatWith(\''+u.id+'\',\''+nick+'\')" title="Mensaje" style="background:none;border:none;color:#b9bbbe;cursor:pointer;padding:5px;border-radius:50%;font-size:.95rem;transition:background .13s;" onmouseover="this.style.background=\'#4f545c\'" onmouseout="this.style.background=\'none\'">💬</button>';
+  }
+  if(cu && !friendSet.has(u.id)){
+    btns += '<button onclick="event.stopPropagation();sendFriendRequest(\''+u.id+'\',\''+nick+'\')" title="Agregar amigo" style="background:none;border:none;color:#b9bbbe;cursor:pointer;padding:5px;border-radius:50%;font-size:.95rem;transition:background .13s;" onmouseover="this.style.background=\'#4f545c\'" onmouseout="this.style.background=\'none\'">➕</button>';
+  }
+
+  return '<div class="fp-user-item" onclick="openUserProfile(\''+u.id+'\',\''+nick+'\')">'+
+    '<div class="fp-avatar-wrap">'+
+      '<img src="'+avSrc+'" style="'+(isOnline?'':'filter:grayscale(.5);opacity:.75;')+'" onerror="this.src=\''+(typeof getDefaultAv==='function'?getDefaultAv(''):'')+'\'">'+
+      '<div class="fp-status-pip" style="background:'+pipColor+';"></div>'+
+    '</div>'+
+    '<div style="flex:1;min-width:0;">'+
+      '<div style="display:flex;align-items:center;gap:4px;">'+
+        '<span style="font-size:.84rem;font-weight:700;color:'+nameColor+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;">'+nick+badge+'</span>'+
+        (flag ? '<span style="font-size:.82rem;flex-shrink:0;">'+flag+'</span>' : '')+
+      '</div>'+
+      sub+
+    '</div>'+
+    '<div style="display:flex;gap:1px;flex-shrink:0;">'+btns+'</div>'+
+  '</div>';
+}
+
+function _fpUpdateBadge(onlineSet, cu){
+  var count = (window._sidebarAllOnline||[]).filter(function(u){ return cu ? u.id !== cu.id : true; }).length;
+  var dot = document.getElementById('fpOnlineBadge');
+  if(!dot) return;
+  if(count > 0){
+    dot.textContent = count > 99 ? '99+' : count;
+    dot.style.display = 'flex';
+  } else {
+    dot.style.display = 'none';
+  }
+}
+
+/* ─── Hook en renderSidebarOnline para actualizar el badge ── */
+var _origRenderSidebarOnline = window.renderSidebarOnline;
+// Se hookea luego de que el módulo cargue
+document.addEventListener('DOMContentLoaded', function(){
+  setTimeout(function(){
+    var _orig = window.renderSidebarOnline;
+    if(_orig){
+      window.renderSidebarOnline = function(online, offline){
+        _orig(online, offline);
+        var onlineSet = new Set((online||[]).map(function(u){ return u.id; }));
+        _fpUpdateBadge(onlineSet, window.CU);
+        /* si el panel está abierto, re-renderizar */
+        if(_fpOpen) _fpRender();
+      };
+    }
+  }, 3000);
+});
+
+})();
+</script>
+<!-- ===== FIN PANEL COMUNIDAD JS ===== -->
 
 </body>
 </html>
