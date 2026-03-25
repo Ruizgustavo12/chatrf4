@@ -13152,7 +13152,7 @@ const SHOP_ITEMS = [
   { id:'efecto_burbujas',  cat:'efecto', name:'Burbujas',         preview:'🫧', emoji:'🫧', price:400,  desc:'Burbujas acuáticas subiendo' },
   { id:'efecto_lightning', cat:'efecto', name:'Rayos',            preview:'⚡', emoji:'⚡', price:800,  desc:'Rayos eléctricos en tu perfil', exclusive:true },
   { id:'efecto_hojas',     cat:'efecto', name:'Hojas Otoñales',   preview:'🍂', emoji:'🍁', price:450,  desc:'Hojas cayendo suavemente' },
-  { id:'efecto_dragones',  cat:'efecto', name:'Dragones',         preview:'🐉', emoji:'🐉', price:2500, desc:'Dragones volando alrededor de tu perfil', exclusive:true, soloVerificado:true },
+  { id:'efecto_dragones',  cat:'efecto', name:'Dragones',         preview:'🐉', emoji:'🐉', price:2500, desc:'Dragones volando alrededor de tu perfil', exclusive:true },
   // ── TÍTULOS ──
   { id:'titulo_jefe',     cat:'titulo', name:'El Jefe',           preview:'😎', emoji:'😎', price:800,  desc:'Título "El Jefe" bajo tu nombre' },
   { id:'titulo_legend',   cat:'titulo', name:'Leyenda Viva',      preview:'⚡', emoji:'⚡', price:1200, desc:'Título dorado animado', exclusive:true },
@@ -13174,13 +13174,13 @@ const SHOP_ITEMS = [
   { id:'post_carbon',   cat:'postcolor', name:'Carbono',           preview:'⚫', emoji:'⚫', price:400,  desc:'Gris oscuro premium minimalista',         theme:'post-theme-carbon' },
   { id:'post_sunset',   cat:'postcolor', name:'Atardecer',         preview:'🌅', emoji:'🌅', price:700,  desc:'Fondo sunset naranja cálido',             theme:'post-theme-sunset' },
   // ── EFECTOS FOTO DE PERFIL (solo verificados) ──
-  { id:'avfx_niebla',   cat:'avfx', name:'Niebla Mágica',      preview:'🌫️', emoji:'🌫️', price:1800, desc:'Niebla etérea que envuelve tu foto de perfil',        effect:'avfx-niebla',   soloVerificado:true, exclusive:true },
-  { id:'avfx_remolino', cat:'avfx', name:'Remolino Infinito',   preview:'🌀', emoji:'🌀', price:2000, desc:'Tu foto gira suavemente en un remolino hipnótico',     effect:'avfx-remolino', soloVerificado:true, exclusive:true },
-  { id:'avfx_prisma',   cat:'avfx', name:'Prisma Arcoíris',     preview:'🌈', emoji:'🌈', price:1600, desc:'Todos los colores del arcoíris pasan por tu foto',     effect:'avfx-prisma',   soloVerificado:true, exclusive:true },
-  { id:'avfx_sombra',   cat:'avfx', name:'Aura Oscura',         preview:'💜', emoji:'💜', price:1500, desc:'Aura violeta pulsante de poder oscuro',                effect:'avfx-sombra',   soloVerificado:true, exclusive:true },
-  { id:'avfx_oro',      cat:'avfx', name:'Toque Dorado',        preview:'✨', emoji:'✨', price:2200, desc:'Tu foto brilla con destellos de oro puro',             effect:'avfx-oro',      soloVerificado:true, exclusive:true },
-  { id:'avfx_glitch',   cat:'avfx', name:'Glitch Cibernético',  preview:'⚡', emoji:'⚡', price:1700, desc:'Efecto glitch digital que distorsiona tu foto',        effect:'avfx-glitch',   soloVerificado:true, exclusive:true },
-  { id:'avfx_cristal',  cat:'avfx', name:'Cristal de Agua',     preview:'💎', emoji:'💎', price:1900, desc:'Brillo de cristal de agua sobre tu foto de perfil',   effect:'avfx-cristal',  soloVerificado:true, exclusive:true },
+  { id:'avfx_niebla',   cat:'avfx', name:'Niebla Mágica',      preview:'🌫️', emoji:'🌫️', price:1800, desc:'Niebla etérea que envuelve tu foto de perfil',        effect:'avfx-niebla', exclusive:true },
+  { id:'avfx_remolino', cat:'avfx', name:'Remolino Infinito',   preview:'🌀', emoji:'🌀', price:2000, desc:'Tu foto gira suavemente en un remolino hipnótico',     effect:'avfx-remolino', exclusive:true },
+  { id:'avfx_prisma',   cat:'avfx', name:'Prisma Arcoíris',     preview:'🌈', emoji:'🌈', price:1600, desc:'Todos los colores del arcoíris pasan por tu foto',     effect:'avfx-prisma', exclusive:true },
+  { id:'avfx_sombra',   cat:'avfx', name:'Aura Oscura',         preview:'💜', emoji:'💜', price:1500, desc:'Aura violeta pulsante de poder oscuro',                effect:'avfx-sombra', exclusive:true },
+  { id:'avfx_oro',      cat:'avfx', name:'Toque Dorado',        preview:'✨', emoji:'✨', price:2200, desc:'Tu foto brilla con destellos de oro puro',             effect:'avfx-oro', exclusive:true },
+  { id:'avfx_glitch',   cat:'avfx', name:'Glitch Cibernético',  preview:'⚡', emoji:'⚡', price:1700, desc:'Efecto glitch digital que distorsiona tu foto',        effect:'avfx-glitch', exclusive:true },
+  { id:'avfx_cristal',  cat:'avfx', name:'Cristal de Agua',     preview:'💎', emoji:'💎', price:1900, desc:'Brillo de cristal de agua sobre tu foto de perfil',   effect:'avfx-cristal', exclusive:true },
   // ── BANNERS ANIMADOS DE PORTADA ──
   { id:'banner_fuego',  cat:'banner', name:'Fuego Vivo',         preview:'🔥', emoji:'🔥', price:1200, desc:'Llamas y brasas animadas en tu portada',    exclusive:false, bannerFn:'bannerFuego'  },
   { id:'banner_flores', cat:'banner', name:'Pétalo Oscuro',      preview:'🌸', emoji:'🌸', price:1000, desc:'Pétalos violetas flotando en la oscuridad', exclusive:false, bannerFn:'bannerFlores' },
@@ -13515,10 +13515,9 @@ function renderShopGrid(){
       </div>`;
     })() : '';
     return `
-    <div class="shop-item${isEquipped?' equipped':''}${item.soloVerificado&&!window.CU?.verified?' shop-item-locked':''}" id="sitem_${item.id}">
+    <div class="shop-item${isEquipped?' equipped':''}" id="sitem_${item.id}">
       ${isEquipped ? '<div class="shop-item-equipped-badge">✓ ACTIVO</div>' : ''}
       ${item.exclusive ? '<div style="position:absolute;top:6px;left:6px;background:linear-gradient(135deg,gold,#ff8c00);color:#000;font-size:.5rem;font-weight:900;border-radius:100px;padding:2px 6px;">✦ EXCL.</div>' : ''}
-      ${item.soloVerificado ? '<div style="position:absolute;top:6px;left:6px;background:linear-gradient(135deg,#00c6ff,#0072ff);color:#fff;font-size:.5rem;font-weight:900;border-radius:100px;padding:2px 6px;">✅ SOLO VERIFICADOS</div>' : ''}
       ${postPreview}
       ${bannerPreview}
       ${temaPreview}
@@ -13533,8 +13532,6 @@ function renderShopGrid(){
       </div>
       ${item.soloAdmin && !(window.CU?.nick==='ruizgustavo12'||window.CU?.role==='admin')
         ? `<button class="shop-item-btn" style="background:rgba(255,180,0,.1);border:1px solid rgba(255,180,0,.3);color:#ffd700;" onclick="toast('👑 Este tema es exclusivo para administradores','err')">👑 Solo Admins</button>`
-        : item.soloVerificado && !window.CU?.verified
-        ? `<button class="shop-item-btn" style="background:rgba(0,114,255,.12);border:1px solid rgba(0,114,255,.3);color:#0072ff;" onclick="toast('🔒 Este efecto es solo para usuarios verificados ✅','err')">🔒 Solo Verificados</button>`
         : `<button class="shop-item-btn ${isEquipped?'unequip':'equip'}" onclick="toggleEquipItem('${item.id}')">${isEquipped ? '✕ Desequipar' : '▶ Equipar'}</button>`
       }
     </div>`;
@@ -28503,13 +28500,11 @@ window.testRankingPost = async function(){
 (function(){
 'use strict';
 
-/* ─── Estado ──────────────────────────────────────────────── */
-var _fpOpen    = false;
-var _fpTab     = 'online';
-var _fpSearch  = '';
-var _fpUsers   = [];       // cache de todos los usuarios
+var _fpOpen   = false;
+var _fpTab    = 'online';
+var _fpSearch = '';
 
-/* ─── Toggle abrir / cerrar ──────────────────────────────── */
+/* ── Abrir / cerrar ─────────────────────────────────────────── */
 window.toggleFriendsPanel = function(){
   var panel = document.getElementById('friendsDiscordPanel');
   if(!panel) return;
@@ -28517,27 +28512,27 @@ window.toggleFriendsPanel = function(){
   if(_fpOpen){
     panel.style.display = 'flex';
     panel.style.flexDirection = 'column';
-    _fpLoad();
-    setTimeout(function(){ document.addEventListener('click', _fpClickOut); }, 60);
+    _fpRender();
+    setTimeout(function(){ document.addEventListener('click', _fpOut); }, 60);
   } else {
     panel.style.display = 'none';
-    document.removeEventListener('click', _fpClickOut);
+    document.removeEventListener('click', _fpOut);
   }
 };
 
-function _fpClickOut(e){
+function _fpOut(e){
   var panel = document.getElementById('friendsDiscordPanel');
   var btn   = document.getElementById('friendsPanelBtn');
   if(panel && !panel.contains(e.target) && btn && !btn.contains(e.target)){
     _fpOpen = false;
     panel.style.display = 'none';
-    document.removeEventListener('click', _fpClickOut);
+    document.removeEventListener('click', _fpOut);
   }
 }
 
-/* ─── Tabs ────────────────────────────────────────────────── */
+/* ── Tabs ────────────────────────────────────────────────────── */
 window.fpSetTab = function(tab){
-  _fpTab   = tab;
+  _fpTab    = tab;
   _fpSearch = '';
   var inp = document.getElementById('fpSearchInput');
   if(inp) inp.value = '';
@@ -28548,62 +28543,84 @@ window.fpSetTab = function(tab){
   _fpRender();
 };
 
-/* ─── Buscador ────────────────────────────────────────────── */
+/* ── Buscador ────────────────────────────────────────────────── */
 window.fpFilterInput = function(q){
   _fpSearch = q.toLowerCase().trim();
   _fpRender();
 };
 
-/* ─── Cargar usuarios ─────────────────────────────────────── */
-function _fpLoad(){
-  if(_fpUsers.length){ _fpRender(); return; }
-  if(!window.db){ setTimeout(_fpLoad, 1500); return; }
-  var list = document.getElementById('fpUserList');
-  if(list) list.innerHTML = '<div style="text-align:center;padding:24px;color:#52555a;font-size:.82rem;">🎣 Cargando...</div>';
-  getDocs(query(collection(db,'users'), limit(400))).then(function(snap){
-    _fpUsers = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-    _fpRender();
-  }).catch(function(){
-    var list = document.getElementById('fpUserList');
-    if(list) list.innerHTML = '<div style="text-align:center;padding:20px;color:#f04747;font-size:.8rem;">Error al cargar usuarios</div>';
-  });
-}
+/* ── Obtener lista de usuarios según el tab ──────────────────── */
+function _fpGetUsers(onlineSet, friendSet, cu){
+  var users;
 
-/* ─── Renderizar ──────────────────────────────────────────── */
-function _fpRender(){
-  var list = document.getElementById('fpUserList');
-  if(!list) return;
-
-  var onlineSet  = new Set((window._sidebarAllOnline || []).map(function(u){ return u.id; }));
-  var cu         = window.CU;
-  var friendSet  = new Set((cu && cu.friendsList ? cu.friendsList : []).map(function(f){ return f.id; }));
-
-  var users = _fpUsers.filter(function(u){ return cu ? u.id !== cu.id : true; });
-
-  /* filtro por tab */
   if(_fpTab === 'online'){
-    users = users.filter(function(u){ return onlineSet.has(u.id); });
+    /* Usar _sidebarAllOnline que ya tiene los datos de presencia */
+    users = (window._sidebarAllOnline || []).slice();
+
   } else if(_fpTab === 'friends'){
-    users = users.filter(function(u){ return friendSet.has(u.id); });
+    /* Combinar friendsList con datos de presencia cuando estén online */
+    var fl = (cu && cu.friendsList) ? cu.friendsList : [];
+    /* fl tiene {id, nick, av, ...}. Enriquecer con presencia si está online */
+    users = fl.map(function(f){
+      var presData = (window._presenceCache || {})[f.id];
+      return presData ? Object.assign({}, f, presData) : Object.assign({ts:0}, f);
+    });
+
+  } else {
+    /* Todos: presencia (online+offline reciente) + friendsList como base */
+    var cache = window._presenceCache || {};
+    var seen  = {};
+    users = [];
+    /* primero los de presencia */
+    Object.values(cache).forEach(function(u){
+      if(!seen[u.id]){ seen[u.id]=true; users.push(u); }
+    });
+    /* luego amigos que no estén en presencia */
+    var fl2 = (cu && cu.friendsList) ? cu.friendsList : [];
+    fl2.forEach(function(f){
+      if(!seen[f.id]){ seen[f.id]=true; users.push(Object.assign({ts:0},f)); }
+    });
   }
 
-  /* filtro por búsqueda */
+  /* excluir al usuario actual */
+  if(cu) users = users.filter(function(u){ return u.id !== cu.id; });
+
+  /* filtro de búsqueda */
   if(_fpSearch){
     users = users.filter(function(u){ return (u.nick||'').toLowerCase().includes(_fpSearch); });
   }
 
-  /* ordenar: online primero, luego alfabético */
+  /* ordenar: online primero, luego más reciente */
   users.sort(function(a,b){
     var aOn = onlineSet.has(a.id) ? 1 : 0;
     var bOn = onlineSet.has(b.id) ? 1 : 0;
     if(bOn !== aOn) return bOn - aOn;
-    return (a.nick||'').localeCompare(b.nick||'');
+    return (b.ts||0) - (a.ts||0);
   });
 
-  /* mensajes vacíos */
+  return users;
+}
+
+/* ── Renderizar ──────────────────────────────────────────────── */
+function _fpRender(){
+  var list = document.getElementById('fpUserList');
+  if(!list) return;
+
+  var onlineSet = new Set((window._sidebarAllOnline || []).map(function(u){ return u.id; }));
+  var cu        = window.CU;
+  var friendSet = new Set((cu && cu.friendsList ? cu.friendsList : []).map(function(f){ return f.id; }));
+
+  var users = _fpGetUsers(onlineSet, friendSet, cu);
+
+  _fpUpdateBadge(onlineSet, cu);
+
   if(!users.length){
-    var msgs = {online:'😴 Nadie conectado ahora', friends:'👋 Sin amigos agregados aún', todos: _fpSearch ? 'Sin resultados para "'+_fpSearch+'"' : '😶 Sin usuarios'};
-    list.innerHTML = '<div style="text-align:center;padding:30px 16px;color:#52555a;font-size:.83rem;">'+msgs[_fpTab]+'</div>';
+    var empty = {
+      online:  '😴 Nadie conectado ahora',
+      friends: '👋 Aún no tenés amigos agregados',
+      todos:   _fpSearch ? 'Sin resultados para "'+_fpSearch+'"' : '🎣 Cargando usuarios...'
+    };
+    list.innerHTML = '<div style="text-align:center;padding:30px 16px;color:#52555a;font-size:.83rem;">'+empty[_fpTab]+'</div>';
     return;
   }
 
@@ -28611,41 +28628,38 @@ function _fpRender(){
 
   if(_fpTab === 'online'){
     html += '<div class="fp-section-label">En línea — '+users.length+'</div>';
-    html += users.map(function(u){ return _fpRow(u, true, onlineSet, friendSet, cu); }).join('');
+    html += users.map(function(u){ return _fpRow(u,true,friendSet,cu); }).join('');
   } else {
     var onList  = users.filter(function(u){ return onlineSet.has(u.id); });
     var offList = users.filter(function(u){ return !onlineSet.has(u.id); });
     if(onList.length){
       html += '<div class="fp-section-label">En línea — '+onList.length+'</div>';
-      html += onList.map(function(u){ return _fpRow(u, true, onlineSet, friendSet, cu); }).join('');
+      html += onList.map(function(u){ return _fpRow(u,true,friendSet,cu); }).join('');
     }
     if(offList.length){
       html += '<div class="fp-section-label" style="margin-top:6px;">Desconectados — '+offList.length+'</div>';
-      html += offList.map(function(u){ return _fpRow(u, false, onlineSet, friendSet, cu); }).join('');
+      html += offList.map(function(u){ return _fpRow(u,false,friendSet,cu); }).join('');
     }
   }
 
   list.innerHTML = html;
-
-  /* actualizar badge topbar */
-  _fpUpdateBadge(onlineSet, cu);
 }
 
-function _fpRow(u, isOnline, onlineSet, friendSet, cu){
-  var nick    = (u.nick || '?').replace(/'/g,"&#39;").replace(/"/g,'&quot;');
-  var dev     = u.device || 'desktop';
-  var isMob   = dev === 'mobile';
-  var avSrc   = u.av || (typeof getDefaultAv === 'function' ? getDefaultAv(u.gender||'') : '');
-  var pipColor = isOnline ? '#3ba55d' : '#747f8d';
+/* ── Fila de usuario ─────────────────────────────────────────── */
+function _fpRow(u, isOnline, friendSet, cu){
+  var nick     = (u.nick||'?').replace(/'/g,"&#39;").replace(/"/g,'&quot;');
+  var dev      = u.device || 'desktop';
+  var isMob    = dev === 'mobile';
+  var avSrc    = u.av || (typeof getDefaultAv==='function' ? getDefaultAv(u.gender||'') : '');
   var isAdmin  = u.role === 'admin';
-  var isVerif  = !!u.verified;
+  var pipColor = isOnline ? '#3ba55d' : '#747f8d';
 
-  /* nombre con badge */
-  var nameColor = isAdmin ? '#ffa500' : (isVerif ? '#f5a623' : '#dcddde');
-  var badge     = isAdmin ? ' 👑' : (isVerif ? ' ✅' : '');
-  var flag      = typeof getCountryFlag === 'function' ? getCountryFlag(u.country||'') : '';
+  /* color nombre */
+  var nameColor = isAdmin ? '#ffa500' : '#dcddde';
+  var badge     = isAdmin ? ' 👑' : '';
+  var flag      = typeof getCountryFlag==='function' ? getCountryFlag(u.country||'') : '';
 
-  /* sub-texto */
+  /* subtexto */
   var sub;
   if(isOnline){
     if(u.activity)
@@ -28653,28 +28667,30 @@ function _fpRow(u, isOnline, onlineSet, friendSet, cu){
     else
       sub = '<div style="font-size:.7rem;color:#3ba55d;">● En línea '+(isMob?'📱':'🖥️')+'</div>';
   } else {
-    var lastSeen = typeof fmtLastSeen === 'function' ? fmtLastSeen(u.ts) : 'Desconectado';
-    sub = '<div style="font-size:.7rem;color:#72767d;">'+lastSeen+'</div>';
+    var ls = typeof fmtLastSeen==='function' ? fmtLastSeen(u.ts) : 'Desconectado';
+    sub = '<div style="font-size:.7rem;color:#72767d;">'+ls+'</div>';
   }
 
   /* botones */
   var btns = '';
-  if(cu && isOnline){
+  if(cu && isOnline && typeof openChatWith==='function'){
     btns += '<button onclick="event.stopPropagation();openChatWith(\''+u.id+'\',\''+nick+'\')" title="Mensaje" style="background:none;border:none;color:#b9bbbe;cursor:pointer;padding:5px;border-radius:50%;font-size:.95rem;transition:background .13s;" onmouseover="this.style.background=\'#4f545c\'" onmouseout="this.style.background=\'none\'">💬</button>';
   }
-  if(cu && !friendSet.has(u.id)){
+  if(cu && !friendSet.has(u.id) && typeof sendFriendRequest==='function'){
     btns += '<button onclick="event.stopPropagation();sendFriendRequest(\''+u.id+'\',\''+nick+'\')" title="Agregar amigo" style="background:none;border:none;color:#b9bbbe;cursor:pointer;padding:5px;border-radius:50%;font-size:.95rem;transition:background .13s;" onmouseover="this.style.background=\'#4f545c\'" onmouseout="this.style.background=\'none\'">➕</button>';
   }
 
+  var defAv = typeof getDefaultAv==='function' ? getDefaultAv('') : '';
+
   return '<div class="fp-user-item" onclick="openUserProfile(\''+u.id+'\',\''+nick+'\')">'+
     '<div class="fp-avatar-wrap">'+
-      '<img src="'+avSrc+'" style="'+(isOnline?'':'filter:grayscale(.5);opacity:.75;')+'" onerror="this.src=\''+(typeof getDefaultAv==='function'?getDefaultAv(''):'')+'\'">'+
+      '<img src="'+avSrc+'" style="'+(isOnline?'':'filter:grayscale(.5);opacity:.75;')+'" onerror="this.src=\''+defAv+'\'">'+
       '<div class="fp-status-pip" style="background:'+pipColor+';"></div>'+
     '</div>'+
     '<div style="flex:1;min-width:0;">'+
       '<div style="display:flex;align-items:center;gap:4px;">'+
-        '<span style="font-size:.84rem;font-weight:700;color:'+nameColor+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;">'+nick+badge+'</span>'+
-        (flag ? '<span style="font-size:.82rem;flex-shrink:0;">'+flag+'</span>' : '')+
+        '<span style="font-size:.84rem;font-weight:700;color:'+nameColor+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:135px;">'+nick+badge+'</span>'+
+        (flag?'<span style="font-size:.82rem;flex-shrink:0;">'+flag+'</span>':'')+
       '</div>'+
       sub+
     '</div>'+
@@ -28682,35 +28698,28 @@ function _fpRow(u, isOnline, onlineSet, friendSet, cu){
   '</div>';
 }
 
+/* ── Badge topbar ────────────────────────────────────────────── */
 function _fpUpdateBadge(onlineSet, cu){
-  var count = (window._sidebarAllOnline||[]).filter(function(u){ return cu ? u.id !== cu.id : true; }).length;
+  var count = (window._sidebarAllOnline||[]).filter(function(u){ return cu ? u.id!==cu.id : true; }).length;
   var dot = document.getElementById('fpOnlineBadge');
   if(!dot) return;
-  if(count > 0){
-    dot.textContent = count > 99 ? '99+' : count;
-    dot.style.display = 'flex';
-  } else {
-    dot.style.display = 'none';
-  }
+  if(count > 0){ dot.textContent = count>99?'99+':count; dot.style.display='flex'; }
+  else { dot.style.display='none'; }
 }
 
-/* ─── Hook en renderSidebarOnline para actualizar el badge ── */
-var _origRenderSidebarOnline = window.renderSidebarOnline;
-// Se hookea luego de que el módulo cargue
-document.addEventListener('DOMContentLoaded', function(){
-  setTimeout(function(){
-    var _orig = window.renderSidebarOnline;
-    if(_orig){
-      window.renderSidebarOnline = function(online, offline){
-        _orig(online, offline);
-        var onlineSet = new Set((online||[]).map(function(u){ return u.id; }));
-        _fpUpdateBadge(onlineSet, window.CU);
-        /* si el panel está abierto, re-renderizar */
-        if(_fpOpen) _fpRender();
-      };
-    }
-  }, 3000);
-});
+/* ── Hook: cuando se actualiza presencia, refrescar panel ───── */
+/* Se instala con delay para que el módulo ESM ya haya definido renderSidebarOnline */
+setTimeout(function(){
+  var _orig = window.renderSidebarOnline;
+  if(typeof _orig === 'function'){
+    window.renderSidebarOnline = function(online, offline){
+      _orig(online, offline);
+      var onlineSet = new Set((online||[]).map(function(u){ return u.id; }));
+      _fpUpdateBadge(onlineSet, window.CU);
+      if(_fpOpen) _fpRender();
+    };
+  }
+}, 4000);
 
 })();
 </script>
