@@ -1,5 +1,5 @@
 {
-  "updated": "2026-03-25 22:37 UTC",
+  "updated": "2026-03-25 23:36 UTC",
   "records": [
     {
       "pez": "Albino barbel",
@@ -1556,6 +1556,17 @@
       "pez": "Beloribitsa Whitefish",
       "rank": 2,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/wfish.png",
+      "peso": "12.026 kg",
+      "ubicacion": "Akhtuba River",
+      "señuelo": "Bleak",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/c_bleak_lf.png",
+      "jugador": "WDWFouche",
+      "fecha": "25.03.26"
+    },
+    {
+      "pez": "Beloribitsa Whitefish",
+      "rank": 3,
+      "img_pez": "https://en.rf4-stat.ru/images/rf4game/wfish.png",
       "peso": "10.526 kg",
       "ubicacion": "Akhtuba River",
       "señuelo": "Bleak",
@@ -1565,7 +1576,7 @@
     },
     {
       "pez": "Beloribitsa Whitefish",
-      "rank": 3,
+      "rank": 4,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/wfish.png",
       "peso": "9.481 kg",
       "ubicacion": "Akhtuba River",
@@ -1576,7 +1587,7 @@
     },
     {
       "pez": "Beloribitsa Whitefish",
-      "rank": 4,
+      "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/wfish.png",
       "peso": "9.137 kg",
       "ubicacion": "Akhtuba River",
@@ -1584,17 +1595,6 @@
       "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/c_bleak_lf.png",
       "jugador": "eras",
       "fecha": "23.03.26"
-    },
-    {
-      "pez": "Beloribitsa Whitefish",
-      "rank": 5,
-      "img_pez": "https://en.rf4-stat.ru/images/rf4game/wfish.png",
-      "peso": "8.947 kg",
-      "ubicacion": "Akhtuba River",
-      "señuelo": "Bleak",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/c_bleak_lf.png",
-      "jugador": "eras",
-      "fecha": "25.03.26"
     },
     {
       "pez": "Beluga",
@@ -8079,6 +8079,17 @@
       "pez": "Mirror Carp",
       "rank": 2,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/m_carp.png",
+      "peso": "33.149 kg",
+      "ubicacion": "The Amber Lake",
+      "señuelo": "Neutral 25; Raspberry jam 25",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/boils_pm_nu25.png",
+      "jugador": "Hennesy_",
+      "fecha": "25.03.26"
+    },
+    {
+      "pez": "Mirror Carp",
+      "rank": 3,
+      "img_pez": "https://en.rf4-stat.ru/images/rf4game/m_carp.png",
       "peso": "32.241 kg",
       "ubicacion": "The Amber Lake",
       "señuelo": "Neutral 25; Fresh Raspberry 26",
@@ -8088,7 +8099,7 @@
     },
     {
       "pez": "Mirror Carp",
-      "rank": 3,
+      "rank": 4,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/m_carp.png",
       "peso": "31.730 kg",
       "ubicacion": "The Amber Lake",
@@ -8099,24 +8110,13 @@
     },
     {
       "pez": "Mirror Carp",
-      "rank": 4,
+      "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/m_carp.png",
       "peso": "31.320 kg",
       "ubicacion": "The Amber Lake",
       "señuelo": "Pepper & Mussels Pellets 24; Spice mix 20",
       "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/plt_cb_prm24.png",
       "jugador": "whiteshadow_bg",
-      "fecha": "23.03.26"
-    },
-    {
-      "pez": "Mirror Carp",
-      "rank": 5,
-      "img_pez": "https://en.rf4-stat.ru/images/rf4game/m_carp.png",
-      "peso": "31.268 kg",
-      "ubicacion": "The Amber Lake",
-      "señuelo": "Amino Pop-Up 22; Ocean Krill 20 Pop-Up",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/boils_hvz_ami_pu22.png",
-      "jugador": "GrizzFox",
       "fecha": "23.03.26"
     },
     {
@@ -10807,6 +10807,17 @@
       "pez": "Siberian Sterlet",
       "rank": 1,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/syb_sterlet.png",
+      "peso": "9.262 kg",
+      "ubicacion": "Lower Tunguska River",
+      "señuelo": "Crayfish tail",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/crawfish_meat.png",
+      "jugador": "DirectBasham",
+      "fecha": "25.03.26"
+    },
+    {
+      "pez": "Siberian Sterlet",
+      "rank": 2,
+      "img_pez": "https://en.rf4-stat.ru/images/rf4game/syb_sterlet.png",
       "peso": "7.816 kg",
       "ubicacion": "Lower Tunguska River",
       "señuelo": "Nightcrawler",
@@ -10816,7 +10827,7 @@
     },
     {
       "pez": "Siberian Sterlet",
-      "rank": 2,
+      "rank": 3,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/syb_sterlet.png",
       "peso": "7.616 kg",
       "ubicacion": "Lower Tunguska River",
@@ -10827,7 +10838,7 @@
     },
     {
       "pez": "Siberian Sterlet",
-      "rank": 3,
+      "rank": 4,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/syb_sterlet.png",
       "peso": "7.464 kg",
       "ubicacion": "Lower Tunguska River",
@@ -10838,7 +10849,7 @@
     },
     {
       "pez": "Siberian Sterlet",
-      "rank": 4,
+      "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/syb_sterlet.png",
       "peso": "6.409 kg",
       "ubicacion": "Lower Tunguska River",
@@ -10846,17 +10857,6 @@
       "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/maybug_larva.png",
       "jugador": "EROHL",
       "fecha": "23.03.26"
-    },
-    {
-      "pez": "Siberian Sterlet",
-      "rank": 5,
-      "img_pez": "https://en.rf4-stat.ru/images/rf4game/syb_sterlet.png",
-      "peso": "6.388 kg",
-      "ubicacion": "Lower Tunguska River",
-      "señuelo": "Nightcrawler",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/vypolzok_01.png",
-      "jugador": "PurpleRanger126",
-      "fecha": "24.03.26"
     },
     {
       "pez": "Sichel",
