@@ -11200,11 +11200,7 @@ function postHTML(p){
         👁 <span id="post_views_${p.id}">${p.views||0}</span>
       </span>
       <button class="post-action-btn" style="display:none;" onclick="toggleComments('${p.id}')">💬 <span style="font-size:.82rem;">Comentar</span></button>
-      <button class="post-action-btn" style="display:none;" onclick="sharePost('${p.id}')">🔁 <span style="font-size:.82rem;">Compartir</span></button>
-      <button class="post-action-btn" style="display:none;" onclick="(function(){var u=encodeURIComponent(location.origin+location.pathname+'?p=${p.id}');window.open('https://www.facebook.com/sharer/sharer.php?u='+u,'_blank','width=640,height=460,resizable=yes');})();" title="Compartir en Facebook" style="color:#1877F2;gap:5px;display:none;">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="#1877F2"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.268h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
-        <span style="font-size:.82rem;">Facebook</span>
-      </button>
+
     </div>
     <div class="comments-section" id="cmts_${p.id}">
       <div class="cmt-list" id="cmt-list_${p.id}">${cmtsHTML}</div>
@@ -12161,11 +12157,7 @@ async function toggleComments(pid){
         </div>
       </div>
       <button onclick="document.getElementById('_cmtModalInp_${pid}').focus()" style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;" onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='none'">💬 Comentar</button>
-      <button onclick="sharePost('${pid}')" style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;" onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='none'">↗ Compartir</button>
-      <button onclick="(function(){var u=encodeURIComponent(location.origin+location.pathname+'?p=${pid}');window.open('https://www.facebook.com/sharer/sharer.php?u='+u,'_blank','width=640,height=460,resizable=yes');})();" style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;cursor:pointer;font-size:.88rem;font-weight:700;color:#1877F2;" onmouseover="this.style.background='rgba(24,119,242,.1)'" onmouseout="this.style.background='none'" title="Compartir en Facebook">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="#1877F2"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.268h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
-        Facebook
-      </button>
+
     </div>
 
     <!-- Comments list -->
