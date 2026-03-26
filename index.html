@@ -3345,7 +3345,7 @@ document.addEventListener('DOMContentLoaded', function(){
     </div>
     <div id="fishTagRow" style="display:none;margin-bottom:12px">
       <div class="frow">
-        <div class="fg"><label class="fl">Pez capturado</label><input class="fi" id="tagFish" placeholder="Ej: Catfish, Bream..."></div>
+        <div class="fg"><label class="fl">Pez capturado</label><input class="fi" id="tagFish" list="rf4FishDatalist" autocomplete="off" placeholder="Ej: Carpa, Siluro..."></div>
         <div class="fg"><label class="fl">Peso (kg)</label><input class="fi" type="number" step="0.001" id="tagWeight" placeholder="0.000"></div>
       </div>
       <div class="frow">
@@ -3761,7 +3761,7 @@ document.addEventListener('DOMContentLoaded', function(){
     <!-- Datos de pesca -->
     <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:14px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🎣 Pesca</div>
     <div class="frow">
-      <div class="fg"><label class="fl">Pez favorito</label><input class="fi" id="epFish" placeholder="Ej: Pike, Catfish..."></div>
+      <div class="fg"><label class="fl">Pez favorito</label><input class="fi" id="epFish" list="rf4FishDatalist" autocomplete="off" placeholder="Ej: Carpa, Siluro..."></div>
       <div class="fg"><label class="fl">Mapa favorito</label>
         <select class="fi" id="epMap">
           <option value="">Seleccionar...</option>
@@ -4386,7 +4386,7 @@ document.addEventListener('DOMContentLoaded', function(){
       <div class="frow" style="align-items:flex-start;">
         <div class="fg" style="flex:1;">
           <label class="fl">🐟 Pez objetivo *</label>
-          <input class="fi" id="pszFish" placeholder="Ej: Taran, Pike, Catfish...">
+          <input class="fi" id="pszFish" list="rf4FishDatalist" autocomplete="off" placeholder="Ej: Carpa, Siluro...">
           <div style="margin-top:10px;">
             <label class="fl">📸 Imagen del pez</label>
             <label style="display:flex;align-items:center;gap:8px;padding:10px;border:2px dashed rgba(0,230,118,.3);border-radius:var(--rs);cursor:pointer;color:var(--muted);font-size:.82rem;">
@@ -7063,7 +7063,57 @@ function initShopCoinsDisplay(){
     <button class="wk-mcx" onclick="wkCm('wkMPublish');wkResetForm()">✕</button>
     <div style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:800;color:#00d4ff;margin-bottom:22px" id="wkPubTit">🏆 Publicar Trofeo</div>
     <div class="wk-frow">
-      <div class="wk-fg"><label class="wk-fl">Nombre del pez *</label><input class="wk-fi" id="wkPF" placeholder="Ej: Bream, Catfish..."></div>
+      <div class="wk-fg"><label class="wk-fl">Nombre del pez *</label><input class="wk-fi" id="wkPF" placeholder="Ej: Carpa, Siluro..." list="rf4FishDatalist" autocomplete="off"></div>
+<datalist id="rf4FishDatalist">
+  <option value="Asp">
+  <option value="Bacalao">
+  <option value="Barbo">
+  <option value="Barbo Común">
+  <option value="Beluga">
+  <option value="Brema">
+  <option value="C2 SuperFreak">
+  <option value="Caballa">
+  <option value="Carpa">
+  <option value="Carpa Cuero Dinks">
+  <option value="Carpa de Cuero">
+  <option value="Carpa Espejo">
+  <option value="Carpa Espejo Dinks">
+  <option value="Carpa herbívora">
+  <option value="Carpa koi">
+  <option value="Carpín">
+  <option value="Chub">
+  <option value="Dace">
+  <option value="Escorpión marino">
+  <option value="Esturión">
+  <option value="F1">
+  <option value="Halibut">
+  <option value="Hi Utsuri">
+  <option value="Ide">
+  <option value="Kohaku">
+  <option value="Lenok">
+  <option value="Lobo de mar">
+  <option value="Lucio">
+  <option value="Lucioperca">
+  <option value="Mameshibori Goshiki">
+  <option value="Narumi Asagi">
+  <option value="Orenji">
+  <option value="Perca">
+  <option value="Perca siberiana">
+  <option value="Pez rojo">
+  <option value="Rudd">
+  <option value="Salmón">
+  <option value="Salmón del Atlántico">
+  <option value="Salmón del Pacífico">
+  <option value="Siluro">
+  <option value="Taimen">
+  <option value="Tenca">
+  <option value="Tenca de Kvolsdorfsky">
+  <option value="Tímalo">
+  <option value="Trucha">
+  <option value="Trucha arcoíris">
+  <option value="Trucha de lago">
+  <option value="Yotsushiro">
+</datalist>
       <div class="wk-fg"><label class="wk-fl">Peso (kg) *</label><input class="wk-fi" type="number" step="0.001" id="wkPW" placeholder="0.000"></div>
     </div>
     <div class="wk-frow">
@@ -7241,7 +7291,7 @@ function initShopCoinsDisplay(){
     </div>
     <div class="wk-fg"><label class="wk-fl">Descripción *</label><textarea class="wk-fi" id="spPDesc" placeholder="Describí el spot: ubicación, profundidad, condiciones del agua, mejor horario..." style="min-height:80px"></textarea></div>
     <div class="wk-frow">
-      <div class="wk-fg"><label class="wk-fl">Pez capturado</label><input class="wk-fi" id="spPFish" placeholder="Ej: Pike, Catfish..."></div>
+      <div class="wk-fg"><label class="wk-fl">Pez capturado</label><input class="wk-fi" id="spPFish" list="rf4FishDatalist" autocomplete="off" placeholder="Ej: Carpa, Siluro..."></div>
       <div class="wk-fg"><label class="wk-fl">Peso (kg)</label><input class="wk-fi" type="number" step="0.001" id="spPWeight" placeholder="0.000"></div>
     </div>
     <div class="wk-fg"><label class="wk-fl">Método y carnada</label><textarea class="wk-fi" id="spPSetup" placeholder="Ej: Fondo con lombriz, spinning con señuelo #3..." style="min-height:55px"></textarea></div>
@@ -7287,7 +7337,7 @@ function initShopCoinsDisplay(){
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;">
       <div style="font-size:.78rem;font-weight:700;color:var(--accent);margin-bottom:10px;">🐟 Captura (opcional)</div>
       <div class="frow">
-        <div class="fg"><label class="fl">Pez capturado</label><input class="fi" id="spotFish" placeholder="Ej: Pike, Catfish..."></div>
+        <div class="fg"><label class="fl">Pez capturado</label><input class="fi" id="spotFish" list="rf4FishDatalist" autocomplete="off" placeholder="Ej: Carpa, Siluro..."></div>
         <div class="fg"><label class="fl">Peso (kg)</label><input class="fi" type="number" step="0.001" id="spotWeight" placeholder="0.000"></div>
       </div>
       <div class="fg">
@@ -24466,7 +24516,7 @@ window.wkEditTrophy = async (id) => {
     '<button onclick="document.getElementById(\'_wkEditModal\').remove()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#8b949e;font-size:1.3rem;cursor:pointer;">✕</button>' +
     '<div style="font-family:\'Orbitron\',monospace;font-size:1rem;font-weight:800;color:#00d4ff;margin-bottom:18px;">✏️ Editar Trofeo</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">' +
-      '<div><label style="font-size:.78rem;color:#8b949e;display:block;margin-bottom:4px;">Pez *</label><input id="_weF" class="wk-fi" value="' + wkEsc(t.fish||'') + '" style="width:100%;"></div>' +
+      '<div><label style="font-size:.78rem;color:#8b949e;display:block;margin-bottom:4px;">Pez *</label><input id="_weF" class="wk-fi" list="rf4FishDatalist" autocomplete="off" value="' + wkEsc(t.fish||'') + '" style="width:100%;"></div>' +
       '<div><label style="font-size:.78rem;color:#8b949e;display:block;margin-bottom:4px;">Peso (kg) *</label><input id="_weW" class="wk-fi" type="number" step="0.001" value="' + (t.weight||'') + '" style="width:100%;"></div>' +
     '</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">' +
