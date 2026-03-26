@@ -7486,6 +7486,7 @@ const REACTIONS = [
   {emoji:'😮', label:'Wow',        color:'#60a5fa', lottieSegment:'Scared'  },
 ];
 window.REACTIONS = REACTIONS;
+window.REACTIONS = REACTIONS;
 const REACTION_CATEGORIES = [{ cat:'', emojis: REACTIONS }];
 const REACTION_EMOJIS = REACTIONS.map(r=>r.emoji);
 const FISH_EMOJIS = {'Pike':'🐟','Catfish':'🦈','Bream':'🐡','Perch':'🐠','Carp':'🐟','Trout':'🐟','Salmon':'🐟','Burbot':'🐟','Ruffe':'🐟','Tench':'🐟'};
@@ -13175,6 +13176,8 @@ const SHOP_ITEMS = [
   { id:'banner_aurora', cat:'banner', name:'Aurora Boreal',      preview:'🌌', emoji:'🌠', price:1100, desc:'Luces polares danzando en el cielo',         exclusive:true,  bannerFn:'bannerAurora' },
   { id:'banner_galaxy', cat:'banner', name:'Galaxia',            preview:'⭐', emoji:'✨', price:1300, desc:'Miles de estrellas y nebulosas',             exclusive:true,  bannerFn:'bannerGalaxy' },
   { id:'banner_storm',  cat:'banner', name:'Tormenta Eléctrica', preview:'⚡', emoji:'⚡', price:1400, desc:'Rayos y tormenta en tu portada',             exclusive:true,  bannerFn:'bannerStorm'  },
+  // ── BANNERS LOTTIE ──
+  { id:'banner_tiger', cat:'banner', name:'Tigre Animado', preview:'🐯', emoji:'🐯', price:1800, desc:'Un tigre animado Lottie como fondo de tu perfil', exclusive:true, bannerFn:'bannerTiger' },
   // ── TEMAS DE PERFIL (estilo Discord) ──
   { id:'tema_admin',    cat:'tema', name:'Fuego del Admin',     preview:'👑', emoji:'👑', price:0,    desc:'Borde giratorio rojo→naranja→dorado, nombre con fuego animado, corona con rebote y glow pulsante', temaCSS:'tema-admin-fire',    exclusive:true, soloAdmin:true },
   { id:'tema_aries',    cat:'tema', name:'Aries en Llamas',     preview:'♈', emoji:'♈', price:2000, desc:'Borde rojo escarlata pulsante, fondo oscuro rojo, nombre con gradiente carmesí animado',           temaCSS:'tema-aries',         exclusive:true },
@@ -13202,13 +13205,86 @@ let _shopParticleInterval = null;
 let _bannerAnimFrame = null; // RAF para banners animados
 
 // ── BANNER ENGINE (Canvas 2D) ──
-function stopBannerAnim(){
-  if(_bannerAnimFrame){ cancelAnimationFrame(_bannerAnimFrame); _bannerAnimFrame=null; }
-  const cv = document.getElementById('profileBannerCanvas');
-  if(cv){ cv.style.display='none'; const ctx=cv.getContext('2d'); ctx.clearRect(0,0,cv.width,cv.height); }
-  // Restaurar fondo del cover
+// ── BANNER TIGRE LOTTIE ──
+function bannerTiger(cv, resize){
+  // Ocultar canvas — usamos Lottie directo sobre el cover
+  cv.style.display = 'none';
   const cover = document.getElementById('profCover');
-  if(cover) cover.style.background='';
+  if(!cover) return;
+
+  // Fondo oscuro con rayas de tigre sutiles
+  cover.style.background = 'linear-gradient(160deg,#0d0a00,#1a1000,#0a0500)';
+
+  // Si ya hay un contenedor Lottie, no duplicar
+  if(document.getElementById('tigerLottieBanner')) return;
+
+  const wrap = document.createElement('div');
+  wrap.id = 'tigerLottieBanner';
+  wrap.style.cssText = [
+    'position:absolute','inset:0','z-index:2',
+    'display:flex','align-items:center','justify-content:flex-end',
+    'pointer-events:none','overflow:hidden',
+    'padding-right:20px'
+  ].join(';');
+
+  const lottieEl = document.createElement('div');
+  lottieEl.style.cssText = 'width:220px;height:220px;flex-shrink:0;filter:drop-shadow(0 0 18px rgba(255,140,0,.5));';
+  wrap.appendChild(lottieEl);
+
+  // Rayas decorativas SVG a la izquierda
+  const stripes = document.createElement('div');
+  stripes.style.cssText = [
+    'position:absolute','left:0','top:0','bottom:0','width:55%',
+    'background:repeating-linear-gradient(105deg,transparent,transparent 18px,rgba(255,120,0,.04) 18px,rgba(255,120,0,.04) 22px)',
+    'pointer-events:none'
+  ].join(';');
+  wrap.appendChild(stripes);
+
+  cover.style.position = 'relative';
+  cover.appendChild(wrap);
+
+  // Cargar Lottie
+  function tryMount(){
+    if(window.lottie){
+      fetch('/Cute_Tiger.json')
+        .then(r=>{ if(!r.ok) throw new Error('404'); return r.json(); })
+        .then(data=>{
+          window._tigerLottieInst = window.lottie.loadAnimation({
+            container: lottieEl,
+            renderer: 'svg',
+            loop: true,
+            autoplay: true,
+            animationData: data,
+          });
+        })
+        .catch(()=>{
+          // fallback emoji si no carga
+          lottieEl.style.cssText += 'font-size:7rem;display:flex;align-items:center;justify-content:center;';
+          lottieEl.textContent = '🐯';
+        });
+    } else {
+      setTimeout(tryMount, 500);
+    }
+  }
+  tryMount();
+}
+
+// Limpiar tigre al cambiar banner
+const _origStopBanner = window.stopBannerAnim;
+function stopBannerAnim(){
+  // Destruir instancia Lottie del tigre
+  if(window._tigerLottieInst){
+    try{ window._tigerLottieInst.destroy(); }catch(e){}
+    window._tigerLottieInst = null;
+  }
+  const tigerEl = document.getElementById('tigerLottieBanner');
+  if(tigerEl) tigerEl.remove();
+  const cover = document.getElementById('profCover');
+  if(cover) cover.style.background = '';
+  // canvas
+  if(window._bannerAnimFrame){ cancelAnimationFrame(window._bannerAnimFrame); window._bannerAnimFrame=null; }
+  const cv2 = document.getElementById('profileBannerCanvas');
+  if(cv2){ cv2.style.display='none'; try{ cv2.getContext('2d').clearRect(0,0,cv2.width,cv2.height); }catch(e){} }
 }
 
 function startBannerAnim(fnName){
@@ -21668,6 +21744,7 @@ window.renderShopPage = renderShopPage;
 window.renderShopGrid = renderShopGrid;
 window.filterShopCat = filterShopCat;
 window.toggleEquipItem = toggleEquipItem;
+window.bannerTiger = bannerTiger;
 window.bannerFuego = bannerFuego;
 window.bannerFlores = bannerFlores;
 window.bannerOcean = bannerOcean;
