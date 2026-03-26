@@ -1097,6 +1097,63 @@ select.fi option{background:var(--bg3);color:var(--text);}
 @keyframes ringNeon   { from{box-shadow:0 0 0 3px #b400ff,0 0 14px rgba(180,0,255,.5);} to{box-shadow:0 0 0 4px #e040ff,0 0 28px rgba(224,64,255,.8);} }
 @keyframes ringGalaxy { 0%{box-shadow:0 0 0 3px #7b2fff,0 0 20px rgba(123,47,255,.5);}50%{box-shadow:0 0 0 4px #2f7fff,0 0 28px rgba(47,127,255,.6);}100%{box-shadow:0 0 0 3px #7b2fff,0 0 20px rgba(123,47,255,.5);} }
 @keyframes ringRainbow{ 0%{box-shadow:0 0 0 3px red,0 0 14px rgba(255,0,0,.5);}17%{box-shadow:0 0 0 3px orange;}34%{box-shadow:0 0 0 3px yellow;}50%{box-shadow:0 0 0 3px green,0 0 14px rgba(0,200,0,.5);}67%{box-shadow:0 0 0 3px blue;}84%{box-shadow:0 0 0 3px violet;}100%{box-shadow:0 0 0 3px red,0 0 14px rgba(255,0,0,.5);} }
+/* ── MARCOS ANIMADOS ESTILO DISCORD ── */
+/* Serpiente de Fuego */
+.ring-serpiente .profile-av-big,.ring-serpiente .post-av,.ring-serpiente #profAvBig {
+  position:relative !important;
+}
+.ring-serpiente .profile-av-big::before,.ring-serpiente .post-av::before,.ring-serpiente #profAvBig::before {
+  content:'';position:absolute;inset:-6px;border-radius:50%;
+  background:conic-gradient(from 0deg,#ff4500,#ff8c00,#ffd700,#ff4500);
+  animation:ringSnakeSpin 1.2s linear infinite;
+  z-index:-1;
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 5px),#fff calc(100% - 4px));
+  mask:radial-gradient(farthest-side,transparent calc(100% - 5px),#fff calc(100% - 4px));
+}
+.ring-serpiente .profile-av-big::after,.ring-serpiente .post-av::after,.ring-serpiente #profAvBig::after {
+  content:'🐍';position:absolute;font-size:.9rem;
+  animation:ringSnakeOrbit 2s linear infinite;
+  top:50%;left:50%;transform-origin:0 0;
+  z-index:3;pointer-events:none;
+}
+@keyframes ringSnakeSpin  { to{transform:rotate(360deg);} }
+@keyframes ringSnakeOrbit { from{transform:rotate(0deg) translateX(58%) rotate(0deg);} to{transform:rotate(360deg) translateX(58%) rotate(-360deg);} }
+
+/* Cosmos Giratorio */
+.ring-cosmos .profile-av-big,.ring-cosmos .post-av,.ring-cosmos #profAvBig {
+  position:relative !important;
+}
+.ring-cosmos .profile-av-big::before,.ring-cosmos .post-av::before,.ring-cosmos #profAvBig::before {
+  content:'';position:absolute;inset:-7px;border-radius:50%;
+  background:conic-gradient(from 0deg,#7b2fff,#00cfff,#e040fb,#00e5ff,#7b2fff);
+  animation:ringCosmosSpin 3s linear infinite;
+  z-index:-1;
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#fff calc(100% - 5px));
+  mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#fff calc(100% - 5px));
+  filter:blur(.5px);
+}
+.ring-cosmos .profile-av-big::after,.ring-cosmos .post-av::after,.ring-cosmos #profAvBig::after {
+  content:'⭐';position:absolute;font-size:.75rem;
+  animation:ringCosmosStar 4s linear infinite;
+  top:50%;left:50%;transform-origin:0 0;
+  z-index:3;pointer-events:none;
+}
+@keyframes ringCosmosSpin { to{transform:rotate(360deg);} }
+@keyframes ringCosmosStar { from{transform:rotate(0deg) translateX(55%) rotate(0deg);} to{transform:rotate(360deg) translateX(55%) rotate(-360deg);} }
+
+/* Cardumen de peces */
+.ring-peces .profile-av-big,.ring-peces .post-av,.ring-peces #profAvBig {
+  box-shadow:0 0 0 3px #00cfaa,0 0 18px rgba(0,207,170,.5) !important;
+  position:relative !important;
+}
+.ring-peces .profile-av-big::after,.ring-peces .post-av::after,.ring-peces #profAvBig::after {
+  content:'🐟';position:absolute;font-size:.8rem;
+  animation:ringFishSwim 3s linear infinite;
+  top:50%;left:50%;transform-origin:0 0;
+  z-index:3;pointer-events:none;
+}
+@keyframes ringFishSwim { from{transform:rotate(0deg) translateX(60%) rotate(0deg);} to{transform:rotate(360deg) translateX(60%) rotate(-360deg);} }
+
 /* ── AVATAR FX (foto de perfil exclusivos verificados) ── */
 .avfx-niebla  .profile-av-big img,.avfx-niebla  .post-av img,.avfx-niebla  #upAv img  { filter:saturate(1.1) brightness(1.05); }
 .avfx-niebla  .profile-av-big::after,.avfx-niebla .post-av::after,.avfx-niebla #upAv::after { content:''; position:absolute; inset:0; border-radius:50%; background:radial-gradient(circle,transparent 40%,rgba(180,220,255,.55) 100%); animation:avfxNiebla 3s ease-in-out infinite alternate; pointer-events:none; }
@@ -13116,6 +13173,10 @@ const SHOP_ITEMS = [
   { id:'marco_rojo',     cat:'marco',  name:'Marco Rojo Fuerte',  preview:'🔴', emoji:'🔴', price:400,  desc:'Rojo intenso, se destaca en el feed',    effect:'ring-red' },
   { id:'marco_arcoiris', cat:'marco',  name:'Marco Arcoíris',     preview:'🌈', emoji:'🌈', price:900,  desc:'Colores cambiantes continuamente',        effect:'ring-rainbow', exclusive:true },
   { id:'marco_platino',  cat:'marco',  name:'Marco Platino',      preview:'⚪', emoji:'⚪', price:1200, desc:'Plata brillante premium',                effect:'ring-platinum', exclusive:true },
+  // ── MARCOS ANIMADOS ESTILO DISCORD ──
+  { id:'marco_serpiente', cat:'marco', name:'Serpiente de Fuego',  preview:'🐍', emoji:'🐍', price:1600, desc:'Serpiente de fuego girando alrededor de tu avatar', effect:'ring-serpiente', exclusive:true, isNew:true },
+  { id:'marco_cosmos',    cat:'marco', name:'Cosmos Giratorio',    preview:'🌀', emoji:'🌀', price:1400, desc:'Anillo cósmico con estrellas orbitando tu foto',     effect:'ring-cosmos',    exclusive:true, isNew:true },
+  { id:'marco_peces',     cat:'marco', name:'Cardumen',            preview:'🐟', emoji:'🐟', price:1200, desc:'Peces nadando en círculo alrededor de tu avatar',   effect:'ring-peces',     exclusive:false, isNew:true },
   // ── BADGES ──
   { id:'badge_shark',    cat:'badge',  name:'Tiburón',            preview:'🦈', emoji:'🦈', price:400,  desc:'Badge de tiburón junto a tu nombre' },
   { id:'badge_trophy',   cat:'badge',  name:'Campeón',            preview:'🏆', emoji:'🏆', price:600,  desc:'Badge de trofeo dorado' },
@@ -13273,31 +13334,35 @@ function bannerCrab(cv, resize){
   const cover = document.getElementById('profCover');
   if(!cover) return;
 
+  // Fondo acuatico oscuro
   cover.style.background = 'linear-gradient(160deg,#000a0f,#001a12,#000d08)';
+  // El cover tiene overflow:hidden — lo abrimos para que el Lottie sea visible
+  cover.style.overflow = 'visible';
 
   if(document.getElementById('crabLottieBanner')) return;
 
   const wrap = document.createElement('div');
   wrap.id = 'crabLottieBanner';
   wrap.style.cssText = [
-    'position:absolute','inset:0','z-index:2',
+    'position:absolute','bottom:0','left:0','right:0','z-index:2',
     'display:flex','align-items:flex-end','justify-content:flex-start',
-    'pointer-events:none','overflow:hidden',
-    'padding-left:20px','padding-bottom:10px'
+    'pointer-events:none',
+    'padding-left:30px'
   ].join(';');
 
   const lottieEl = document.createElement('div');
-  lottieEl.style.cssText = 'width:200px;height:200px;flex-shrink:0;filter:drop-shadow(0 0 14px rgba(255,80,0,.45));';
+  // JSON del cangrejo 1000x700 - escalar para que entre en el cover
+  lottieEl.style.cssText = 'width:260px;height:182px;flex-shrink:0;filter:drop-shadow(0 4px 12px rgba(0,180,100,.5));';
   wrap.appendChild(lottieEl);
 
-  // Burbujas decorativas
-  const bubbles = document.createElement('div');
-  bubbles.style.cssText = [
-    'position:absolute','right:0','top:0','bottom:0','width:50%',
-    'background:repeating-radial-gradient(circle at 70% 40%,rgba(0,200,150,.04) 0px,transparent 18px)',
+  // Rayas de agua decorativas a la derecha
+  const water = document.createElement('div');
+  water.style.cssText = [
+    'position:absolute','right:0','top:0','bottom:0','width:55%',
+    'background:repeating-linear-gradient(95deg,transparent,transparent 22px,rgba(0,180,120,.04) 22px,rgba(0,180,120,.04) 26px)',
     'pointer-events:none'
   ].join(';');
-  wrap.appendChild(bubbles);
+  wrap.appendChild(water);
 
   cover.style.position = 'relative';
   cover.appendChild(wrap);
@@ -13344,7 +13409,7 @@ function stopBannerAnim(){
   const crabEl = document.getElementById('crabLottieBanner');
   if(crabEl) crabEl.remove();
   const cover = document.getElementById('profCover');
-  if(cover) cover.style.background = '';
+  if(cover){ cover.style.background = ''; cover.style.overflow = ''; }
   // canvas
   if(window._bannerAnimFrame){ cancelAnimationFrame(window._bannerAnimFrame); window._bannerAnimFrame=null; }
   const cv2 = document.getElementById('profileBannerCanvas');
@@ -13708,6 +13773,7 @@ function applyShopEffects(){
   if(avWrap){
     avWrap.classList.remove('ring-gold','ring-fire','ring-ice','ring-fish','ring-legend',
       'ring-neon','ring-galaxy','ring-red','ring-rainbow','ring-platinum',
+      'ring-serpiente','ring-cosmos','ring-peces',
       'avfx-niebla','avfx-remolino','avfx-prisma','avfx-sombra','avfx-oro','avfx-glitch','avfx-cristal');
     const marco = _equippedItems.marco;
     if(marco){ const it=SHOP_ITEMS.find(i=>i.id===marco); if(it?.effect) avWrap.classList.add(it.effect); }
