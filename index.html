@@ -896,6 +896,35 @@ img[title="Verificado"]:hover{
 .rxn-main-lottie{width:22px;height:22px;display:inline-block;pointer-events:none;vertical-align:middle;}
 .rxn-popup.show{display:flex;gap:0;align-items:flex-end;padding:8px 12px;border-radius:50px;animation:rxnPop .18s ease;}
 
+/* ===== TWITTER-STYLE ACTION BAR ===== */
+.tw-actions{display:flex;align-items:center;padding:2px 4px;border-top:1px solid var(--border);gap:0;}
+.tw-act-btn{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:none;border:none;color:#8b949e;font-size:.78rem;font-weight:600;cursor:pointer;border-radius:100px;transition:color .15s,background .15s;font-family:'Exo 2',sans-serif;min-width:0;}
+.tw-act-btn:hover{background:rgba(255,255,255,.05);}
+.tw-act-btn svg{flex-shrink:0;transition:color .15s;}
+.tw-act-count{font-size:.78rem;line-height:1;}
+.tw-act-btn:hover.tw-act-btn:not(.tw-views-btn){color:#e6edf3;}
+
+/* Comentar – azul al hover */
+.tw-act-btn:first-child:hover{color:#1d9bf0;background:rgba(29,155,240,.1);}
+.tw-act-btn:first-child:hover svg{stroke:#1d9bf0;}
+
+/* Compartir – verde al hover */
+.tw-share-btn:hover{color:#00ba7c;background:rgba(0,186,124,.1);}
+.tw-share-btn:hover svg{stroke:#00ba7c;}
+
+/* Like/Reacción – rosa al hover */
+.tw-like-btn:hover{color:#f91880;background:rgba(249,24,128,.1);}
+.tw-like-btn:hover svg{stroke:#f91880;}
+.tw-liked svg{stroke:#f91880;}
+
+/* Vistas – sin hover */
+.tw-views-btn{cursor:default;margin-left:auto;}
+.tw-views-btn:hover{background:none;color:#8b949e;}
+.tw-views-btn:hover svg{stroke:#8b949e;}
+
+/* Rxn-wrap alineado */
+.tw-rxn{padding-bottom:0;margin-bottom:0;display:flex;align-items:center;}
+
 /* ===== COMMENTS - FACEBOOK STYLE ===== */
 .comments-section{display:none;padding:0 12px 8px;border-top:1px solid #ced0d4;}
 .comments-section.open{display:block;}
@@ -11308,19 +11337,29 @@ function postHTML(p){
         ${(p.shares||0)>0?`<div style="font-size:.78rem;color:var(--muted);">${p.shares} ${p.shares===1?'vez compartido':'veces compartido'}</div>`:''}
       </div>
     </div>
-    <div class="post-actions">
-      <div class="rxn-wrap" onmouseenter="showRxnPop('${p.id}')" onmouseleave="schedHideRxnPop('${p.id}')">
-        <button class="post-action-btn ${myRxn?'active':''}" id="rxnt_${p.id}" onclick="quickReact('${p.id}')" style="${myRxn?`color:${REACTIONS.find(r=>r.emoji===myRxn)?.color||'var(--accent)'}`:''}\">${myRxn||'🔥'} <span style="font-size:.82rem;">${myRxn ? (REACTIONS.find(r=>r.emoji===myRxn)?.label||'Reaccionar') : '🔥 Reaccionar'}</span></button>
+    <div class="post-actions tw-actions">
+      <button class="tw-act-btn" onclick="toggleComments('${p.id}')">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="tw-act-count">${(p.comments||[]).length>0?(p.comments||[]).length:''}</span>
+      </button>
+      <button class="tw-act-btn tw-share-btn" onclick="sharePost('${p.id}')">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        <span class="tw-act-count">${(p.shares||0)>0?p.shares:''}</span>
+      </button>
+      <div class="rxn-wrap tw-rxn" onmouseenter="showRxnPop('${p.id}')" onmouseleave="schedHideRxnPop('${p.id}')">
+        <button class="tw-act-btn tw-like-btn ${myRxn?'tw-liked':''}" id="rxnt_${p.id}" onclick="quickReact('${p.id}')" style="${myRxn?`color:${REACTIONS.find(r=>r.emoji===myRxn)?.color||'#f91880'}`:''}">
+          ${myRxn
+            ? `<span style="font-size:1.05rem;line-height:1;">${myRxn}</span>`
+            : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`
+          }
+          <span class="tw-act-count">${myRxn?(REACTIONS.find(r=>r.emoji===myRxn)?.label||''):''}</span>
+        </button>
         <div class="rxn-popup" id="rxnp_${p.id}" onmouseenter="cancelHideRxnPop('${p.id}')" onmouseleave="schedHideRxnPop('${p.id}')">${rxnBtns}</div>
       </div>
-      <span style="font-size:.78rem;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:100px;transition:background .2s;"
-        onmouseover="this.style.background='rgba(255,255,255,.06)'"
-        onmouseout="this.style.background='transparent'"
-        onclick="openPostViewers('${p.id}')">
-        👁 <span id="post_views_${p.id}">${p.views||0}</span>
+      <span class="tw-act-btn tw-views-btn" style="cursor:default;">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="tw-act-count" id="post_views_${p.id}">${p.views||0}</span>
       </span>
-      <button class="post-action-btn" style="display:none;" onclick="toggleComments('${p.id}')">💬 <span style="font-size:.82rem;">Comentar</span></button>
-
     </div>
     <div class="comments-section" id="cmts_${p.id}">
       <div class="cmt-list" id="cmt-list_${p.id}">${cmtsHTML}</div>
