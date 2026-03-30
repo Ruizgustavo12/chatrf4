@@ -2524,22 +2524,7 @@ document.addEventListener('DOMContentLoaded', function(){
         </div>
       </div>
       
-      <div class="post-box">
-        <div class="post-box-top">
-          <div class="sl-av" id="pbAv" style="width:40px;height:40px;flex-shrink:0;">👤</div>
-          <div class="post-input" onclick="om('mCreatePost')" id="postBoxPlaceholder">¿Qué estás pensando?</div>
-          <div style="display:flex;gap:2px;flex-shrink:0;">
-            <button onclick="om('mCreatePost')" style="background:none;border:none;cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'" title="Video en vivo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="6" width="14" height="12" rx="2" fill="#e04040"/><polygon points="16,9 22,6 22,18 16,15" fill="#e04040"/></svg></button>
-            <button onclick="om('mCreatePost');setTimeout(()=>{document.getElementById('postImgInput')?.click()},200)" style="background:none;border:none;cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'" title="Foto/Video"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2" fill="#45b36b"/><circle cx="12" cy="12" r="4" fill="#fff" opacity=".9"/><circle cx="12" cy="12" r="2.5" fill="#45b36b"/><circle cx="17.5" cy="7.5" r="1.2" fill="#fff" opacity=".9"/></svg></button>
-            <button onclick="om('mCreatePost')" style="background:none;border:none;cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'" title="Actividad"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#f5a623"/><path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="10" r="1.2" fill="#fff"/><circle cx="15" cy="10" r="1.2" fill="#fff"/></svg></button>
-          </div>
-        </div>
-        <div class="post-box-actions">
-          <button class="pba" onclick="om('mCreatePost');setTimeout(()=>{document.getElementById('postImgInput')?.click()},200)">📸 Foto</button>
-          <button class="pba" onclick="openPostWithYt()">▶️ YouTube</button>
-          <button class="pba" onclick="om('mCreatePost')">😊 Estado</button>
-        </div>
-      </div>
+      <!-- post-box solo visible dentro del feed panel -->
 
       
       <div id="friendSpotsHome"></div>
@@ -2582,19 +2567,45 @@ document.addEventListener('DOMContentLoaded', function(){
           <span style="font-family:'Orbitron',monospace;font-size:.82rem;font-weight:900;color:var(--accent);">📰 Feed</span>
           <button onclick="homeHideFeed()" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:4px 12px;font-size:.75rem;font-weight:700;color:var(--muted);cursor:pointer;font-family:'Exo 2',sans-serif;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">✕ Cerrar</button>
         </div>
+        <!-- post-box dentro del feed -->
+        <div class="post-box" style="margin-bottom:14px;">
+          <div class="post-box-top">
+            <div class="sl-av" id="pbAv" style="width:40px;height:40px;flex-shrink:0;">👤</div>
+            <div class="post-input" onclick="om('mCreatePost')" id="postBoxPlaceholder">¿Qué estás pensando?</div>
+            <div style="display:flex;gap:2px;flex-shrink:0;">
+              <button onclick="om('mCreatePost')" style="background:none;border:none;cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'" title="Video en vivo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="6" width="14" height="12" rx="2" fill="#e04040"/><polygon points="16,9 22,6 22,18 16,15" fill="#e04040"/></svg></button>
+              <button onclick="om('mCreatePost');setTimeout(()=>{document.getElementById('postImgInput')?.click()},200)" style="background:none;border:none;cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'" title="Foto/Video"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2" fill="#45b36b"/><circle cx="12" cy="12" r="4" fill="#fff" opacity=".9"/><circle cx="12" cy="12" r="2.5" fill="#45b36b"/><circle cx="17.5" cy="7.5" r="1.2" fill="#fff" opacity=".9"/></svg></button>
+              <button onclick="om('mCreatePost')" style="background:none;border:none;cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'" title="Actividad"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#f5a623"/><path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="10" r="1.2" fill="#fff"/><circle cx="15" cy="10" r="1.2" fill="#fff"/></svg></button>
+            </div>
+          </div>
+          <div class="post-box-actions">
+            <button class="pba" onclick="om('mCreatePost');setTimeout(()=>{document.getElementById('postImgInput')?.click()},200)">📸 Foto</button>
+            <button class="pba" onclick="openPostWithYt()">▶️ YouTube</button>
+            <button class="pba" onclick="om('mCreatePost')">😊 Estado</button>
+          </div>
+        </div>
         <div id="feedPosts"><div style="text-align:center;padding:40px;color:var(--muted);font-size:.85rem;">🎣 Cargando feed...</div></div>
       </div>
 
       <!-- ── TROFEOS RECIENTES (inicio) ────────────────────────────────── -->
       <div id="homeTrofeosSection">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid rgba(255,215,0,.15);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:10px;border-bottom:2px solid rgba(255,215,0,.15);">
           <div style="display:flex;align-items:center;gap:8px;">
             <span style="font-size:1.3rem;">🥇</span>
             <span style="font-family:'Orbitron',monospace;font-size:.88rem;font-weight:900;color:var(--gold);">Trofeos Recientes</span>
           </div>
           <span style="font-size:.72rem;color:var(--accent);cursor:pointer;font-weight:600;" onclick="gp('trofeos-feed')">Ver todos →</span>
         </div>
-        <div id="homeTrofeosGrid" style="display:grid;gap:14px;">
+        <!-- Filtro por mapa -->
+        <div style="margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="font-size:.78rem;color:var(--muted);font-weight:600;white-space:nowrap;">🗺️ Filtrar por mapa:</span>
+          <div style="position:relative;flex:1;min-width:160px;">
+            <input id="homeTrofMapFilter" type="text" placeholder="Ej: Belaya, Winding Rivulet..." oninput="homeFilterByMap(this.value)" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:7px 32px 7px 10px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.82rem;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+            <button onclick="document.getElementById('homeTrofMapFilter').value='';homeFilterByMap('');" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:.85rem;line-height:1;padding:2px;" title="Limpiar">✕</button>
+          </div>
+          <div id="homeTrofMapSuggestions" style="display:none;position:absolute;z-index:200;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);max-height:200px;overflow-y:auto;min-width:200px;box-shadow:0 4px 16px rgba(0,0,0,.5);"></div>
+        </div>
+        <div id="homeTrofeosGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;">
           <div style="text-align:center;padding:40px;color:var(--muted);font-size:.85rem;">🏆 Cargando trofeos...</div>
         </div>
         <div id="homeTrofeosPager" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:20px;flex-wrap:wrap;"></div>
@@ -2606,13 +2617,7 @@ document.addEventListener('DOMContentLoaded', function(){
     <div class="sidebar-right">
 
       
-      <div id="trofeoSidebarWidget" style="margin-bottom:14px;">
-        <div class="sr-title" style="display:flex;align-items:center;justify-content:space-between;">
-          <span>🥇 Últimos Trofeos</span>
-          <span style="font-size:.72rem;color:var(--accent);cursor:pointer;font-weight:600;" onclick="gp('trofeos-feed')">Ver todos</span>
-        </div>
-        <div id="trofeoSidebarList"><div style="font-size:.75rem;color:var(--muted);padding:6px 4px;">Cargando...</div></div>
-      </div>
+      <!-- trofeoSidebarWidget removido: los trofeos aparecen en home -->
 
       
       <div class="adsense-unit" id="adSidebar" style="margin:10px 0;text-align:center;min-height:0;">
@@ -22101,6 +22106,8 @@ function listenTrofeosFeed(){
         _trofeosFeedData = local;
         window._trofeosFeedLastLoad = Date.now();
         renderTrofeosFeed();
+        // Actualizar grilla del home
+        if(typeof window._renderHomeTrofeos === 'function') window._renderHomeTrofeos();
         // Badge de nuevo trofeo en updates posteriores al primero
         if(!firstLoad && !snap.metadata.fromCache){
           const badge = document.getElementById('trofeoFeedBadge');
@@ -29467,15 +29474,54 @@ setTimeout(function(){
 (function(){
   var HOME_PER_PAGE = 12;
   var _homeTrofPage = 1;
+  var _homeTrofMapFilter = '';
+
+  window.homeFilterByMap = function(val){
+    _homeTrofMapFilter = (val||'').trim().toLowerCase();
+    _homeTrofPage = 1;
+    renderHomeTrofeos();
+    // Mostrar sugerencias de mapas
+    var sug = document.getElementById('homeTrofMapSuggestions');
+    if(!sug) return;
+    if(!_homeTrofMapFilter){ sug.style.display='none'; return; }
+    var data = window._trofeosFeedData || [];
+    var maps = {};
+    data.forEach(function(t){ var m=(t.map||t.mapa||'').trim(); if(m) maps[m]=(maps[m]||0)+1; });
+    var matches = Object.keys(maps).filter(function(m){ return m.toLowerCase().indexOf(_homeTrofMapFilter)!==-1; }).sort();
+    if(!matches.length){ sug.style.display='none'; return; }
+    var wrap = document.getElementById('homeTrofMapFilter');
+    if(wrap){
+      var rect = wrap.getBoundingClientRect();
+      sug.style.top=(rect.bottom+window.scrollY+2)+'px';
+      sug.style.left=rect.left+'px';
+      sug.style.width=rect.width+'px';
+    }
+    sug.style.display='block';
+    sug.innerHTML = matches.slice(0,10).map(function(m){
+      return '<div onclick="document.getElementById(\'homeTrofMapFilter\').value=\''+m+'\';window.homeFilterByMap(\''+m+'\');document.getElementById(\'homeTrofMapSuggestions\').style.display=\'none\';" style="padding:8px 12px;cursor:pointer;font-size:.82rem;color:var(--text);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;" onmouseover="this.style.background=\'var(--bg4)\'" onmouseout="this.style.background=\'\'">'+
+        '<span>📍 '+m+'</span><span style="font-size:.7rem;color:var(--muted);">'+maps[m]+' trofeos</span></div>';
+    }).join('');
+  };
+
+  document.addEventListener('click', function(e){
+    var sug = document.getElementById('homeTrofMapSuggestions');
+    if(sug && !sug.contains(e.target) && e.target.id!=='homeTrofMapFilter') sug.style.display='none';
+  });
 
   function renderHomeTrofeos(){
-    var data = window._trofeosFeedData || [];
+    var allData = window._trofeosFeedData || [];
+    // Aplicar filtro por mapa
+    var data = _homeTrofMapFilter
+      ? allData.filter(function(t){ return (t.map||t.mapa||'').toLowerCase().indexOf(_homeTrofMapFilter)!==-1; })
+      : allData;
     var grid = document.getElementById('homeTrofeosGrid');
     var pager = document.getElementById('homeTrofeosPager');
     if(!grid || !pager) return;
 
     if(!data.length){
-      grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:.85rem;">🏆 Aún no hay trofeos aprobados</div>';
+      grid.innerHTML = _homeTrofMapFilter
+        ? '<div style="text-align:center;padding:40px;color:var(--muted);font-size:.85rem;">🗺️ No hay trofeos en el mapa "<b style=\'color:var(--gold)\'>' + _homeTrofMapFilter + '</b>"</div>'
+        : (allData.length === 0 ? '<div style="text-align:center;padding:40px;color:var(--muted);font-size:.85rem;">🏆 Aún no hay trofeos aprobados</div>' : '<div style="text-align:center;padding:40px;color:var(--muted);font-size:.85rem;">🏆 Aún no hay trofeos aprobados</div>');
       pager.innerHTML = '';
       return;
     }
@@ -29559,6 +29605,11 @@ setTimeout(function(){
 
   // Exponer para que se pueda llamar desde afuera
   window._renderHomeTrofeos = renderHomeTrofeos;
+
+  // Si ya hay datos cargados (ej. volvió al home sin recargar), mostrarlos ya
+  if(window._trofeosFeedData && window._trofeosFeedData.length){
+    setTimeout(renderHomeTrofeos, 50);
+  }
 
   // Parchar renderTrofeosFeed cuando esté disponible
   var _interval = setInterval(function(){
