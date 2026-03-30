@@ -2567,7 +2567,39 @@ document.addEventListener('DOMContentLoaded', function(){
       </div>
 
       
-      <div id="feedPosts"><div style="text-align:center;padding:40px;color:var(--muted);font-size:.85rem;">🎣 Cargando feed...</div></div>
+      <!-- ── BOTÓN FEED ─────────────────────────────────────────────────── -->
+      <div id="homeFeedBtnWrap" style="margin-bottom:14px;">
+        <button id="homeFeedBtn" onclick="homeShowFeed()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 18px;cursor:pointer;font-family:'Exo 2',sans-serif;font-size:.92rem;font-weight:700;color:var(--text);transition:all .2s;" onmouseover="this.style.background='var(--bg3)';this.style.borderColor='var(--accent)'" onmouseout="this.style.background='var(--bg2)';this.style.borderColor='var(--border)'">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="3" rx="1.5" fill="var(--accent)"/><rect x="3" y="10" width="12" height="3" rx="1.5" fill="var(--muted)"/><rect x="3" y="16" width="15" height="3" rx="1.5" fill="var(--muted)"/></svg>
+          Ver Feed de la comunidad
+          <span style="font-size:.75rem;color:var(--muted);font-weight:600;">Posts, fotos y más →</span>
+        </button>
+      </div>
+
+      <!-- ── PANEL FEED (oculto por defecto) ──────────────────────────── -->
+      <div id="homeFeedPanel" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <span style="font-family:'Orbitron',monospace;font-size:.82rem;font-weight:900;color:var(--accent);">📰 Feed</span>
+          <button onclick="homeHideFeed()" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:4px 12px;font-size:.75rem;font-weight:700;color:var(--muted);cursor:pointer;font-family:'Exo 2',sans-serif;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">✕ Cerrar</button>
+        </div>
+        <div id="feedPosts"><div style="text-align:center;padding:40px;color:var(--muted);font-size:.85rem;">🎣 Cargando feed...</div></div>
+      </div>
+
+      <!-- ── TROFEOS RECIENTES (inicio) ────────────────────────────────── -->
+      <div id="homeTrofeosSection">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid rgba(255,215,0,.15);">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:1.3rem;">🥇</span>
+            <span style="font-family:'Orbitron',monospace;font-size:.88rem;font-weight:900;color:var(--gold);">Trofeos Recientes</span>
+          </div>
+          <span style="font-size:.72rem;color:var(--accent);cursor:pointer;font-weight:600;" onclick="gp('trofeos-feed')">Ver todos →</span>
+        </div>
+        <div id="homeTrofeosGrid" style="display:grid;gap:14px;">
+          <div style="text-align:center;padding:40px;color:var(--muted);font-size:.85rem;">🏆 Cargando trofeos...</div>
+        </div>
+        <div id="homeTrofeosPager" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:20px;flex-wrap:wrap;"></div>
+      </div>
+
     </div>
 
     
@@ -29429,6 +29461,160 @@ setTimeout(function(){
 
 
 <script>
+// ── HOME TROFEOS RECIENTES CON PAGINACIÓN ────────────────────────────────────
+(function(){
+  var HOME_PER_PAGE = 12;
+  var _homeTrofPage = 1;
+
+  function renderHomeTrofeos(){
+    var data = window._trofeosFeedData || window._homeTrofeosData || [];
+    var grid = document.getElementById('homeTrofeosGrid');
+    var pager = document.getElementById('homeTrofeosPager');
+    if(!grid || !pager) return;
+
+    if(!data.length){
+      grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:.85rem;">🏆 Aún no hay trofeos aprobados</div>';
+      pager.innerHTML = '';
+      return;
+    }
+
+    var totalPages = Math.ceil(data.length / HOME_PER_PAGE);
+    if(_homeTrofPage > totalPages) _homeTrofPage = 1;
+    var start = (_homeTrofPage - 1) * HOME_PER_PAGE;
+    var page = data.slice(start, start + HOME_PER_PAGE);
+
+    grid.innerHTML = page.map(function(t){
+      var fish = (t.fish||t.especie||'Desconocido');
+      var weight = t.weight||t.peso||0;
+      var map = t.map||t.mapa||'';
+      var nick = t.userNick||t.submittedBy||t.nick||'Anónimo';
+      var images = t.images||[];
+      var imgUrl = images[0]||t.imageUrl||t.img||t.imagen||'';
+      var approvedAt = t.createdAt&&t.createdAt.toMillis ? t.createdAt.toMillis() : (t.createdAt||Date.now());
+      var tid = t.id||'';
+      var technique = t.technique||t.tecnica||t.tech||'';
+      var userAv = t.userPhoto||t.userAv||t.av||'';
+      var userId = t.userId||'';
+      return '<div style="background:var(--bg2);border:1.5px solid rgba(255,215,0,.22);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:border-color .2s,transform .15s;" onmouseover="this.style.borderColor=\'var(--gold)\';this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.borderColor=\'rgba(255,215,0,.22)\';this.style.transform=\'\'" onclick="(function(){gp(\'trofeos-feed\');listenTrofeosFeed&&listenTrofeosFeed();setTimeout(function(){var el=document.getElementById(\'trofeo_'+tid+'\');if(el){el.scrollIntoView({behavior:\'smooth\',block:\'center\'});el.style.outline=\'2px solid var(--gold)\';setTimeout(function(){if(el)el.style.outline=\'\';},2200);}},600);})();">'
+        + (imgUrl ? '<div style="width:100%;height:160px;overflow:hidden;"><img src="'+imgUrl+'" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>'
+                  : '<div style="width:100%;height:100px;background:linear-gradient(135deg,rgba(255,215,0,.12),rgba(255,165,0,.06));display:flex;align-items:center;justify-content:center;font-size:2.8rem;">🏆</div>')
+        + '<div style="padding:10px 12px;">'
+          + '<div style="font-family:\'Orbitron\',monospace;font-size:.85rem;font-weight:900;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+fish+(weight?' · '+(typeof fmtKg==='function'?fmtKg(weight):weight+'kg'):'')+'</div>'
+          + (map?'<div style="font-size:.68rem;color:var(--muted);margin-top:2px;">📍 '+map+'</div>':'')
+          + (technique?'<div style="font-size:.65rem;color:var(--accent);margin-top:2px;">🎣 '+technique+'</div>':'')
+          + '<div style="display:flex;align-items:center;gap:6px;margin-top:6px;">'
+            + (userAv?'<img src="'+userAv+'" style="width:20px;height:20px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,215,0,.3);">'
+                     :'<div style="width:20px;height:20px;border-radius:50%;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:.7rem;">'+(nick[0]||'?').toUpperCase()+'</div>')
+            + '<span style="font-size:.68rem;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+nick+'</span>'
+            + '<span style="font-size:.62rem;color:var(--muted);">'+(typeof fmtT==='function'?fmtT(approvedAt):'')+'</span>'
+          + '</div>'
+        + '</div>'
+      + '</div>';
+    }).join('');
+
+    // Paginación
+    if(totalPages <= 1){ pager.innerHTML=''; return; }
+    var btns = '';
+    // Prev
+    btns += '<button onclick="homeGoTrofPage('+(Math.max(1,_homeTrofPage-1))+')" style="min-width:34px;height:34px;border-radius:var(--rs);border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;font-size:.8rem;font-weight:700;font-family:\'Exo 2\',sans-serif;padding:0 10px;transition:all .15s;"'+(_homeTrofPage===1?' disabled style="opacity:.4;cursor:default;"':'')+'>‹</button>';
+    // Pages
+    var pages = [];
+    if(totalPages <= 7){
+      for(var i=1;i<=totalPages;i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if(_homeTrofPage > 3) pages.push('...');
+      for(var i=Math.max(2,_homeTrofPage-1);i<=Math.min(totalPages-1,_homeTrofPage+1);i++) pages.push(i);
+      if(_homeTrofPage < totalPages-2) pages.push('...');
+      pages.push(totalPages);
+    }
+    pages.forEach(function(p){
+      if(p==='...'){
+        btns += '<span style="color:var(--muted);padding:0 4px;font-size:.8rem;">…</span>';
+      } else {
+        var active = p===_homeTrofPage;
+        btns += '<button onclick="homeGoTrofPage('+p+')" style="min-width:34px;height:34px;border-radius:var(--rs);border:1px solid '+(active?'var(--gold)':'var(--border)')+';background:'+(active?'rgba(255,215,0,.15)':'var(--bg3)')+';color:'+(active?'var(--gold)':'var(--muted)')+';cursor:pointer;font-size:.82rem;font-weight:'+(active?'800':'600')+';font-family:\'Exo 2\',sans-serif;padding:0 10px;transition:all .15s;">'+p+'</button>';
+      }
+    });
+    // Next
+    btns += '<button onclick="homeGoTrofPage('+(Math.min(totalPages,_homeTrofPage+1))+')" style="min-width:34px;height:34px;border-radius:var(--rs);border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;font-size:.8rem;font-weight:700;font-family:\'Exo 2\',sans-serif;padding:0 10px;transition:all .15s;"'+(_homeTrofPage===totalPages?' disabled style="opacity:.4;cursor:default;"':'')+'>›</button>';
+    pager.innerHTML = btns;
+  }
+
+  window.homeGoTrofPage = function(p){
+    _homeTrofPage = p;
+    renderHomeTrofeos();
+    var sec = document.getElementById('homeTrofeosSection');
+    if(sec) sec.scrollIntoView({behavior:'smooth',block:'start'});
+  };
+
+  window.homeShowFeed = function(){
+    document.getElementById('homeFeedPanel').style.display = '';
+    document.getElementById('homeFeedBtnWrap').style.display = 'none';
+    renderFeed && renderFeed();
+  };
+
+  window.homeHideFeed = function(){
+    document.getElementById('homeFeedPanel').style.display = 'none';
+    document.getElementById('homeFeedBtnWrap').style.display = '';
+  };
+
+  // Enganchar con la carga de datos de trofeos para actualizar el home
+  var _origListenSidebar = window.listenTrofeosSidebar;
+  function _patchAfterData(){
+    if(typeof window._trofeosFeedData === 'undefined'){
+      // Esperar a que listenTrofeosFeed cargue datos
+      var _waitData = setInterval(function(){
+        if(window._trofeosFeedData && window._trofeosFeedData.length){
+          clearInterval(_waitData);
+          renderHomeTrofeos();
+        }
+      }, 500);
+    } else {
+      renderHomeTrofeos();
+    }
+  }
+
+  // Enganchar con renderTrofeosFeed para refrescar home también
+  var _origRenderTrofeosFeed = window.renderTrofeosFeed;
+  var _patchRTF = function(){
+    if(typeof window.renderTrofeosFeed === 'function' && window.renderTrofeosFeed !== _patchedRTF){
+      _origRenderTrofeosFeed = window.renderTrofeosFeed;
+      window.renderTrofeosFeed = _patchedRTF;
+    }
+  };
+  var _patchedRTF = function(){
+    _origRenderTrofeosFeed && _origRenderTrofeosFeed.apply(this, arguments);
+    if(_homeTrofPage === 1) renderHomeTrofeos();
+  };
+
+  // Inicializar cuando el DOM esté listo
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(function(){
+      // Parchar renderTrofeosFeed
+      if(typeof window.renderTrofeosFeed === 'function'){
+        var orig = window.renderTrofeosFeed;
+        window.renderTrofeosFeed = function(){
+          orig.apply(this, arguments);
+          renderHomeTrofeos();
+        };
+      } else {
+        var _w = setInterval(function(){
+          if(typeof window.renderTrofeosFeed === 'function'){
+            clearInterval(_w);
+            var orig = window.renderTrofeosFeed;
+            window.renderTrofeosFeed = function(){
+              orig.apply(this, arguments);
+              renderHomeTrofeos();
+            };
+          }
+        }, 300);
+      }
+      _patchAfterData();
+    }, 800);
+  });
+})();
+
 // ── PAUSAR ANIMACIONES EN POSTS FUERA DE PANTALLA ────────────────────────────
 // En móvil, tener 20-50 posts con animaciones infinitas corriendo al mismo tiempo
 // consume mucha memoria y CPU. Este observer pausa las animaciones cuando el post
