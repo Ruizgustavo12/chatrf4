@@ -2270,8 +2270,240 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 })();
 </script>
+
+<!-- ── PWA ──────────────────────────────────────────────────────────────── -->
+<link rel="manifest" href="/manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WikiRF4">
+<meta name="application-name" content="WikiRF4">
+<meta name="theme-color" content="#0d1117">
+<meta name="msapplication-TileColor" content="#0d1117">
+<meta name="msapplication-navbutton-color" content="#0d1117">
+<!-- Apple touch icon (usa el logo ya embebido del sitio) -->
+<link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png">
+<!-- Splash screen iOS -->
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 </head>
 <body>
+
+<!-- ── PWA: Splash screen + registro SW + notificaciones push ────────────── -->
+<script>
+(function(){
+  'use strict';
+
+  // ── 1. SPLASH SCREEN ────────────────────────────────────────────────────
+  // Solo mostrar si la app se abre como PWA instalada (standalone)
+  var isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                  || window.navigator.standalone === true;
+
+  if(isStandalone){
+    var splash = document.createElement('div');
+    splash.id = '_pwaSplash';
+    splash.style.cssText = [
+      'position:fixed','inset:0','z-index:999998',
+      'background:#0d1117',
+      'display:flex','flex-direction:column',
+      'align-items:center','justify-content:center','gap:20px',
+      'transition:opacity .5s ease'
+    ].join(';');
+    splash.innerHTML = ''
+      + '<img src="/icon-512.png" onerror="this.style.display=\'none\'" style="width:110px;height:110px;border-radius:24px;box-shadow:0 0 40px rgba(46,196,182,.35);">'
+      + '<div style="font-family:Orbitron,monospace;font-size:1.6rem;font-weight:900;color:#2ec4b6;letter-spacing:2px;">WikiRF4</div>'
+      + '<div style="font-family:\'Exo 2\',sans-serif;font-size:.82rem;color:#8b949e;letter-spacing:1px;">Red Social · Russian Fishing 4</div>'
+      + '<div style="width:48px;height:3px;background:linear-gradient(90deg,#2ec4b6,#ffd700);border-radius:2px;margin-top:8px;animation:_splashBar 1.2s ease-in-out infinite;"></div>';
+    var splashStyle = document.createElement('style');
+    splashStyle.textContent = '@keyframes _splashBar{0%{width:48px;opacity:.6}50%{width:90px;opacity:1}100%{width:48px;opacity:.6}}';
+    document.head.appendChild(splashStyle);
+    document.body.appendChild(splash);
+
+    // Ocultar splash cuando la página esté lista
+    function hideSplash(){
+      splash.style.opacity = '0';
+      setTimeout(function(){ if(splash.parentNode) splash.parentNode.removeChild(splash); }, 520);
+    }
+    if(document.readyState === 'complete'){
+      setTimeout(hideSplash, 1400);
+    } else {
+      window.addEventListener('load', function(){ setTimeout(hideSplash, 1400); });
+    }
+  }
+
+  // ── 2. REGISTRO DEL SERVICE WORKER ──────────────────────────────────────
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('/sw.js', { scope: '/' })
+        .then(function(reg){
+          console.log('[PWA] SW registrado:', reg.scope);
+
+          // Detectar nueva versión disponible
+          reg.addEventListener('updatefound', function(){
+            var newWorker = reg.installing;
+            if(!newWorker) return;
+            newWorker.addEventListener('statechange', function(){
+              if(newWorker.state === 'installed' && navigator.serviceWorker.controller){
+                window._pendingSW = newWorker;
+                var toast = document.getElementById('swUpdateToast');
+                if(toast) toast.style.display = 'flex';
+              }
+            });
+          });
+
+          // Recargar al activar el nuevo SW
+          navigator.serviceWorker.addEventListener('controllerchange', function(){
+            window.location.reload();
+          });
+
+          // ── 3. NOTIFICACIONES PUSH ─────────────────────────────────────
+          // Solo pedir permiso si el usuario está logueado (esperar a CU)
+          function requestPushIfLoggedIn(){
+            if(!window.CU) return;
+            if(!('Notification' in window) || !('PushManager' in window)) return;
+            if(Notification.permission === 'granted'){
+              subscribeToPush(reg);
+            } else if(Notification.permission === 'default'){
+              // Mostrar banner propio antes de pedir permiso del sistema
+              showPushBanner(reg);
+            }
+          }
+
+          // Esperar a que CU esté disponible
+          if(window.CU){
+            requestPushIfLoggedIn();
+          } else {
+            var _cuWait = setInterval(function(){
+              if(window.CU){ clearInterval(_cuWait); requestPushIfLoggedIn(); }
+            }, 1000);
+            // Dejar de esperar después de 30s
+            setTimeout(function(){ clearInterval(_cuWait); }, 30000);
+          }
+        })
+        .catch(function(err){
+          console.warn('[PWA] Error registrando SW:', err);
+        });
+    });
+  }
+
+  // ── 4. BANNER DE PERMISO PUSH (no invasivo) ──────────────────────────────
+  function showPushBanner(reg){
+    // No mostrar si ya se rechazó antes
+    if(localStorage.getItem('wrf4_pushDismissed') === '1') return;
+
+    var banner = document.createElement('div');
+    banner.id = '_pushBanner';
+    banner.style.cssText = [
+      'position:fixed','bottom:72px','left:50%','transform:translateX(-50%)',
+      'background:#1a2332','border:1px solid rgba(46,196,182,.4)',
+      'border-radius:14px','padding:14px 18px',
+      'z-index:99997','display:flex','align-items:center','gap:12px',
+      'box-shadow:0 4px 24px rgba(0,0,0,.6)',
+      'font-family:\'Exo 2\',sans-serif','max-width:360px','width:90%',
+      'animation:_slideUp .3s ease'
+    ].join(';');
+    banner.innerHTML = ''
+      + '<style>@keyframes _slideUp{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>'
+      + '<span style="font-size:1.4rem;">🔔</span>'
+      + '<div style="flex:1;">'
+      +   '<div style="font-size:.82rem;font-weight:700;color:#e6edf3;">Activar notificaciones</div>'
+      +   '<div style="font-size:.72rem;color:#8b949e;margin-top:2px;">Recibí alertas de trofeos, comentarios y más</div>'
+      + '</div>'
+      + '<button id="_pushAllow" style="background:#2ec4b6;color:#0d1117;border:none;border-radius:8px;padding:7px 14px;font-weight:800;cursor:pointer;font-size:.78rem;font-family:\'Exo 2\',sans-serif;white-space:nowrap;">Activar</button>'
+      + '<button id="_pushDeny"  style="background:none;border:none;color:#8b949e;cursor:pointer;font-size:1rem;padding:4px;" title="Cerrar">✕</button>';
+    document.body.appendChild(banner);
+
+    document.getElementById('_pushAllow').addEventListener('click', function(){
+      banner.remove();
+      Notification.requestPermission().then(function(perm){
+        if(perm === 'granted') subscribeToPush(reg);
+      });
+    });
+    document.getElementById('_pushDeny').addEventListener('click', function(){
+      banner.remove();
+      localStorage.setItem('wrf4_pushDismissed', '1');
+    });
+  }
+
+  // ── 5. SUSCRIBIR A PUSH ──────────────────────────────────────────────────
+  function subscribeToPush(reg){
+    reg.pushManager.getSubscription().then(function(existing){
+      if(existing){
+        savePushSubscription(existing);
+        return;
+      }
+      // VAPID public key — reemplazá esto con tu clave real de web-push
+      // Generala con: npx web-push generate-vapid-keys
+      var VAPID_PUBLIC_KEY = 'TU_VAPID_PUBLIC_KEY_AQUI';
+      if(VAPID_PUBLIC_KEY === 'TU_VAPID_PUBLIC_KEY_AQUI') return; // no configurado aún
+
+      reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      }).then(function(sub){
+        savePushSubscription(sub);
+      }).catch(function(err){
+        console.warn('[PWA] Error suscribiendo a push:', err);
+      });
+    });
+  }
+
+  // Guardar suscripción en Firestore (cuando Firebase esté listo)
+  function savePushSubscription(sub){
+    if(!window.CU || !window.db) return;
+    var subJson = sub.toJSON();
+    try {
+      // Guardar en el documento del usuario
+      if(typeof window.updateDoc === 'function' && typeof window.doc === 'function'){
+        window.updateDoc(window.doc(window.db, 'users', window.CU.id), {
+          pushSub: subJson,
+          pushUpdatedAt: Date.now()
+        }).catch(function(){});
+      }
+    } catch(e){}
+  }
+
+  // Helper: convertir clave VAPID de base64 a Uint8Array
+  function urlBase64ToUint8Array(base64String){
+    var padding = '='.repeat((4 - base64String.length % 4) % 4);
+    var base64 = (base64String + padding).replace(/-/g,'+').replace(/_/g,'/');
+    var raw = window.atob(base64);
+    var output = new Uint8Array(raw.length);
+    for(var i = 0; i < raw.length; ++i) output[i] = raw.charCodeAt(i);
+    return output;
+  }
+
+  // ── 6. BOTÓN "INSTALAR APP" ──────────────────────────────────────────────
+  var _deferredInstallPrompt = null;
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    _deferredInstallPrompt = e;
+    // Mostrar botón de instalación si existe en el DOM
+    var btn = document.getElementById('pwaInstallBtn');
+    if(btn) btn.style.display = '';
+  });
+
+  window.pwaInstall = function(){
+    if(!_deferredInstallPrompt) return;
+    _deferredInstallPrompt.prompt();
+    _deferredInstallPrompt.userChoice.then(function(result){
+      if(result.outcome === 'accepted'){
+        var btn = document.getElementById('pwaInstallBtn');
+        if(btn) btn.style.display = 'none';
+      }
+      _deferredInstallPrompt = null;
+    });
+  };
+
+  window.addEventListener('appinstalled', function(){
+    _deferredInstallPrompt = null;
+    var btn = document.getElementById('pwaInstallBtn');
+    if(btn) btn.style.display = 'none';
+    console.log('[PWA] App instalada exitosamente');
+  });
+
+})();
+</script>
 
 <div id="swUpdateToast" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1e2a38;border:1px solid var(--accent);border-radius:12px;padding:12px 18px;z-index:99999;align-items:center;gap:12px;box-shadow:0 4px 24px rgba(0,0,0,.5);font-family:'Exo 2',sans-serif;">
   <span style="font-size:.85rem;color:var(--text);">🔄 Nueva versión disponible</span>
@@ -2469,6 +2701,17 @@ document.addEventListener('DOMContentLoaded', function(){
       <div class="sl-item" onclick="gp('soporte')"><span class="sl-item-icon">🆘</span> Soporte Técnico</div>
       <div class="sl-item" onclick="gp('faq')"><span class="sl-item-icon">❓</span> Dudas Frecuentes</div>
       <div class="sl-item" onclick="gp('privacidad')"><span class="sl-item-icon">🔒</span> Privacidad</div>
+
+      <!-- Botón instalar PWA — solo aparece si el browser soporta instalación -->
+      <div id="pwaInstallBtn" style="display:none;margin:6px 6px 2px;" onclick="pwaInstall()">
+        <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:linear-gradient(135deg,rgba(46,196,182,.15),rgba(255,215,0,.08));border:1px solid rgba(46,196,182,.35);border-radius:10px;cursor:pointer;transition:all .2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.background='linear-gradient(135deg,rgba(46,196,182,.25),rgba(255,215,0,.12))'" onmouseout="this.style.borderColor='rgba(46,196,182,.35)';this.style.background='linear-gradient(135deg,rgba(46,196,182,.15),rgba(255,215,0,.08))'">
+          <span style="font-size:1.1rem;">📲</span>
+          <div>
+            <div style="font-size:.78rem;font-weight:800;color:var(--accent);">Instalar App</div>
+            <div style="font-size:.65rem;color:var(--muted);">Agregar a pantalla de inicio</div>
+          </div>
+        </div>
+      </div>
 
       <div class="divider"></div>
       
