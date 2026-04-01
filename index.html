@@ -6036,7 +6036,7 @@ function initShopCoinsDisplay(){
 </div>
 
 
-<div class="wk-mo" id="spMPublish">
+<div class="wk-mo" id="spMPublish" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);align-items:center;justify-content:center;overflow-y:auto;padding:20px;">
   <div class="wk-modal">
     <button class="wk-mcx" onclick="spCm('spMPublish');spResetForm()">✕</button>
     <div style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:800;color:#2ec4b6;margin-bottom:22px">📍 Compartir Spot</div>
@@ -20924,12 +20924,13 @@ window.spGp = function(subId, btn) {
 
 window.spOpenPublish = function() {
   if(!window.CU){ toast('Iniciá sesión para compartir un spot','err'); return; }
-  document.getElementById('spMPublish').classList.add('open');
+  const el = document.getElementById('spMPublish');
+  if(el){ el.style.display='flex'; el.classList.add('open'); }
 };
 
 window.spCm = function(id) {
   const el = document.getElementById(id);
-  if(el) el.classList.remove('open');
+  if(el){ el.style.display='none'; el.classList.remove('open'); }
 };
 
 window.spResetForm = function() {
