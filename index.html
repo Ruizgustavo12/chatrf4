@@ -279,8 +279,7 @@
   gtag('config', 'G-1YZVC32RJ7');
 </script>
 
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6245611726363291"
-     crossorigin="anonymous"></script>
+
 <title>WikiPediaRF4.UY Red Social para los amantes de Russian Fishing4</title>
 
   
@@ -2037,39 +2036,11 @@ input:focus, textarea:focus {
 .post-verified::before {
   background: linear-gradient(90deg, #ffd700, #ffec6e, #ffa500, #ff6f00, #ffd700) !important;
 }
-/* Ocultar ads vacíos */
-.adsense-unit { min-height:0 !important; overflow:visible !important; }
-.adsbygoogle[data-ad-status="unfilled"] { display:none !important; height:0 !important; }
+
 /* Página café sin padding-top */
 #page-cafe { padding-top:0 !important; }
 </style>
-<script>
-// AdSense: cargado directamente en el <head> para usuarios no premium
-window._adsLoaded = true;
-window.loadAdsIfNeeded = function() {
-  // Solo mostrar ads a usuarios no-premium
-  if(window.CU && window.CU.role === 'premium') {
-    document.querySelectorAll('.adsense-unit').forEach(el => el.style.display = 'none');
-    return;
-  }
-  document.querySelectorAll('.adsense-unit').forEach(el => el.style.display = 'block');
-  // Inicializar unidades que aún no se cargaron (sin data-adsbygoogle-status = nunca inicializadas)
-  try {
-    document.querySelectorAll('.adsbygoogle:not([data-adsbygoogle-status])').forEach(function(ins){
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    });
-  } catch(e) {}
-};
 
-// Llamar automáticamente cuando el usuario NO es premium (sin login también)
-document.addEventListener('DOMContentLoaded', function(){
-  setTimeout(function(){
-    if(!window.CU || window.CU.role !== 'premium'){
-      window.loadAdsIfNeeded && window.loadAdsIfNeeded();
-    }
-  }, 2000);
-});
-</script>
 <script>
 // Lottie lazy load — se carga solo después de que la página ya es interactiva
 (function(){
@@ -2437,23 +2408,7 @@ document.addEventListener('DOMContentLoaded', function(){
       <div id="memoriesWidget" style="display:none;"></div>
 
       
-      <div class="adsense-unit" id="adFeedTop" style="margin:8px 0 14px;text-align:center;min-height:0;">
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-6245611726363291"
-             data-ad-slot="9540804161"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>
-          (window.adsbygoogle = window.adsbygoogle || []).push({});
-          setTimeout(function(){
-            var ins = document.querySelector('#adFeedTop ins');
-            if(ins && ins.getAttribute('data-ad-status') === 'unfilled'){
-              document.getElementById('adFeedTop').style.display = 'none';
-            }
-          }, 8000);
-        </script>
-      </div>
+
 
       
       <!-- ── FEED SIEMPRE VISIBLE (estilo Facebook) ──────────────────── -->
@@ -2550,8 +2505,8 @@ document.addEventListener('DOMContentLoaded', function(){
           if(!s.length){grid.innerHTML='<div class="sw-match-empty">Sin perfiles</div>';return;}
           grid.innerHTML=s.map(function(u){
             var on=online.has(u.id),av=u.av||'',ini=(u.nick||'?')[0].toUpperCase(),age=u.age?u.age+'a':'',nick=_esc((u.nick||'?').slice(0,12)),id=_esc(u.id);
-            var ph=av?'<img src="'+_esc(av)+'" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="sw-match-ini" style="display:none;">'+ini+'</div>':'<div class="sw-match-ini">'+ini+'</div>';
-            return '<div class="sw-match-card" onclick="openUserProfile(''+id+'',''+nick+'')">'+ph+'<div class="sw-match-grad"></div>'+(on?'<div class="sw-match-online"></div>':'')+'<div class="sw-match-info"><div class="sw-match-name">'+nick+'</div>'+(age?'<div class="sw-match-age">'+age+'</div>':'')+'</div><button class="sw-match-like-btn" onclick="event.stopPropagation();if(typeof matchToggleLike==='function')matchToggleLike(''+id+'',this)" title="Me gusta">&#10084;</button></div>';
+            var ph=av?'<img src="'+_esc(av)+'" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><div class="sw-match-ini" style="display:none;">'+ini+'</div>':'<div class="sw-match-ini">'+ini+'</div>';
+            return '<div class="sw-match-card" onclick="openUserProfile(\''+id+'\',\''+nick+'\')">'+ph+'<div class="sw-match-grad"></div>'+(on?'<div class="sw-match-online"></div>':'')+'<div class="sw-match-info"><div class="sw-match-name">'+nick+'</div>'+(age?'<div class="sw-match-age">'+age+'</div>':'')+'</div><button class="sw-match-like-btn" onclick="event.stopPropagation();if(typeof matchToggleLike===\'function\')matchToggleLike(\''+id+'\',this)" title="Me gusta">&#10084;</button></div>';
           }).join('');
         }
         function _hook(){
@@ -2565,23 +2520,7 @@ document.addEventListener('DOMContentLoaded', function(){
       </script>
       <!-- ═══════════ FIN MATCH WIDGET SIDEBAR ═══════════ -->
 
-      <div class="adsense-unit" id="adSidebar" style="margin:10px 0;text-align:center;min-height:0;">
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-6245611726363291"
-             data-ad-slot="5279324636"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>
-          (window.adsbygoogle = window.adsbygoogle || []).push({});
-          setTimeout(function(){
-            var ins = document.querySelector('#adSidebar ins');
-            if(ins && ins.getAttribute('data-ad-status') === 'unfilled'){
-              document.getElementById('adSidebar').style.display = 'none';
-            }
-          }, 8000);
-        </script>
-      </div>
+
 
     </div>
 
@@ -3244,7 +3183,7 @@ document.addEventListener('DOMContentLoaded', function(){
       
       <div style="margin-top:18px;background:#161b22;border-top:1px solid #30363d;border-radius:0 0 12px 12px;padding:14px 18px 16px;">
         
-        <img src="https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/enamorate.png" alt="WikiPediaRF4" style="width:100%;max-width:320px;display:block;border-radius:12px;margin:0 auto 14px;object-fit:contain;">
+        <img src="https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/enamorate.png" alt="WikiPediaRF4" style="width:80px;height:80px;display:block;border-radius:10px;margin:0 auto 10px;object-fit:contain;">
 
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
           <img src="icon-192.png" alt="WikiPediaRF4.UY" style="width:44px;height:44px;border-radius:10px;object-fit:cover;box-shadow:0 0 12px rgba(46,196,182,.5);">
@@ -6561,8 +6500,7 @@ async function _loadMorePosts(){
 
     // Insertar HTML al final del feed (antes del sentinel)
     const feedEl = document.getElementById('feedPosts');
-    const isPremium = window.CU && window.CU.role === 'premium';
-    const adHTML = isPremium ? '' : `<div class="adsense-unit ad-between-posts" style="margin:12px 0;text-align:center;min-height:0;"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-6245611726363291" data-ad-slot="8227722498" data-ad-format="fluid" data-ad-layout-key="-fb+5w+4e-db+86"></ins></div>`;
+    const isPremium = true;
 
     if(feedEl){
       toAdd.forEach(function(p, i){
@@ -6570,16 +6508,7 @@ async function _loadMorePosts(){
         tmp.innerHTML = postHTML(p);
         const node = tmp.firstElementChild;
         if(node) feedEl.insertBefore(node, sentinel);
-        if(!isPremium && (i + 1) % 5 === 0){
-          const adDiv = document.createElement('div');
-          adDiv.innerHTML = adHTML;
-          feedEl.insertBefore(adDiv.firstElementChild, sentinel);
-        }
       });
-      // Activar ads nuevos
-      if(!isPremium){
-        try{ feedEl.querySelectorAll('.adsbygoogle:not([data-adsbygoogle-status])').forEach(function(){ (adsbygoogle=window.adsbygoogle||[]).push({}); }); }catch(e){}
-      }
       // Registrar vistas
       toAdd.forEach(function(p){ if(p.id){ registerPostView(p.id); subscribePostViews(p.id); } });
     }
@@ -9253,28 +9182,11 @@ function renderFeed(){
       _loadMostViewedPosts(el);
       return;
     }
-    const isPremium = window.CU && window.CU.role === 'premium';
-    const adHTML = isPremium ? '' : `<div class="adsense-unit ad-between-posts" style="margin:12px 0;text-align:center;min-height:0;">
-      <ins class="adsbygoogle" style="display:block"
-           data-ad-client="ca-pub-6245611726363291"
-           data-ad-slot="8227722498"
-           data-ad-format="fluid"
-           data-ad-layout-key="-fb+5w+4e-db+86"></ins>
-    </div>`;
     let html = '';
     _posts.forEach((p, i) => {
       html += postHTML(p);
-      if(!isPremium && (i + 1) % 5 === 0) html += adHTML;
     });
     el.innerHTML = html;
-    // Inicializar los ads insertados
-    if(!isPremium) {
-      try {
-        el.querySelectorAll('.adsbygoogle:not([data-adsbygoogle-status])').forEach(function(){
-          (adsbygoogle = window.adsbygoogle || []).push({});
-        });
-      } catch(e) {}
-    }
     el.querySelectorAll('.comments-section').forEach(function(c){ c.classList.remove('open'); });
     // Registrar vista y suscribir contador en tiempo real
     _posts.forEach(p => {
