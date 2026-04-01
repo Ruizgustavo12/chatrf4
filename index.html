@@ -3192,9 +3192,13 @@ document.addEventListener('DOMContentLoaded', function(){
       
       <div style="margin-top:18px;background:#161b22;border-top:1px solid #30363d;border-radius:0 0 12px 12px;padding:14px 18px 16px;">
         
+        <img src="https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/enamorate.png" alt="WikiPediaRF4" style="width:100%;max-width:320px;display:block;border-radius:12px;margin:0 auto 14px;object-fit:contain;">
+
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-          <img src="https://wikipediarf4.github.io/blob/main/enamorate.png" alt="WikiPediaRF4.UY" style="width:44px;height:44px;border-radius:10px;object-fit:cover;box-shadow:0 0 12px rgba(46,196,182,.5);" onerror="this.src='icon-192.png'">
+          <img src="icon-192.png" alt="WikiPediaRF4.UY" style="width:44px;height:44px;border-radius:10px;object-fit:cover;box-shadow:0 0 12px rgba(46,196,182,.5);">
           <span style="font-family:'Orbitron',monospace;font-size:.8rem;font-weight:900;color:var(--text);">Wikipedia<span style="color:var(--accent);">RF4</span></span>
+          <img src="https://flagcdn.com/w40/uy.png" alt="Uruguay" style="width:28px;height:auto;border-radius:3px;margin-left:4px;box-shadow:0 1px 4px rgba(0,0,0,.4);">
+          <img src="https://flagcdn.com/w40/ar.png" alt="Argentina" style="width:28px;height:auto;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.4);">
         </div>
         
         <div style="display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;font-size:.7rem;margin-bottom:10px;">
@@ -7135,18 +7139,24 @@ function onLogin(){
     if(wkAdm) wkAdm.style.display = '';
   }
   // Update "Crear historia" card with user photo
-  const storyPhoto = document.getElementById('storyAddPhoto');
-  const storyPhotoInner = document.getElementById('storyAddPhotoInner');
-  if(storyPhoto && window.CU){
-    if(window.CU.av){
-      storyPhoto.innerHTML = `<img src="${window.CU.av}" style="width:100%;height:100%;object-fit:cover;">`;
-    } else if(storyPhotoInner){
-      storyPhotoInner.textContent = (window.CU.nick||'?')[0].toUpperCase();
-      storyPhotoInner.style.opacity = '0.7';
-      storyPhotoInner.style.fontSize = '3.5rem';
-      storyPhotoInner.style.fontWeight = '800';
+  function _updateStoryCard(){
+    const storyPhoto = document.getElementById('storyAddPhoto');
+    const storyPhotoInner = document.getElementById('storyAddPhotoInner');
+    if(storyPhoto && window.CU){
+      if(window.CU.av){
+        storyPhoto.innerHTML = `<img src="${window.CU.av}" style="width:100%;height:100%;object-fit:cover;">`;
+      } else if(storyPhotoInner){
+        storyPhotoInner.textContent = (window.CU.nick||'?')[0].toUpperCase();
+        storyPhotoInner.style.opacity = '0.7';
+        storyPhotoInner.style.fontSize = '3.5rem';
+        storyPhotoInner.style.fontWeight = '800';
+      }
     }
   }
+  _updateStoryCard();
+  // Reintentar si el avatar aún no cargó
+  setTimeout(_updateStoryCard, 1500);
+  window._updateStoryCard = _updateStoryCard;
   loadSavedAccounts();
   // Navigate to initial URL route after login
   const _initPath = window._initialPath || window.location.pathname;
@@ -22228,6 +22238,8 @@ window.responderSoporte    = responderSoporte;
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
       <img width="34" height="34" src="icon-192.png" alt="WikiPediaRF4.UY" style="width:34px;height:34px;border-radius:50%;object-fit:cover;box-shadow:0 0 12px rgba(46,196,182,.4);">
       <span style="font-family:'Orbitron',monospace;font-size:.85rem;font-weight:900;color:var(--text);">Wikipedia<span style="color:var(--accent);">RF4</span></span>
+      <img src="https://flagcdn.com/w40/uy.png" alt="Uruguay" style="width:26px;height:auto;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.4);">
+      <img src="https://flagcdn.com/w40/ar.png" alt="Argentina" style="width:26px;height:auto;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.4);">
     </div>
     
     <div style="display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;font-size:.72rem;margin-bottom:8px;">
@@ -26811,20 +26823,28 @@ window._showBanScreen = _showBanScreen;
     const ageMax  = parseInt(document.getElementById('mfAgeMax')?.value)  || 999;
     const country = document.getElementById('mfCountry')?.value || '';
 
+    // País del usuario actual (para ordenar por cercanía)
+    const myCountry = (window.CU?.country || '').replace(/^[^\s]+\s/,'').trim().toLowerCase();
+
     _filtered = _allUsers.filter(u => {
-      if(gender  && u.gender  !== gender)                         return false;
-      if(country && !(u.country||'').includes(country))           return false;
+      if(u.id === window.CU?.id)                                    return false; // excluir al usuario mismo
+      if(gender  && u.gender  !== gender)                           return false;
+      if(country && !(u.country||'').includes(country))             return false;
       const age = parseInt(u.age) || 0;
-      if(ageMin && age && age < ageMin)                           return false;
-      if(ageMax < 999 && age && age > ageMax)                     return false;
+      if(ageMin && age && age < ageMin)                             return false;
+      if(ageMax < 999 && age && age > ageMax)                       return false;
       return true;
     });
 
-    // Ordenar: online primero, luego el resto
+    // Ordenar: mismo país primero → online → resto
     _filtered.sort((a,b) => {
+      const aCountry = (a.country||'').replace(/^[^\s]+\s/,'').trim().toLowerCase();
+      const bCountry = (b.country||'').replace(/^[^\s]+\s/,'').trim().toLowerCase();
+      const aNear = myCountry && aCountry === myCountry ? 2 : 0;
+      const bNear = myCountry && bCountry === myCountry ? 2 : 0;
       const ao = _onlineSet.has(a.id) ? 1 : 0;
       const bo = _onlineSet.has(b.id) ? 1 : 0;
-      return bo - ao;
+      return (bNear + bo) - (aNear + ao);
     });
 
     _shown = 0;
