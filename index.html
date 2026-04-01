@@ -2262,6 +2262,7 @@ document.addEventListener('DOMContentLoaded', function(){
   <div class="tb-nav">
     <button class="tb-nav-btn on" onclick="gp('home');setNav(this)" title="Inicio">🏠</button>
     <button class="tb-nav-btn" onclick="gp('amigos');setNav(this);renderAmigosPage();" title="Amigos">👥</button>
+    <button class="tb-nav-btn" onclick="gp('match');setNav(this);initMatchPage();" title="Match">💘 Match</button>
     
 
 
@@ -3804,11 +3805,23 @@ document.addEventListener('DOMContentLoaded', function(){
     <div class="fg"><label class="fl">Biografía</label><textarea class="fi" id="epBio" placeholder="Cuéntanos sobre tu experiencia en RF4..." style="min-height:70px;"></textarea></div>
     <div class="frow">
       <div class="fg"><label class="fl">País</label>
-        <select class="fi" id="epCountry">
+        <select class="fi" id="epCountry" onchange="_onCountryChange(this.value)">
           <option value="">País...</option>
           <option>🇦🇷 Argentina</option><option>🇲🇽 México</option><option>🇪🇸 España</option>
           <option>🇨🇴 Colombia</option><option>🇨🇱 Chile</option><option>🇵🇪 Perú</option>
           <option>🇻🇪 Venezuela</option><option>🇺🇾 Uruguay</option><option>🇧🇷 Brasil</option>
+        </select>
+      </div>
+      <div class="fg" id="epDeptRow" style="display:none;"><label class="fl">Departamento</label>
+        <select class="fi" id="epDept">
+          <option value="">Seleccioná...</option>
+          <option>Artigas</option><option>Canelones</option><option>Cerro Largo</option>
+          <option>Colonia</option><option>Durazno</option><option>Flores</option>
+          <option>Florida</option><option>Lavalleja</option><option>Maldonado</option>
+          <option>Montevideo</option><option>Paysandú</option><option>Río Negro</option>
+          <option>Rivera</option><option>Rocha</option><option>Salto</option>
+          <option>San José</option><option>Soriano</option><option>Tacuarembó</option>
+          <option>Treinta y Tres</option>
         </select>
       </div>
       <div class="fg"><label class="fl">Ciudad</label><input class="fi" id="epCity" placeholder="Ej: Buenos Aires"></div>
@@ -3831,36 +3844,7 @@ document.addEventListener('DOMContentLoaded', function(){
       </div>
     </div>
 
-    
-    <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:14px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🎣 Pesca</div>
-    <div class="frow">
-      <div class="fg"><label class="fl">Pez favorito</label><input class="fi" id="epFish" list="rf4FishDatalist" autocomplete="off" placeholder="Ej: Carpa, Siluro..."></div>
-      <div class="fg"><label class="fl">Mapa favorito</label>
-        <select class="fi" id="epMap">
-          <option value="">Seleccionar...</option>
-          <option>Belaya River</option><option>Volkhov River</option><option>Akhtuba River</option>
-          <option>Ladoga Lake</option><option>Sura River</option><option>Bear Lake</option>
-          <option>Mosquito Lake</option><option>Amber Lake</option><option>Yama River</option>
-        </select>
-      </div>
-    </div>
-    <div class="frow">
-      <div class="fg"><label class="fl">Técnica favorita</label>
-        <select class="fi" id="epTech">
-          <option value="">Seleccionar...</option>
-          <option>Spinning</option><option>Fondo</option><option>Flote</option>
-          <option>Jigging</option><option>Feeder</option><option>Pesca en hielo</option>
-          <option>Fly fishing</option><option>Carp fishing</option>
-        </select>
-      </div>
-      <div class="fg"><label class="fl">Nivel de experiencia</label>
-        <select class="fi" id="epExp">
-          <option value="">Seleccionar...</option>
-          <option>Principiante</option><option>Intermedio</option><option>Avanzado</option>
-          <option>Experto</option><option>Profesional</option>
-        </select>
-      </div>
-    </div>
+
 
     
     <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:14px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🌐 Redes y Contacto</div>
@@ -11538,6 +11522,12 @@ function _loadProfileSidebarFromFirestore(){
   }).catch(e=>console.warn('_loadProfileSidebarFromFirestore error:',e));
 }
 
+// ── Mostrar/ocultar departamento según país ──
+window._onCountryChange = function(val){
+  const row = document.getElementById('epDeptRow');
+  if(row) row.style.display = (val && val.includes('Uruguay')) ? '' : 'none';
+};
+
 async function saveProfile(){
   if(!window.CU) return;
 
@@ -11559,8 +11549,7 @@ async function saveProfile(){
   }
 
   window.CU.bio = document.getElementById('epBio').value.trim();
-  window.CU.favFish = document.getElementById('epFish').value.trim();
-  window.CU.favMap = document.getElementById('epMap').value;
+  window.CU.dept = document.getElementById('epDept')?.value || '';
   window.CU.country = document.getElementById('epCountry').value;
   // Guardar privacidad del email
   const privChecked = document.querySelector('input[name="epEmailPrivacy"]:checked');
@@ -11573,8 +11562,6 @@ async function saveProfile(){
     window.CU.age = Math.floor((Date.now()-bd.getTime())/(365.25*24*3600*1000)).toString();
   }
   window.CU.gender = document.getElementById('epGender').value;
-  window.CU.favTech = document.getElementById('epTech').value;
-  window.CU.experience = document.getElementById('epExp').value;
   window.CU.social_yt = document.getElementById('epYT').value.trim();
   window.CU.social_dc = document.getElementById('epDC').value.trim();
   window.CU.social_tw = document.getElementById('epTW').value.trim();
@@ -11624,8 +11611,8 @@ function openEditProfile(){
   }
 
   document.getElementById('epBio').value = window.CU.bio||'';
-  document.getElementById('epFish').value = window.CU.favFish||'';
-  document.getElementById('epMap').value = window.CU.favMap||'';
+  _onCountryChange(window.CU.country||'');
+  if(document.getElementById('epDept')) document.getElementById('epDept').value = window.CU.dept||'';
   document.getElementById('epCountry').value = window.CU.country||'';
   // Email: mostrar enmascarado
   const realEmail = (auth.currentUser && auth.currentUser.email) || window.CU.email || '';
@@ -11647,8 +11634,6 @@ function openEditProfile(){
     document.getElementById('epAge').value = window.CU.age||'';
   }
   document.getElementById('epGender').value = window.CU.gender||'';
-  document.getElementById('epTech').value = window.CU.favTech||'';
-  document.getElementById('epExp').value = window.CU.experience||'';
   document.getElementById('epYT').value = window.CU.social_yt||'';
   document.getElementById('epDC').value = window.CU.social_dc||'';
   document.getElementById('epTW').value = window.CU.social_tw||'';
@@ -23570,6 +23555,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
   <button class="bottom-nav-btn" id="bnAmigos" onclick="gp('amigos');setBottomNav('bnAmigos');renderAmigosPage()">
     <span class="bn-icon">👥</span>Amigos
   </button>
+  <button class="bottom-nav-btn" id="bnMatch" onclick="gp('match');setBottomNav('bnMatch');initMatchPage()">
+    <span class="bn-icon">💘</span>Match
+  </button>
   <button class="bottom-nav-btn" id="bnPerfil" onclick="gp('profile');setBottomNav('bnPerfil')">
     <span class="bn-icon">👤</span>Perfil
   </button>
@@ -26629,6 +26617,338 @@ function _showBanScreen(reason, note){
 }
 window._showBanScreen = _showBanScreen;
 </script>
+
+
+<!-- ═══════════════════════════ MATCH PAGE ═══════════════════════════ -->
+<style>
+#page-match { max-width:900px;margin:0 auto;padding:16px 12px 90px; }
+
+/* Header */
+.match-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px; }
+.match-title  { font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--accent);display:flex;align-items:center;gap:8px; }
+
+/* Filtros */
+.match-filters { display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;padding:12px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:14px; }
+.match-filter-group { display:flex;flex-direction:column;gap:4px;flex:1;min-width:130px; }
+.match-filter-label { font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted); }
+.match-filter-select { background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 10px;font-family:'Exo 2',sans-serif;font-size:.82rem;outline:none;cursor:pointer;transition:border-color .15s; }
+.match-filter-select:focus { border-color:var(--accent); }
+.match-filter-btn { align-self:flex-end;padding:8px 18px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;border:none;border-radius:8px;font-family:'Exo 2',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;white-space:nowrap;transition:opacity .15s; }
+.match-filter-btn:hover { opacity:.88; }
+.match-filter-reset { align-self:flex-end;padding:8px 14px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:8px;font-family:'Exo 2',sans-serif;font-size:.82rem;cursor:pointer; }
+
+/* Grid de cards */
+.match-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px; }
+@media(max-width:480px){ .match-grid { grid-template-columns:repeat(2,1fr);gap:10px; } }
+
+/* Card */
+.match-card {
+  background:var(--bg2);border:1px solid var(--border);border-radius:16px;
+  overflow:hidden;position:relative;cursor:pointer;
+  transition:transform .18s,box-shadow .18s,border-color .18s;
+}
+.match-card:hover { transform:translateY(-4px);box-shadow:0 10px 30px rgba(0,0,0,.35);border-color:rgba(46,196,182,.35); }
+.match-card-av { width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:var(--bg3); }
+.match-card-av-placeholder { width:100%;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;font-size:3rem;background:linear-gradient(135deg,#1a2030,#0d1117);color:var(--muted); }
+.match-card-body { padding:10px 11px 11px; }
+.match-card-nick { font-size:.88rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.match-card-meta { font-size:.72rem;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap; }
+.match-card-online { width:7px;height:7px;border-radius:50%;background:#3fb950;flex-shrink:0; }
+.match-card-actions { display:flex;gap:6px;margin-top:9px; }
+.match-btn-like { flex:1;padding:7px 4px;background:rgba(243,62,88,.1);border:1px solid rgba(243,62,88,.3);color:#f33e58;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:4px;font-family:'Exo 2',sans-serif; }
+.match-btn-like:hover,.match-btn-like.liked { background:rgba(243,62,88,.22);border-color:#f33e58; }
+.match-btn-like.liked { color:#ff6b8a; }
+.match-btn-view { flex:1;padding:7px 4px;background:rgba(46,196,182,.08);border:1px solid rgba(46,196,182,.25);color:var(--accent);border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:4px;font-family:'Exo 2',sans-serif; }
+.match-btn-view:hover { background:rgba(46,196,182,.18); }
+
+/* Badge online en av */
+.match-av-wrap { position:relative; }
+.match-online-pip { position:absolute;bottom:6px;right:6px;width:11px;height:11px;border-radius:50%;background:#3fb950;border:2px solid var(--bg2); }
+
+/* Estado vacío / loading */
+.match-empty { text-align:center;padding:60px 20px;color:var(--muted); }
+.match-load-more { display:flex;justify-content:center;margin-top:18px; }
+.match-load-btn { padding:10px 32px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:100px;font-family:'Exo 2',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s; }
+.match-load-btn:hover { border-color:var(--accent);color:var(--accent); }
+.match-count-pill { font-size:.72rem;background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:100px; }
+
+/* Skeleton loader */
+.match-skeleton { background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);background-size:200% 100%;animation:matchSkel 1.4s infinite; }
+@keyframes matchSkel { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.match-card-sk .match-card-av { background:none; }
+.match-sk-av { width:100%;aspect-ratio:1/1; }
+.match-sk-line { height:10px;border-radius:6px;margin:6px 11px 0; }
+.match-sk-line-sm { width:55%; }
+</style>
+
+<div class="page" id="page-match" style="display:none;">
+  <!-- Header -->
+  <div class="match-header">
+    <div class="match-title">💘 Match <span id="matchCountPill" class="match-count-pill">—</span></div>
+    <div style="font-size:.75rem;color:var(--muted);">Conocé gente nueva de la comunidad</div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="match-filters">
+    <div class="match-filter-group">
+      <span class="match-filter-label">Género</span>
+      <select class="match-filter-select" id="mfGender">
+        <option value="">Todos</option>
+        <option value="Masculino">Masculino</option>
+        <option value="Femenino">Femenino</option>
+        <option value="Otro">Otro</option>
+      </select>
+    </div>
+    <div class="match-filter-group">
+      <span class="match-filter-label">Edad mínima</span>
+      <select class="match-filter-select" id="mfAgeMin">
+        <option value="">Cualquiera</option>
+        <option value="18">18+</option>
+        <option value="21">21+</option>
+        <option value="25">25+</option>
+        <option value="30">30+</option>
+        <option value="35">35+</option>
+        <option value="40">40+</option>
+      </select>
+    </div>
+    <div class="match-filter-group">
+      <span class="match-filter-label">Edad máxima</span>
+      <select class="match-filter-select" id="mfAgeMax">
+        <option value="">Cualquiera</option>
+        <option value="25">hasta 25</option>
+        <option value="30">hasta 30</option>
+        <option value="35">hasta 35</option>
+        <option value="40">hasta 40</option>
+        <option value="50">hasta 50</option>
+        <option value="60">hasta 60</option>
+      </select>
+    </div>
+    <div class="match-filter-group">
+      <span class="match-filter-label">País</span>
+      <select class="match-filter-select" id="mfCountry">
+        <option value="">Todos</option>
+        <option value="Uruguay">🇺🇾 Uruguay</option>
+        <option value="Argentina">🇦🇷 Argentina</option>
+        <option value="México">🇲🇽 México</option>
+        <option value="España">🇪🇸 España</option>
+        <option value="Colombia">🇨🇴 Colombia</option>
+        <option value="Chile">🇨🇱 Chile</option>
+        <option value="Brasil">🇧🇷 Brasil</option>
+      </select>
+    </div>
+    <button class="match-filter-btn" onclick="applyMatchFilters()">🔍 Filtrar</button>
+    <button class="match-filter-reset" onclick="resetMatchFilters()">✕ Limpiar</button>
+  </div>
+
+  <!-- Grid -->
+  <div class="match-grid" id="matchGrid"></div>
+  <div class="match-load-more" id="matchLoadMore" style="display:none;">
+    <button class="match-load-btn" onclick="loadMoreMatch()">Cargar más personas ↓</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  const PAGE_SIZE = 24;
+  let _allUsers   = [];   // todos los usuarios cargados
+  let _filtered   = [];   // después de aplicar filtros
+  let _shown      = 0;    // cuántos se muestran ahora
+  let _likes      = {};   // { uid: true } — likes dados por el usuario actual
+  let _unsubMatch = null;
+  let _initialized = false;
+  let _onlineSet  = new Set();
+
+  // ── Inicializar (llamado al entrar a la página) ──────────────────────────
+  window.initMatchPage = function(){
+    if(_initialized) { _renderVisible(); return; }
+    _initialized = true;
+    _loadLikes();
+    _subscribeUsers();
+  };
+
+  // ── Suscripción en tiempo real a todos los usuarios ──────────────────────
+  function _subscribeUsers(){
+    const grid = document.getElementById('matchGrid');
+    if(!grid) return;
+    _showSkeletons(grid);
+
+    if(_unsubMatch) _unsubMatch();
+    _unsubMatch = onSnapshot(
+      collection(db, 'users'),
+      snap => {
+        _allUsers = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .filter(u => !u.banned && u.nick);   // excluir baneados y sin nick
+        _applyFilters();
+      },
+      err => { console.warn('match users error:', err); }
+    );
+
+    // Aprovechar presencia si existe
+    if(window._sidebarAllOnline){
+      _onlineSet = new Set((window._sidebarAllOnline||[]).map(u=>u.id));
+    }
+  }
+
+  // ── Aplicar filtros ──────────────────────────────────────────────────────
+  function _applyFilters(){
+    const gender  = document.getElementById('mfGender')?.value  || '';
+    const ageMin  = parseInt(document.getElementById('mfAgeMin')?.value)  || 0;
+    const ageMax  = parseInt(document.getElementById('mfAgeMax')?.value)  || 999;
+    const country = document.getElementById('mfCountry')?.value || '';
+
+    _filtered = _allUsers.filter(u => {
+      if(gender  && u.gender  !== gender)                         return false;
+      if(country && !(u.country||'').includes(country))           return false;
+      const age = parseInt(u.age) || 0;
+      if(ageMin && age && age < ageMin)                           return false;
+      if(ageMax < 999 && age && age > ageMax)                     return false;
+      return true;
+    });
+
+    // Ordenar: online primero, luego el resto
+    _filtered.sort((a,b) => {
+      const ao = _onlineSet.has(a.id) ? 1 : 0;
+      const bo = _onlineSet.has(b.id) ? 1 : 0;
+      return bo - ao;
+    });
+
+    _shown = 0;
+    _renderVisible();
+  }
+
+  function _renderVisible(){
+    const grid = document.getElementById('matchGrid');
+    if(!grid) return;
+
+    // Actualizar contador
+    const pill = document.getElementById('matchCountPill');
+    if(pill) pill.textContent = _filtered.length + ' personas';
+
+    // Primera tanda
+    const slice = _filtered.slice(0, _shown + PAGE_SIZE);
+    _shown = slice.length;
+
+    grid.innerHTML = slice.map(_cardHTML).join('');
+
+    // Botón "cargar más"
+    const btn = document.getElementById('matchLoadMore');
+    if(btn) btn.style.display = _shown < _filtered.length ? 'flex' : 'none';
+
+    if(_filtered.length === 0){
+      grid.innerHTML = '<div class="match-empty" style="grid-column:1/-1;"><div style="font-size:2.5rem;margin-bottom:10px;">🔍</div><div>No se encontraron usuarios con esos filtros.</div><div style="font-size:.78rem;margin-top:6px;color:var(--muted);">Probá cambiar o limpiar los filtros.</div></div>';
+    }
+  }
+
+  window.loadMoreMatch = function(){
+    const grid = document.getElementById('matchGrid');
+    if(!grid) return;
+    const nextSlice = _filtered.slice(_shown, _shown + PAGE_SIZE);
+    _shown += nextSlice.length;
+    nextSlice.forEach(u => {
+      const div = document.createElement('div');
+      div.innerHTML = _cardHTML(u);
+      grid.appendChild(div.firstElementChild);
+    });
+    const btn = document.getElementById('matchLoadMore');
+    if(btn) btn.style.display = _shown < _filtered.length ? 'flex' : 'none';
+  };
+
+  // ── Card HTML ────────────────────────────────────────────────────────────
+  function _cardHTML(u){
+    const isOnline = _onlineSet.has(u.id);
+    const liked    = !!_likes[u.id];
+    const age      = u.age ? u.age + ' años' : '';
+    const loc      = u.dept ? u.dept : (u.city || '');
+    const country  = (u.country||'').replace(/^[^\s]+ /,''); // quitar bandera
+    const locFull  = [loc, country].filter(Boolean).join(', ');
+    const av       = u.av || '';
+    const initials = (u.nick||'?')[0].toUpperCase();
+
+    return \`<div class="match-card" id="mcard_\${u.id}">
+      <div class="match-av-wrap">
+        \${av
+          ? \`<img class="match-card-av" src="\${av}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" loading="lazy">
+             <div class="match-card-av-placeholder" style="display:none;">\${initials}</div>\`
+          : \`<div class="match-card-av-placeholder">\${initials}</div>\`
+        }
+        \${isOnline ? '<div class="match-online-pip"></div>' : ''}
+      </div>
+      <div class="match-card-body">
+        <div class="match-card-nick">\${_esc(u.nick||'?')}</div>
+        <div class="match-card-meta">
+          \${isOnline ? '<span class="match-card-online"></span> En línea' : ''}
+          \${age ? '<span>' + age + '</span>' : ''}
+          \${locFull ? '<span>📍 ' + _esc(locFull) + '</span>' : ''}
+        </div>
+        <div class="match-card-actions">
+          <button class="match-btn-like\${liked ? ' liked' : ''}" onclick="toggleMatchLike('\${u.id}',this)" title="Me interesa">
+            \${liked ? '💖' : '❤️'} \${liked ? 'Gustado' : 'Me gusta'}
+          </button>
+          <button class="match-btn-view" onclick="openUserProfile('\${u.id}','\${_esc(u.nick||'')}');event.stopPropagation();" title="Ver perfil">
+            👀 Perfil
+          </button>
+        </div>
+      </div>
+    </div>\`;
+  }
+
+  // ── Like toggle ──────────────────────────────────────────────────────────
+  window.toggleMatchLike = async function(uid, btn){
+    if(!window.CU){ toast('Iniciá sesión para dar likes','err'); return; }
+    const already = !!_likes[uid];
+    if(already){
+      delete _likes[uid];
+      btn.classList.remove('liked');
+      btn.innerHTML = '❤️ Me gusta';
+    } else {
+      _likes[uid] = true;
+      btn.classList.add('liked');
+      btn.innerHTML = '💖 Gustado';
+      // Notificar si es distinto usuario
+      if(uid !== window.CU.id && typeof sendNotifToUserWithPost === 'function'){
+        sendNotifToUserWithPost(uid, '💘 A ' + window.CU.nick + ' le interesa tu perfil', null);
+      }
+    }
+    _saveLikes();
+  };
+
+  function _loadLikes(){
+    try { _likes = JSON.parse(localStorage.getItem('crf4_matchLikes')||'{}'); } catch(e){ _likes = {}; }
+  }
+  function _saveLikes(){
+    try { localStorage.setItem('crf4_matchLikes', JSON.stringify(_likes)); } catch(e){}
+  }
+
+  // ── Filtros externos ─────────────────────────────────────────────────────
+  window.applyMatchFilters  = _applyFilters;
+  window.resetMatchFilters  = function(){
+    ['mfGender','mfAgeMin','mfAgeMax','mfCountry'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.value = '';
+    });
+    _applyFilters();
+  };
+
+  // ── Skeleton loaders ─────────────────────────────────────────────────────
+  function _showSkeletons(grid){
+    grid.innerHTML = Array(8).fill(0).map(()=>\`
+      <div class="match-card match-card-sk">
+        <div class="match-sk-av match-skeleton"></div>
+        <div class="match-card-body">
+          <div class="match-sk-line match-skeleton"></div>
+          <div class="match-sk-line match-sk-line-sm match-skeleton" style="margin-top:5px;"></div>
+        </div>
+      </div>\`).join('');
+  }
+
+  function _esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+})();
+</script>
+<!-- ═══════════════════════════ FIN MATCH ════════════════════════════ -->
 
 </body>
 </html>
