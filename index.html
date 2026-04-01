@@ -2262,7 +2262,7 @@ document.addEventListener('DOMContentLoaded', function(){
   <div class="tb-nav">
     <button class="tb-nav-btn on" onclick="gp('home');setNav(this)" title="Inicio">🏠</button>
     <button class="tb-nav-btn" onclick="gp('amigos');setNav(this);renderAmigosPage();" title="Amigos">👥</button>
-    <button class="tb-nav-btn" onclick="gp('match');setNav(this);initMatchPage();" title="Match">💘 Match</button>
+    <button class="tb-nav-btn" onclick="gp('match');setNav(this);initMatchPage();" title="Conocé personas cerca de vos">📍 Conocé personas cerca de vos 📍</button>
     
 
 
@@ -6242,7 +6242,9 @@ function applyAdminUploadUnlock(){
   const isAdmin = window.CU && (
     window.CU.role === 'admin' ||
     window.CU.nick === 'ruizgustavo12' ||
-    window.CU.email === 'ruizgustavo12@gmail.com'
+    window.CU.nick === 'gustavo ruiz' ||
+    window.CU.nick === 'gustavoruiz' ||
+    window.CU.email === 'synxyes@gmail.com'
   );
   if(!isAdmin) return;
   // Eliminar restricciones de tipo en todos los inputs de archivo
@@ -6276,7 +6278,9 @@ async function uploadImage(fileOrBase64, folder) {
   const _isAdminUpload = window.CU && (
     window.CU.role === 'admin' ||
     window.CU.nick === 'ruizgustavo12' ||
-    window.CU.email === 'ruizgustavo12@gmail.com'
+    window.CU.nick === 'gustavo ruiz' ||
+    window.CU.nick === 'gustavoruiz' ||
+    window.CU.email === 'synxyes@gmail.com'
   );
   // Convertir a blob si es base64 o URL
   let blob;
@@ -6724,13 +6728,16 @@ function init(){
             window._hideConstruction();
             if(typeof onLogin === 'function') onLogin();
           }
+          // Si no es admin pero tiene sesión, no mostrar login — puede estar registrándose
         }
       } catch(e) {
         console.error('Auth error:', e);
         hideSplash();
-        // En error mostrar login para que admin pueda reintentar
-        var authEl = document.getElementById('mAuth');
-        if(authEl){ authEl.style.display='block'; authEl.style.zIndex='100000'; }
+        // Solo mostrar login si no hay sesión activa (el usuario puede haber recargado con sesión válida)
+        if(!window.CU){
+          var authEl = document.getElementById('mAuth');
+          if(authEl){ authEl.style.display='block'; authEl.style.zIndex='100000'; }
+        }
       }
     } else {
       window.CU = null;
@@ -26872,32 +26879,32 @@ window._showBanScreen = _showBanScreen;
     const av       = u.av || '';
     const initials = (u.nick||'?')[0].toUpperCase();
 
-    return \`<div class="match-card" id="mcard_\${u.id}">
+    return `<div class="match-card" id="mcard_${u.id}">
       <div class="match-av-wrap">
-        \${av
-          ? \`<img class="match-card-av" src="\${av}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" loading="lazy">
-             <div class="match-card-av-placeholder" style="display:none;">\${initials}</div>\`
-          : \`<div class="match-card-av-placeholder">\${initials}</div>\`
+        ${av
+          ? `<img class="match-card-av" src="${av}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" loading="lazy">
+             <div class="match-card-av-placeholder" style="display:none;">${initials}</div>`
+          : `<div class="match-card-av-placeholder">${initials}</div>`
         }
-        \${isOnline ? '<div class="match-online-pip"></div>' : ''}
+        ${isOnline ? '<div class="match-online-pip"></div>' : ''}
       </div>
       <div class="match-card-body">
-        <div class="match-card-nick">\${_esc(u.nick||'?')}</div>
+        <div class="match-card-nick">${_esc(u.nick||'?')}</div>
         <div class="match-card-meta">
-          \${isOnline ? '<span class="match-card-online"></span> En línea' : ''}
-          \${age ? '<span>' + age + '</span>' : ''}
-          \${locFull ? '<span>📍 ' + _esc(locFull) + '</span>' : ''}
+          ${isOnline ? '<span class="match-card-online"></span> En línea' : ''}
+          ${age ? '<span>' + age + '</span>' : ''}
+          ${locFull ? '<span>📍 ' + _esc(locFull) + '</span>' : ''}
         </div>
         <div class="match-card-actions">
-          <button class="match-btn-like\${liked ? ' liked' : ''}" onclick="toggleMatchLike('\${u.id}',this)" title="Me interesa">
-            \${liked ? '💖' : '❤️'} \${liked ? 'Gustado' : 'Me gusta'}
+          <button class="match-btn-like${liked ? ' liked' : ''}" onclick="toggleMatchLike('${u.id}',this)" title="Me interesa">
+            ${liked ? '💖' : '❤️'} ${liked ? 'Gustado' : 'Me gusta'}
           </button>
-          <button class="match-btn-view" onclick="openUserProfile('\${u.id}','\${_esc(u.nick||'')}');event.stopPropagation();" title="Ver perfil">
+          <button class="match-btn-view" onclick="openUserProfile('${u.id}','${_esc(u.nick||'')}');event.stopPropagation();" title="Ver perfil">
             👀 Perfil
           </button>
         </div>
       </div>
-    </div>\`;
+    </div>`;
   }
 
   // ── Like toggle ──────────────────────────────────────────────────────────
@@ -26939,14 +26946,14 @@ window._showBanScreen = _showBanScreen;
 
   // ── Skeleton loaders ─────────────────────────────────────────────────────
   function _showSkeletons(grid){
-    grid.innerHTML = Array(8).fill(0).map(()=>\`
+    grid.innerHTML = Array(8).fill(0).map(()=>`
       <div class="match-card match-card-sk">
         <div class="match-sk-av match-skeleton"></div>
         <div class="match-card-body">
           <div class="match-sk-line match-skeleton"></div>
           <div class="match-sk-line match-sk-line-sm match-skeleton" style="margin-top:5px;"></div>
         </div>
-      </div>\`).join('');
+      </div>`).join('');
   }
 
   function _esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
