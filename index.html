@@ -2056,14 +2056,7 @@ window.loadAdsIfNeeded = function() {
   // Inicializar unidades que aún no se cargaron (sin data-adsbygoogle-status = nunca inicializadas)
   try {
     document.querySelectorAll('.adsbygoogle:not([data-adsbygoogle-status])').forEach(function(ins){
-      var w = ins.offsetWidth || (ins.parentElement && ins.parentElement.offsetWidth) || 0;
-      if(w > 0 && w < 250){
-        // Demasiado angosto — ocultar para evitar TagError
-        var wrap = ins.closest('.adsense-unit') || ins.parentElement;
-        if(wrap) wrap.style.display = 'none';
-        return;
-      }
-      try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(ae){}
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
     });
   } catch(e) {}
 };
@@ -2470,23 +2463,19 @@ document.addEventListener('DOMContentLoaded', function(){
       
       <div class="adsense-unit" id="adFeedTop" style="margin:8px 0 14px;text-align:center;min-height:0;">
         <ins class="adsbygoogle"
-             style="display:block;min-width:250px;"
+             style="display:block"
              data-ad-client="ca-pub-6245611726363291"
              data-ad-slot="9540804161"
              data-ad-format="auto"
              data-full-width-responsive="true"></ins>
         <script>
-          (function(){
-            var wrap = document.getElementById('adFeedTop');
-            if(wrap && wrap.offsetWidth < 250){ wrap.style.display='none'; return; }
-            try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){}
-            setTimeout(function(){
-              var ins = document.querySelector('#adFeedTop ins');
-              if(ins && ins.getAttribute('data-ad-status') === 'unfilled'){
-                wrap && (wrap.style.display = 'none');
-              }
-            }, 8000);
-          })();
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+          setTimeout(function(){
+            var ins = document.querySelector('#adFeedTop ins');
+            if(ins && ins.getAttribute('data-ad-status') === 'unfilled'){
+              document.getElementById('adFeedTop').style.display = 'none';
+            }
+          }, 8000);
         </script>
       </div>
 
@@ -2525,23 +2514,19 @@ document.addEventListener('DOMContentLoaded', function(){
       
       <div class="adsense-unit" id="adSidebar" style="margin:10px 0;text-align:center;min-height:0;">
         <ins class="adsbygoogle"
-             style="display:block;min-width:250px;"
+             style="display:block"
              data-ad-client="ca-pub-6245611726363291"
              data-ad-slot="5279324636"
              data-ad-format="auto"
              data-full-width-responsive="true"></ins>
         <script>
-          (function(){
-            var wrap = document.getElementById('adSidebar');
-            if(wrap && wrap.offsetWidth < 250){ wrap.style.display='none'; return; }
-            try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){}
-            setTimeout(function(){
-              var ins = document.querySelector('#adSidebar ins');
-              if(ins && ins.getAttribute('data-ad-status') === 'unfilled'){
-                wrap && (wrap.style.display = 'none');
-              }
-            }, 8000);
-          })();
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+          setTimeout(function(){
+            var ins = document.querySelector('#adSidebar ins');
+            if(ins && ins.getAttribute('data-ad-status') === 'unfilled'){
+              document.getElementById('adSidebar').style.display = 'none';
+            }
+          }, 8000);
         </script>
       </div>
 
@@ -6539,15 +6524,9 @@ async function _loadMorePosts(){
           feedEl.insertBefore(adDiv.firstElementChild, sentinel);
         }
       });
-      // Activar ads nuevos — solo si el contenedor tiene ancho suficiente
+      // Activar ads nuevos
       if(!isPremium){
-        try{
-          feedEl.querySelectorAll('.adsbygoogle:not([data-adsbygoogle-status])').forEach(function(ins){
-            var w = ins.offsetWidth || (ins.parentElement && ins.parentElement.offsetWidth) || 0;
-            if(w < 250){ if(ins.parentElement) ins.parentElement.style.display='none'; return; }
-            try{ (window.adsbygoogle=window.adsbygoogle||[]).push({}); }catch(ae){}
-          });
-        }catch(e){}
+        try{ feedEl.querySelectorAll('.adsbygoogle:not([data-adsbygoogle-status])').forEach(function(){ (adsbygoogle=window.adsbygoogle||[]).push({}); }); }catch(e){}
       }
       // Registrar vistas
       toAdd.forEach(function(p){ if(p.id){ registerPostView(p.id); subscribePostViews(p.id); } });
@@ -9198,7 +9177,7 @@ function renderFeed(){
     if(!isPremium) {
       try {
         el.querySelectorAll('.adsbygoogle:not([data-adsbygoogle-status])').forEach(function(){
-          try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){}
+          (adsbygoogle = window.adsbygoogle || []).push({});
         });
       } catch(e) {}
     }
@@ -20605,6 +20584,42 @@ function closeMusicPlayer(){
 }
 
 
+// ===== SHOP ANNOUNCEMENT TO ALL =====
+async function sendShopAnnouncementToAll(){
+  const btn = document.getElementById('btnShopAnnounce');
+  if(!window.CU || (window.CU.role !== 'admin' && window.CU.nick !== 'ruizgustavo12')){
+    toast('Solo el admin puede hacer esto','err'); return;
+  }
+  if(!confirm('¿Enviar mensaje de Tienda Gratis a TODOS los usuarios?')) return;
+  if(btn){ btn.disabled=true; btn.textContent='Enviando...'; }
+  try {
+    const usersSnap = await getDocs(query(collection(db,'users'), limit(500)));
+    let count = 0;
+    for(const d of usersSnap.docs){
+      const uid = d.id;
+      if(uid === window.CU.id) continue;
+      const chatId = [window.CU.id, uid].sort().join('_');
+      try {
+        await addDoc(collection(db,'chats',chatId,'messages'),{
+          text: '🛒 ¡La tienda de WikiPediaRF4 está 100% GRATIS por 30 días! 🎉 Entrá ahora y equipate con todos los ítems sin costo. ¡No te lo pierdas! 🎣',
+          senderId: window.CU.id,
+          senderNick: window.CU.nick,
+          senderAv: window.CU.av||'',
+          time: serverTimestamp(),
+          type: 'text'
+        });
+        count++;
+      } catch(e2){ console.warn('Error sending to', uid, e2); }
+    }
+    toast('✅ Anuncio enviado a ' + count + ' usuarios', 'ok');
+  } catch(e){
+    toast('Error: ' + e.message, 'err');
+    console.error(e);
+  } finally {
+    if(btn){ btn.disabled=false; btn.textContent='🔔 Anunciar Tienda Gratis'; }
+  }
+}
+
 // ===== EXPOSE TO HTML — sobreescribe los stubs =====
 const _expose = {
   doLogin,doReg,doGoogleLogin,showReg,showLogin,showTerms,closeTerms,acceptTermsAndRegister,
@@ -20627,41 +20642,6 @@ const _expose = {
   reportPost,submitReport,
   loadAdminData,deleteAdminPost,resolveReport,
   requestVerification, loadVerifRequests, adminApproveVerif, adminRejectVerif, adminRevokeVerif,
-
-// ===== SHOP ANNOUNCEMENT TO ALL =====
-async function sendShopAnnouncementToAll(){
-  const btn = document.getElementById('btnShopAnnounce');
-  if(!window.CU || window.CU.role !== 'admin'){ toast('Solo el admin puede hacer esto','err'); return; }
-  if(!confirm('¿Enviar mensaje de Tienda Gratis a TODOS los usuarios? Esto puede tardar un momento.')) return;
-  if(btn){ btn.disabled=true; btn.textContent='Enviando...'; }
-  try {
-    const usersSnap = await getDocs(query(collection(db,'users'), limit(500)));
-    let count = 0;
-    for(const d of usersSnap.docs){
-      const uid = d.id;
-      if(uid === window.CU.id) continue;
-      const chatId = [window.CU.id, uid].sort().join('_');
-      try {
-        await addDoc(collection(db,'chats',chatId,'messages'),{
-          text: '🛒 ¡La tienda de WikiPediaRF4 está 100% GRATIS por 30 días! 🎉 Entrá ahora y equipate con todos los ítems sin costo. ¡No te lo pierdas! 🎣',
-          senderId: window.CU.id,
-          senderNick: window.CU.nick,
-          senderAv: window.CU.av||'',
-          time: serverTimestamp(),
-          type: 'text'
-        });
-        count++;
-      } catch(e){ console.warn('Error sending to', uid, e); }
-    }
-    toast('✅ Anuncio enviado a ' + count + ' usuarios', 'ok');
-  } catch(e){
-    toast('Error al enviar anuncio: ' + e.message, 'err');
-    console.error(e);
-  } finally {
-    if(btn){ btn.disabled=false; btn.textContent='🔔 Anunciar Tienda Gratis'; }
-  }
-}
-
   sendShopAnnouncementToAll,
   switchNotifTab, markAllNotifsRead, filterChatSearch,
   openChatMenu, archiveChat, unarchiveChat, markChatRead, markChatUnread, deleteChatConfirm,
