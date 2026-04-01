@@ -8367,24 +8367,29 @@ function init(){
             onLogin();
           }
         } else {
+          // Doc no existe en Firestore pero usuario autenticado en Firebase
+          // Chequear admin por email directamente
           hideSplash();
-          // Solo mostrar login si es admin (el non-admin ve la pantalla de construcción)
-          // No tenemos info del rol aún, así que mostramos el login oculto para que
-          // el admin pueda hacer login desde la pantalla de construcción.
-          // La pantalla de construcción NO tiene botón de login visible, pero el mAuth
-          // está detrás disponible para el admin si navega a /#admin-login (futuro).
-          // Por ahora simplemente no mostramos mAuth a nadie sin cuenta en DB.
+          const _isAdminByEmail = user.email === 'synxyes@gmail.com';
+          if(_isAdminByEmail && window._hideConstruction) {
+            window.CU = { id: user.uid, email: user.email, nick: 'ruizgustavo12', role: 'admin' };
+            window._hideConstruction();
+            if(typeof onLogin === 'function') onLogin();
+          }
         }
       } catch(e) {
         console.error('Auth error:', e);
         hideSplash();
-        // No mostrar login en error — construcción sigue visible
+        // En error mostrar login para que admin pueda reintentar
+        var authEl = document.getElementById('mAuth');
+        if(authEl){ authEl.style.display='block'; authEl.style.zIndex='100000'; }
       }
     } else {
       window.CU = null;
       hideSplash();
-      // Usuario no logueado → construcción visible, NO mostrar login público
-      // El admin puede logearse haciendo click en el logo (ver abajo)
+      // Usuario no logueado → mostrar login directamente para que admin pueda ingresar
+      var authEl = document.getElementById('mAuth');
+      if(authEl){ authEl.style.display='block'; authEl.style.zIndex='100000'; }
     }
   });
 }
