@@ -3098,6 +3098,7 @@ document.addEventListener('DOMContentLoaded', function(){
   <div style="width:40px;height:40px;border:4px solid #e0e0e0;border-top-color:#1877f2;border-radius:50%;animation:splashSpin 0.8s linear infinite;"></div>
 </div>
 <style>@keyframes splashSpin{to{transform:rotate(360deg)}}
+@keyframes flagFloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
 @keyframes unreadPulse{
   0%,100%{box-shadow:0 0 0 0 rgba(0,198,255,.7),0 0 0 0 rgba(0,198,255,.4);}
   50%{box-shadow:0 0 0 3px rgba(0,198,255,.5),0 0 0 6px rgba(0,198,255,.15);}
@@ -3108,6 +3109,17 @@ document.addEventListener('DOMContentLoaded', function(){
 
     
     <div class="fb-left">
+      <!-- Banderas UY y AR animadas -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;justify-content:center;">
+        <span style="font-size:2.6rem;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4));animation:flagFloat 2.8s ease-in-out infinite;">🇺🇾</span>
+        <div style="height:2px;width:32px;background:linear-gradient(90deg,#009CDE,#fff,#009CDE);border-radius:2px;"></div>
+        <span style="font-size:2.6rem;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4));animation:flagFloat 2.8s ease-in-out infinite 0.4s;">🇦🇷</span>
+      </div>
+      <!-- Slogan red social -->
+      <div style="text-align:center;margin-bottom:16px;padding:0 8px;">
+        <div style="font-family:'Orbitron',monospace;font-size:1.05rem;font-weight:900;color:var(--accent);letter-spacing:.04em;margin-bottom:6px;line-height:1.3;">La red social de los pescadores</div>
+        <div style="font-size:.82rem;color:#8b949e;line-height:1.6;">Conocé nuevas personas, seguí a tus amigos<br>y quedate al día con la comunidad 🎣</div>
+      </div>
       <img src="https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/enamorate.png" alt="WikiPediaRF4 - Conecta, Chatea, Enamórate" style="width:100%;max-width:400px;display:block;border-radius:16px;">
     </div>
 
