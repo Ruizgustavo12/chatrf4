@@ -2586,27 +2586,12 @@ document.addEventListener('DOMContentLoaded', function(){
       <div class="sl-item" onclick="gp('profile')"><span class="sl-item-icon">👤</span> Mi Perfil</div>
       <div class="sl-item"><span class="sl-item-icon">👥</span> Amigos</div>
       <div class="sl-item"><span class="sl-item-icon">📸</span> Fotos</div>
-      <div class="sl-item" onclick="gp('lagos-rf4')"><span class="sl-item-icon">🗺️</span> Lagos RF4</div>
-
+      
       <div class="sl-item" onclick="gp('reels');setNav(document.querySelectorAll('.tb-nav-btn')[4])"><span class="sl-item-icon">🎬</span> Reels</div>
 
-      <div class="sl-item" onclick="gp('ranking-semanal')"><span class="sl-item-icon">🏅</span> Ranking Semanal</div>
-      <div class="sl-item" onclick="gp('cafe')" style="background:linear-gradient(90deg,rgba(255,140,0,.08),transparent);border-left:3px solid #ff8c00;"><span class="sl-item-icon">☕</span> Pedidos Café</div>
-      <div class="sl-item" id="slTiendaBtn" style="background:linear-gradient(90deg,rgba(255,215,0,.08),transparent);border-left:3px solid #ffd700;" onclick="gp('shop');if(typeof renderShopPage==='function')renderShopPage()"><span class="sl-item-icon">🛒</span> Tienda</div>
-      <div class="sl-item" onclick="gp('casitrofeo')"><span class="sl-item-icon">🏅</span> Casi Trofeo</div>
-      <div class="sl-item" onclick="gp('rf4-records')" style="background:linear-gradient(90deg,rgba(46,196,182,.08),transparent);border-left:3px solid var(--accent);"><span class="sl-item-icon">🎣</span> Records RF4</div>
-      <div class="sl-item" onclick="gp('trofeos-feed');setNav(document.querySelector('.tb-nav-btn'))"><span class="sl-item-icon">🥇</span> Trofeos Recientes</div>
-
-      <div class="sl-item" onclick="gp('peso-del-trofeo')"><span class="sl-item-icon">🏆</span> Peso del Trofeo</div>
-      <div class="sl-item" onclick="gp('skill')"><span class="sl-item-icon">📈</span> Subir Skill</div>
-      <div class="sl-item" onclick="gp('wiki-trofeos')" id="slWikiTrofeosBtn" style="background:linear-gradient(90deg,rgba(255,215,0,.08),transparent);border-left:3px solid #ffd700;"><span class="sl-item-icon">🏆</span> Publicar Trofeos</div>
-      <div class="sl-item" onclick="gp('compartir-spot')" id="slCompartirSpotBtn" style="background:linear-gradient(90deg,rgba(46,196,182,.08),transparent);border-left:3px solid var(--accent);"><span class="sl-item-icon">📍</span> Compartir Spot</div>
+            <div class="sl-item" id="slTiendaBtn" style="background:linear-gradient(90deg,rgba(255,215,0,.08),transparent);border-left:3px solid #ffd700;" onclick="gp('shop');if(typeof renderShopPage==='function')renderShopPage()"><span class="sl-item-icon">🛒</span> Tienda</div>
 
       <div class="sl-item"><span class="sl-item-icon">🔖</span> Guardados</div>
-      <div class="sl-item" onclick="gp('torneos')"><span class="sl-item-icon">🏆</span> Torneos</div>
-      <div class="sl-item" onclick="gp('parches')"><span class="sl-item-icon">🔧</span> Parches y Actualizaciones</div>
-      <div class="sl-item" onclick="gp('soporte')"><span class="sl-item-icon">🆘</span> Soporte Técnico</div>
-      <div class="sl-item" onclick="gp('faq')"><span class="sl-item-icon">❓</span> Dudas Frecuentes</div>
       <div class="sl-item" onclick="gp('privacidad')"><span class="sl-item-icon">🔒</span> Privacidad</div>
 
       <div class="divider"></div>
@@ -2695,21 +2680,9 @@ document.addEventListener('DOMContentLoaded', function(){
       </div>
 
       
-      <!-- ── BOTÓN FEED ─────────────────────────────────────────────────── -->
-      <div id="homeFeedBtnWrap" style="margin-bottom:14px;">
-        <button id="homeFeedBtn" onclick="homeShowFeed()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 18px;cursor:pointer;font-family:'Exo 2',sans-serif;font-size:.92rem;font-weight:700;color:var(--text);transition:all .2s;" onmouseover="this.style.background='var(--bg3)';this.style.borderColor='var(--accent)'" onmouseout="this.style.background='var(--bg2)';this.style.borderColor='var(--border)'">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="3" rx="1.5" fill="var(--accent)"/><rect x="3" y="10" width="12" height="3" rx="1.5" fill="var(--muted)"/><rect x="3" y="16" width="15" height="3" rx="1.5" fill="var(--muted)"/></svg>
-          Ver Feed de la comunidad
-          <span style="font-size:.75rem;color:var(--muted);font-weight:600;">Posts, fotos y más →</span>
-        </button>
-      </div>
-
-      <!-- ── PANEL FEED (oculto por defecto) ──────────────────────────── -->
-      <div id="homeFeedPanel" style="display:none;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <span style="font-family:'Orbitron',monospace;font-size:.82rem;font-weight:900;color:var(--accent);">📰 Feed</span>
-          <button onclick="homeHideFeed()" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:4px 12px;font-size:.75rem;font-weight:700;color:var(--muted);cursor:pointer;font-family:'Exo 2',sans-serif;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">✕ Cerrar</button>
-        </div>
+      <!-- ── FEED SIEMPRE VISIBLE (estilo Facebook) ──────────────────── -->
+      <div id="homeFeedBtnWrap" style="display:none;"></div>
+      <div id="homeFeedPanel">
         <!-- post-box dentro del feed -->
         <div class="post-box" style="margin-bottom:14px;">
           <div class="post-box-top">
@@ -2730,29 +2703,6 @@ document.addEventListener('DOMContentLoaded', function(){
         <div id="feedPosts"><div style="text-align:center;padding:40px;color:var(--muted);font-size:.85rem;">🎣 Cargando feed...</div></div>
       </div>
 
-      <!-- ── TROFEOS RECIENTES (inicio) ────────────────────────────────── -->
-      <div id="homeTrofeosSection">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:10px;border-bottom:2px solid rgba(255,215,0,.15);">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-size:1.3rem;">🥇</span>
-            <span style="font-family:'Orbitron',monospace;font-size:.88rem;font-weight:900;color:var(--gold);">Trofeos Recientes</span>
-          </div>
-          <span style="font-size:.72rem;color:var(--accent);cursor:pointer;font-weight:600;" onclick="gp('trofeos-feed')">Ver todos →</span>
-        </div>
-        <!-- Filtro por mapa -->
-        <div style="margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <span style="font-size:.78rem;color:var(--muted);font-weight:600;white-space:nowrap;">🗺️ Filtrar por mapa:</span>
-          <div style="position:relative;flex:1;min-width:160px;">
-            <input id="homeTrofMapFilter" type="text" placeholder="Ej: Belaya, Winding Rivulet..." oninput="homeFilterByMap(this.value)" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:7px 32px 7px 10px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.82rem;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
-            <button onclick="document.getElementById('homeTrofMapFilter').value='';homeFilterByMap('');" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:.85rem;line-height:1;padding:2px;" title="Limpiar">✕</button>
-          </div>
-          <div id="homeTrofMapSuggestions" style="display:none;position:absolute;z-index:200;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);max-height:200px;overflow-y:auto;min-width:200px;box-shadow:0 4px 16px rgba(0,0,0,.5);"></div>
-        </div>
-        <div id="homeTrofeosGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
-          <div style="text-align:center;padding:40px;color:var(--muted);font-size:.85rem;">🏆 Cargando trofeos...</div>
-        </div>
-        <div id="homeTrofeosPager" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:20px;flex-wrap:wrap;"></div>
-      </div>
 
     </div>
 
