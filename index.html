@@ -2340,13 +2340,33 @@ input:focus, textarea:focus {
       <script>
       (function(){
         var _swTries=0;
+        var _swLoading=false;
         function _esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
+        function _loadFromFirebase(){
+          if(_swLoading||!window.db)return;
+          _swLoading=true;
+          import('https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js').then(function(m){
+            return m.getDocs(m.collection(window.db,'users'));
+          }).then(function(snap){
+            var users=snap.docs.map(function(d){return Object.assign({id:d.id},d.data());}).filter(function(u){return !u.banned;});
+            if(users.length){window._matchAllUsers=users;}
+            _swLoading=false;
+            _fill();
+          }).catch(function(){_swLoading=false;setTimeout(_fill,2000);});
+        }
+
         function _fill(){
           var grid=document.getElementById('sidebarMatchGrid');
           if(!grid)return;
           var users=window._matchAllUsers||[];
           var online=window._matchOnlineSet||new Set();
-          if(!users.length){if(_swTries++<30){setTimeout(_fill,900);return;}grid.innerHTML='<div class="sw-match-empty">Sin perfiles</div>';return;}
+          if(!users.length){
+            if(_swTries++<5){setTimeout(_fill,900);return;}
+            if(!_swLoading){_loadFromFirebase();return;}
+            if(_swTries<40){setTimeout(_fill,900);return;}
+            grid.innerHTML='<div class="sw-match-empty">Sin perfiles</div>';return;
+          }
           var myC=((window.CU&&window.CU.country)||'').replace(/^[^\s]+\s/,'').trim().toLowerCase();
           var s=users.filter(function(u){return u.id!==((window.CU&&window.CU.id)||'');}).sort(function(a,b){
             var ac=(a.country||'').replace(/^[^\s]+\s/,'').trim().toLowerCase();
