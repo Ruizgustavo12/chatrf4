@@ -28339,10 +28339,14 @@ window._showBanScreen = _showBanScreen;
     // 5. Notificación a la otra persona
     if(uid !== window.CU.id){
       try {
-        if(typeof sendNotifToUser === 'function'){
-          sendNotifToUser(uid, '💘 ¡A ' + (window.CU.nick||'alguien') + ' le interesó tu perfil! Entrá a Match para verlo.');
-        }
-      } catch(ne){ console.warn('notif error:', ne); }
+        await updateDoc(doc(db,'users',uid), {
+          notifs: arrayUnion({
+            text: '\u{1F498} \u{a1}A ' + (window.CU.nick||'alguien') + ' le gust\u{f3} tu perfil! Entr\u{e1} a Match para verlo.',
+            time: Date.now(), read: false,
+            fromUid: window.CU.id||'', fromAv: window.CU.av||'', fromNick: window.CU.nick||''
+          })
+        });
+      } catch(ne){ console.error('[match notif ERROR]', ne.code, ne.message); }
     }
 
     // 6. Verificar match mutuo
@@ -28350,8 +28354,16 @@ window._showBanScreen = _showBanScreen;
       const theirLike = await getDoc(doc(db,'users',uid,'matchLikes',window.CU.id));
       if(theirLike.exists()){
         _showMutualMatch(uid);
-        if(uid !== window.CU.id && typeof sendNotifToUser === 'function'){
-          sendNotifToUser(uid, '🎉 ¡Es un match con ' + (window.CU.nick||'alguien') + '! Los dos se dieron like 💖');
+        if(uid !== window.CU.id){
+          try {
+            await updateDoc(doc(db,'users',uid), {
+              notifs: arrayUnion({
+                text: '\u{1F389} \u{a1}Es un match con ' + (window.CU.nick||'alguien') + '! Los dos se dieron like \u{1F496}',
+                time: Date.now(), read: false,
+                fromUid: window.CU.id||'', fromAv: window.CU.av||'', fromNick: window.CU.nick||''
+              })
+            });
+          } catch(me){ console.error('[match mutual notif ERROR]', me.code, me.message); }
         }
       }
     } catch(e){ console.warn('mutual match check error:', e); }
