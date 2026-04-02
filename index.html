@@ -27108,10 +27108,17 @@ window._showBanScreen = _showBanScreen;
 
   // ── Nope: simplemente avanzar ─────────────────────────────────────────────
   window.matchNope = function(){
-    if(_idx < _filtered.length - 1){
-      _idx++;
-      _renderCard('next');
-    }
+    // Animación de rechazo y avanzar al siguiente
+    const card = document.querySelector('.mc-single-card');
+    if(card){ card.style.transition='transform .3s ease,opacity .3s ease'; card.style.transform='translateX(-120%) rotate(-12deg)'; card.style.opacity='0'; }
+    setTimeout(function(){
+      if(_idx < _filtered.length - 1){
+        _idx++;
+        _renderCard('next');
+      } else {
+        _renderCard(null);
+      }
+    }, 280);
   };
 
   // ── Like toggle ────────────────────────────────────────────────────────────
@@ -27122,22 +27129,53 @@ window._showBanScreen = _showBanScreen;
     try {
       const likeRef = doc(db,'users',window.CU.id,'matchLikes',uid);
       if(already){
+        // Quitar like — no avanzar, solo actualizar botón
         await deleteDoc(likeRef);
         delete _likes[uid];
         if(btn){ btn.classList.remove('liked'); btn.innerHTML='❤️'; btn.title='Me gusta'; }
       } else {
+        // Dar like: guardar, notificar y avanzar al siguiente
+        if(btn){ btn.classList.add('liked'); btn.innerHTML='💖'; btn.disabled=true; }
         await setDoc(likeRef, { ts: Date.now(), nick: window.CU.nick||'', av: window.CU.av||'' });
         _likes[uid] = true;
-        if(btn){ btn.classList.add('liked'); btn.innerHTML='💖'; btn.title='Quitá el like'; }
-        if(uid !== window.CU.id && typeof sendNotifToUserWithPost === 'function'){
-          sendNotifToUserWithPost(uid, '💘 A ' + window.CU.nick + ' le interesa tu perfil', null);
+        if(btn) btn.disabled=false;
+
+        // Notificación a la otra persona
+        if(uid !== window.CU.id){
+          try {
+            if(typeof sendNotifToUser === 'function'){
+              sendNotifToUser(uid, '💘 ¡A ' + (window.CU.nick||'alguien') + ' le interesó tu perfil! Entrá a Match para verlo.');
+            } else if(typeof sendNotifToUserWithPost === 'function'){
+              sendNotifToUserWithPost(uid, '💘 ¡A ' + (window.CU.nick||'alguien') + ' le interesó tu perfil!', null);
+            }
+          } catch(ne){ console.warn('notif error:', ne); }
         }
+
+        // Verificar match mutuo
         try {
           const theirLike = await getDoc(doc(db,'users',uid,'matchLikes',window.CU.id));
-          if(theirLike.exists()) _showMutualMatch(uid);
+          if(theirLike.exists()){
+            _showMutualMatch(uid);
+            // Notificar match mutuo a los dos
+            if(uid !== window.CU.id && typeof sendNotifToUser === 'function'){
+              sendNotifToUser(uid, '🎉 ¡Es un match con ' + (window.CU.nick||'alguien') + '! Los dos se dieron like 💖');
+            }
+          }
         } catch(e){}
+
+        // Avanzar al siguiente con animación
+        const card = document.querySelector('.mc-single-card');
+        if(card){ card.style.transition='transform .3s ease,opacity .3s ease'; card.style.transform='translateX(120%) rotate(12deg)'; card.style.opacity='0'; }
+        setTimeout(function(){
+          if(_idx < _filtered.length - 1){
+            _idx++;
+            _renderCard('next');
+          } else {
+            _renderCard(null);
+          }
+        }, 280);
       }
-    } catch(e){ console.warn('like error:', e); toast('Error al guardar like','err'); }
+    } catch(e){ console.warn('like error:', e); toast('Error al guardar like','err'); if(btn){ btn.disabled=false; } }
   };
 
   function _showMutualMatch(uid){
