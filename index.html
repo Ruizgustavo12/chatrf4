@@ -26626,49 +26626,57 @@ window._showBanScreen = _showBanScreen;
 <div class="page" id="page-match" style="display:none;">
   <!-- Header -->
   <div class="match-header">
-    <div class="match-title">📍 Conocé personas cerca de vos <span id="matchCountPill" class="match-count-pill">—</span></div>
-    <div style="font-size:.75rem;color:var(--muted);margin-top:2px;">Las personas de tu país aparecen primero · Tiempo real</div>
+    <div class="match-title">💘 Conocé personas <span id="matchCountPill" class="match-count-pill">—</span></div>
+    <div style="font-size:.75rem;color:var(--muted);margin-top:2px;">Todos los usuarios de la comunidad · Tu país aparece primero</div>
   </div>
 
   <!-- Filtros -->
-  <div class="match-filters">
-    <div class="match-filter-group">
-      <span class="match-filter-label">Género</span>
-      <select class="match-filter-select" id="mfGender">
-        <option value="">Todos</option>
-        <option value="Masculino">Masculino</option>
-        <option value="Femenino">Femenino</option>
-        <option value="Otro">Otro</option>
-      </select>
+  <div class="match-filters" style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-bottom:14px;padding:12px 0;">
+
+    <!-- Género — botones visuales -->
+    <div class="match-filter-group" style="display:flex;flex-direction:column;gap:4px;">
+      <span class="match-filter-label" style="font-size:.7rem;color:var(--muted);font-weight:700;letter-spacing:.04em;text-transform:uppercase;">Género</span>
+      <div style="display:flex;gap:5px;">
+        <button id="mfgAll"  class="mfg-btn mfg-active" onclick="setGenderFilter('',this)"     style="padding:6px 12px;border-radius:20px;border:1.5px solid var(--accent);background:var(--accent);color:#000;font-size:.78rem;font-weight:700;cursor:pointer;transition:all .15s;">Todos</button>
+        <button id="mfgM"   class="mfg-btn"             onclick="setGenderFilter('Masculino',this)" style="padding:6px 12px;border-radius:20px;border:1.5px solid #30363d;background:transparent;color:var(--text);font-size:.78rem;font-weight:700;cursor:pointer;transition:all .15s;">♂ Hombre</button>
+        <button id="mfgF"   class="mfg-btn"             onclick="setGenderFilter('Femenino',this)"  style="padding:6px 12px;border-radius:20px;border:1.5px solid #30363d;background:transparent;color:var(--text);font-size:.78rem;font-weight:700;cursor:pointer;transition:all .15s;">♀ Mujer</button>
+      </div>
     </div>
-    <div class="match-filter-group">
-      <span class="match-filter-label">Edad mínima</span>
-      <select class="match-filter-select" id="mfAgeMin">
-        <option value="">Cualquiera</option>
-        <option value="18">18+</option>
-        <option value="21">21+</option>
-        <option value="25">25+</option>
-        <option value="30">30+</option>
-        <option value="35">35+</option>
-        <option value="40">40+</option>
-      </select>
+
+    <!-- Edad -->
+    <div class="match-filter-group" style="display:flex;flex-direction:column;gap:4px;">
+      <span class="match-filter-label" style="font-size:.7rem;color:var(--muted);font-weight:700;letter-spacing:.04em;text-transform:uppercase;">Edad</span>
+      <div style="display:flex;gap:5px;align-items:center;">
+        <select class="match-filter-select" id="mfAgeMin" onchange="applyMatchFilters()" style="padding:6px 8px;border-radius:8px;border:1.5px solid #30363d;background:var(--bg2);color:var(--text);font-size:.78rem;">
+          <option value="">Desde</option>
+          <option value="18">18</option>
+          <option value="21">21</option>
+          <option value="25">25</option>
+          <option value="30">30</option>
+          <option value="35">35</option>
+          <option value="40">40</option>
+          <option value="50">50</option>
+        </select>
+        <span style="color:var(--muted);font-size:.8rem;">—</span>
+        <select class="match-filter-select" id="mfAgeMax" onchange="applyMatchFilters()" style="padding:6px 8px;border-radius:8px;border:1.5px solid #30363d;background:var(--bg2);color:var(--text);font-size:.78rem;">
+          <option value="">Hasta</option>
+          <option value="20">20</option>
+          <option value="25">25</option>
+          <option value="30">30</option>
+          <option value="35">35</option>
+          <option value="40">40</option>
+          <option value="50">50</option>
+          <option value="60">60</option>
+          <option value="70">70</option>
+        </select>
+      </div>
     </div>
-    <div class="match-filter-group">
-      <span class="match-filter-label">Edad máxima</span>
-      <select class="match-filter-select" id="mfAgeMax">
-        <option value="">Cualquiera</option>
-        <option value="25">hasta 25</option>
-        <option value="30">hasta 30</option>
-        <option value="35">hasta 35</option>
-        <option value="40">hasta 40</option>
-        <option value="50">hasta 50</option>
-        <option value="60">hasta 60</option>
-      </select>
-    </div>
-    <div class="match-filter-group">
-      <span class="match-filter-label">País</span>
-      <select class="match-filter-select" id="mfCountry">
-        <option value="">Todos</option>
+
+    <!-- País -->
+    <div class="match-filter-group" style="display:flex;flex-direction:column;gap:4px;">
+      <span class="match-filter-label" style="font-size:.7rem;color:var(--muted);font-weight:700;letter-spacing:.04em;text-transform:uppercase;">País</span>
+      <select class="match-filter-select" id="mfCountry" onchange="applyMatchFilters()" style="padding:6px 8px;border-radius:8px;border:1.5px solid #30363d;background:var(--bg2);color:var(--text);font-size:.78rem;">
+        <option value="">🌎 Todos</option>
         <option value="Uruguay">🇺🇾 Uruguay</option>
         <option value="Argentina">🇦🇷 Argentina</option>
         <option value="México">🇲🇽 México</option>
@@ -26680,8 +26688,8 @@ window._showBanScreen = _showBanScreen;
         <option value="Paraguay">🇵🇾 Paraguay</option>
       </select>
     </div>
-    <button class="match-filter-btn" onclick="applyMatchFilters()">🔍 Filtrar</button>
-    <button class="match-filter-reset" onclick="resetMatchFilters()">✕ Limpiar</button>
+
+    <button class="match-filter-reset" onclick="resetMatchFilters()" style="padding:6px 14px;border-radius:20px;border:1.5px solid #30363d;background:transparent;color:var(--muted);font-size:.78rem;cursor:pointer;margin-top:18px;">✕ Limpiar</button>
   </div>
 
   <!-- Grid -->
@@ -26696,58 +26704,93 @@ window._showBanScreen = _showBanScreen;
   'use strict';
 
   const PAGE_SIZE = 18;
-  const CLOUD     = 'da0n5tg3g';
-  const PRESET    = 'wikipediarf4';
   let _allUsers    = [];
   let _filtered    = [];
   let _shown       = 0;
-  let _likes       = {};   // { uid: true }
-  let _unsubMatch  = null;
+  let _likes       = {};
   let _unsubLikes  = null;
   let _initialized = false;
+  let _loading     = false;
   let _onlineSet   = new Set();
+  let _genderFilter = '';
+
+  // ── Filtro género con botones ─────────────────────────────────────────────
+  window.setGenderFilter = function(val, btn){
+    _genderFilter = val;
+    document.querySelectorAll('.mfg-btn').forEach(b => {
+      b.style.background = 'transparent';
+      b.style.color = 'var(--text)';
+      b.style.borderColor = '#30363d';
+    });
+    if(btn){
+      btn.style.background = 'var(--accent)';
+      btn.style.color = '#000';
+      btn.style.borderColor = 'var(--accent)';
+    }
+    _applyFilters();
+  };
 
   // ── Init ─────────────────────────────────────────────────────────────────
   window.initMatchPage = function(){
-    if(_initialized){ _renderVisible(); return; }
-    _initialized = true;
-    _subscribeUsers();
+    // Siempre recargar para asegurar datos frescos
+    _loadUsers();
     _subscribeLikes();
-    // Online set
     if(window._sidebarAllOnline){
       _onlineSet = new Set((window._sidebarAllOnline||[]).map(u=>u.id));
-      window._matchOnlineSet = _onlineSet;
     }
   };
 
-  // ── Suscripción en tiempo real a usuarios ─────────────────────────────────
-  function _subscribeUsers(){
+  // ── Carga usuarios con getDocs (más confiable) ────────────────────────────
+  function _loadUsers(){
+    if(_loading) return;
+    _loading = true;
     const grid = document.getElementById('matchGrid');
-    if(!grid) return;
-    _showSkeletons(grid);
-    if(_unsubMatch) _unsubMatch();
-    _unsubMatch = onSnapshot(
-      collection(db, 'users'),
-      snap => {
-        _allUsers = snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>!u.banned);
+    if(grid) _showSkeletons(grid);
+
+    // Intentar primero con getDocs directo
+    getDocs(collection(db, 'users'))
+      .then(snap => {
+        _allUsers = snap.docs.map(d => ({id: d.id, ...d.data()})).filter(u => !u.banned);
         window._matchAllUsers = _allUsers;
+        _loading = false;
         _applyFilters();
-        if(typeof window._refreshSidebarMatch==='function') window._refreshSidebarMatch();
-      },
-      err => {
-        console.warn('match onSnapshot error, fallback getDocs:', err);
-        // Fallback: carga única con getDocs si falla el stream
-        getDocs(collection(db, 'users')).then(snap => {
-          _allUsers = snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>!u.banned);
-          window._matchAllUsers = _allUsers;
+        if(typeof window._refreshSidebarMatch === 'function') window._refreshSidebarMatch();
+        // Suscribir en tiempo real después de la carga inicial
+        _subscribeRealtime();
+      })
+      .catch(err => {
+        console.warn('match getDocs error:', err);
+        _loading = false;
+        // Fallback: usar datos del sidebar si existen
+        if(window._matchAllUsers && window._matchAllUsers.length > 0){
+          _allUsers = window._matchAllUsers;
           _applyFilters();
-          if(typeof window._refreshSidebarMatch==='function') window._refreshSidebarMatch();
-        }).catch(e => console.warn('match getDocs fallback error:', e));
-      }
-    );
+        } else {
+          const grid = document.getElementById('matchGrid');
+          if(grid) grid.innerHTML = '<div class="match-empty"><div style="font-size:2rem;margin-bottom:10px;">⚠️</div><div>Error cargando usuarios.<br><button onclick="window.initMatchPage()" style="margin-top:10px;padding:8px 18px;background:var(--accent);border:none;border-radius:8px;color:#000;font-weight:700;cursor:pointer;">Reintentar</button></div></div>';
+        }
+      });
   }
 
-  // ── Suscripción en tiempo real a mis likes (Firestore) ───────────────────
+  // ── Suscripción en tiempo real (después de carga inicial) ─────────────────
+  let _unsubMatch = null;
+  function _subscribeRealtime(){
+    if(_unsubMatch) _unsubMatch();
+    try {
+      _unsubMatch = onSnapshot(
+        collection(db, 'users'),
+        snap => {
+          _allUsers = snap.docs.map(d => ({id: d.id, ...d.data()})).filter(u => !u.banned);
+          window._matchAllUsers = _allUsers;
+          _applyFilters();
+          if(typeof window._refreshSidebarMatch === 'function') window._refreshSidebarMatch();
+        },
+        err => console.warn('match realtime error (non-critical):', err)
+      );
+    } catch(e) {}
+  }
+
+  // ── Likes ─────────────────────────────────────────────────────────────────
   function _subscribeLikes(){
     if(!window.CU) return;
     if(_unsubLikes) _unsubLikes();
@@ -26756,7 +26799,6 @@ window._showBanScreen = _showBanScreen;
       snap => {
         _likes = {};
         snap.docs.forEach(d => { _likes[d.id] = true; });
-        // Refrescar botones sin rerenderizar todo
         Object.keys(_likes).forEach(uid => {
           const btn = document.querySelector(`.mc-btn-like[data-uid="${uid}"]`);
           if(btn){ btn.classList.add('liked'); btn.innerHTML = '💖 Gustado'; }
@@ -26767,19 +26809,18 @@ window._showBanScreen = _showBanScreen;
 
   // ── Filtros ───────────────────────────────────────────────────────────────
   function _applyFilters(){
-    const gender  = document.getElementById('mfGender')?.value  || '';
     const ageMin  = parseInt(document.getElementById('mfAgeMin')?.value)  || 0;
     const ageMax  = parseInt(document.getElementById('mfAgeMax')?.value)  || 999;
     const country = document.getElementById('mfCountry')?.value || '';
     const myCountry = (window.CU?.country||'').replace(/^[^\s]+\s/,'').trim().toLowerCase();
 
     _filtered = _allUsers.filter(u => {
-      if(u.id === window.CU?.id)                          return false;
-      if(gender  && u.gender !== gender)                  return false;
-      if(country && !(u.country||'').includes(country))   return false;
+      if(u.id === window.CU?.id) return false;
+      if(_genderFilter && (u.gender||'') !== _genderFilter) return false;
+      if(country && !(u.country||'').includes(country)) return false;
       const age = parseInt(u.age)||0;
-      if(ageMin && age && age < ageMin)                   return false;
-      if(ageMax < 999 && age && age > ageMax)             return false;
+      if(ageMin && age && age < ageMin) return false;
+      if(ageMax < 999 && age && age > ageMax) return false;
       return true;
     });
 
@@ -26798,6 +26839,22 @@ window._showBanScreen = _showBanScreen;
     _renderVisible();
   }
 
+  window.applyMatchFilters = _applyFilters;
+  window.resetMatchFilters = function(){
+    _genderFilter = '';
+    document.querySelectorAll('.mfg-btn').forEach(b => {
+      b.style.background = 'transparent';
+      b.style.color = 'var(--text)';
+      b.style.borderColor = '#30363d';
+    });
+    const all = document.getElementById('mfgAll');
+    if(all){ all.style.background = 'var(--accent)'; all.style.color = '#000'; all.style.borderColor = 'var(--accent)'; }
+    ['mfAgeMin','mfAgeMax','mfCountry'].forEach(id=>{
+      const el = document.getElementById(id); if(el) el.value='';
+    });
+    _applyFilters();
+  };
+
   // ── Render ────────────────────────────────────────────────────────────────
   function _renderVisible(){
     const grid = document.getElementById('matchGrid');
@@ -26813,7 +26870,7 @@ window._showBanScreen = _showBanScreen;
     if(btn) btn.style.display = _shown < _filtered.length ? 'flex' : 'none';
 
     if(_filtered.length === 0){
-      grid.innerHTML = '<div class="match-empty"><div style="font-size:3rem;margin-bottom:12px;">🔍</div><div style="font-size:1rem;font-weight:700;color:var(--text);">No se encontraron personas</div><div style="font-size:.82rem;margin-top:6px;">Probá cambiar o limpiar los filtros</div></div>';
+      grid.innerHTML = '<div class="match-empty"><div style="font-size:3rem;margin-bottom:12px;">🔍</div><div style="font-size:1rem;font-weight:700;color:var(--text);">No se encontraron personas</div><div style="font-size:.82rem;margin-top:6px;color:var(--muted);">Probá cambiar o limpiar los filtros</div></div>';
     }
   }
 
@@ -26831,7 +26888,7 @@ window._showBanScreen = _showBanScreen;
     if(btn) btn.style.display = _shown < _filtered.length ? 'flex' : 'none';
   };
 
-  // ── Card HTML (estilo Badoo) ──────────────────────────────────────────────
+  // ── Card HTML ─────────────────────────────────────────────────────────────
   function _cardHTML(u){
     const isOnline = _onlineSet.has(u.id);
     const liked    = !!_likes[u.id];
@@ -26840,20 +26897,21 @@ window._showBanScreen = _showBanScreen;
     const dept     = u.dept || u.city || '';
     const loc      = [dept, country].filter(Boolean).join(' · ');
     const av       = u.av || '';
-    const ini      = (u.nick||'?')[0].toUpperCase();
+    const nick     = u.nick || u.email?.split('@')[0] || 'Usuario';
+    const ini      = nick[0].toUpperCase();
     const bio      = u.bio || u.about || '';
+    const genderIcon = u.gender === 'Masculino' ? '♂' : u.gender === 'Femenino' ? '♀' : '';
 
-    // Foto: si tiene avatar Cloudinary, mostrarlo; si no, iniciales grandes
     const photoHTML = av
-      ? `<img src="${av}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+      ? `<img src="${av}" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">
          <div class="mc-photo-initials" style="display:none;">${ini}</div>`
       : `<div class="mc-photo-initials">${ini}</div>`;
 
-    // Tags: género, verificado, pescador
     const tags = [];
     if(u.gender) tags.push(u.gender === 'Masculino' ? '♂ Hombre' : u.gender === 'Femenino' ? '♀ Mujer' : u.gender);
     if(u.verified) tags.push('✓ Verificado');
-    if(u.role === 'premium') tags.push('⭐ Premium');
+    if(u.role === 'admin') tags.push('🛡️ Admin');
+    else if(u.role === 'premium') tags.push('⭐ Premium');
 
     return `<div class="match-card" id="mcard_${u.id}">
       <div class="mc-photo-wrap">
@@ -26861,7 +26919,7 @@ window._showBanScreen = _showBanScreen;
         <div class="mc-photo-grad"></div>
         ${isOnline ? '<div class="mc-online-pip"><div class="mc-online-dot"></div><span class="mc-online-txt">En línea</span></div>' : ''}
         <div class="mc-photo-info">
-          <div class="mc-name">${_esc(u.nick||'?')}${age ? '<span style="font-weight:400;opacity:.85;">, '+age+'</span>' : ''}</div>
+          <div class="mc-name">${_esc(nick)}${age ? '<span style="font-weight:400;opacity:.85;">, '+age+'</span>' : ''}${genderIcon ? ' <span style="font-size:.85em;opacity:.9;">'+genderIcon+'</span>' : ''}</div>
           ${loc ? `<div class="mc-age-loc">📍 ${_esc(loc)}</div>` : ''}
         </div>
       </div>
@@ -26873,13 +26931,13 @@ window._showBanScreen = _showBanScreen;
             ${liked ? '💖 Gustado' : '❤️ Me gusta'}
           </button>
           <button class="mc-btn-nope" onclick="matchNope('${u.id}',this)" title="No me interesa">✕</button>
-          <button class="mc-btn-profile" onclick="openUserProfile('${u.id}','${_esc(u.nick||'')}');event.stopPropagation();" title="Ver perfil">👤</button>
+          <button class="mc-btn-profile" onclick="openUserProfile('${u.id}','${_esc(nick)}');event.stopPropagation();" title="Ver perfil">👤</button>
         </div>
       </div>
     </div>`;
   }
 
-  // ── Like toggle con Firestore ─────────────────────────────────────────────
+  // ── Like toggle ────────────────────────────────────────────────────────────
   window.matchToggleLike = async function(uid, btn){
     if(!window.CU){ toast('Iniciá sesión para dar likes','err'); return; }
     const already = !!_likes[uid];
@@ -26891,27 +26949,21 @@ window._showBanScreen = _showBanScreen;
         btn.classList.remove('liked');
         btn.innerHTML = '❤️ Me gusta';
       } else {
-        // Guardar like en Firestore
         await setDoc(likeRef, { ts: Date.now(), nick: window.CU.nick||'', av: window.CU.av||'' });
         _likes[uid] = true;
         btn.classList.add('liked');
         btn.innerHTML = '💖 Gustado';
-        // Notificación push al otro usuario
         if(uid !== window.CU.id && typeof sendNotifToUserWithPost === 'function'){
           sendNotifToUserWithPost(uid, '💘 A ' + window.CU.nick + ' le interesa tu perfil', null);
         }
-        // Comprobar si es match mutuo
         try {
           const theirLike = await getDoc(doc(db,'users',uid,'matchLikes',window.CU.id));
-          if(theirLike.exists()){
-            _showMutualMatch(uid);
-          }
+          if(theirLike.exists()) _showMutualMatch(uid);
         } catch(e){}
       }
     } catch(e){ console.warn('like error:', e); toast('Error al guardar like','err'); }
   };
 
-  // ── Nope (ocultar card temporalmente) ────────────────────────────────────
   window.matchNope = function(uid, btn){
     const card = document.getElementById('mcard_'+uid);
     if(!card) return;
@@ -26921,7 +26973,6 @@ window._showBanScreen = _showBanScreen;
     setTimeout(()=>{ card.style.display='none'; }, 260);
   };
 
-  // ── Match mutuo toast ─────────────────────────────────────────────────────
   function _showMutualMatch(uid){
     const u = _allUsers.find(x=>x.id===uid);
     const name = u?.nick || 'alguien';
@@ -26932,16 +26983,6 @@ window._showBanScreen = _showBanScreen;
     setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .5s'; setTimeout(()=>t.remove(),500); }, 3500);
   }
 
-  // ── Filtros externos ──────────────────────────────────────────────────────
-  window.applyMatchFilters = _applyFilters;
-  window.resetMatchFilters = function(){
-    ['mfGender','mfAgeMin','mfAgeMax','mfCountry'].forEach(id=>{
-      const el = document.getElementById(id); if(el) el.value='';
-    });
-    _applyFilters();
-  };
-
-  // ── Skeletons ─────────────────────────────────────────────────────────────
   function _showSkeletons(grid){
     grid.innerHTML = Array(8).fill(0).map(()=>`
       <div class="match-card">
