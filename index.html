@@ -4694,113 +4694,132 @@ function _renderMsgsFallback(salaId){
   if(_curSala?.id === salaId) _renderMsgs(demos);
 }
 
-// ── RENDER MENSAJES ─────────────────────────────────────────────────────────────
+// ── RENDER MENSAJES ───────────────────────────────────────────────
 function _renderMsgs(msgs){
-  const el = document.getElementById('salaMsgs');
+  var el = document.getElementById('salaMsgs');
   if(!el) return;
+  var atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+  var prevCount = el.querySelectorAll('.sala-msg').length;
+
   if(!msgs || !msgs.length){
-    el.innerHTML = `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--muted);">
-      <div style="font-size:2.5rem;opacity:.3;">💬</div>
-      <div style="font-size:.85rem;">Sé el primero en escribir en esta sala</div>
-    </div>`;
+    el.innerHTML = '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--muted);"><div style="font-size:2.5rem;opacity:.3;">💬</div><div style="font-size:.85rem;">Sé el primero en escribir en esta sala</div></div>';
     return;
   }
-  const cu = window.CU;
-  let html = '';
-  let lastDate = '';
-  msgs.forEach((m,i)=>{
-    const d = new Date(m.ts);
-    const dateStr = d.toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'numeric'});
+  var cu = window.CU;
+  var html = '';
+  var lastDate = '';
+  var EMOJIS = ['❤️','😂','👍','🔥','😍','😮','😢','👏','🙏','💋'];
+
+  msgs.forEach(function(m){
+    if(!m || !m.id) return;
+    var ts = m.ts;
+    if(ts && typeof ts.toMillis === 'function') ts = ts.toMillis();
+    if(!ts || typeof ts !== 'number') return; // ignorar msgs sin timestamp válido
+    var d = new Date(ts);
+    var dateStr = d.toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'numeric'});
     if(dateStr !== lastDate){
-      html += `<div class="sala-date-sep">${dateStr}</div>`;
+      html += '<div class="sala-date-sep">'+dateStr+'</div>';
       lastDate = dateStr;
     }
     if(m.system){
-      html += `<div class="sala-sys-msg">${_esc(m.text)}</div>`;
+      html += '<div class="sala-sys-msg">'+_esc(m.text||'')+'</div>';
       return;
     }
-    const isMine = cu && m.uid === cu.id;
-    const avHtml = m.av && m.av.startsWith('http')
-      ? `<img src="${_esc(m.av)}" alt="" onerror="this.style.display='none';this.parentNode.textContent='${_esc((m.nick||'?')[0].toUpperCase())}'">` 
-      : _esc((m.nick||'?')[0].toUpperCase());
-    const reactions = m.reactions || {};
-    const reactHtml = Object.entries(reactions).map(([emoji, uids])=>`
-      <span class="sala-msg-reaction${cu&&uids[cu.id]?' active':''}" onclick="toggleSalaReaction('${_esc(m.id)}','${emoji}')">
-        ${emoji} <span class="sala-msg-reaction-count">${Object.keys(uids).length}</span>
-      </span>`).join('');
-    const replyHtml = m.replyTo ? `<div class="sala-msg-reply-preview">↩️ <strong>${_esc(m.replyTo.nick)}:</strong> ${_esc(m.replyTo.text?.slice(0,60)||'')}${(m.replyTo.text?.length||0)>60?'…':''}</div>` : '';
-    html += `
-      <div class="sala-msg" id="salaMsg_${_esc(m.id)}" data-uid="${_esc(m.uid||'')}">
-        <div class="sala-msg-av" onclick="openUserProfile('${_esc(m.uid||'')}','${_esc(m.nick||'')}')">${avHtml}</div>
-        <div class="sala-msg-body">
-          ${replyHtml}
-          <div class="sala-msg-top">
-            <span class="sala-msg-nick" onclick="openUserProfile('${_esc(m.uid||'')}','${_esc(m.nick||'')}')">${_esc(m.nick||'Anónimo')}</span>
-            ${m.verified?'<img class="sala-msg-verified" src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/2705.png" title="Verificado">':''}
-            <span class="sala-msg-time">${_timeAgo(m.ts)}</span>
-          </div>
-          <div class="sala-msg-text">${_esc(m.text)}</div>
-          ${reactHtml?`<div class="sala-msg-reactions">${reactHtml}</div>`:''}
-        </div>
-        <div class="sala-msg-actions">
-          <button class="sala-msg-action-btn" title="Reaccionar" onclick="showSalaReactPopup(event,'${_esc(m.id)}')">😊</button>
-          <button class="sala-msg-action-btn" title="Responder" onclick="setSalaReply('${_esc(m.id)}','${_esc(m.nick||'')}','${_esc((m.text||'').replace(/'/g,"\\'").slice(0,80))}')">↩️</button>
-          ${isMine?`<button class="sala-msg-action-btn" title="Eliminar" onclick="deleteSalaMsg('${_esc(m.id)}')">🗑️</button>`:''}
-        </div>
-        <!-- Reaction popup -->
-        <div class="sala-react-popup" id="reactPop_${_esc(m.id)}">
-          ${['❤️','😂','👍','🔥','😍','😮','😢','👏','🙏','💋'].map(e=>`<span class="sala-react-opt" onclick="toggleSalaReaction('${_esc(m.id)}','${e}');closeSalaReactPopups()">${e}</span>`).join('')}
-        </div>
-      </div>`;
-  });
-  el.innerHTML = html;
-  // Scroll al fondo
-  el.scrollTop = el.scrollHeight;
-}
+    var isMine = !!(cu && m.uid === cu.id);
+    var nick0 = _esc((m.nick||'?')[0].toUpperCase());
+    var avHtml = (m.av && m.av.startsWith('http'))
+      ? '<img src="'+_esc(m.av)+'" alt="" onerror="this.style.display=\'none\';this.parentNode.textContent=\''+nick0+'\'">'
+      : nick0;
 
+    // Reacciones
+    var reactions = m.reactions || {};
+    var reactHtml = '';
+    Object.keys(reactions).forEach(function(emoji){
+      var uids = reactions[emoji];
+      if(!uids || typeof uids !== 'object') return;
+      var count = Object.keys(uids).length;
+      if(count === 0) return;
+      var active = (cu && uids[cu.id]) ? ' active' : '';
+      reactHtml += '<span class="sala-msg-reaction'+active+'" onclick="toggleSalaReaction(\''+_esc(m.id)+'\',\''+emoji+'\')">'
+        +emoji+' <span class="sala-msg-reaction-count">'+count+'</span></span>';
+    });
+
+    // Reply preview
+    var replyHtml = '';
+    if(m.replyTo && m.replyTo.nick){
+      replyHtml = '<div class="sala-msg-reply-preview">↩ <strong>'+_esc(m.replyTo.nick)+':</strong> '+_esc((m.replyTo.text||'').slice(0,60))+'</div>';
+    }
+
+    // Popup emojis
+    var emojiPops = EMOJIS.map(function(e){
+      return '<span class="sala-react-opt" onclick="toggleSalaReaction(\''+_esc(m.id)+'\',\''+e+'\');closeSalaReactPopups()">'+e+'</span>';
+    }).join('');
+
+    var delBtn = isMine ? '<button class="sala-msg-action-btn" onclick="deleteSalaMsg(\''+_esc(m.id)+'\')">🗑️</button>' : '';
+    var safeText = _esc((m.text||'').slice(0,80));
+    var replyBtn = '<button class="sala-msg-action-btn" title="Responder" onclick="setSalaReply(\''+_esc(m.id)+'\',\''+_esc(m.nick||'')+'\',\''+safeText+'\')">↩️</button>';
+
+    html += '<div class="sala-msg" id="salaMsg_'+_esc(m.id)+'" data-uid="'+_esc(m.uid||'')+'">';
+    html += '<div class="sala-msg-av" onclick="openUserProfile(\''+_esc(m.uid||'')+'\',\''+_esc(m.nick||'')+'\')">'+avHtml+'</div>';
+    html += '<div class="sala-msg-body">';
+    html += replyHtml;
+    html += '<div class="sala-msg-top">';
+    html += '<span class="sala-msg-nick" onclick="openUserProfile(\''+_esc(m.uid||'')+'\',\''+_esc(m.nick||'')+'\')">'+_esc(m.nick||'Anónimo')+'</span>';
+    html += m.verified ? '<img class="sala-msg-verified" src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/2705.png">' : '';
+    html += '<span class="sala-msg-time">'+_timeAgo(ts)+'</span>';
+    html += '</div>';
+    html += '<div class="sala-msg-text">'+_esc(m.text||'')+'</div>';
+    html += reactHtml ? '<div class="sala-msg-reactions">'+reactHtml+'</div>' : '';
+    html += '</div>';
+    html += '<div class="sala-msg-actions">';
+    html += '<button class="sala-msg-action-btn" onclick="showSalaReactPopup(event,\''+_esc(m.id)+'\')">😊</button>';
+    html += replyBtn + delBtn;
+    html += '</div>';
+    html += '<div class="sala-react-popup" id="reactPop_'+_esc(m.id)+'">'+emojiPops+'</div>';
+    html += '</div>';
+  });
+
+  el.innerHTML = html;
+  if(atBottom || msgs.length > prevCount){
+    el.scrollTop = el.scrollHeight;
+  }
+}
 // ── ENVIAR MENSAJE ──────────────────────────────────────────────────────────────
 window.sendSalaMsg = async function(){
   if(!window.CU){ toast('Iniciá sesión para chatear','err'); return; }
-  if(!_curSala){ toast('Seleccioná una sala primero','err'); return; }
-  const inp = document.getElementById('salaInputText');
-  const text = (inp?.value||'').trim();
+  if(!_curSala){ toast('Selección de sala requerida','err'); return; }
+  var inp = document.getElementById('salaInputText');
+  var text = (inp ? inp.value : '').trim();
   if(!text) return;
   inp.value = '';
   inp.style.height = '';
 
-  const cu = window.CU;
-  const ts = Date.now();
-  const msg = {
+  var cu = window.CU;
+  var msg = {
     uid: cu.id,
-    nick: cu.nick||'Usuario',
-    av: cu.av||'',
-    text,
-    ts,
+    nick: cu.nick || 'Usuario',
+    av: cu.av || '',
+    text: text,
+    ts: Date.now(),
     verified: !!cu.verified,
     reactions: {}
   };
   if(_replyTo){
-    msg.replyTo = { ..._replyTo };
+    msg.replyTo = Object.assign({}, _replyTo);
     cancelSalaReply();
   }
 
-  // Agregar optimistamente con id temporal
-  const localId = 'local_'+ts+'_'+Math.random().toString(36).slice(2,6);
-  if(!_msgs[_curSala.id]) _msgs[_curSala.id] = [];
-  _msgs[_curSala.id].push({...msg, id: localId, _local: true});
-  _renderMsgs(_msgs[_curSala.id]);
-
-  // Guardar en Firestore (el onSnapshot lo reemplazará con el real)
-  const _addDoc = window.addDoc, _collection = window.collection, db = window.db;
-  if(db && _addDoc && _collection){
-    try {
-      await _addDoc(_collection(db, 'chatSalas', _curSala.id, 'msgs'), msg);
-    } catch(e){
-      // Si falla Firestore, quitar el mensaje optimista
-      if(_msgs[_curSala.id]) _msgs[_curSala.id] = _msgs[_curSala.id].filter(function(m){ return m.id!==localId; });
-      _renderMsgs(_msgs[_curSala.id]||[]);
-      if(typeof toast === 'function') toast('Error al enviar. Verificá tu conexión', 'err');
-    }
+  // Enviar directo a Firestore — el onSnapshot lo mostrará en ~100-200ms
+  var _addDoc = window.addDoc, _col = window.collection, db = window.db;
+  if(!db || !_addDoc || !_col){
+    toast('Sin conexión a Firestore','err'); return;
+  }
+  try {
+    await _addDoc(_col(db, 'chatSalas', _curSala.id, 'msgs'), msg);
+  } catch(e) {
+    console.error('sendSalaMsg error:', e);
+    inp.value = text; // devolver texto al input
+    toast('No se pudo enviar: ' + (e.message||'error'), 'err');
   }
 };
 
@@ -4843,22 +4862,42 @@ window.closeSalaReactPopups = function(){
 window.toggleSalaReaction = async function(msgId, emoji){
   if(!window.CU){ toast('Iniciá sesión para reaccionar','err'); return; }
   if(!_curSala) return;
-  // Usar funciones directamente desde window (donde sí están exportadas)
-  const _doc = window.doc, _updateDoc = window.updateDoc, _getDoc = window.getDoc;
-  const db = window.db;
-  if(!db || !_doc || !_updateDoc || !_getDoc){ console.warn('Firestore no disponible'); return; }
+  if(!msgId || msgId.startsWith('local_')) return; // no reaccionar a msgs locales
+  var _doc = window.doc, _updateDoc = window.updateDoc, _getDoc = window.getDoc, db = window.db;
+  if(!db || !_doc || !_updateDoc || !_getDoc){ console.warn('Firestore no disponible para reacciones'); return; }
+  var uid = window.CU.id;
+  // Optimistic update en el cache local
+  var localMsg = (_msgs[_curSala.id]||[]).find(function(m){ return m.id===msgId; });
+  if(localMsg){
+    if(!localMsg.reactions) localMsg.reactions = {};
+    if(!localMsg.reactions[emoji]) localMsg.reactions[emoji] = {};
+    if(localMsg.reactions[emoji][uid]) delete localMsg.reactions[emoji][uid];
+    else localMsg.reactions[emoji][uid] = true;
+    if(Object.keys(localMsg.reactions[emoji]).length===0) delete localMsg.reactions[emoji];
+    _renderMsgs(_msgs[_curSala.id]); // render inmediato
+  }
+  // Guardar en Firestore
   try {
-    const msgRef = _doc(db,'chatSalas',_curSala.id,'msgs',msgId);
-    const snap = await _getDoc(msgRef);
+    var msgRef = _doc(db,'chatSalas',_curSala.id,'msgs',msgId);
+    var snap = await _getDoc(msgRef);
     if(!snap.exists()) return;
-    const reactions = snap.data().reactions || {};
+    var reactions = snap.data().reactions || {};
     if(!reactions[emoji]) reactions[emoji] = {};
-    const uid = window.CU.id;
     if(reactions[emoji][uid]) delete reactions[emoji][uid];
     else reactions[emoji][uid] = true;
     if(Object.keys(reactions[emoji]).length===0) delete reactions[emoji];
-    await _updateDoc(msgRef,{reactions});
-  } catch(e){ console.warn('Reaction error:',e); if(typeof toast==='function') toast('Error al reaccionar','err'); }
+    await _updateDoc(msgRef, {reactions: reactions});
+  } catch(e){
+    console.error('Reaction error:', e);
+    // Revertir optimistic si falla
+    if(localMsg && localMsg.reactions && localMsg.reactions[emoji]){
+      if(localMsg.reactions[emoji][uid]) delete localMsg.reactions[emoji][uid];
+      else localMsg.reactions[emoji][uid] = true;
+      if(Object.keys(localMsg.reactions[emoji]).length===0) delete localMsg.reactions[emoji];
+      _renderMsgs(_msgs[_curSala.id]);
+    }
+    if(typeof toast==='function') toast('Error al reaccionar','err');
+  }
 };
 
 // ── ELIMINAR MENSAJE ───────────────────────────────────────────────────────────
