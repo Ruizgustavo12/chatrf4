@@ -389,14 +389,14 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
   transition:all .2s;position:relative;font-weight:700;}
 .tb-nav-btn:hover,.tb-nav-btn.on{color:var(--accent);background:rgba(24,119,242,.07);border-bottom:2px solid var(--accent);}
 .tb-right{display:flex;align-items:center;gap:6px;}
-.tb-icon-btn{width:40px;height:40px;border-radius:50%;background:var(--bg3);border:none;
+.tb-icon-btn{width:40px;height:40px;border-radius:50%;background:#1a2a3a;border:none;
   display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .18s;position:relative;}
-.tb-icon-btn:hover{background:var(--bg4);}
-.tb-icon-btn svg{width:20px;height:20px;fill:var(--text);display:block;}
+.tb-icon-btn:hover{background:#243a4a;}
+.tb-icon-btn svg{width:20px;height:20px;fill:#050505;display:block;}
 .tb-avatar{width:40px;height:40px;border-radius:50%;border:2px solid var(--border);overflow:hidden;cursor:pointer;
   display:flex;align-items:center;justify-content:center;background:var(--bg4);font-size:.9rem;font-weight:700;color:var(--accent);}
-.tb-avatar img{width:100%;height:100%;object-fit:cover;} .tb-icon-btn svg{fill:var(--muted);}
-.notif-dot{position:absolute;top:2px;right:2px;width:8px;height:8px;background:var(--red);border-radius:50%;border:2px solid var(--bg);}
+.tb-avatar img{width:100%;height:100%;object-fit:cover;} .tb-icon-btn svg{fill:#d4e8f0;}
+.notif-dot{position:absolute;top:2px;right:2px;width:8px;height:8px;background:var(--red);border-radius:50%;border:2px solid #161b22;}
 
 /* ===== LAYOUT ===== */
 .layout{display:grid;grid-template-columns:240px 1fr 260px;gap:0;padding-top:48px;min-height:100vh;}
@@ -426,7 +426,7 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
   .bottom-nav{
     display:flex !important;
     position:fixed;bottom:0;left:0;right:0;
-    background:var(--bg2);border-top:1px solid var(--border);
+    background:#161b22;border-top:1px solid var(--border);
     z-index:1000;height:56px;
     align-items:center;justify-content:space-around;
     padding:0 4px;
@@ -470,9 +470,9 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
 .sl-profile:hover{background:#21262d;}
 .sl-av{width:36px;height:36px;border-radius:50%;border:2px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;color:var(--accent);background:#21262d;flex-shrink:0;}
 .sl-av img{width:100%;height:100%;object-fit:cover;}
-.sl-name{font-size:.9rem;font-weight:700;color:var(--text);}
+.sl-name{font-size:.9rem;font-weight:700;color:#e6edf3;}
 .sl-divider{height:1px;background:var(--border);margin:8px 4px;}
-.sl-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r);cursor:pointer;transition:background .2s;font-size:.88rem;color:var(--text);font-weight:600;}
+.sl-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r);cursor:pointer;transition:background .2s;font-size:.88rem;color:#e6edf3;font-weight:600;}
 .sl-item:hover{background:#21262d;color:var(--text);}
 .sl-item-icon{font-size:1.1rem;width:24px;text-align:center;}
 .sl-section-title{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:8px 10px 4px;}
@@ -488,15 +488,15 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
 .story-card:hover{transform:scale(1.03);box-shadow:0 4px 16px rgba(0,0,0,.3);}
 .story-card img{width:100%;height:100%;object-fit:cover;}
 .story-card-bg{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,var(--bg3),var(--bg2));}
-.story-av{width:32px;height:32px;border-radius:50%;border:2px solid var(--accent);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--accent);background:var(--bg2);flex-shrink:0;}
+  background:linear-gradient(135deg,#21262d,#161b22);}
+.story-av{width:32px;height:32px;border-radius:50%;border:2px solid var(--accent);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--accent);background:#161b22;flex-shrink:0;}
 .story-av img{width:100%;height:100%;object-fit:cover;}
-.story-name{font-size:.58rem;font-weight:700;margin-top:4px;text-align:center;padding:0 3px;color:var(--text);}
+.story-name{font-size:.58rem;font-weight:700;margin-top:4px;text-align:center;padding:0 3px;color:#e6edf3;}
 .story-user-av{position:absolute;top:6px;left:6px;width:26px;height:26px;border-radius:50%;border:2px solid var(--accent);overflow:hidden;}
 .story-user-av img{width:100%;height:100%;object-fit:cover;}
 .story-gradient{position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(transparent,rgba(0,0,0,.8));}
 .story-bottom-name{position:absolute;bottom:8px;left:8px;font-size:.65rem;font-weight:700;color:#fff;}
-.story-add{background:var(--bg2);border:2px dashed #30363d;}
+.story-add{background:#161b22;border:2px dashed #30363d;}
 .story-add-icon{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));
   display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:#fff;font-weight:900;}
 
@@ -616,7 +616,7 @@ img[title="Verificado"]:hover{
   position:absolute;
   inset:-2px;
   border-radius:50%;
-  background:var(--bg2);
+  background:#161b22;
   z-index:1;
 }
 .post-verified .post-av{
@@ -677,10 +677,10 @@ img[title="Verificado"]:hover{
 .gif-picker{position:absolute;bottom:calc(100% + 8px);left:0;width:320px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:9999;overflow:hidden;display:none;flex-direction:column;}
 .gif-picker.open{display:flex;}
 /* STICKER PICKER */
-.stk-picker{position:absolute;bottom:calc(100% + 8px);left:0;width:300px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.2);z-index:9999;overflow:hidden;display:none;flex-direction:column;max-height:360px;}
+.stk-picker{position:absolute;bottom:calc(100% + 8px);left:0;width:300px;background:#161b22;border:1px solid #30363d;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.2);z-index:9999;overflow:hidden;display:none;flex-direction:column;max-height:360px;}
 .stk-picker.open{display:flex;}
-.stk-search{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--border);}
-.stk-search input{flex:1;border:none;outline:none;font-size:.88rem;color:var(--text);background:transparent;}
+.stk-search{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid #30363d;}
+.stk-search input{flex:1;border:none;outline:none;font-size:.88rem;color:#e6edf3;background:transparent;}
 .stk-search input::placeholder{color:#8b949e;}
 .stk-cats{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px;overflow-y:auto;}
 .stk-cat-btn{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:100px;border:none;cursor:pointer;font-size:.85rem;font-weight:700;color:#fff;transition:opacity .15s;}
@@ -711,9 +711,9 @@ img[title="Verificado"]:hover{
 
 
 /* ===== POST BOX ===== */
-.post-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.1);}
+.post-box{background:#161b22;border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.1);}
 .post-box-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.post-input{flex:1;background:var(--bg);border:1px solid transparent;border-radius:100px;padding:10px 18px;
+.post-input{flex:1;background:#0d1117;border:1px solid transparent;border-radius:100px;padding:10px 18px;
   color:var(--muted);font-family:'Exo 2',sans-serif;font-size:.9rem;cursor:pointer;transition:all .2s;}
 .post-input:hover{background:#21262d;color:var(--text);}
 .post-box-actions{display:flex;gap:4px;border-top:1px solid #dddfe2;padding-top:10px;}
@@ -722,7 +722,7 @@ img[title="Verificado"]:hover{
 .pba:hover{background:var(--bg3);color:var(--text);}
 
 /* ===== POST CARD ===== */
-.post{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px;overflow:visible;box-shadow:0 1px 2px rgba(0,0,0,.1);}
+.post{background:#161b22;border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px;overflow:visible;box-shadow:0 1px 2px rgba(0,0,0,.1);}
 .post .post-img-grid{overflow:hidden;}
 /* ── TEMAS DE PUBLICACIÓN (tienda) ── */
 .post-theme-ocean    { background:linear-gradient(160deg,#0a1628,#0d2347) !important; border-color:rgba(0,150,255,.3) !important; box-shadow:0 0 20px rgba(0,100,255,.15) !important; }
@@ -895,7 +895,7 @@ img[title="Verificado"]:hover{
 /* REACTION POPUP */
 .rxn-wrap{position:relative;padding-bottom:6px;margin-bottom:-6px;}
 .rxn-popup{display:none;position:absolute;bottom:0;left:0;z-index:9500;
-  background:var(--bg2);border:1px solid var(--border);border-radius:100px;
+  background:#161b22;border:1px solid var(--border);border-radius:100px;
   padding:6px 10px;box-shadow:0 4px 16px rgba(0,0,0,.5);
   transform:translateY(calc(-100% - 6px));}
 .rxn-popup.show{display:flex;gap:2px;align-items:center;animation:rxnPop .16s ease;}
@@ -916,7 +916,7 @@ img[title="Verificado"]:hover{
 .tw-act-btn:hover{background:rgba(255,255,255,.05);}
 .tw-act-btn svg{flex-shrink:0;transition:color .15s;}
 .tw-act-count{font-size:.78rem;line-height:1;}
-.tw-act-btn:hover.tw-act-btn:not(.tw-views-btn){color:var(--text);}
+.tw-act-btn:hover.tw-act-btn:not(.tw-views-btn){color:#e6edf3;}
 
 /* Comentar – azul al hover */
 .tw-act-btn:first-child:hover{color:#1d9bf0;background:rgba(29,155,240,.1);}
@@ -946,11 +946,11 @@ img[title="Verificado"]:hover{
 /* Action buttons (Me gusta / Comentar / Compartir) */
 .post-actions{display:flex;gap:0;padding:0 4px;border-top:1px solid #ced0d4;}
 .act-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:8px;background:none;border:none;color:#8b949e;font-size:.88rem;font-weight:700;cursor:pointer;transition:background .15s;}
-.act-btn:hover{background:#1c2128;color:var(--text);}
+.act-btn:hover{background:#1c2128;color:#e6edf3;}
 
 /* Comment input row */
 .comment-input-row{display:flex;gap:8px;align-items:center;padding:8px 0 6px;}
-.comment-input{flex:1;background:var(--bg);border:none;border-radius:20px;padding:9px 16px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;resize:none;}
+.comment-input{flex:1;background:#0d1117;border:none;border-radius:20px;padding:9px 16px;color:#e6edf3;font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;resize:none;}
 .comment-input::placeholder{color:#8b949e;}
 .comment-input:focus{background:#21262d;}
 .comment-send{background:none;border:none;color:#1877f2;font-size:1.1rem;cursor:pointer;padding:4px 8px;opacity:.5;transition:opacity .15s;}
@@ -958,15 +958,15 @@ img[title="Verificado"]:hover{
 
 /* Comment item */
 .comment-item{display:flex;gap:8px;align-items:flex-start;margin-bottom:4px;}
-.comment-bubble{background:var(--bg);border-radius:18px;padding:8px 12px;display:inline-block;max-width:100%;}
-.comment-author{font-size:.82rem;font-weight:700;color:var(--text);display:block;margin-bottom:1px;}
-.comment-text{font-size:.88rem;line-height:1.4;color:var(--text);word-break:break-word;}
+.comment-bubble{background:#0d1117;border-radius:18px;padding:8px 12px;display:inline-block;max-width:100%;}
+.comment-author{font-size:.82rem;font-weight:700;color:#e6edf3;display:block;margin-bottom:1px;}
+.comment-text{font-size:.88rem;line-height:1.4;color:#e6edf3;word-break:break-word;}
 
 /* Comment meta (time, like, reply) */
 .cmt-meta{display:flex;align-items:center;gap:10px;padding:2px 4px 0;flex-wrap:wrap;}
 .cmt-meta-time{font-size:.72rem;color:#8b949e;}
 .cmt-reply-btn{background:none;border:none;font-size:.75rem;font-weight:700;color:#8b949e;cursor:pointer;padding:0;transition:color .15s;}
-.cmt-reply-btn:hover{color:var(--text);text-decoration:underline;}
+.cmt-reply-btn:hover{color:#e6edf3;text-decoration:underline;}
 .cmt-like-btn{background:none;border:none;font-size:.75rem;font-weight:700;color:#8b949e;cursor:pointer;padding:0;transition:color .15s;}
 .cmt-like-btn:hover{color:#1877f2;}
 .cmt-like-btn.active{color:#1877f2;}
@@ -976,12 +976,12 @@ img[title="Verificado"]:hover{
 .cmt-dots-btn{background:none;border:none;color:#8b949e;font-size:1rem;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;opacity:0;transition:opacity .15s,background .15s;}
 .comment-item:hover .cmt-dots-btn{opacity:1;}
 .cmt-dots-btn:hover{background:#21262d;}
-.cmt-menu-dropdown{display:none;position:absolute;right:0;top:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;min-width:160px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.15);overflow:hidden;}
+.cmt-menu-dropdown{display:none;position:absolute;right:0;top:0;background:#161b22;border:1px solid #30363d;border-radius:8px;min-width:160px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.15);overflow:hidden;}
 .cmt-menu-wrap:hover .cmt-menu-dropdown{display:block;}
 
 /* Reaction popup */
 .cmt-rxn-wrap{position:relative;}
-.cmt-rxn-popup{display:none;position:absolute;bottom:calc(100% + 6px);left:0;background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:6px 8px;align-items:center;box-shadow:0 4px 16px rgba(0,0,0,.2);white-space:nowrap;z-index:9998;flex-direction:row;gap:4px;}
+.cmt-rxn-popup{display:none;position:absolute;bottom:calc(100% + 6px);left:0;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:6px 8px;align-items:center;box-shadow:0 4px 16px rgba(0,0,0,.2);white-space:nowrap;z-index:9998;flex-direction:row;gap:4px;}
 .cmt-rxn-wrap:hover .cmt-rxn-popup{display:flex;}
 
 
@@ -1718,7 +1718,7 @@ select.fi option{background:var(--bg3);color:var(--text);}
 .sv-img{width:100%;height:100%;object-fit:cover;}
 .sv-progress{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:3px;}
 .sv-prog-bar{flex:1;height:3px;background:rgba(255,255,255,.3);border-radius:3px;overflow:hidden;}
-.sv-prog-fill{height:100%;background:var(--bg2);width:0;transition:width linear;}
+.sv-prog-fill{height:100%;background:#161b22;width:0;transition:width linear;}
 .sv-header{position:absolute;top:52px;left:12px;right:12px;display:flex;align-items:center;gap:8px;z-index:15;}
 .sv-close{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.5);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:1rem;display:flex;align-items:center;justify-content:center;}
 .sv-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.4);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:1.2rem;display:flex;align-items:center;justify-content:center;}
@@ -1929,7 +1929,7 @@ body {
 
 /* Reaction popup — estilo RF4 */
 .rxn-popup {
-  background: var(--bg2) !important;
+  background: var(--bg2, #0d1117) !important;
   border: 1px solid rgba(255,255,255,.12) !important;
   box-shadow: 0 4px 20px rgba(0,0,0,.7) !important;
 }
@@ -2343,7 +2343,7 @@ input:focus, textarea:focus {
         .sw-match-see-all{font-size:.62rem;color:var(--accent);font-weight:700;cursor:pointer;background:none;border:none;padding:0;font-family:'Exo 2',sans-serif;}
         .sw-match-see-all:hover{text-decoration:underline;}
         .sw-match-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:0 7px 8px;}
-        .sw-match-card{position:relative;border-radius:10px;overflow:hidden;aspect-ratio:2/3;cursor:pointer;background:linear-gradient(135deg,var(--bg3),var(--bg));border:1px solid rgba(255,255,255,.06);transition:transform .18s,box-shadow .18s;}
+        .sw-match-card{position:relative;border-radius:10px;overflow:hidden;aspect-ratio:2/3;cursor:pointer;background:linear-gradient(135deg,#1a2030,#0d1117);border:1px solid rgba(255,255,255,.06);transition:transform .18s,box-shadow .18s;}
         .sw-match-card:hover{transform:scale(1.04);box-shadow:0 6px 18px rgba(243,62,88,.25);border-color:rgba(243,62,88,.4);}
         .sw-match-card img{width:100%;height:100%;object-fit:cover;display:block;}
         .sw-match-ini{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:900;color:var(--accent);}
@@ -2431,6 +2431,146 @@ input:focus, textarea:focus {
       })();
       </script>
       <!-- ═══════════ FIN MATCH WIDGET SIDEBAR ═══════════ -->
+
+      <!-- ═══════════ NUEVOS USUARIOS WIDGET SIDEBAR ═══════════ -->
+      <style>
+        .sw-new-widget{margin:0 0 12px;background:linear-gradient(135deg,rgba(46,196,182,.09),rgba(46,196,182,.04));border:1px solid rgba(46,196,182,.28);border-radius:14px;overflow:hidden;}
+        .sw-new-header{display:flex;align-items:center;justify-content:space-between;padding:9px 11px 6px;}
+        .sw-new-title{font-size:.7rem;font-weight:900;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;}
+        .sw-new-see-all{font-size:.62rem;color:var(--accent);font-weight:700;cursor:pointer;background:none;border:none;padding:0;font-family:'Exo 2',sans-serif;}
+        .sw-new-see-all:hover{text-decoration:underline;}
+        .sw-new-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:0 7px 8px;}
+        .sw-new-card{position:relative;border-radius:10px;overflow:hidden;aspect-ratio:2/3;cursor:pointer;background:linear-gradient(135deg,var(--bg3),var(--bg2));border:1px solid rgba(46,196,182,.15);transition:transform .18s,box-shadow .18s;}
+        .sw-new-card:hover{transform:scale(1.04);box-shadow:0 6px 18px rgba(46,196,182,.25);border-color:rgba(46,196,182,.4);}
+        .sw-new-card img{width:100%;height:100%;object-fit:cover;display:block;}
+        .sw-new-ini{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:900;color:var(--accent);}
+        .sw-new-grad{position:absolute;bottom:0;left:0;right:0;height:60%;background:linear-gradient(to top,rgba(0,0,0,.82),transparent);pointer-events:none;}
+        .sw-new-info{position:absolute;bottom:0;left:0;right:0;padding:4px 5px 5px;}
+        .sw-new-name{font-size:.58rem;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;}
+        .sw-new-badge{position:absolute;top:4px;left:4px;background:var(--accent);color:#000;font-size:.42rem;font-weight:900;border-radius:4px;padding:1px 4px;text-transform:uppercase;letter-spacing:.04em;}
+        .sw-new-footer{padding:0 7px 9px;}
+        .sw-new-open-btn{width:100%;padding:7px 0;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#000;font-size:.75rem;font-weight:800;cursor:pointer;font-family:'Exo 2',sans-serif;letter-spacing:.03em;transition:opacity .15s;}
+        .sw-new-open-btn:hover{opacity:.88;}
+        .sw-new-empty{text-align:center;padding:14px 8px;font-size:.72rem;color:var(--muted);}
+      </style>
+      <div class="sw-new-widget">
+        <div class="sw-new-header">
+          <div class="sw-new-title">&#10024; Nuevos Usuarios</div>
+          <button class="sw-new-see-all" onclick="gp('gente');">Ver todos &rarr;</button>
+        </div>
+        <div class="sw-new-grid" id="sidebarNewUsersGrid">
+          <div class="sw-sk" style="aspect-ratio:2/3;"></div>
+          <div class="sw-sk" style="aspect-ratio:2/3;"></div>
+          <div class="sw-sk" style="aspect-ratio:2/3;"></div>
+          <div class="sw-sk" style="aspect-ratio:2/3;"></div>
+          <div class="sw-sk" style="aspect-ratio:2/3;"></div>
+          <div class="sw-sk" style="aspect-ratio:2/3;"></div>
+        </div>
+        <div class="sw-new-footer">
+          <button class="sw-new-open-btn" onclick="gp('gente');">&#128994; Ver nuevos registros</button>
+        </div>
+      </div>
+      <script>
+      (function(){
+        var _nuTries = 0;
+        var _nuLoading = false;
+
+        function _esc(s) {
+          return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
+
+        function _buildCard(u) {
+          var av  = u.av || '';
+          var ini = (u.nick || '?')[0].toUpperCase();
+          var nick = _esc((u.nick || '?').slice(0, 12));
+          var id   = _esc(u.id);
+          var inner = av
+            ? '<img src="' + _esc(av) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;">'
+              + '<div class="sw-new-ini" style="display:none;">' + ini + '</div>'
+            : '<div class="sw-new-ini">' + ini + '</div>';
+          return '<div class="sw-new-card" onclick="openUserProfile(' + "'" + id + "','" + nick + "')" + '>'
+            + inner
+            + '<div class="sw-new-grad"></div>'
+            + '<div class="sw-new-badge">NEW</div>'
+            + '<div class="sw-new-info"><div class="sw-new-name">' + nick + '</div></div>'
+            + '</div>';
+        }
+
+        function _fillNew(users) {
+          var grid = document.getElementById('sidebarNewUsersGrid');
+          if (!grid) return;
+          if (!users || !users.length) {
+            if (_nuTries++ < 6) { setTimeout(_tryFillNew, 1000); return; }
+            grid.innerHTML = '<div class="sw-new-empty">Sin usuarios nuevos</div>';
+            return;
+          }
+          var html = '';
+          for (var i = 0; i < users.length; i++) { html += _buildCard(users[i]); }
+          grid.innerHTML = html;
+        }
+
+        function _sortByDate(arr) {
+          return arr.slice().sort(function(a, b) {
+            var ta = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : (a.createdAt || 0);
+            var tb = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : (b.createdAt || 0);
+            return tb - ta;
+          });
+        }
+
+        function _myId() { return (window.CU && window.CU.id) || ''; }
+
+        function _loadFromFirestore() {
+          if (_nuLoading || !window.db) return;
+          _nuLoading = true;
+          import('https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js').then(function(m) {
+            var q = m.query(m.collection(window.db, 'users'), m.orderBy('createdAt', 'desc'), m.limit(12));
+            return m.getDocs(q);
+          }).then(function(snap) {
+            var users = snap.docs
+              .map(function(d) { return Object.assign({ id: d.id }, d.data()); })
+              .filter(function(u) { return !u.banned && u.id !== _myId(); })
+              .slice(0, 6);
+            _nuLoading = false;
+            _fillNew(users);
+          }).catch(function() {
+            _nuLoading = false;
+            _tryFallback();
+          });
+        }
+
+        function _tryFallback() {
+          var base = (window._matchAllUsers || []).filter(function(u) {
+            return !u.banned && u.id !== _myId();
+          });
+          var users = _sortByDate(base).slice(0, 6);
+          _fillNew(users);
+        }
+
+        function _tryFillNew() {
+          if (window._matchAllUsers && window._matchAllUsers.length) {
+            var users = _sortByDate(
+              (window._matchAllUsers || []).filter(function(u) {
+                return !u.banned && u.id !== _myId();
+              })
+            ).slice(0, 6);
+            if (users.length) { _fillNew(users); return; }
+          }
+          if (window.db) { _loadFromFirestore(); }
+          else if (_nuTries++ < 20) { setTimeout(_tryFillNew, 800); }
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', function() { setTimeout(_tryFillNew, 3500); });
+        } else {
+          setTimeout(_tryFillNew, 3500);
+        }
+        var _nuDbCheck = setInterval(function() {
+          if (window.db) { clearInterval(_nuDbCheck); _tryFillNew(); }
+        }, 500);
+        window._refreshSidebarNewUsers = _tryFillNew;
+      })();
+      </script>
+      <!-- ═══════════ FIN NUEVOS USUARIOS WIDGET SIDEBAR ═══════════ -->
 
 
 
@@ -3037,14 +3177,14 @@ input:focus, textarea:focus {
 
 
 <style>
-#mAuth{background:var(--bg);}
+#mAuth{background:#0d1117;}
 .fb-left{flex:1;max-width:480px;display:flex;flex-direction:column;justify-content:center;padding:0 0 80px 0;}
 .fb-left h1{font-family:'Exo 2',sans-serif;font-size:3.6rem;font-weight:900;color:#1877f2;line-height:1;margin-bottom:16px;letter-spacing:-1px;}
 .fb-left h1 span{color:#f7b928;}
-.fb-left p{font-size:1.35rem;color:var(--text);line-height:1.5;max-width:380px;}
+.fb-left p{font-size:1.35rem;color:#e6edf3;line-height:1.5;max-width:380px;}
 .fb-right{width:100%;max-width:396px;display:flex;flex-direction:column;gap:0;}
-.fb-card{background:var(--bg2);border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.1),0 8px 16px rgba(0,0,0,.1);padding:20px;}
-.fb-input{width:100%;padding:14px 16px;border:1px solid var(--border);border-radius:6px;font-size:1rem;font-family:'Exo 2',sans-serif;color:var(--text);outline:none;transition:border-color .15s;margin-bottom:12px;background:var(--bg2);}
+.fb-card{background:#161b22;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.1),0 8px 16px rgba(0,0,0,.1);padding:20px;}
+.fb-input{width:100%;padding:14px 16px;border:1px solid #30363d;border-radius:6px;font-size:1rem;font-family:'Exo 2',sans-serif;color:#e6edf3;outline:none;transition:border-color .15s;margin-bottom:12px;background:#161b22;}
 .fb-input:focus{border-color:#1877f2;box-shadow:0 0 0 2px rgba(24,119,242,.2);}
 .fb-input::placeholder{color:#8a8d91;}
 .fb-btn-login{width:100%;padding:14px;background:#1877f2;color:#fff;border:none;border-radius:6px;font-size:1.1rem;font-weight:700;font-family:'Exo 2',sans-serif;cursor:pointer;transition:background .15s;margin-bottom:14px;}
@@ -3055,12 +3195,12 @@ input:focus, textarea:focus {
 .fb-btn-create:hover{background:#36a420;}
 .fb-forgot{display:block;text-align:center;color:#1877f2;font-size:.9rem;margin-bottom:0;cursor:pointer;text-decoration:none;}
 .fb-forgot:hover{text-decoration:underline;}
-.fb-saved{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:background .15s;margin-bottom:8px;background:#f7f8fa;}
+.fb-saved{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #30363d;border-radius:8px;cursor:pointer;transition:background .15s;margin-bottom:8px;background:#f7f8fa;}
 .fb-saved:hover{background:#21262d;}
 .fb-saved-av{width:40px;height:40px;border-radius:50%;background:#1877f2;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden;}
 .fb-saved-av img{width:100%;height:100%;object-fit:cover;}
 .fb-saved-info{flex:1;}
-.fb-saved-nick{font-weight:700;font-size:.9rem;color:var(--text);}
+.fb-saved-nick{font-weight:700;font-size:.9rem;color:#e6edf3;}
 .fb-saved-email{font-size:.75rem;color:#8b949e;}
 @media(max-width:900px){
   .fb-left{display:none;}
@@ -3068,14 +3208,14 @@ input:focus, textarea:focus {
   .fb-right{max-width:396px;}
 }
 /* Register card */
-.fb-reg-title{font-size:1.5rem;font-weight:700;color:var(--text);margin-bottom:2px;}
+.fb-reg-title{font-size:1.5rem;font-weight:700;color:#e6edf3;margin-bottom:2px;}
 .fb-reg-sub{font-size:.9rem;color:#8b949e;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #dddfe2;}
 .fb-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 </style>
 
 
 
-<div id="splashScreen" style="display:flex;position:fixed;inset:0;z-index:10000;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;gap:18px;">
+<div id="splashScreen" style="display:flex;position:fixed;inset:0;z-index:10000;background:#0d1117;align-items:center;justify-content:center;flex-direction:column;gap:18px;">
   <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9IiMwZDExMTciLz48dGV4dCB4PSIzMiIgeT0iNDQiIGZvbnQtc2l6ZT0iMzYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPvCfjqM8L3RleHQ+PC9zdmc+" onerror="this.style.display='none'" style="width:80px;height:80px;border-radius:16px;object-fit:contain;">
   <div style="font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:900;color:#1a73e8;">Mi<span style="color:#f5a623);">Latido</span></div>
   <div style="width:40px;height:40px;border:4px solid #e0e0e0;border-top-color:#1877f2;border-radius:50%;animation:splashSpin 0.8s linear infinite;"></div>
@@ -3122,7 +3262,7 @@ input:focus, textarea:focus {
         </div>
         <div class="fb-divider"></div>
         <button class="fb-btn-create" onclick="showReg()" style="margin-bottom:10px;">Crear cuenta nueva</button>
-        <button onclick="doGoogleLogin()" style="width:100%;padding:12px;background:var(--bg2);color:#3c4043;border:1.5px solid #dadce0;border-radius:6px;font-size:1rem;font-weight:600;font-family:'Exo 2',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 8px #0002'" onmouseout="this.style.boxShadow='none'">
+        <button onclick="doGoogleLogin()" style="width:100%;padding:12px;background:#161b22;color:#3c4043;border:1.5px solid #dadce0;border-radius:6px;font-size:1rem;font-weight:600;font-family:'Exo 2',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 8px #0002'" onmouseout="this.style.boxShadow='none'">
           <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:22px;height:22px;">
           Continuar con Google
         </button>
@@ -3138,7 +3278,7 @@ input:focus, textarea:focus {
           <input class="fb-input" type="password" id="rPass" placeholder="Contraseña (mín. 6 caracteres) *" style="margin-bottom:0;padding-right:44px;" autocomplete="new-password">
           <button type="button" onclick="togglePassVis('rPass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:#8b949e;padding:2px 4px;">👁</button>
         </div>
-        <select class="fb-input" id="rCountry" style="margin-bottom:8px;color:var(--text);background:#21262d;">
+        <select class="fb-input" id="rCountry" style="margin-bottom:8px;color:#e6edf3;background:#21262d;">
           <option value="">— País (opcional) —</option>
           <option value="🇦🇷 Argentina">🇦🇷 Argentina</option>
           <option value="🇲🇽 México">🇲🇽 México</option>
@@ -3166,7 +3306,7 @@ input:focus, textarea:focus {
       </div>
 
       
-      <div style="margin-top:18px;background:var(--bg2);border-top:1px solid var(--border);border-radius:0 0 12px 12px;padding:14px 18px 16px;">
+      <div style="margin-top:18px;background:#161b22;border-top:1px solid #30363d;border-radius:0 0 12px 12px;padding:14px 18px 16px;">
 
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
           <img src="icon-192.png" alt="MiLatido.UY" style="width:44px;height:44px;border-radius:10px;object-fit:cover;box-shadow:0 0 12px rgba(46,196,182,.5);">
@@ -3196,7 +3336,7 @@ input:focus, textarea:focus {
 
 
 <div id="mCountryPick" style="display:none;position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px;">
-  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;max-width:440px;width:100%;padding:32px 28px;box-shadow:0 8px 40px rgba(0,0,0,.4);animation:mIn .25s ease;">
+  <div style="background:#161b22;border:1px solid #30363d;border-radius:16px;max-width:440px;width:100%;padding:32px 28px;box-shadow:0 8px 40px rgba(0,0,0,.4);animation:mIn .25s ease;">
     <div style="text-align:center;margin-bottom:22px;">
       <div style="font-size:2.5rem;margin-bottom:8px;">🌎</div>
       <div style="font-family:'Orbitron',monospace;font-size:1.05rem;font-weight:900;color:var(--accent);">¿De dónde sos?</div>
@@ -3249,7 +3389,7 @@ input:focus, textarea:focus {
 
 
 <div id="mVerifBenefits" style="display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px;">
-  <div style="background:var(--bg2);border-radius:12px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.3);position:relative;">
+  <div style="background:#161b22;border-radius:12px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.3);position:relative;">
     
     <div style="background:linear-gradient(135deg,#b8860b,#ffd700,#ffec6e,#ffa500);padding:28px 24px 20px;border-radius:12px 12px 0 0;text-align:center;position:relative;overflow:hidden;">
       <div style="font-size:2.8rem;margin-bottom:6px;">👑</div>
@@ -3263,38 +3403,38 @@ input:focus, textarea:focus {
 
         <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fffbf0;border:1px solid rgba(255,215,0,.3);border-radius:8px;">
           <span style="flex-shrink:0;">✅</span>
-          <div><div style="font-weight:700;font-size:.9rem;color:var(--text);">Insignia verificada</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Tu perfil y publicaciones muestran el sello ✅ que distingue tu cuenta como confiable dentro de la comunidad.</div></div>
+          <div><div style="font-weight:700;font-size:.9rem;color:#e6edf3;">Insignia verificada</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Tu perfil y publicaciones muestran el sello ✅ que distingue tu cuenta como confiable dentro de la comunidad.</div></div>
         </div>
 
         <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fffbf0;border:1px solid rgba(255,215,0,.3);border-radius:8px;">
           <span style="font-size:1.4rem;flex-shrink:0;">🌟</span>
-          <div><div style="font-weight:700;font-size:.9rem;color:var(--text);">Publicaciones destacadas</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Tus posts tienen un diseño especial con borde dorado animado que los diferencia del resto en el feed.</div></div>
+          <div><div style="font-weight:700;font-size:.9rem;color:#e6edf3;">Publicaciones destacadas</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Tus posts tienen un diseño especial con borde dorado animado que los diferencia del resto en el feed.</div></div>
         </div>
 
         <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fffbf0;border:1px solid rgba(255,215,0,.3);border-radius:8px;">
           <span style="font-size:1.4rem;flex-shrink:0;">📌</span>
-          <div><div style="font-weight:700;font-size:.9rem;color:var(--text);">Fijar post en perfil</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Podés elegir una publicación y dejarla fija en la parte superior de tu perfil para que siempre sea lo primero que vean.</div></div>
+          <div><div style="font-weight:700;font-size:.9rem;color:#e6edf3;">Fijar post en perfil</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Podés elegir una publicación y dejarla fija en la parte superior de tu perfil para que siempre sea lo primero que vean.</div></div>
         </div>
 
         <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fffbf0;border:1px solid rgba(255,215,0,.3);border-radius:8px;">
           <span style="font-size:1.4rem;flex-shrink:0;">👁️</span>
-          <div><div style="font-weight:700;font-size:.9rem;color:var(--text);">Ver quién visitó tu perfil</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Accedé a la lista de usuarios que visitaron tu perfil recientemente. Función exclusiva para verificados.</div></div>
+          <div><div style="font-weight:700;font-size:.9rem;color:#e6edf3;">Ver quién visitó tu perfil</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Accedé a la lista de usuarios que visitaron tu perfil recientemente. Función exclusiva para verificados.</div></div>
         </div>
 
 
         <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fffbf0;border:1px solid rgba(255,215,0,.3);border-radius:8px;">
           <span style="font-size:1.4rem;flex-shrink:0;">⏳</span>
-          <div><div style="font-weight:700;font-size:.9rem;color:var(--text);">Historias de 48 horas</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Tus historias duran el doble que las de los usuarios normales — 48 horas en lugar de 24.</div></div>
+          <div><div style="font-weight:700;font-size:.9rem;color:#e6edf3;">Historias de 48 horas</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Tus historias duran el doble que las de los usuarios normales — 48 horas en lugar de 24.</div></div>
         </div>
 
         <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fffbf0;border:1px solid rgba(255,215,0,.3);border-radius:8px;">
           <span style="font-size:1.4rem;flex-shrink:0;">💬</span>
-          <div><div style="font-weight:700;font-size:.9rem;color:var(--text);">Reacciones extra en chats</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Desbloqueás emojis adicionales para reaccionar en los mensajes privados.</div></div>
+          <div><div style="font-weight:700;font-size:.9rem;color:#e6edf3;">Reacciones extra en chats</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Desbloqueás emojis adicionales para reaccionar en los mensajes privados.</div></div>
         </div>
 
         <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:#fffbf0;border:1px solid rgba(255,215,0,.3);border-radius:8px;">
           <span style="font-size:1.4rem;flex-shrink:0;">👥</span>
-          <div><div style="font-weight:700;font-size:.9rem;color:var(--text);">Ver vistas en tus historias</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Sabé exactamente quiénes vieron tus historias. Solo los verificados tienen acceso a esta información.</div></div>
+          <div><div style="font-weight:700;font-size:.9rem;color:#e6edf3;">Ver vistas en tus historias</div><div style="font-size:.8rem;color:#8b949e;margin-top:2px;">Sabé exactamente quiénes vieron tus historias. Solo los verificados tienen acceso a esta información.</div></div>
         </div>
 
       </div>
@@ -3940,10 +4080,10 @@ input:focus, textarea:focus {
   right:24px;
   width:340px;
   height:560px;
-  background:var(--bg2);
+  background:#161b22;
   border-radius:12px;
   box-shadow:0 8px 40px rgba(0,0,0,.55);
-  border:1px solid var(--border);
+  border:1px solid #30363d;
   z-index:3000;
   flex-direction:column;
   overflow:hidden;
@@ -3997,7 +4137,7 @@ input:focus, textarea:focus {
   flex-shrink:0;
 }
 .gchat-nick:hover{ text-decoration:underline; }
-.gchat-text{ color:var(--text); word-break:break-word; flex:1; }
+.gchat-text{ color:#e6edf3; word-break:break-word; flex:1; }
 .gchat-time{ color:#8b949e; font-size:.65rem; white-space:nowrap; flex-shrink:0; align-self:flex-end; }
 /* Player row */
 .rf4-player-row{
@@ -4029,7 +4169,7 @@ input:focus, textarea:focus {
 
 <div id="mMessenger">
   
-  <div id="chatDragHandle" style="background:var(--bg);flex-shrink:0;border-bottom:1px solid var(--border);">
+  <div id="chatDragHandle" style="background:#0d1117;flex-shrink:0;border-bottom:1px solid #30363d;">
     
     <div style="padding:8px 12px;display:flex;align-items:center;justify-content:space-between;">
       <div style="display:flex;align-items:center;gap:8px;">
@@ -4043,7 +4183,7 @@ input:focus, textarea:focus {
       </div>
     </div>
     
-    <div style="display:flex;border-top:1px solid var(--border);padding:0 4px;">
+    <div style="display:flex;border-top:1px solid #21262d;padding:0 4px;">
       <button class="rf4-tab on" id="rf4TabChat"     onclick="rf4SwitchTab('chat')"     >💬 Chat</button>
       <button class="rf4-tab"   id="rf4TabJugadores" onclick="rf4SwitchTab('jugadores')" >👥 Jugadores</button>
       <button class="rf4-tab"   id="rf4TabMensajes"  onclick="rf4SwitchTab('mensajes')"  >✉️ Mensajes <span id="unreadChatBadge" style="display:none;background:var(--red);color:#fff;border-radius:50%;padding:0 4px;font-size:.6rem;"></span></button>
@@ -4055,9 +4195,9 @@ input:focus, textarea:focus {
     
     <div id="globalChatMessages" style="flex:1;overflow-y:auto;padding:6px 0;" class="custom-scroll"></div>
     
-    <div style="padding:6px 8px;border-top:1px solid var(--border);display:flex;gap:6px;align-items:center;flex-shrink:0;background:var(--bg);">
+    <div style="padding:6px 8px;border-top:1px solid #21262d;display:flex;gap:6px;align-items:center;flex-shrink:0;background:#0d1117;">
       <input id="globalChatInput" placeholder="Ingrese su mensaje ..." maxlength="250"
-        style="flex:1;background:#21262d;border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.82rem;outline:none;"
+        style="flex:1;background:#21262d;border:1px solid #30363d;border-radius:6px;padding:6px 10px;color:#e6edf3;font-family:'Exo 2',sans-serif;font-size:.82rem;outline:none;"
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendGlobalMsg();event.preventDefault();}">
       <button onclick="sendGlobalMsg()" style="background:var(--accent);border:none;color:#000;padding:6px 12px;border-radius:6px;font-family:'Exo 2',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;flex-shrink:0;transition:opacity .15s;" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">Enviar</button>
     </div>
@@ -4066,11 +4206,11 @@ input:focus, textarea:focus {
   
   <div id="rf4PanelJugadores" style="flex:1;display:none;flex-direction:column;min-height:0;overflow-y:auto;">
     
-    <div style="padding:6px 8px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;">
+    <div style="padding:6px 8px;border-bottom:1px solid #21262d;background:#0d1117;flex-shrink:0;">
       <div style="background:#21262d;border-radius:6px;display:flex;align-items:center;gap:6px;padding:5px 10px;">
         <span style="color:#8b949e;font-size:.8rem;">🔍</span>
         <input id="jugadoresSearch" placeholder="Buscar jugador..." maxlength="40"
-          style="background:none;border:none;outline:none;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.8rem;width:100%;"
+          style="background:none;border:none;outline:none;color:#e6edf3;font-family:'Exo 2',sans-serif;font-size:.8rem;width:100%;"
           oninput="rf4FilterJugadores(this.value)">
       </div>
     </div>
@@ -4092,9 +4232,9 @@ input:focus, textarea:focus {
       
       <div style="position:relative;">
         <button onclick="toggleChatStickerPicker()" title="Stickers" style="background:none;border:none;font-size:1.3rem;cursor:pointer;padding:4px;color:#0084ff;transition:transform .15s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">🎭</button>
-        <div id="chatStickerPicker" style="display:none;position:absolute;bottom:calc(100% + 8px);left:0;width:280px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.6);z-index:9999;overflow:hidden;flex-direction:column;">
-          <div style="padding:8px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;">
-            <input type="text" placeholder="🔍 Buscar sticker..." id="chatStickerSearch" oninput="searchChatStickers(this.value)" style="flex:1;background:#21262d;border:none;border-radius:8px;padding:5px 10px;color:var(--text);font-size:.8rem;outline:none;">
+        <div id="chatStickerPicker" style="display:none;position:absolute;bottom:calc(100% + 8px);left:0;width:280px;background:#161b22;border:1px solid #30363d;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.6);z-index:9999;overflow:hidden;flex-direction:column;">
+          <div style="padding:8px 10px;border-bottom:1px solid #30363d;display:flex;align-items:center;gap:6px;">
+            <input type="text" placeholder="🔍 Buscar sticker..." id="chatStickerSearch" oninput="searchChatStickers(this.value)" style="flex:1;background:#21262d;border:none;border-radius:8px;padding:5px 10px;color:#e6edf3;font-size:.8rem;outline:none;">
             <button onclick="document.getElementById('chatStickerPicker').style.display='none'" style="background:none;border:none;color:#8b949e;cursor:pointer;font-size:1rem;">✕</button>
           </div>
           <div id="chatStickerGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:8px;max-height:200px;overflow-y:auto;"></div>
@@ -4118,7 +4258,7 @@ input:focus, textarea:focus {
     </div>
     
     <div style="flex:1;background:#21262d;border-radius:20px;padding:6px 14px;display:flex;align-items:center;min-height:36px;">
-      <input id="chatInput" placeholder="Aa" style="flex:1;background:none;border:none;outline:none;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.88rem;" onkeypress="if(event.key==='Enter'&&!event.shiftKey){sendChatMsg();event.preventDefault();}" oninput="setChatTyping();toggleVoiceBtn()">
+      <input id="chatInput" placeholder="Aa" style="flex:1;background:none;border:none;outline:none;color:#e6edf3;font-family:'Exo 2',sans-serif;font-size:.88rem;" onkeypress="if(event.key==='Enter'&&!event.shiftKey){sendChatMsg();event.preventDefault();}" oninput="setChatTyping();toggleVoiceBtn()">
     </div>
     
     <div style="flex-shrink:0;display:flex;align-items:center;">
@@ -4469,8 +4609,10 @@ function _av(u){
 }
 function _isAdultos(salaId){ return salaId && salaId.startsWith('adultos-'); }
 function _canAccessAdultos(){
-  // Cualquier usuario registrado puede acceder
-  return !!window.CU;
+  // Puede acceder si está verificado o es admin
+  if(!window.CU) return false;
+  const isAdmin = window.CU.nick==='ruizgustavo12'||window.CU.email==='synxyes@gmail.com'||window.CU.role==='admin';
+  return isAdmin || window.CU.verified || window.CU.premium;
 }
 
 // ── INICIALIZAR PÁGINA ───────────────────────────────────────────────────────
@@ -5678,7 +5820,7 @@ function initShopCoinsDisplay(){
 #page-cafe .cafe-card.urgent{border-color:rgba(248,81,73,.6);}
 #page-cafe .cafe-card.warning{border-color:rgba(210,153,34,.6);}
 /* Imagen */
-#page-cafe .cafe-card-img{width:100%;height:145px;background:linear-gradient(180deg,var(--bg3) 0%,var(--bg2) 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+#page-cafe .cafe-card-img{width:100%;height:145px;background:linear-gradient(180deg,#232a33 0%,#161b22 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
 #page-cafe .cafe-card-img img{max-width:90%;max-height:130px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,.7));}
 #page-cafe .cafe-card-img .cafe-no-img{font-size:4rem;opacity:.25;}
 /* Círculo timer azul superpuesto */
@@ -5687,7 +5829,7 @@ function initShopCoinsDisplay(){
 #page-cafe .cafe-timer-circle.warning{background:#d29922;}
 /* Cuerpo */
 #page-cafe .cafe-card-body{padding:26px 14px 10px;text-align:center;}
-#page-cafe .cafe-card-name{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:2px;}
+#page-cafe .cafe-card-name{font-size:1rem;font-weight:700;color:#e6edf3;margin-bottom:2px;}
 #page-cafe .cafe-card-mapname{font-size:.72rem;color:#5a8060;margin-bottom:12px;}
 #page-cafe .cafe-card-qty{font-size:.8rem;color:#b0bec5;margin-bottom:3px;}
 #page-cafe .cafe-card-weight{font-size:.8rem;color:#b0bec5;margin-bottom:10px;}
@@ -5742,7 +5884,7 @@ function initShopCoinsDisplay(){
 
   
   <div id="cafeIAModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;align-items:center;justify-content:center;padding:16px;">
-    <div style="background:var(--bg2);border:1px solid rgba(46,196,182,.35);border-radius:16px;padding:24px 20px;max-width:500px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.7);">
+    <div style="background:#161b22;border:1px solid rgba(46,196,182,.35);border-radius:16px;padding:24px 20px;max-width:500px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.7);">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
         <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2ec4b6,#1a6a64);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">☕</div>
         <div>
@@ -5754,7 +5896,7 @@ function initShopCoinsDisplay(){
       
       <div style="margin-bottom:14px;">
         <div style="font-size:.72rem;color:#8b949e;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">Mapa destino de los pedidos</div>
-        <select id="cafeIAMapSelect" style="width:100%;background:#21262d;border:1px solid rgba(46,196,182,.4);border-radius:6px;color:var(--text);padding:8px 11px;font-family:'Exo 2',sans-serif;font-size:.85rem;outline:none;">
+        <select id="cafeIAMapSelect" style="width:100%;background:#21262d;border:1px solid rgba(46,196,182,.4);border-radius:6px;color:#e6edf3;padding:8px 11px;font-family:'Exo 2',sans-serif;font-size:.85rem;outline:none;">
           <option value="Mosquito Lake">Mosquito Lake</option>
           <option value="Winding Rivulet">Winding Rivulet</option>
           <option value="Old Burg Lake">Old Burg Lake</option>
@@ -5779,7 +5921,7 @@ function initShopCoinsDisplay(){
         <div style="color:#2ec4b6;font-weight:700;font-size:.9rem;margin-bottom:4px;">Tocá acá para cargar la captura</div>
         <div style="color:#8b949e;font-size:.75rem;">Foto o captura de pantalla del panel de pedidos del Café</div>
       </div>
-      <div id="cafeIAPreview" style="display:none;margin-bottom:14px;text-align:center;"><img id="cafeIAPreviewImg" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid var(--border);"></div>
+      <div id="cafeIAPreview" style="display:none;margin-bottom:14px;text-align:center;"><img id="cafeIAPreviewImg" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid #30363d;"></div>
       <div id="cafeIALoading" style="display:none;text-align:center;padding:16px;">
         <div style="font-size:.85rem;color:#2ec4b6;font-weight:700;margin-bottom:10px;">🤖 Analizando la imagen, aguantá un momento...</div>
         <div style="display:flex;justify-content:center;gap:6px;">
@@ -5802,7 +5944,7 @@ function initShopCoinsDisplay(){
 
   
   <div id="cafeReportModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;align-items:center;justify-content:center;padding:16px;">
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;">
+    <div style="background:#161b22;border:1px solid #30363d;border-radius:14px;padding:20px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
         <span style="font-family:'Orbitron',monospace;font-size:.9rem;font-weight:900;color:#ff8c00;">☕ Reportar pedido</span>
         <button onclick="cafeCloseReport()" style="margin-left:auto;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;">✕</button>
@@ -5810,12 +5952,12 @@ function initShopCoinsDisplay(){
       
       <div style="margin-bottom:10px;">
         <div style="font-size:.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Mapa</div>
-        <div id="cafeReportMapLabel" style="background:#21262d;border:1px solid var(--border);border-radius:6px;padding:8px 11px;font-size:.85rem;color:#ff8c00;font-weight:700;"></div>
+        <div id="cafeReportMapLabel" style="background:#21262d;border:1px solid #30363d;border-radius:6px;padding:8px 11px;font-size:.85rem;color:#ff8c00;font-weight:700;"></div>
       </div>
       
       <div style="margin-bottom:10px;">
         <div style="font-size:.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Especie</div>
-        <select id="cafeReportFish" style="width:100%;background:#21262d;border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 11px;font-family:'Exo 2',sans-serif;font-size:.85rem;outline:none;">
+        <select id="cafeReportFish" style="width:100%;background:#21262d;border:1px solid #30363d;border-radius:6px;color:var(--text);padding:8px 11px;font-family:'Exo 2',sans-serif;font-size:.85rem;outline:none;">
           <option value="">— Seleccioná el pez —</option>
         </select>
       </div>
@@ -5823,8 +5965,8 @@ function initShopCoinsDisplay(){
       <div style="margin-bottom:10px;">
         <div style="font-size:.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Peso a partir de</div>
         <div style="display:flex;gap:6px;">
-          <input type="number" id="cafeReportWeight" step="0.001" placeholder="0" style="flex:1;background:#21262d;border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 11px;font-family:'Exo 2',sans-serif;font-size:.85rem;outline:none;">
-          <select id="cafeReportWeightUnit" style="width:64px;background:#21262d;border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 6px;font-family:'Exo 2',sans-serif;font-size:.82rem;outline:none;">
+          <input type="number" id="cafeReportWeight" step="0.001" placeholder="0" style="flex:1;background:#21262d;border:1px solid #30363d;border-radius:6px;color:var(--text);padding:8px 11px;font-family:'Exo 2',sans-serif;font-size:.85rem;outline:none;">
+          <select id="cafeReportWeightUnit" style="width:64px;background:#21262d;border:1px solid #30363d;border-radius:6px;color:var(--text);padding:8px 6px;font-family:'Exo 2',sans-serif;font-size:.82rem;outline:none;">
             <option value="kg">kg</option>
             <option value="g">g</option>
           </select>
@@ -5834,17 +5976,17 @@ function initShopCoinsDisplay(){
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
         <div>
           <div style="font-size:.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Cantidad</div>
-          <input type="number" id="cafeReportQty" value="1" min="1" style="width:100%;background:#21262d;border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 11px;font-family:'Exo 2',sans-serif;font-size:.85rem;outline:none;">
+          <input type="number" id="cafeReportQty" value="1" min="1" style="width:100%;background:#21262d;border:1px solid #30363d;border-radius:6px;color:var(--text);padding:8px 11px;font-family:'Exo 2',sans-serif;font-size:.85rem;outline:none;">
         </div>
         <div>
           <div style="font-size:.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Recompensa 💰</div>
-          <input type="number" id="cafeReportReward" step="0.01" placeholder="0" style="width:100%;background:#21262d;border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 11px;font-family:'Exo 2',sans-serif;font-size:.85rem;outline:none;">
+          <input type="number" id="cafeReportReward" step="0.01" placeholder="0" style="width:100%;background:#21262d;border:1px solid #30363d;border-radius:6px;color:var(--text);padding:8px 11px;font-family:'Exo 2',sans-serif;font-size:.85rem;outline:none;">
         </div>
       </div>
       
       <div style="margin-bottom:14px;">
         <div style="font-size:.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Horas del juego (ej: 48)</div>
-        <input type="number" id="cafeReportHours" min="1" placeholder="ej: 48" style="width:100%;background:#21262d;border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 11px;font-family:'Exo 2',sans-serif;font-size:.85rem;outline:none;">
+        <input type="number" id="cafeReportHours" min="1" placeholder="ej: 48" style="width:100%;background:#21262d;border:1px solid #30363d;border-radius:6px;color:var(--text);padding:8px 11px;font-family:'Exo 2',sans-serif;font-size:.85rem;outline:none;">
         <div style="font-size:.7rem;color:var(--muted);margin-top:3px;">48 horas de juego = 2 días = 2 horas reales</div>
       </div>
       <div id="cafeReportErr" style="display:none;background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);color:#f85149;padding:8px 12px;border-radius:6px;font-size:.8rem;margin-bottom:10px;"></div>
@@ -6247,10 +6389,10 @@ function initShopCoinsDisplay(){
 #page-tienda .tienda-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
 #page-tienda .tienda-card{background:#1a1e24;border:1px solid #2a313a;border-radius:10px;overflow:hidden;transition:border-color .2s,transform .15s;}
 #page-tienda .tienda-card:hover{border-color:#3d4a55;transform:translateY(-2px);}
-#page-tienda .tienda-card-img{width:100%;height:130px;background:linear-gradient(180deg,var(--bg3) 0%,var(--bg2) 100%);display:flex;align-items:center;justify-content:center;}
+#page-tienda .tienda-card-img{width:100%;height:130px;background:linear-gradient(180deg,#232a33 0%,#161b22 100%);display:flex;align-items:center;justify-content:center;}
 #page-tienda .tienda-card-img img{max-width:85%;max-height:110px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,.7));}
 #page-tienda .tienda-card-body{padding:10px 12px 12px;}
-#page-tienda .tienda-card-name{font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:4px;}
+#page-tienda .tienda-card-name{font-size:.88rem;font-weight:700;color:#e6edf3;margin-bottom:4px;}
 #page-tienda .tienda-card-type{font-size:.7rem;color:#2ec4b6;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
 #page-tienda .tienda-card-stats{font-size:.74rem;color:#8b949e;line-height:1.6;}
 #page-tienda .tienda-card-del{width:100%;margin-top:8px;padding:4px;border-radius:5px;border:1px solid rgba(248,81,73,.4);background:rgba(248,81,73,.08);color:#f85149;font-family:Exo 2,sans-serif;font-size:.7rem;font-weight:700;cursor:pointer;}
@@ -6284,7 +6426,7 @@ function initShopCoinsDisplay(){
 
 
 <div id="tiendaIAModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;padding:16px;">
-  <div style="background:var(--bg2);border:1px solid rgba(255,215,0,.35);border-radius:16px;padding:24px 20px;max-width:480px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.7);">
+  <div style="background:#161b22;border:1px solid rgba(255,215,0,.35);border-radius:16px;padding:24px 20px;max-width:480px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.7);">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
       <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#ffd700,#b8860b);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">🛒</div>
       <div>
@@ -6297,7 +6439,7 @@ function initShopCoinsDisplay(){
     
     <div style="margin-bottom:12px;">
       <div style="font-size:.72rem;color:#8b949e;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">Tipo de equipo</div>
-      <select id="tiendaIATipo" style="width:100%;background:#21262d;border:1px solid rgba(255,215,0,.4);border-radius:6px;color:var(--text);padding:8px 11px;font-family:'Exo 2',sans-serif;font-size:.85rem;outline:none;">
+      <select id="tiendaIATipo" style="width:100%;background:#21262d;border:1px solid rgba(255,215,0,.4);border-radius:6px;color:#e6edf3;padding:8px 11px;font-family:'Exo 2',sans-serif;font-size:.85rem;outline:none;">
         <option value="Carrete">Carrete</option>
         <option value="Caña">Caña</option>
         <option value="Línea">Línea</option>
@@ -6326,7 +6468,7 @@ function initShopCoinsDisplay(){
     </div>
 
     <div id="tiendaIAResult" style="display:none;">
-      <div id="tiendaIAResultText" style="font-size:.84rem;line-height:1.7;color:var(--text);margin-bottom:12px;"></div>
+      <div id="tiendaIAResultText" style="font-size:.84rem;line-height:1.7;color:#e6edf3;margin-bottom:12px;"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button id="tiendaIAPublishBtn" onclick="tiendaIAPublicar()" style="flex:1;min-width:160px;padding:10px;border-radius:6px;border:none;background:#ffd700;color:#000;font-family:Exo 2,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;">🚀 Agregar todos a la Tienda</button>
         <button onclick="tiendaIAReset()" style="padding:10px 14px;border-radius:6px;border:1px solid rgba(255,215,0,.4);background:rgba(255,215,0,.1);color:#ffd700;font-family:Exo 2,sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;">📸 Nueva</button>
@@ -10352,7 +10494,7 @@ function postHTML(p){
             +'<div class="cmt-menu-dropdown">'+menuBtns+'</div>'
           +'</div>'
         +'</div>'
-        +(cRxnTotal>0?'<div style="display:inline-flex;align-items:center;gap:2px;background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:2px 5px;font-size:.72rem;margin-top:2px;box-shadow:0 1px 3px rgba(0,0,0,.1);">'+cTopRxn+' <span style="color:#8b949e;">'+cRxnTotal+'</span></div>':'')
+        +(cRxnTotal>0?'<div style="display:inline-flex;align-items:center;gap:2px;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:2px 5px;font-size:.72rem;margin-top:2px;box-shadow:0 1px 3px rgba(0,0,0,.1);">'+cTopRxn+' <span style="color:#8b949e;">'+cRxnTotal+'</span></div>':'')
         +'<div class="cmt-meta">'
           +'<span class="cmt-meta-time">'+timeStr+'</span>'
           +'<div class="cmt-rxn-wrap">'
@@ -10473,7 +10615,7 @@ function postHTML(p){
     if(p.profileAction==='cover' && p.images&&p.images[0]){
       var _imgs = p.images; var _pid = p.id;
       var _imgsJson = _imgs.map(function(x){return "'"+x+"'"}).join(',');
-      return `<div style="margin:0 0 10px;border-radius:var(--rs);overflow:hidden;position:relative;background:var(--bg);cursor:pointer;" onclick="(function(){window._postImgsMap=window._postImgsMap||{};window._postImgsMap['${p.id}']=[${p.images.map(x=>"'"+x+"'").join(',')}];openImgLightboxById('${p.id}',0);})()"><img src="${p.images[0]}" style="width:100%;max-height:340px;object-fit:cover;display:block;transition:opacity .2s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'" loading="lazy"><div style="position:absolute;bottom:8px;left:10px;background:rgba(0,0,0,.55);color:#fff;font-size:.72rem;padding:3px 10px;border-radius:100px;backdrop-filter:blur(6px);">📷 Nueva foto de portada</div></div>`;
+      return `<div style="margin:0 0 10px;border-radius:var(--rs);overflow:hidden;position:relative;background:#0d1117;cursor:pointer;" onclick="(function(){window._postImgsMap=window._postImgsMap||{};window._postImgsMap['${p.id}']=[${p.images.map(x=>"'"+x+"'").join(',')}];openImgLightboxById('${p.id}',0);})()"><img src="${p.images[0]}" style="width:100%;max-height:340px;object-fit:cover;display:block;transition:opacity .2s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'" loading="lazy"><div style="position:absolute;bottom:8px;left:10px;background:rgba(0,0,0,.55);color:#fff;font-size:.72rem;padding:3px 10px;border-radius:100px;backdrop-filter:blur(6px);">📷 Nueva foto de portada</div></div>`;
     }
     if(p.profileAction==='avatar' && p.images&&p.images[0]){
       return `<div style="margin:0 0 10px;display:flex;justify-content:center;"><div style="width:140px;height:140px;border-radius:50%;overflow:hidden;border:4px solid var(--accent);box-shadow:0 0 20px rgba(0,198,255,.3);cursor:pointer;" onclick="(function(){window._postImgsMap=window._postImgsMap||{};window._postImgsMap['${p.id}']=[${p.images.map(x=>"'"+x+"'").join(',')}];openImgLightboxById('${p.id}',0);})()"><img src="${p.images[0]}" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy"></div></div>`;
@@ -10521,7 +10663,7 @@ function postHTML(p){
       <div class="cmt-list" id="cmt-list_${p.id}">${cmtsHTML}</div>
       <div class="comment-input-row">
         <div class="sl-av" style="width:36px;height:36px;font-size:.8rem;flex-shrink:0;">${window.CU?.av?'<img src="'+window.CU.av+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">':window.CU?.nick?.[0]||'?'}</div>
-        <div style="position:relative;flex:1;display:flex;align-items:center;background:var(--bg);border-radius:20px;padding:0 8px 0 0;">
+        <div style="position:relative;flex:1;display:flex;align-items:center;background:#0d1117;border-radius:20px;padding:0 8px 0 0;">
           <input class="comment-input" placeholder="Escribe un comentario..." id="cinp_${p.id}" 
             onkeypress="if(event.key==='Enter'){event.preventDefault();submitComment('${p.id}');}"
             oninput="handleMentionInput(this,'${p.id}')" style="flex:1;background:transparent;border:none;padding:9px 12px;">
@@ -10546,7 +10688,7 @@ function postHTML(p){
               <div class="stk-cats" id="stkcats_${p.id}"></div>
             </div>
           </div>
-          <div id="mention_${p.id}" style="display:none;position:absolute;bottom:calc(100% + 4px);left:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;min-width:180px;max-height:180px;overflow-y:auto;z-index:500;box-shadow:0 4px 16px rgba(0,0,0,.2);"></div>
+          <div id="mention_${p.id}" style="display:none;position:absolute;bottom:calc(100% + 4px);left:0;background:#161b22;border:1px solid #30363d;border-radius:8px;min-width:180px;max-height:180px;overflow-y:auto;z-index:500;box-shadow:0 4px 16px rgba(0,0,0,.2);"></div>
         </div>
       </div>
     </div>
@@ -11108,7 +11250,7 @@ function openPostViewers(pid){
             ${v.av?`<img src="${v.av}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:(v.nick||'?')[0].toUpperCase()}
           </div>
           <div style="flex:1;">
-            <div style="font-size:.88rem;font-weight:700;color:var(--text);">${v.nick||'Anónimo'}</div>
+            <div style="font-size:.88rem;font-weight:700;color:#e6edf3;">${v.nick||'Anónimo'}</div>
             ${v.time?`<div style="font-size:.7rem;color:#8b949e;">${new Date(v.time).toLocaleString('es',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>`:''}
           </div>
         </div>`).join('')
@@ -11116,9 +11258,9 @@ function openPostViewers(pid){
   }
   const m = document.createElement('div');
   m.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.7);';
-  m.innerHTML = `<div style="background:var(--bg2);border-radius:16px;padding:20px;width:340px;max-height:70vh;display:flex;flex-direction:column;gap:12px;border:1px solid rgba(255,255,255,.08);">
+  m.innerHTML = `<div style="background:#161b22;border-radius:16px;padding:20px;width:340px;max-height:70vh;display:flex;flex-direction:column;gap:12px;border:1px solid rgba(255,255,255,.08);">
     <div style="display:flex;justify-content:space-between;align-items:center;">
-      <span id="_pvTitle" style="font-weight:700;color:var(--text);">👁 ${total} visitas</span>
+      <span id="_pvTitle" style="font-weight:700;color:#e6edf3;">👁 ${total} visitas</span>
       <button onclick="this.closest('div[style*=fixed]').remove()" style="background:none;border:none;color:#8b949e;font-size:1.2rem;cursor:pointer;">✕</button>
     </div>
     <div id="_pvList" style="overflow-y:auto;flex:1;">${buildList(list)}</div>
@@ -11296,7 +11438,7 @@ async function toggleComments(pid){
             <path d="M18 37l4 4 8-8" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <div style="font-weight:700;font-size:.95rem;color:var(--text);">Todavía no hay comentarios</div>
+        <div style="font-weight:700;font-size:.95rem;color:#e6edf3;">Todavía no hay comentarios</div>
         <div style="font-size:.82rem;color:#8b949e;">Sé la primera persona en comentar.</div>
       </div>`;
 
@@ -11328,9 +11470,9 @@ async function toggleComments(pid){
           <button onclick="var m=document.getElementById('${menuId}');m.style.display=m.style.display==='block'?'none':'block';event.stopPropagation();"
             style="background:none;border:none;color:#8b949e;font-size:1rem;cursor:pointer;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1;opacity:0;transition:opacity .15s;"
             onmouseover="this.style.background='#21262d';this.style.opacity='1'" onmouseout="this.style.background='none'" class="_cmtdotsbtn_">···</button>
-          <div id="${menuId}" style="display:none;position:absolute;right:0;top:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);min-width:160px;z-index:9999;overflow:hidden;">
+          <div id="${menuId}" style="display:none;position:absolute;right:0;top:100%;background:#161b22;border:1px solid #30363d;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);min-width:160px;z-index:9999;overflow:hidden;">
             ${canEdit?`<button onclick="document.getElementById('${menuId}').style.display='none';_editModalCmt('${pid}',${ci})"
-              style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;padding:10px 14px;font-size:.88rem;color:var(--text);cursor:pointer;font-family:'Exo 2',sans-serif;"
+              style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;padding:10px 14px;font-size:.88rem;color:#e6edf3;cursor:pointer;font-family:'Exo 2',sans-serif;"
               onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='none'">
               <span style="font-size:1rem;">✏️</span> Editar
             </button>`:''}
@@ -11352,8 +11494,8 @@ async function toggleComments(pid){
                 <span style="font-weight:700;font-size:.82rem;cursor:pointer;" onclick="openUserProfile('${c.userId||''}','${esc(c.nick||'')}')">${adminNameHtml}${verifiedBadge}</span>
                 ${isAuthor?'<span style="font-size:.6rem;color:#1877f2;font-weight:700;background:rgba(24,119,242,.15);border-radius:4px;padding:1px 5px;">Autor</span>':''}
               </div>
-              ${c.gif ? `<img src="${c.gif}" style="max-width:180px;border-radius:8px;margin-top:4px;display:block;" loading="lazy">` : `<span style="font-size:.88rem;color:var(--text);line-height:1.45;word-break:break-word;">${esc(c.text||'')}${c.edited?'<span style="font-size:.65rem;color:#8b949e;margin-left:4px;">(editado)</span>':''}</span>`}
-              ${cRxnTotalM>0?`<div style="position:absolute;bottom:-10px;right:8px;display:flex;align-items:center;gap:2px;background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:1px 5px;font-size:.72rem;cursor:pointer;" onclick="event.stopPropagation()">${cTopRxnM} <span style="color:#8b949e;">${cRxnTotalM}</span></div>`:''}
+              ${c.gif ? `<img src="${c.gif}" style="max-width:180px;border-radius:8px;margin-top:4px;display:block;" loading="lazy">` : `<span style="font-size:.88rem;color:#e6edf3;line-height:1.45;word-break:break-word;">${esc(c.text||'')}${c.edited?'<span style="font-size:.65rem;color:#8b949e;margin-left:4px;">(editado)</span>':''}</span>`}
+              ${cRxnTotalM>0?`<div style="position:absolute;bottom:-10px;right:8px;display:flex;align-items:center;gap:2px;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:1px 5px;font-size:.72rem;cursor:pointer;" onclick="event.stopPropagation()">${cTopRxnM} <span style="color:#8b949e;">${cRxnTotalM}</span></div>`:''}
             </div>
             ${menuHtml}
           </div>
@@ -11364,7 +11506,7 @@ async function toggleComments(pid){
                 onclick="quickCmtRxn(event,'${pid}',${ci})"
                 onmouseenter="clearTimeout(window['_mrxnhide_${pid}_${ci}']);var p=document.getElementById('${rxnPopupId}');if(p)p.style.display='flex';"
                 onmouseleave="window['_mrxnhide_${pid}_${ci}']=setTimeout(function(){var p=document.getElementById('${rxnPopupId}');if(p)p.style.display='none';},400)">${myRxnM?myRxnM+' Me gusta':'👍 Me gusta'}</button>
-              <div id="${rxnPopupId}" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 8px;align-items:center;gap:2px;box-shadow:0 4px 20px rgba(0,0,0,.5);white-space:nowrap;z-index:9999;flex-direction:row;"
+              <div id="${rxnPopupId}" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:5px 8px;align-items:center;gap:2px;box-shadow:0 4px 20px rgba(0,0,0,.5);white-space:nowrap;z-index:9999;flex-direction:row;"
                 onmouseenter="clearTimeout(window['_mrxnhide_${pid}_${ci}'])"
                 onmouseleave="window['_mrxnhide_${pid}_${ci}']=setTimeout(function(){var p=document.getElementById('${rxnPopupId}');if(p)p.style.display='none';},200)">
                 ${rxnBtnsM}
@@ -11388,13 +11530,13 @@ async function toggleComments(pid){
     #_cmtModalBox_${pid} * { box-sizing:border-box; }
     @keyframes _cmtFadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
   </style>
-  <div id="_cmtModalBox_${pid}" style="background:var(--bg2);border-radius:12px;width:520px;max-width:96vw;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3);animation:_cmtFadeIn .18s ease;">
+  <div id="_cmtModalBox_${pid}" style="background:#161b22;border-radius:12px;width:520px;max-width:96vw;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3);animation:_cmtFadeIn .18s ease;">
 
     
-    <div style="display:flex;align-items:center;justify-content:center;padding:14px 16px;border-bottom:1px solid var(--border);position:relative;flex-shrink:0;">
-      <span style="font-weight:700;font-size:1rem;color:var(--text);">Publicación de ${esc(post.userNick||'')}</span>
+    <div style="display:flex;align-items:center;justify-content:center;padding:14px 16px;border-bottom:1px solid #30363d;position:relative;flex-shrink:0;">
+      <span style="font-weight:700;font-size:1rem;color:#e6edf3;">Publicación de ${esc(post.userNick||'')}</span>
       <button onclick="document.getElementById('_cmtModal_${pid}').remove()"
-        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:#21262d;border:none;color:var(--text);width:34px;height:34px;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1;">✕</button>
+        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:#21262d;border:none;color:#e6edf3;width:34px;height:34px;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1;">✕</button>
     </div>
 
     
@@ -11408,7 +11550,7 @@ async function toggleComments(pid){
     </div>`:''}
 
     
-    <div style="display:flex;border-top:1px solid var(--border);border-bottom:1px solid var(--border);flex-shrink:0;">
+    <div style="display:flex;border-top:1px solid #30363d;border-bottom:1px solid #30363d;flex-shrink:0;">
       <div style="flex:1;position:relative;">
         <button id="_modalRxnBtn_${pid}" onclick="doReact('${pid}','👍')" 
           onmouseenter="showRxnPop('_modal_${pid}')" onmouseleave="schedHideRxnPop('_modal_${pid}')"
@@ -11430,11 +11572,11 @@ async function toggleComments(pid){
     </div>
 
     
-    <div style="padding:8px 12px 10px;display:flex;gap:8px;align-items:center;flex-shrink:0;border-top:1px solid var(--border);">
+    <div style="padding:8px 12px 10px;display:flex;gap:8px;align-items:center;flex-shrink:0;border-top:1px solid #30363d;">
       <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:#21262d;flex-shrink:0;">${avHtml}</div>
-      <div style="flex:1;display:flex;align-items:center;background:var(--bg);border-radius:20px;gap:2px;padding-right:6px;">
+      <div style="flex:1;display:flex;align-items:center;background:#0d1117;border-radius:20px;gap:2px;padding-right:6px;">
         <input id="_cmtModalInp_${pid}" placeholder="Escribe un comentario..."
-          style="flex:1;background:transparent;border:none;padding:9px 14px;color:var(--text);font-size:.88rem;font-family:'Exo 2',sans-serif;outline:none;"
+          style="flex:1;background:transparent;border:none;padding:9px 14px;color:#e6edf3;font-size:.88rem;font-family:'Exo 2',sans-serif;outline:none;"
           onkeypress="if(event.key==='Enter'){event.preventDefault();_submitModalCmt('${pid}');}">
         <button onclick="openEmojiPicker(event,'_cmtModalInp_${pid}')" title="Emoji"
           style="background:none;border:none;font-size:1.1rem;cursor:pointer;padding:4px 5px;border-radius:50%;line-height:1;transition:background .15s;"
@@ -11525,11 +11667,11 @@ function _cmtOpenGif(pid){
   const inp = document.getElementById('_cmtModalInp_'+pid);
   const wrap = document.createElement('div');
   wrap.id = '_cmtGifPicker_'+pid;
-  wrap.style.cssText = 'padding:8px 12px;border-top:1px solid var(--border);background:var(--bg2);';
+  wrap.style.cssText = 'padding:8px 12px;border-top:1px solid #30363d;background:#161b22;';
   wrap.innerHTML = `
     <div style="display:flex;gap:6px;margin-bottom:8px;">
       <input id="_cmtGifSearch_${pid}" placeholder="Buscar GIF..." 
-        style="flex:1;padding:7px 12px;border:1px solid var(--border);border-radius:20px;font-size:.82rem;outline:none;font-family:'Exo 2',sans-serif;"
+        style="flex:1;padding:7px 12px;border:1px solid #30363d;border-radius:20px;font-size:.82rem;outline:none;font-family:'Exo 2',sans-serif;"
         oninput="searchCmtGifs('${pid}')" onkeypress="if(event.key==='Enter')searchCmtGifs('${pid}')">
       <button onclick="document.getElementById('_cmtGifPicker_${pid}').remove()" 
         style="background:#21262d;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:.9rem;">✕</button>
@@ -11717,7 +11859,7 @@ function _reRenderInlineCmts(pid, p, cmts){
             +'<div class="cmt-menu-dropdown">'+menu+'</div>'
           +'</div>'
         +'</div>'
-        +(rTotal>0?'<div style="display:inline-flex;align-items:center;gap:2px;background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:2px 5px;font-size:.72rem;margin-top:2px;">'+rTop+' <span style="color:#8b949e;">'+rTotal+'</span></div>':'')
+        +(rTotal>0?'<div style="display:inline-flex;align-items:center;gap:2px;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:2px 5px;font-size:.72rem;margin-top:2px;">'+rTop+' <span style="color:#8b949e;">'+rTotal+'</span></div>':'')
         +'<div class="cmt-meta">'
           +'<span class="cmt-meta-time">'+t+'</span>'
           +'<div class="cmt-rxn-wrap">'
@@ -14271,8 +14413,8 @@ function openImgLightbox(src, allImgs, postId){
     #_igComments::-webkit-scrollbar-thumb{background:#444;border-radius:4px;}
     .ig-act-btn{flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;transition:background .15s;}
     .ig-act-btn:hover{background:#1c2128;}
-    #_igRxnPop{display:none;position:fixed;background:#1c2128;border:1px solid var(--border);border-radius:100px;padding:8px 10px;flex-direction:row;align-items:center;gap:3px;box-shadow:0 8px 28px rgba(0,0,0,.7);white-space:nowrap;z-index:999999;}
-    #_igGifPicker{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:320px;max-height:320px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;z-index:999999;box-shadow:0 8px 32px rgba(0,0,0,.6);}
+    #_igRxnPop{display:none;position:fixed;background:#1c2128;border:1px solid #30363d;border-radius:100px;padding:8px 10px;flex-direction:row;align-items:center;gap:3px;box-shadow:0 8px 28px rgba(0,0,0,.7);white-space:nowrap;z-index:999999;}
+    #_igGifPicker{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:320px;max-height:320px;background:#161b22;border:1px solid #30363d;border-radius:12px;overflow:hidden;z-index:999999;box-shadow:0 8px 32px rgba(0,0,0,.6);}
     @media(max-width:768px){
       #_igMainRow{flex-direction:column!important;}
       #_igSidebar{width:100%!important;max-height:45vh!important;border-left:none!important;border-top:1px solid #3e4042!important;}
@@ -14290,8 +14432,8 @@ function openImgLightbox(src, allImgs, postId){
 
   
   <div id="_igGifPicker">
-    <div style="padding:8px;border-bottom:1px solid var(--border);display:flex;gap:6px;align-items:center;">
-      <input id="_igGifSearch" placeholder="Buscar GIF..." style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-size:.82rem;font-family:'Exo 2',sans-serif;outline:none;"
+    <div style="padding:8px;border-bottom:1px solid #30363d;display:flex;gap:6px;align-items:center;">
+      <input id="_igGifSearch" placeholder="Buscar GIF..." style="flex:1;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:6px 10px;color:#e6edf3;font-size:.82rem;font-family:'Exo 2',sans-serif;outline:none;"
         oninput="igSearchGif(this.value)">
       <button onclick="document.getElementById('_igGifPicker').style.display='none'" style="background:none;border:none;color:#8b949e;font-size:1.1rem;cursor:pointer;">✕</button>
     </div>
@@ -14325,7 +14467,7 @@ function openImgLightbox(src, allImgs, postId){
       <img id="_igImg" src="${_galImages[_galIdx]||''}" crossorigin="anonymous" style="max-width:100%;max-height:100%;object-fit:contain;display:block;user-select:none;transition:opacity .12s;" oncontextmenu="rf4ContextMenu(event)">
       <canvas id="_rf4SelectCanvas" style="position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;display:none;z-index:10;"></canvas>
       <button id="_rf4SelectBtn" onclick="rf4ToggleSelect()" title="Marcar zona para traducir" style="position:absolute;top:10px;left:10px;z-index:20;background:rgba(46,196,182,.85);border:none;color:#0d1117;padding:6px 12px;border-radius:100px;font-size:.75rem;font-weight:800;cursor:pointer;font-family:Exo 2,sans-serif;display:flex;align-items:center;gap:5px;">✂️ Marcar zona</button>
-      <div id="_rf4TranslatePopup" style="display:none;position:absolute;z-index:30;background:var(--bg2);border:1px solid rgba(46,196,182,.5);border-radius:10px;padding:6px;box-shadow:0 4px 20px rgba(0,0,0,.7);">
+      <div id="_rf4TranslatePopup" style="display:none;position:absolute;z-index:30;background:#161b22;border:1px solid rgba(46,196,182,.5);border-radius:10px;padding:6px;box-shadow:0 4px 20px rgba(0,0,0,.7);">
         <button onclick="rf4TranslateSelection()" style="background:linear-gradient(135deg,#2ec4b6,#1a8a82);border:none;color:#0d1117;padding:7px 14px;border-radius:8px;font-size:.78rem;font-weight:800;cursor:pointer;font-family:Exo 2,sans-serif;">🔍 Traducir selección</button>
         <button onclick="rf4CancelSelect()" style="background:none;border:none;color:#8b949e;padding:7px 8px;cursor:pointer;font-size:.8rem;">✕</button>
       </div>
@@ -14340,16 +14482,16 @@ function openImgLightbox(src, allImgs, postId){
     </div>
 
     
-    <div id="_igSidebar" style="width:340px;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg2);border-left:1px solid #3e4042;max-height:100%;overflow:hidden;">
+    <div id="_igSidebar" style="width:340px;flex-shrink:0;display:flex;flex-direction:column;background:#161b22;border-left:1px solid #3e4042;max-height:100%;overflow:hidden;">
 
       
       <div style="padding:10px 14px 0;flex-shrink:0;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--border);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #30363d;">
           <div id="_igRxnSummary" style="display:flex;align-items:center;gap:4px;font-size:.82rem;color:#8b949e;"></div>
           <div id="_igCmtCount" style="font-size:.82rem;color:#8b949e;cursor:pointer;" onclick="document.getElementById('_igComments').scrollTop=99999"></div>
         </div>
         
-        <div style="display:flex;border-bottom:1px solid var(--border);padding:2px 0;gap:2px;">
+        <div style="display:flex;border-bottom:1px solid #30363d;padding:2px 0;gap:2px;">
           
           <div style="position:relative;flex:1;">
             <button class="ig-act-btn" id="_igMyRxnBtn" onclick="igReact('👍')"
@@ -14370,12 +14512,12 @@ function openImgLightbox(src, allImgs, postId){
       </div>
 
       
-      <div style="padding:8px 12px 10px;display:flex;gap:8px;align-items:flex-end;flex-shrink:0;border-top:1px solid var(--border);position:relative;">
+      <div style="padding:8px 12px 10px;display:flex;gap:8px;align-items:flex-end;flex-shrink:0;border-top:1px solid #30363d;position:relative;">
         <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:#21262d;flex-shrink:0;">${avHtml}</div>
         <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
           
           <div id="_igStkPick" class="stk-picker" style="bottom:70px;left:50px;right:12px;top:auto;">
-            <div style="display:flex;align-items:center;padding:7px 10px;border-bottom:1px solid var(--border);gap:6px;">
+            <div style="display:flex;align-items:center;padding:7px 10px;border-bottom:1px solid #30363d;gap:6px;">
               <input id="_igStkSearch" class="stk-search" placeholder="🔍 Buscar sticker..."
                 oninput="igSearchSticker(this.value)" style="flex:1;">
               <button onclick="document.getElementById('_igStkPick').classList.remove('open')" style="background:none;border:none;color:#8b949e;font-size:1rem;cursor:pointer;">✕</button>
@@ -14383,11 +14525,11 @@ function openImgLightbox(src, allImgs, postId){
             <div class="stk-cats" id="_igStkCats"></div>
             <div id="_igStkContent"></div>
           </div>
-          <div style="display:flex;align-items:center;background:var(--bg);border-radius:20px;border:1px solid var(--border);">
+          <div style="display:flex;align-items:center;background:#0d1117;border-radius:20px;border:1px solid #30363d;">
             <button onclick="igToggleGifPicker()" title="GIF" style="background:none;border:none;color:#8b949e;font-size:.75rem;font-weight:800;cursor:pointer;padding:6px 8px;border-radius:20px 0 0 20px;transition:color .15s;flex-shrink:0;" onmouseover="this.style.color='#2ec4b6'" onmouseout="this.style.color='#8b949e'">GIF</button>
             <button onclick="igToggleStkPicker()" title="Stickers" style="background:none;border:none;color:#8b949e;font-size:1rem;cursor:pointer;padding:4px 6px;transition:color .15s;flex-shrink:0;" onmouseover="this.style.color='#2ec4b6'" onmouseout="this.style.color='#8b949e'">🎭</button>
             <input id="_igCmtInp" placeholder="Escribe un comentario..."
-              style="flex:1;background:transparent;border:none;padding:9px 8px;color:var(--text);font-size:.88rem;font-family:'Exo 2',sans-serif;outline:none;"
+              style="flex:1;background:transparent;border:none;padding:9px 8px;color:#e6edf3;font-size:.88rem;font-family:'Exo 2',sans-serif;outline:none;"
               onkeypress="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();igSubmitComment();}">
             <button onclick="igSubmitComment()" style="background:none;border:none;color:#1877f2;font-size:1rem;cursor:pointer;padding:4px 10px;opacity:.6;transition:opacity .15s;flex-shrink:0;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.6'">➤</button>
           </div>
@@ -14635,22 +14777,22 @@ function igRenderComments(comments, imgIdx){
       </div>
       <div style="flex:1;min-width:0;">
         <div style="position:relative;display:inline-block;max-width:calc(100% - 34px);">
-          <div style="background:var(--bg);border-radius:18px;padding:8px 12px;">
+          <div style="background:#0d1117;border-radius:18px;padding:8px 12px;">
             <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;flex-wrap:wrap;">
-              <span style="font-weight:700;font-size:.82rem;color:var(--text);cursor:pointer;" onclick="openUserProfile('${uid}','${safeN}')">${esc(nick)}</span>
+              <span style="font-weight:700;font-size:.82rem;color:#e6edf3;cursor:pointer;" onclick="openUserProfile('${uid}','${safeN}')">${esc(nick)}</span>
               ${isAuthor?'<span style="font-size:.62rem;color:var(--accent);font-weight:700;background:rgba(0,198,255,.12);border-radius:4px;padding:1px 5px;">Autor</span>':''}
             </div>
             ${c.gif
               ? `<img src="${c.gif}" style="max-width:200px;border-radius:10px;display:block;margin-top:4px;" loading="lazy">`
-              : `<span style="font-size:.88rem;color:var(--text);line-height:1.45;word-break:break-word;">${esc(c.text||'')}${c.edited?' <span style="font-size:.62rem;color:#8b949e;">(editado)</span>':''}</span>`
+              : `<span style="font-size:.88rem;color:#e6edf3;line-height:1.45;word-break:break-word;">${esc(c.text||'')}${c.edited?' <span style="font-size:.62rem;color:#8b949e;">(editado)</span>':''}</span>`
             }
           </div>
           ${(canEdit||canDel||!isMine)?`<div style="position:absolute;top:-2px;right:-30px;">
             <button onclick="const m=document.getElementById('${menuId}');m.style.display=m.style.display==='block'?'none':'block'"
               style="background:rgba(255,255,255,.08);border:none;color:#8b949e;width:24px;height:24px;border-radius:50%;font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">⋯</button>
-            <div id="${menuId}" style="display:none;position:absolute;right:0;top:28px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;min-width:130px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.4);overflow:hidden;">
+            <div id="${menuId}" style="display:none;position:absolute;right:0;top:28px;background:#161b22;border:1px solid #30363d;border-radius:8px;min-width:130px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.4);overflow:hidden;">
               ${canEdit?`<button onclick="document.getElementById('${menuId}').style.display='none';igEditCmt(${ci})"
-                style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:var(--text);padding:9px 13px;cursor:pointer;font-size:.82rem;font-family:'Exo 2',sans-serif;"
+                style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#e6edf3;padding:9px 13px;cursor:pointer;font-size:.82rem;font-family:'Exo 2',sans-serif;"
                 onmouseover="this.style.background='#21262d'" onmouseout="this.style.background='none'">✏️ Editar</button>`:''}
               ${canDel?`<button onclick="document.getElementById('${menuId}').style.display='none';igDelCmt(${ci})"
                 style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:#f55;padding:9px 13px;cursor:pointer;font-size:.82rem;font-family:'Exo 2',sans-serif;"
@@ -14661,7 +14803,7 @@ function igRenderComments(comments, imgIdx){
             </div>
           </div>`:''}
         </div>
-        ${rTotal>0?`<div style="display:inline-flex;align-items:center;gap:2px;background:var(--bg);border:1px solid var(--border);border-radius:100px;padding:2px 6px;font-size:.7rem;margin-top:2px;">${rTop} <span style="color:#8b949e;">${rTotal}</span></div>`:''}
+        ${rTotal>0?`<div style="display:inline-flex;align-items:center;gap:2px;background:#0d1117;border:1px solid #30363d;border-radius:100px;padding:2px 6px;font-size:.7rem;margin-top:2px;">${rTop} <span style="color:#8b949e;">${rTotal}</span></div>`:''}
         <div style="display:flex;align-items:center;gap:8px;padding:3px 4px 0;flex-wrap:wrap;">
           <span style="font-size:.7rem;color:#8b949e;">${c.time?fmtT(c.time):''}</span>
           <div style="position:relative;">
@@ -14671,7 +14813,7 @@ function igRenderComments(comments, imgIdx){
               onmouseleave="setTimeout(()=>{const p=document.getElementById('${popId}');if(p&&!p.matches(':hover'))p.style.display='none'},280)">
               ${myRxn?myRxn+' ':''}Me gusta
             </button>
-            <div id="${popId}" style="display:none;position:absolute;bottom:calc(100%+4px);left:0;background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 7px;flex-direction:row;align-items:center;gap:2px;box-shadow:0 4px 16px rgba(0,0,0,.4);white-space:nowrap;z-index:9999;"
+            <div id="${popId}" style="display:none;position:absolute;bottom:calc(100%+4px);left:0;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:5px 7px;flex-direction:row;align-items:center;gap:2px;box-shadow:0 4px 16px rgba(0,0,0,.4);white-space:nowrap;z-index:9999;"
               onmouseenter="this.style.display='flex'" onmouseleave="this.style.display='none'">
               ${rxnBtns}
             </div>
@@ -14923,12 +15065,12 @@ async function igLoadStkCat(query, label){
   if(!contentEl) return;
   contentEl.innerHTML = '';
   const header = document.createElement('div');
-  header.style.cssText = 'display:flex;align-items:center;padding:4px 8px;border-bottom:1px solid var(--border);';
+  header.style.cssText = 'display:flex;align-items:center;padding:4px 8px;border-bottom:1px solid #30363d;';
   const back = document.createElement('button');
   back.className = 'stk-back'; back.textContent = '← Volver';
   back.addEventListener('click', ()=>{ contentEl.innerHTML=''; });
   const title = document.createElement('span');
-  title.style.cssText = 'font-size:.82rem;font-weight:700;color:var(--text);flex:1;text-align:center;';
+  title.style.cssText = 'font-size:.82rem;font-weight:700;color:#e6edf3;flex:1;text-align:center;';
   title.textContent = label;
   header.appendChild(back); header.appendChild(title);
   contentEl.appendChild(header);
@@ -14966,10 +15108,10 @@ function igSearchSticker(q){
     if(!contentEl) return;
     contentEl.innerHTML='';
     const header=document.createElement('div');
-    header.style.cssText='display:flex;align-items:center;padding:4px 8px;border-bottom:1px solid var(--border);';
+    header.style.cssText='display:flex;align-items:center;padding:4px 8px;border-bottom:1px solid #30363d;';
     const back=document.createElement('button'); back.className='stk-back'; back.textContent='← Volver';
     back.addEventListener('click',()=>{ contentEl.innerHTML=''; const s=document.getElementById('_igStkSearch'); if(s) s.value=''; });
-    const title=document.createElement('span'); title.style.cssText='font-size:.82rem;font-weight:700;color:var(--text);flex:1;text-align:center;'; title.textContent=q;
+    const title=document.createElement('span'); title.style.cssText='font-size:.82rem;font-weight:700;color:#e6edf3;flex:1;text-align:center;'; title.textContent=q;
     header.appendChild(back); header.appendChild(title); contentEl.appendChild(header);
     const grid=document.createElement('div'); grid.className='stk-grid';
     grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:20px;color:#8b949e;">🔍 Buscando...</div>';
@@ -16107,15 +16249,15 @@ async function doForgotPassword(){
   m.id = '_forgotModal';
   m.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:16px;';
   m.innerHTML = `
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px 24px;max-width:400px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.5);">
+    <div style="background:#161b22;border:1px solid #30363d;border-radius:16px;padding:28px 24px;max-width:400px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.5);">
       <div style="font-size:1.5rem;text-align:center;margin-bottom:8px;">🔑</div>
       <div style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:800;color:var(--accent);text-align:center;margin-bottom:6px;">Recuperar contraseña</div>
       <div style="font-size:.82rem;color:var(--muted);text-align:center;margin-bottom:18px;">Ingresá tu email o nick y te enviamos un link para restablecer tu contraseña.</div>
-      <input id="_forgotInput" type="text" placeholder="Email o nombre de usuario" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.92rem;outline:none;margin-bottom:10px;" onkeypress="if(event.key==='Enter')_sendForgot()">
+      <input id="_forgotInput" type="text" placeholder="Email o nombre de usuario" style="width:100%;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:11px 14px;color:#e6edf3;font-family:'Exo 2',sans-serif;font-size:.92rem;outline:none;margin-bottom:10px;" onkeypress="if(event.key==='Enter')_sendForgot()">
       <div id="_forgotErr" style="color:#f85149;font-size:.78rem;text-align:center;margin-bottom:8px;display:none;"></div>
       <div id="_forgotOk" style="color:#3fb950;font-size:.82rem;text-align:center;margin-bottom:8px;display:none;padding:8px;background:rgba(63,185,80,.1);border-radius:6px;border:1px solid rgba(63,185,80,.3);"></div>
       <button onclick="_sendForgot()" id="_forgotBtn" style="width:100%;padding:12px;background:var(--accent);color:#000;border:none;border-radius:8px;font-size:.95rem;font-weight:800;font-family:'Exo 2',sans-serif;cursor:pointer;margin-bottom:10px;transition:opacity .15s;">Enviar link de recuperación</button>
-      <button onclick="document.getElementById('_forgotModal').remove()" style="width:100%;padding:10px;background:none;color:var(--muted);border:1px solid var(--border);border-radius:8px;font-size:.85rem;font-weight:600;font-family:'Exo 2',sans-serif;cursor:pointer;">Cancelar</button>
+      <button onclick="document.getElementById('_forgotModal').remove()" style="width:100%;padding:10px;background:none;color:var(--muted);border:1px solid #30363d;border-radius:8px;font-size:.85rem;font-weight:600;font-family:'Exo 2',sans-serif;cursor:pointer;">Cancelar</button>
     </div>`;
   m.addEventListener('click', e=>{ if(e.target===m) m.remove(); });
   document.body.appendChild(m);
@@ -17211,7 +17353,7 @@ async function sharePost(pid){
     padding:'14px 16px', borderBottom:'1px solid #30363d',
     position:'relative', flexShrink:'0'
   });
-  header.innerHTML = '<span style="font-weight:800;font-size:1.05rem;color:var(--text);">Compartir</span>';
+  header.innerHTML = '<span style="font-weight:800;font-size:1.05rem;color:#e6edf3;">Compartir</span>';
   const btnClose = document.createElement('button');
   Object.assign(btnClose.style, {
     position:'absolute', right:'12px', top:'50%', transform:'translateY(-50%)',
@@ -17253,15 +17395,15 @@ async function sharePost(pid){
   const privMenu = document.createElement('div');
   Object.assign(privMenu.style, {
     display:'none', position:'fixed', background:'#fff',
-    border:'1px solid var(--border)', borderRadius:'12px',
+    border:'1px solid #30363d', borderRadius:'12px',
     boxShadow:'0 8px 30px rgba(0,0,0,.18)', minWidth:'200px',
     zIndex:'99999', overflow:'hidden'
   });
   privMenu.innerHTML = `
     <div style="padding:8px 14px 4px;font-size:.72rem;font-weight:800;color:#8b949e;text-transform:uppercase;letter-spacing:.4px;">¿Quién puede verlo?</div>
-    <div data-val="public"  style="display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;font-size:.85rem;font-weight:600;color:var(--text);"><span style="font-size:1.3rem;">🌐</span><div><div>Público</div><div style="font-size:.7rem;color:#8b949e;">Cualquier persona</div></div><span class="_pc" style="margin-left:auto;color:#1877f2;display:none;">✔</span></div>
-    <div data-val="friends" style="display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;font-size:.85rem;font-weight:600;color:var(--text);"><span style="font-size:1.3rem;">👥</span><div><div>Amigos</div><div style="font-size:.7rem;color:#8b949e;">Solo tus amigos</div></div><span class="_pc" style="margin-left:auto;color:#1877f2;display:none;">✔</span></div>
-    <div data-val="only_me" style="display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;font-size:.85rem;font-weight:600;color:var(--text);"><span style="font-size:1.3rem;">🔒</span><div><div>Solo yo</div><div style="font-size:.7rem;color:#8b949e;">Solo vos lo ves</div></div><span class="_pc" style="margin-left:auto;color:#1877f2;display:none;">✔</span></div>`;
+    <div data-val="public"  style="display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;font-size:.85rem;font-weight:600;color:#e6edf3;"><span style="font-size:1.3rem;">🌐</span><div><div>Público</div><div style="font-size:.7rem;color:#8b949e;">Cualquier persona</div></div><span class="_pc" style="margin-left:auto;color:#1877f2;display:none;">✔</span></div>
+    <div data-val="friends" style="display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;font-size:.85rem;font-weight:600;color:#e6edf3;"><span style="font-size:1.3rem;">👥</span><div><div>Amigos</div><div style="font-size:.7rem;color:#8b949e;">Solo tus amigos</div></div><span class="_pc" style="margin-left:auto;color:#1877f2;display:none;">✔</span></div>
+    <div data-val="only_me" style="display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;font-size:.85rem;font-weight:600;color:#e6edf3;"><span style="font-size:1.3rem;">🔒</span><div><div>Solo yo</div><div style="font-size:.7rem;color:#8b949e;">Solo vos lo ves</div></div><span class="_pc" style="margin-left:auto;color:#1877f2;display:none;">✔</span></div>`;
   privMenu.querySelectorAll('[data-val]').forEach(row => {
     row.addEventListener('mouseenter', ()=> row.style.background='#1c2128');
     row.addEventListener('mouseleave', ()=> row.style.background='');
@@ -17318,7 +17460,7 @@ async function sharePost(pid){
   const emojiPanel = document.createElement('div');
   Object.assign(emojiPanel.style, {
     display:'none', flexWrap:'wrap', gap:'2px',
-    padding:'6px', background:'var(--bg)', borderRadius:'10px',
+    padding:'6px', background:'#0d1117', borderRadius:'10px',
     maxWidth:'240px', maxHeight:'120px', overflowY:'auto',
     position:'absolute', zIndex:'99999', boxShadow:'0 4px 16px rgba(0,0,0,.15)'
   });
@@ -17369,7 +17511,7 @@ async function sharePost(pid){
   preview.style.padding='10px 16px';
   const previewInner = document.createElement('div');
   Object.assign(previewInner.style, {
-    border:'1px solid var(--border)', borderRadius:'10px', overflow:'hidden', background:'var(--bg2)'
+    border:'1px solid #30363d', borderRadius:'10px', overflow:'hidden', background:'#161b22'
   });
   if(p.images&&p.images[0]){
     const img = document.createElement('img');
@@ -17382,7 +17524,7 @@ async function sharePost(pid){
   const previewUser = document.createElement('div');
   Object.assign(previewUser.style, { display:'flex', alignItems:'center', gap:'6px', marginBottom:'4px' });
   if(p.userAv){ const avImg=document.createElement('img'); avImg.src=p.userAv; Object.assign(avImg.style,{width:'20px',height:'20px',borderRadius:'50%',objectFit:'cover'}); previewUser.appendChild(avImg); }
-  const previewNick=document.createElement('span'); previewNick.style.cssText='font-size:.78rem;font-weight:700;color:var(--text);'; previewNick.textContent=realNick||''; previewUser.appendChild(previewNick);
+  const previewNick=document.createElement('span'); previewNick.style.cssText='font-size:.78rem;font-weight:700;color:#e6edf3;'; previewNick.textContent=realNick||''; previewUser.appendChild(previewNick);
   previewBody.appendChild(previewUser);
   if(p.text){ const pt=document.createElement('div'); pt.style.cssText='font-size:.8rem;color:#8b949e;line-height:1.4;'; pt.textContent=(p.text||'').slice(0,100)+((p.text||'').length>100?'...':''); previewBody.appendChild(pt); }
   previewInner.appendChild(previewBody);
@@ -17390,7 +17532,7 @@ async function sharePost(pid){
 
   // ── Compartir en ─────────────────────────────────────────────────────────
   const shareSection = document.createElement('div');
-  shareSection.style.cssText='border-top:1px solid var(--border);padding:12px 16px;';
+  shareSection.style.cssText='border-top:1px solid #30363d;padding:12px 16px;';
   const shareTitle = document.createElement('div');
   shareTitle.style.cssText='font-size:.75rem;font-weight:700;color:#8b949e;margin-bottom:10px;text-transform:uppercase;letter-spacing:.4px;';
   shareTitle.textContent='Compartir en';
@@ -17410,7 +17552,7 @@ async function sharePost(pid){
     else { iconDiv.style.background=color||'#21262d'; }
     iconDiv.textContent = icon;
     const labelEl = document.createElement('span');
-    labelEl.style.cssText='font-size:.62rem;color:var(--text);font-weight:600;';
+    labelEl.style.cssText='font-size:.62rem;color:#e6edf3;font-weight:600;';
     labelEl.textContent = label;
     b.appendChild(iconDiv); b.appendChild(labelEl);
     b.addEventListener('click', action);
@@ -17429,7 +17571,7 @@ async function sharePost(pid){
   _fbBtn.addEventListener('mouseenter',()=>_fbBtn.style.background='#1c2128');
   _fbBtn.addEventListener('mouseleave',()=>_fbBtn.style.background='none');
   const _fbLbl = document.createElement('span');
-  _fbLbl.style.cssText='font-size:.62rem;color:var(--text);font-weight:600;';
+  _fbLbl.style.cssText='font-size:.62rem;color:#e6edf3;font-weight:600;';
   _fbLbl.textContent='Facebook';
   _fbBtn.appendChild(_fbIconDiv); _fbBtn.appendChild(_fbLbl);
   _fbBtn.addEventListener('click',()=>{
@@ -17464,7 +17606,7 @@ async function sharePost(pid){
       Object.assign(avDiv.style,{width:'38px',height:'38px',borderRadius:'50%',overflow:'hidden',flexShrink:'0'});
       avDiv.innerHTML = fr.av ? `<img src="${fr.av}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="width:100%;height:100%;background:#1877f2;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.85rem;">${(fr.nick||'?')[0].toUpperCase()}</div>`;
       const fnEl = document.createElement('span');
-      fnEl.style.cssText='font-size:.6rem;color:var(--text);font-weight:600;text-align:center;word-break:break-word;line-height:1.2;';
+      fnEl.style.cssText='font-size:.6rem;color:#e6edf3;font-weight:600;text-align:center;word-break:break-word;line-height:1.2;';
       fnEl.textContent=(fr.nick||'').slice(0,10);
       fb.appendChild(avDiv); fb.appendChild(fnEl);
       fb.addEventListener('click', async ()=>{
@@ -17497,7 +17639,7 @@ async function sharePost(pid){
 
   // ── Botones finales ───────────────────────────────────────────────────────
   const footer = document.createElement('div');
-  footer.style.cssText='padding:12px 16px 16px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--border);flex-shrink:0;';
+  footer.style.cssText='padding:12px 16px 16px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid #30363d;flex-shrink:0;';
 
   const btnCancel = document.createElement('button');
   btnCancel.textContent='Cancelar';
@@ -19347,21 +19489,21 @@ function openChatWith(uid, nick){
     ? `<img src="${chatAv}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;cursor:pointer;" onclick="cm('mMessenger');openUserProfile('${uid}','${esc(nick)}')">`
     : `<div style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:#000;font-weight:700;font-size:.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;" onclick="cm('mMessenger');openUserProfile('${uid}','${esc(nick)}')">${(nick||'?')[0].toUpperCase()}</div>`;
   chatWin.innerHTML = `
-      <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg2);flex-shrink:0;">
+      <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:#161b22;flex-shrink:0;">
         <button onclick="backToMessengerList()" style="background:none;border:none;color:#0084ff;font-size:1.3rem;cursor:pointer;padding:0 4px;line-height:1;">‹</button>
         <div style="position:relative;flex-shrink:0;">
           ${avHtml}
-          <div id="chatAvOnlineDot" style="position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;background:#31a24c;border:2px solid var(--bg2);display:none;"></div>
+          <div id="chatAvOnlineDot" style="position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;background:#31a24c;border:2px solid #161b22;display:none;"></div>
         </div>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:.9rem;font-weight:700;color:var(--text);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" onclick="cm('mMessenger');openUserProfile('${uid}','${esc(nick)}')">${esc(nick)}</div>
+          <div style="font-size:.9rem;font-weight:700;color:#e6edf3;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" onclick="cm('mMessenger');openUserProfile('${uid}','${esc(nick)}')">${esc(nick)}</div>
           <div style="font-size:.7rem;" id="chatOnlineStatus">•</div>
         </div>
         <div style="display:flex;gap:4px;">
           <button title="Ver perfil" onclick="cm('mMessenger');openUserProfile('${uid}','${esc(nick)}')" style="background:none;border:none;color:#0084ff;font-size:1.1rem;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .15s;" onmouseover="this.style.background='#21262d'" onmouseout="this.style.background='none'">ⓘ</button>
         </div>
       </div>
-      <div id="chatMessages" style="flex:1;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:2px;min-height:0;background:var(--bg);"></div>`;
+      <div id="chatMessages" style="flex:1;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:2px;min-height:0;background:#0d1117;"></div>`;
   }
   const inputRow = document.getElementById('chatInputRow');
   if(inputRow) inputRow.style.display='flex';
@@ -19485,7 +19627,7 @@ function openChatWith(uid, nick){
                 <div id="mrxnbar_${m.id}" style="display:none;position:absolute;${mine?'right:0':'left:0'};bottom:calc(100% + 4px);background:rgba(12,22,34,.98);border:1px solid rgba(255,255,255,.13);border-radius:100px;padding:4px 8px;align-items:center;gap:2px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.8);white-space:nowrap;" onmouseenter="keepMsgRxnBar('${m.id}')" onmouseleave="hideMsgRxnBar('${m.id}')">${rxnBtns}</div>
                 ${sharedPostCard}
                 ${msgContent}
-                ${msgRxnTotal>0?`<div onclick="reactChatMsg('${chatId}','${m.id}','')" style="position:absolute;${mine?'left:-8px':'right:-8px'};bottom:-12px;background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:1px 7px;font-size:.75rem;cursor:pointer;white-space:nowrap;">${msgTopRxns} ${msgRxnTotal}</div>`:''}
+                ${msgRxnTotal>0?`<div onclick="reactChatMsg('${chatId}','${m.id}','')" style="position:absolute;${mine?'left:-8px':'right:-8px'};bottom:-12px;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:1px 7px;font-size:.75rem;cursor:pointer;white-space:nowrap;">${msgTopRxns} ${msgRxnTotal}</div>`:''}
               </div>` : '';
             return `<div style="display:flex;flex-direction:column;align-items:${mine?'flex-end':'flex-start'};gap:1px;margin-bottom:${msgRxnTotal>0?'14px':'2px'};" onclick="toggleMsgTime('msgtime_${m.id}')">
               ${!mine ? `<div style="display:flex;align-items:flex-end;gap:6px;">
@@ -20187,13 +20329,13 @@ function closeStickerPicker(pickerId){
 
 function _makeStkHeader(pickerId, label){
   const div = document.createElement('div');
-  div.style.cssText = 'display:flex;align-items:center;padding:4px 8px;border-bottom:1px solid var(--border);';
+  div.style.cssText = 'display:flex;align-items:center;padding:4px 8px;border-bottom:1px solid #30363d;';
   const backBtn = document.createElement('button');
   backBtn.className = 'stk-back';
   backBtn.textContent = '← Volver';
   backBtn.addEventListener('click', function(){ resetStickerCats(pickerId); });
   const title = document.createElement('span');
-  title.style.cssText = 'font-size:.82rem;font-weight:700;color:var(--text);flex:1;text-align:center;';
+  title.style.cssText = 'font-size:.82rem;font-weight:700;color:#e6edf3;flex:1;text-align:center;';
   title.textContent = label;
   div.appendChild(backBtn);
   div.appendChild(title);
@@ -20715,7 +20857,7 @@ function buildPezSemanaCard(d){
   }
 
   return `
-  <div style="background:var(--bg2);border-radius:var(--r);overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.25);font-family:'Exo 2',sans-serif;color:#333;">
+  <div style="background:#161b22;border-radius:var(--r);overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.25);font-family:'Exo 2',sans-serif;color:#333;">
 
     
     <div style="background:linear-gradient(135deg,#b8962e,#d4af5a);padding:12px 18px;">
@@ -21136,7 +21278,7 @@ function _reelCard(p, H){
     : `<span style="background:#010101;color:#69C9D0;font-size:.58rem;font-weight:800;padding:1px 6px;border-radius:100px;border:1px solid #555;flex-shrink:0;">TT</span>`;
 
   // Use data-pid attribute and event delegation to avoid onclick scope issues
-  return `<div data-reel-pid="${pid}" style="width:100%;height:${H}px;flex-shrink:0;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;background:var(--bg);overflow:hidden;">
+  return `<div data-reel-pid="${pid}" style="width:100%;height:${H}px;flex-shrink:0;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;background:#0d1117;overflow:hidden;">
 
     
     <div style="width:100%;height:${videoH}px;flex-shrink:0;overflow:hidden;background:#000;">
@@ -21144,32 +21286,32 @@ function _reelCard(p, H){
     </div>
 
     
-    <div style="width:100%;height:${PANEL}px;flex-shrink:0;background:var(--bg2);border-top:2px solid #30363d;display:flex;flex-direction:row;align-items:center;padding:0 12px;gap:8px;box-sizing:border-box;position:relative;z-index:10;pointer-events:auto;">
+    <div style="width:100%;height:${PANEL}px;flex-shrink:0;background:#161b22;border-top:2px solid #30363d;display:flex;flex-direction:row;align-items:center;padding:0 12px;gap:8px;box-sizing:border-box;position:relative;z-index:10;pointer-events:auto;">
 
       
       <img src="${av}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid #444;flex-shrink:0;cursor:pointer;" data-action="profile" data-uid="${p.userId||''}" data-nick="${safeNick}">
 
       
       <div style="flex:1;min-width:0;overflow:hidden;">
-        <div style="font-size:.78rem;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(nick)}${p.userVerified?' ✅':''} ${badge}</div>
+        <div style="font-size:.78rem;font-weight:800;color:#e6edf3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(nick)}${p.userVerified?' ✅':''} ${badge}</div>
         ${text?`<div style="font-size:.68rem;color:#8b949e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(text)}</div>`:''}
       </div>
 
       
       <button data-action="like" data-pid="${pid}"
-        style="background:#21262d;border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;flex-shrink:0;pointer-events:auto;">
+        style="background:#21262d;border:1px solid #30363d;color:#e6edf3;padding:8px 12px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;flex-shrink:0;pointer-events:auto;">
         ❤️ ${fmtN(likes)}
       </button>
 
       
       <button data-action="comment" data-pid="${pid}"
-        style="background:#21262d;border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;flex-shrink:0;pointer-events:auto;">
+        style="background:#21262d;border:1px solid #30363d;color:#e6edf3;padding:8px 12px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;flex-shrink:0;pointer-events:auto;">
         💬 ${fmtN(cmtCount)}
       </button>
 
       
       <button data-action="share" data-pid="${pid}"
-        style="background:#21262d;border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;flex-shrink:0;pointer-events:auto;">
+        style="background:#21262d;border:1px solid #30363d;color:#e6edf3;padding:8px 12px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;flex-shrink:0;pointer-events:auto;">
         ↗️
       </button>
 
@@ -22930,7 +23072,7 @@ window.responderSoporte    = responderSoporte;
 
 
 <div id="modalAcuerdo" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);align-items:center;justify-content:center;">
-  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;max-width:620px;width:92%;max-height:82vh;overflow-y:auto;padding:28px 30px;position:relative;box-shadow:0 8px 40px rgba(0,0,0,.7);">
+  <div style="background:#161b22;border:1px solid #30363d;border-radius:14px;max-width:620px;width:92%;max-height:82vh;overflow-y:auto;padding:28px 30px;position:relative;box-shadow:0 8px 40px rgba(0,0,0,.7);">
     <button onclick="document.getElementById('modalAcuerdo').style.display='none'" style="position:absolute;top:14px;right:16px;background:none;border:none;color:#8b949e;font-size:1.4rem;cursor:pointer;line-height:1;">✕</button>
     <h2 style="font-family:'Orbitron',monospace;color:var(--accent);margin:0 0 18px;font-size:1.1rem;">📜 Acuerdo de Usuario — MiLatido.UY</h2>
     <p style="color:#8b949e;font-size:.78rem;margin:0 0 14px;">Última actualización: enero 2026</p>
@@ -22982,7 +23124,7 @@ window.responderSoporte    = responderSoporte;
 
 
 <div id="modalAccesibilidad" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);align-items:center;justify-content:center;">
-  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;max-width:620px;width:92%;max-height:82vh;overflow-y:auto;padding:28px 30px;position:relative;box-shadow:0 8px 40px rgba(0,0,0,.7);">
+  <div style="background:#161b22;border:1px solid #30363d;border-radius:14px;max-width:620px;width:92%;max-height:82vh;overflow-y:auto;padding:28px 30px;position:relative;box-shadow:0 8px 40px rgba(0,0,0,.7);">
     <button onclick="document.getElementById('modalAccesibilidad').style.display='none'" style="position:absolute;top:14px;right:16px;background:none;border:none;color:#8b949e;font-size:1.4rem;cursor:pointer;line-height:1;">✕</button>
     <h2 style="font-family:'Orbitron',monospace;color:var(--accent);margin:0 0 18px;font-size:1.1rem;">♿ Accesibilidad — MiLatido.UY</h2>
     <p style="color:#8b949e;font-size:.78rem;margin:0 0 14px;">Nuestro compromiso con la inclusión digital</p>
@@ -23572,8 +23714,8 @@ function _showChangelogModal(){
   const m = document.createElement('div');
   m.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;';
   m.innerHTML = `
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:460px;max-width:95vw;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.8);">
-      <div style="padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;">
+    <div style="background:#161b22;border:1px solid #30363d;border-radius:16px;width:460px;max-width:95vw;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.8);">
+      <div style="padding:18px 20px 14px;border-bottom:1px solid #30363d;display:flex;align-items:center;gap:12px;">
         <div style="font-size:1.5rem;">🛠️</div>
         <div style="flex:1;">
           <div style="font-family:'Orbitron',monospace;font-size:.9rem;font-weight:900;color:#3fb950;">Cambios del día</div>
@@ -23583,13 +23725,13 @@ function _showChangelogModal(){
       </div>
       <div style="overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px;">
         ${_CL_CHANGES.map((c,i)=>`
-          <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 12px;background:#1c2128;border-radius:10px;border:1px solid var(--border);animation:_clIn .3s ease ${i*0.05}s both;">
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 12px;background:#1c2128;border-radius:10px;border:1px solid #30363d;animation:_clIn .3s ease ${i*0.05}s both;">
             <span style="font-size:1.2rem;flex-shrink:0;margin-top:1px;">${c.emoji}</span>
-            <span style="font-size:.82rem;color:var(--text);line-height:1.5;">${c.text}</span>
+            <span style="font-size:.82rem;color:#e6edf3;line-height:1.5;">${c.text}</span>
           </div>
         `).join('')}
       </div>
-      <div style="padding:12px 20px;border-top:1px solid var(--border);text-align:center;">
+      <div style="padding:12px 20px;border-top:1px solid #30363d;text-align:center;">
         <button onclick="this.closest('div[style*=inset]').remove()" style="background:linear-gradient(135deg,#3fb950,#2ea043);border:none;color:#fff;padding:9px 28px;border-radius:8px;font-family:'Exo 2',sans-serif;font-weight:700;cursor:pointer;font-size:.85rem;">✅ Entendido</button>
       </div>
     </div>
@@ -24314,7 +24456,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 </script>
 
-<div id="reelsOverlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:5000;background:var(--bg);">
+<div id="reelsOverlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:5000;background:#0d1117;">
   
   <button onclick="closeReelsOverlay()" style="position:absolute;top:12px;right:12px;z-index:30;background:rgba(0,0,0,.6);border:1.5px solid rgba(255,255,255,.2);color:#fff;width:36px;height:36px;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
   
@@ -24363,10 +24505,10 @@ window.setBottomNav = function(id){
       <div style="font-size:.8rem;color:rgba(255,215,0,.6);margin-top:4px;">Solo $1 USD por mes</div>
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
-      <div style="display:flex;align-items:center;gap:10px;font-size:.82rem;color:var(--text);"><span style="color:#ffd700;">✓</span> Sin anuncios en todo el sitio</div>
-      <div style="display:flex;align-items:center;gap:10px;font-size:.82rem;color:var(--text);"><span style="color:#ffd700;">✓</span> Badge ⭐ Premium en tu perfil</div>
-      <div style="display:flex;align-items:center;gap:10px;font-size:.82rem;color:var(--text);"><span style="color:#ffd700;">✓</span> Ves quién vio tus historias</div>
-      <div style="display:flex;align-items:center;gap:10px;font-size:.82rem;color:var(--text);"><span style="color:#ffd700;">✓</span> Ayudanos a mantener viva a MiLatido.UY</div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:.82rem;color:#e6edf3;"><span style="color:#ffd700;">✓</span> Sin anuncios en todo el sitio</div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:.82rem;color:#e6edf3;"><span style="color:#ffd700;">✓</span> Badge ⭐ Premium en tu perfil</div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:.82rem;color:#e6edf3;"><span style="color:#ffd700;">✓</span> Ves quién vio tus historias</div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:.82rem;color:#e6edf3;"><span style="color:#ffd700;">✓</span> Ayudanos a mantener viva a MiLatido.UY</div>
     </div>
     <div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.2);border-radius:10px;padding:12px;margin-bottom:16px;font-size:.75rem;color:rgba(255,255,255,.7);line-height:1.6;">
       1. Hacé clic en el botón de abajo para pagar $1 USD por PayPal.<br>
@@ -24839,12 +24981,12 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
     var lastSeen = !u.online && u.ts ? ('<span style="font-size:.65rem;color:#555;">'+fmtT(u.ts)+'</span>') : '';
 
     return '<div class="rf4-player-row" onclick="openUserProfile(\''+u.id+'\',\''+esc(u.nick)+'\')">'+dot
-      +'<div style="width:32px;height:32px;border-radius:50%;background:#21262d;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--border);">'+av+'</div>'
+      +'<div style="width:32px;height:32px;border-radius:50%;background:#21262d;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid #30363d;">'+av+'</div>'
       +'<div style="flex:1;min-width:0;">'
-        +'<div style="font-size:.82rem;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(u.nick)+badge+'</div>'
+        +'<div style="font-size:.82rem;font-weight:700;color:#e6edf3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(u.nick)+badge+'</div>'
         +(lastSeen?'<div>'+lastSeen+'</div>':'')
       +'</div>'
-      +(window.CU && u.id !== window.CU.id ? '<button onclick="event.stopPropagation();rf4SwitchTab(\'mensajes\');openChatWith(\''+u.id+'\',\''+esc(u.nick)+'\');" style="background:none;border:1px solid var(--border);color:#8b949e;padding:3px 8px;border-radius:4px;font-size:.7rem;cursor:pointer;flex-shrink:0;" onmouseover="this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.borderColor=\'#30363d\'">💬</button>' : '')
+      +(window.CU && u.id !== window.CU.id ? '<button onclick="event.stopPropagation();rf4SwitchTab(\'mensajes\');openChatWith(\''+u.id+'\',\''+esc(u.nick)+'\');" style="background:none;border:1px solid #30363d;color:#8b949e;padding:3px 8px;border-radius:4px;font-size:.7rem;cursor:pointer;flex-shrink:0;" onmouseover="this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.borderColor=\'#30363d\'">💬</button>' : '')
     +'</div>';
   }
 
@@ -25087,7 +25229,7 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
       document.getElementById('faqPropBox').style.display='none';
       document.getElementById('faqPropBtn').style.display='block';
       var conf=document.createElement('div');
-      conf.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.8);background:var(--bg2);border:2px solid #3fb950;border-radius:16px;padding:32px 40px;text-align:center;z-index:9999;box-shadow:0 8px 40px rgba(0,0,0,.7);transition:all .25s;';
+      conf.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.8);background:#161b22;border:2px solid #3fb950;border-radius:16px;padding:32px 40px;text-align:center;z-index:9999;box-shadow:0 8px 40px rgba(0,0,0,.7);transition:all .25s;';
       conf.innerHTML='<div style="font-size:2.5rem;margin-bottom:10px;">✅</div><div style="font-family:Orbitron,monospace;font-size:1.1rem;font-weight:900;color:#3fb950;margin-bottom:6px;">¡ENVIADO!</div><div style="font-size:.85rem;color:#8b949e;">Tu pregunta fue enviada.<br>El admin la revisará pronto 🎣</div>';
       document.body.appendChild(conf);
       setTimeout(function(){ conf.style.transform='translate(-50%,-50%) scale(1)'; },10);
@@ -25161,7 +25303,7 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
       var label = estado==='aprobado' ? '¡APROBADA!' : '¡RECHAZADA!';
       toast(emoji+' Pregunta '+estado, estado==='aprobado'?'ok':'err');
       var conf=document.createElement('div');
-      conf.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.8);background:var(--bg2);border:2px solid '+color+';border-radius:16px;padding:32px 40px;text-align:center;z-index:9999;box-shadow:0 8px 40px rgba(0,0,0,.7);transition:all .25s;';
+      conf.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.8);background:#161b22;border:2px solid '+color+';border-radius:16px;padding:32px 40px;text-align:center;z-index:9999;box-shadow:0 8px 40px rgba(0,0,0,.7);transition:all .25s;';
       conf.innerHTML='<div style="font-size:2.5rem;margin-bottom:10px;">'+emoji+'</div><div style="font-family:Orbitron,monospace;font-size:1.1rem;font-weight:900;color:'+color+';margin-bottom:6px;">'+label+'</div>';
       document.body.appendChild(conf);
       setTimeout(function(){ conf.style.transform='translate(-50%,-50%) scale(1)'; },10);
@@ -25413,7 +25555,7 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
       modal.onclick = function(e){ if(e.target===modal) modal.remove(); };
       document.body.appendChild(modal);
     }
-    modal.innerHTML = '<div style="background:var(--bg2);border:1px solid rgba(46,196,182,.35);border-radius:16px;padding:24px 20px;max-width:420px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.7);">'
+    modal.innerHTML = '<div style="background:#161b22;border:1px solid rgba(46,196,182,.35);border-radius:16px;padding:24px 20px;max-width:420px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.7);">'
       + '<div style="font-size:1.5rem;margin-bottom:10px;">🔍</div>'
       + '<div style="font-family:Orbitron,monospace;font-size:.9rem;font-weight:900;color:#2ec4b6;margin-bottom:6px;">TRADUCIENDO ZONA</div>'
       + '<div style="font-size:.78rem;color:#8b949e;margin-bottom:16px;">Analizando zona marcada...</div>'
@@ -25431,16 +25573,16 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
       var apiData = await apiRes.json();
       var reply = apiData.reply || 'No se pudo traducir.';
       var formatted = reply.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-      modal.innerHTML = '<div style="background:var(--bg2);border:1px solid rgba(46,196,182,.35);border-radius:16px;padding:24px 20px;max-width:460px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.7);max-height:80vh;overflow-y:auto;">'
+      modal.innerHTML = '<div style="background:#161b22;border:1px solid rgba(46,196,182,.35);border-radius:16px;padding:24px 20px;max-width:460px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.7);max-height:80vh;overflow-y:auto;">'
         + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">'
         + '<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2ec4b6,#1a6a64);display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🔍</div>'
         + '<div><div style="font-family:Orbitron,monospace;font-size:.85rem;font-weight:900;color:#2ec4b6;">TRADUCCIÓN</div><div style="font-size:.7rem;color:#8b949e;">Solo español</div></div>'
         + '<button onclick="document.getElementById(&quot;_rf4EquipoModal&quot;).remove()" style="margin-left:auto;background:none;border:none;color:#8b949e;font-size:1.1rem;cursor:pointer;">✕</button>'
         + '</div>'
-        + '<div style="background:#1c2128;border:1px solid var(--border);border-radius:10px;padding:14px;font-size:.84rem;line-height:1.7;color:var(--text);">' + formatted + '</div>'
+        + '<div style="background:#1c2128;border:1px solid #30363d;border-radius:10px;padding:14px;font-size:.84rem;line-height:1.7;color:#e6edf3;">' + formatted + '</div>'
         + '<div style="margin-top:10px;font-size:.68rem;color:#8b949e;text-align:center;">MiLatido.UY</div></div>';
     } catch(e) {
-      modal.innerHTML = '<div style="background:var(--bg2);padding:24px;text-align:center;border-radius:16px;"><div style="color:#f85149;">Error al traducir</div></div>';
+      modal.innerHTML = '<div style="background:#161b22;padding:24px;text-align:center;border-radius:16px;"><div style="color:#f85149;">Error al traducir</div></div>';
     }
   };
 })();
@@ -25452,7 +25594,7 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
 #_rf4CtxMenu {
   position: fixed;
   background: #1c2128;
-  border: 1px solid var(--border);
+  border: 1px solid #30363d;
   border-radius: 10px;
   padding: 6px 0;
   z-index: 99999;
@@ -25627,7 +25769,7 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
     // Show modal with loading
     var modal = getOrCreateModal();
     var loadingText = isSeleccion ? 'Traduciendo zona seleccionada...' : 'La IA está leyendo el equipo del trofeo...';
-    modal.innerHTML = '<div style="background:var(--bg2);border:1px solid rgba(46,196,182,.35);border-radius:16px;padding:24px 20px;max-width:420px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.7);">'
+    modal.innerHTML = '<div style="background:#161b22;border:1px solid rgba(46,196,182,.35);border-radius:16px;padding:24px 20px;max-width:420px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.7);">'
       + '<div style="font-size:1.5rem;margin-bottom:10px;">🔍</div>'
       + '<div style="font-family:Orbitron,monospace;font-size:.9rem;font-weight:900;color:#2ec4b6;margin-bottom:6px;">' + (isSeleccion ? 'TRADUCIENDO SELECCIÓN' : 'ANALIZANDO IMAGEN') + '</div>'
       + '<div style="font-size:.78rem;color:#8b949e;margin-bottom:16px;">' + loadingText + '</div>'
@@ -25661,24 +25803,24 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
         .replace(/\*(.*?)\*/g,'<i>$1</i>')
         .replace(/\n/g,'<br>');
 
-      modal.innerHTML = '<div style="background:var(--bg2);border:1px solid rgba(46,196,182,.35);border-radius:16px;padding:24px 20px;max-width:460px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.7);max-height:80vh;overflow-y:auto;">'
+      modal.innerHTML = '<div style="background:#161b22;border:1px solid rgba(46,196,182,.35);border-radius:16px;padding:24px 20px;max-width:460px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.7);max-height:80vh;overflow-y:auto;">'
         + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">'
         + '<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2ec4b6,#1a6a64);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">🔍</div>'
         + '<div><div style="font-family:Orbitron,monospace;font-size:.85rem;font-weight:900;color:#2ec4b6;">EQUIPO DETECTADO</div>'
         + '<div style="font-size:.7rem;color:#8b949e;">Análisis IA de la imagen</div></div>'
         + '<button onclick="document.getElementById(&quot;_rf4EquipoModal&quot;).remove()" style="margin-left:auto;background:none;border:none;color:#8b949e;font-size:1.1rem;cursor:pointer;padding:4px;">✕</button>'
         + '</div>'
-        + '<div style="background:#1c2128;border:1px solid var(--border);border-radius:10px;padding:14px;font-size:.84rem;line-height:1.7;color:var(--text);">'
+        + '<div style="background:#1c2128;border:1px solid #30363d;border-radius:10px;padding:14px;font-size:.84rem;line-height:1.7;color:#e6edf3;">'
         + formatted
         + '</div>'
         + '<div style="margin-top:12px;font-size:.68rem;color:#8b949e;text-align:center;">Powered by MiLatido.UY · Gemini Vision</div>'
         + '</div>';
 
     } catch(e) {
-      modal.innerHTML = '<div style="background:var(--bg2);border:1px solid rgba(248,81,73,.35);border-radius:16px;padding:24px 20px;max-width:400px;width:100%;text-align:center;">'
+      modal.innerHTML = '<div style="background:#161b22;border:1px solid rgba(248,81,73,.35);border-radius:16px;padding:24px 20px;max-width:400px;width:100%;text-align:center;">'
         + '<div style="font-size:1.5rem;margin-bottom:8px;">⚠️</div>'
         + '<div style="font-size:.85rem;color:#f85149;margin-bottom:12px;">No se pudo analizar la imagen</div>'
-        + '<button onclick="document.getElementById(&quot;_rf4EquipoModal&quot;).remove()" style="background:#21262d;border:1px solid var(--border);color:var(--text);padding:8px 20px;border-radius:8px;cursor:pointer;font-family:Exo 2,sans-serif;">Cerrar</button>'
+        + '<button onclick="document.getElementById(&quot;_rf4EquipoModal&quot;).remove()" style="background:#21262d;border:1px solid #30363d;color:#e6edf3;padding:8px 20px;border-radius:8px;cursor:pointer;font-family:Exo 2,sans-serif;">Cerrar</button>'
         + '</div>';
     }
   };
@@ -25777,10 +25919,10 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
           window._cafeIAPedidosPendientes.forEach(function(p, i){
             var fishData = (window.FISH_DB||[]).find(function(f){ return f.n && f.n.toLowerCase() === p.pez.toLowerCase(); }) || {};
             var pesoDisplay = p.peso_kg ? (p.peso_kg < 1 ? Math.round(p.peso_kg*1000)+'g' : p.peso_kg+'kg') : '—';
-            html += '<div style="background:#1c2128;border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">'
+            html += '<div style="background:#1c2128;border:1px solid #30363d;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">'
               + (fishData.img ? '<img src="'+fishData.img+'" style="width:38px;height:28px;object-fit:contain;flex-shrink:0;" onerror="this.style.display=\'none\'">' : '<span style="font-size:1.4rem;">🐟</span>')
               + '<div style="flex:1;min-width:0;">'
-              + '<div style="font-weight:700;font-size:.85rem;color:var(--text);">'+p.pez+'</div>'
+              + '<div style="font-weight:700;font-size:.85rem;color:#e6edf3;">'+p.pez+'</div>'
               + '<div style="font-size:.72rem;color:#8b949e;">⚖️ '+pesoDisplay+' &nbsp;📦 '+(p.cantidad||1)+' pcs &nbsp;💰 '+(p.recompensa||0)+' &nbsp;⏰ '+(p.tiempo_horas||48)+'h</div>'
               + '</div>'
               + '<input type="checkbox" checked data-idx="'+i+'" style="width:18px;height:18px;accent-color:#ff8c00;cursor:pointer;" title="Incluir este pedido">'
@@ -25893,8 +26035,8 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
 ._rf4FishDrop {
   position: absolute;
   z-index: 99999;
-  background: var(--bg2);
-  border: 1px solid var(--border);
+  background: #161b22;
+  border: 1px solid #30363d;
   border-radius: 10px;
   max-height: 220px;
   overflow-y: auto;
@@ -26163,7 +26305,7 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
         if((e[0]||'').toLowerCase().includes('precio')){
           precio = '<div class="tienda-precio" style="color:#ffd700;font-weight:700;font-size:.88rem;margin:5px 0 3px;">₴ '+e[1]+'</div>';
         } else {
-          statsHtml += '<div><span style="color:#8b949e;font-size:.7rem;">'+e[0]+':</span> <b style="color:var(--text);font-size:.7rem;">'+e[1]+'</b></div>';
+          statsHtml += '<div><span style="color:#8b949e;font-size:.7rem;">'+e[0]+':</span> <b style="color:#e6edf3;font-size:.7rem;">'+e[1]+'</b></div>';
         }
       });
     }
@@ -26173,7 +26315,7 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
     if(grupo.length > 1){
       var idsJson = JSON.stringify(grupo.map(function(g){ return g._id; }));
       selector = '<select onchange="tiendaSelectVariant(this,'+idsJson.replace(/"/g,'&quot;')+')" '
-        +'style="width:100%;background:#21262d;border:1px solid var(--border);border-radius:5px;color:var(--text);'
+        +'style="width:100%;background:#21262d;border:1px solid #30363d;border-radius:5px;color:#e6edf3;'
         +'padding:4px 8px;font-size:.72rem;font-family:Exo 2,sans-serif;margin-bottom:6px;outline:none;">';
       grupo.forEach(function(g,i){
         var lbl = g.descripcion || g.tipo || ('Variante '+(i+1));
@@ -26217,7 +26359,7 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
         if((e[0]||'').toLowerCase().includes('precio'))
           precio = '<div class="tienda-precio" style="color:#ffd700;font-weight:700;font-size:.88rem;margin:5px 0 3px;">₴ '+e[1]+'</div>';
         else
-          statsHtml += '<div><span style="color:#8b949e;font-size:.7rem;">'+e[0]+':</span> <b style="color:var(--text);font-size:.7rem;">'+e[1]+'</b></div>';
+          statsHtml += '<div><span style="color:#8b949e;font-size:.7rem;">'+e[0]+':</span> <b style="color:#e6edf3;font-size:.7rem;">'+e[1]+'</b></div>';
       });
     }
     var pEl = card.querySelector('.tienda-precio');
@@ -26326,7 +26468,7 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
     if(pvBox){
       pvBox.style.display = 'flex'; pvBox.innerHTML = '';
       files.forEach(function(f){
-        pvBox.innerHTML += '<img src="'+URL.createObjectURL(f)+'" style="height:60px;width:auto;border-radius:6px;border:1px solid var(--border);object-fit:cover;">';
+        pvBox.innerHTML += '<img src="'+URL.createObjectURL(f)+'" style="height:60px;width:auto;border-radius:6px;border:1px solid #30363d;object-fit:cover;">';
       });
     }
     document.getElementById('tiendaIADropZone').style.display = 'none';
@@ -26432,9 +26574,9 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
         else
           sHtml += '<span style="margin-right:8px;font-size:.68rem;">'+e[0]+': <b>'+e[1]+'</b></span>';
       });
-      html += '<div style="background:#1c2128;border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;display:flex;align-items:center;gap:12px;">'
+      html += '<div style="background:#1c2128;border:1px solid #30363d;border-radius:10px;padding:12px;margin-bottom:10px;display:flex;align-items:center;gap:12px;">'
         +(it.imagen
-          ? '<img src="'+it.imagen+'" style="width:56px;height:56px;object-fit:contain;flex-shrink:0;border-radius:6px;background:var(--bg2);border:1px solid var(--border);">'
+          ? '<img src="'+it.imagen+'" style="width:56px;height:56px;object-fit:contain;flex-shrink:0;border-radius:6px;background:#161b22;border:1px solid #30363d;">'
           : '<div style="width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;">🎣</div>')
         +'<div style="flex:1;min-width:0;">'
         +'<div style="font-weight:700;font-size:.88rem;color:#ffd700;margin-bottom:2px;">'+it.nombre+'</div>'
@@ -27343,7 +27485,7 @@ setTimeout(function(){
 #banScreen {
   display:none;
   position:fixed;inset:0;z-index:999999;
-  background:var(--bg);
+  background:#0d1117;
   align-items:center;justify-content:center;
   flex-direction:column;
   font-family:'Exo 2',sans-serif;
@@ -27359,11 +27501,11 @@ setTimeout(function(){
     <div style="color:#8b949e;font-size:.88rem;margin-bottom:20px;line-height:1.7;">Tu cuenta ha sido suspendida por el equipo de moderación de <span style="color:#2ec4b6;font-weight:700;">MiLatido.UY</span>.</div>
     <div id="banReasonBox" style="background:#1c1218;border:1px solid rgba(248,81,73,.3);border-radius:12px;padding:16px 20px;margin-bottom:24px;text-align:left;display:none;">
       <div style="font-size:.72rem;color:#f85149;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Motivo</div>
-      <div id="banReasonText" style="color:var(--text);font-size:.88rem;line-height:1.5;"></div>
+      <div id="banReasonText" style="color:#e6edf3;font-size:.88rem;line-height:1.5;"></div>
       <div id="banNoteText" style="color:#8b949e;font-size:.78rem;margin-top:6px;line-height:1.5;"></div>
     </div>
     <div style="font-size:.78rem;color:#6b6f75;line-height:1.7;margin-bottom:28px;">Si creés que es un error, podés contactar a un administrador a través de Discord o por email.</div>
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;font-size:.75rem;color:#6b6f75;">
+    <div style="background:#161b22;border:1px solid #30363d;border-radius:12px;padding:16px;font-size:.75rem;color:#6b6f75;">
       ⚠️ Crear una nueva cuenta para evadir el baneo puede resultar en un baneo permanente de tu IP.
     </div>
   </div>
@@ -28073,7 +28215,7 @@ window._showBanScreen = _showBanScreen;
 <!-- ═══════════════════════════ FIN MATCH ════════════════════════════ -->
 
 
-<div id="siteFooter" style="display:none;background:var(--bg2);border-top:1px solid var(--border);margin-top:32px;">
+<div id="siteFooter" style="display:none;background:#161b22;border-top:1px solid #30363d;margin-top:32px;">
   <div style="max-width:980px;margin:0 auto;padding:18px 24px 20px;">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
       <img width="34" height="34" src="icon-192.png" alt="MiLatido.UY" style="width:34px;height:34px;border-radius:50%;object-fit:cover;box-shadow:0 0 12px rgba(46,196,182,.4);">
