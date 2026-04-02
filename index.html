@@ -6518,6 +6518,17 @@ function init(){
           applyAdminUploadUnlock();
           // Actualizar foto en "Crear historia" apenas tengamos los datos del usuario
           setTimeout(()=>{ if(typeof window._updateStoryCard==='function') window._updateStoryCard(); }, 100);
+          setTimeout(()=>{ if(typeof window._updateStoryCard==='function') window._updateStoryCard(); }, 2000);
+          // Escuchar cambios en tiempo real del doc del usuario para actualizar avatar al recargar
+          if(window._cuDocUnsub) window._cuDocUnsub();
+          window._cuDocUnsub = onSnapshot(doc(db,'users',user.uid), dsnap => {
+            if(!dsnap.exists()) return;
+            const data = dsnap.data();
+            if(data.av && window.CU) {
+              window.CU.av = data.av;
+              if(typeof window._updateStoryCard==='function') window._updateStoryCard();
+            }
+          });
           if(window.CU.role === 'premium' && window.CU.premiumReason === 'auto_5trofeos' && window.CU.premiumExpiry){
             const expiry = new Date(window.CU.premiumExpiry);
             if(new Date() > expiry){
@@ -6973,21 +6984,17 @@ function onLogin(){
   // Update "Crear historia" card with user photo
   function _updateStoryCard(){
     const storyPhoto = document.getElementById('storyAddPhoto');
-    const storyPhotoInner = document.getElementById('storyAddPhotoInner');
-    if(storyPhoto && window.CU){
-      if(window.CU.av){
-        storyPhoto.innerHTML = `<img src="${window.CU.av}" style="width:100%;height:100%;object-fit:cover;">`;
-      } else if(storyPhotoInner){
-        storyPhotoInner.textContent = (window.CU.nick||'?')[0].toUpperCase();
-        storyPhotoInner.style.opacity = '0.7';
-        storyPhotoInner.style.fontSize = '3.5rem';
-        storyPhotoInner.style.fontWeight = '800';
-      }
+    if(!storyPhoto || !window.CU) return;
+    if(window.CU.av){
+      storyPhoto.innerHTML = `<img src="${window.CU.av}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`;
+    } else {
+      const ini = (window.CU.nick||'?')[0].toUpperCase();
+      storyPhoto.innerHTML = `<span style="font-size:3.5rem;opacity:.7;font-weight:800;color:var(--accent);">${ini}</span>`;
     }
   }
   _updateStoryCard();
-  // Reintentar si el avatar aún no cargó
-  setTimeout(_updateStoryCard, 1500);
+  setTimeout(_updateStoryCard, 800);
+  setTimeout(_updateStoryCard, 2500);
   window._updateStoryCard = _updateStoryCard;
   loadSavedAccounts();
   // Navigate to initial URL route after login
@@ -11563,9 +11570,8 @@ async function changeAvatar(input){
   const url = await uploadImage(f, 'avatars');
   window.CU.av = url;
   await updateDoc(doc(db, 'users', window.CU.id), {av: url});
-  // Update "Crear historia" card
-  const sp = document.getElementById('storyAddPhoto');
-  if(sp) sp.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;">`;
+  // Update "Crear historia" card y todos los avatares de la UI
+  if(typeof window._updateStoryCard === 'function') window._updateStoryCard();
   // Publicar post automático
   try {
     await addDoc(collection(db,'posts'),{
