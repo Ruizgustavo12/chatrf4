@@ -349,10 +349,10 @@
 <noscript></noscript>
 <style>
 :root{
-  --bg:#0d1117;--bg2:#161b22;--bg3:#1c2128;--bg4:#21262d;
+  --bg:#ffffff;--bg2:#f4f6f8;--bg3:#eaecef;--bg4:#dde1e7;
   --accent:#2ec4b6;--accent2:#25a99d;--gold:#d4a017;
-  --text:#e6edf3;--muted:#8b949e;--border:#30363d;
-  --green:#3fb950;--red:#f85149;--warn:#d29922;
+  --text:#1a1a2e;--muted:#5a6478;--border:#d0d7de;
+  --green:#2da44e;--red:#cf222e;--warn:#9a6700;
   --r:8px;--rs:6px;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -361,8 +361,22 @@ body{font-family:'Exo 2',sans-serif;background:var(--bg);color:var(--text);min-h
 a{text-decoration:none;color:inherit;}
 button{font-family:'Exo 2',sans-serif;cursor:pointer;}
 
+/* ===== TEMA BLANCO: override colores hardcodeados oscuros ===== */
+.post-box,.post,.fb-card,.sidebar-widget,.modal-box{background:var(--bg2)!important;border-color:var(--border)!important;color:var(--text)!important;box-shadow:0 1px 4px rgba(0,0,0,.08)!important;}
+.fb-input{background:var(--bg3)!important;border-color:var(--border)!important;color:var(--text)!important;}
+.fb-input::placeholder,.fb-textarea::placeholder{color:var(--muted)!important;}
+.bottom-nav{background:#fff!important;border-color:var(--border)!important;}
+.story-card{background:var(--bg3)!important;border-color:var(--border)!important;}
+.story-card-bg{background:linear-gradient(135deg,var(--bg3),var(--bg2))!important;}
+.story-av,.sl-av{background:var(--bg2)!important;}
+.post-verified{background:linear-gradient(180deg,rgba(255,215,0,.06) 0%,#fffdf2 100%)!important;}
+#chatMessages{background:var(--bg)!important;}
+.stk-picker,.cmt-menu-dropdown,.cmt-rxn-popup{background:var(--bg2)!important;border-color:var(--border)!important;}
+.match-page-inner{background:var(--bg)!important;}
+.mc-single-card{background:var(--bg2)!important;border-color:var(--border)!important;}
+
 /* ===== TOPBAR ===== */
-.topbar{position:fixed;top:0;left:0;right:0;height:48px;background:#161b22;border-bottom:1px solid var(--border);
+.topbar{position:fixed;top:0;left:0;right:0;height:48px;background:#ffffff;border-bottom:1px solid var(--border);
   display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:1000;box-shadow:0 2px 4px rgba(0,0,0,.4);}
 .tb-logo{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--accent);cursor:pointer;}
 .tb-logo span{color:var(--gold);}
@@ -7030,11 +7044,11 @@ async function doReg(){
   } catch(e){}
   try {
     const cred = await createUserWithEmailAndPassword(auth, em, pw);
-    window.CU = {id:cred.user.uid, nick, nickLower:nick.toLowerCase(), email:em, country, av:'', cover:'', bio:'', favFish:'', favMap:'', social_yt:'', social_dc:'', joined:new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}), posts:0, friends:0, likes:0};
+    window.CU = {id:cred.user.uid, nick, nickLower:nick.toLowerCase(), email:em, country, av:'', cover:'', bio:'', favFish:'', favMap:'', social_yt:'', social_dc:'', joined:new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}), posts:0, friends:0, likes:0, regTs: Date.now()};
     await setDoc(doc(db, 'users', cred.user.uid), window.CU);
     document.getElementById('mAuth').style.display='none';
     if(window._hideConstruction) window._hideConstruction();
-    onLogin(); toast('¡Bienvenido '+nick+'! 🎣','ok');
+    onLogin(); setTimeout(_startPhotoTimer, 500); toast('¡Bienvenido '+nick+'! 🎣','ok');
   } catch(e) {
     document.getElementById('rErr').textContent = e.code === 'auth/email-already-in-use' ? 'Email ya registrado' : e.message;
   }
@@ -7191,6 +7205,69 @@ function onLogin(){
       const pageId = ROUTES[_initPath];
       if (pageId && pageId !== 'home') window.gp(pageId, false);
     }, 600);
+  }
+
+  // ── TIMER FOTO DE PERFIL: si en 10 min no subió foto, mostrar modal obligatorio ──
+  (function _checkProfilePhotoTimer(){
+    if(!window.CU) return;
+    // Si ya tiene foto, no hacer nada (la verificación de badge se hace en renderProfile)
+    if(window.CU.av && typeof window.CU.av === 'string' && window.CU.av.startsWith('http')) return;
+    // Clave en localStorage: guarda el timestamp de cuando creó la cuenta
+    const PHOTO_KEY = 'rf4_photo_deadline_' + window.CU.id;
+    let deadline = localStorage.getItem(PHOTO_KEY);
+    if(!deadline){
+      // Primera vez sin foto: guardar deadline = ahora + 10 min
+      deadline = Date.now() + 10 * 60 * 1000;
+      localStorage.setItem(PHOTO_KEY, deadline);
+    }
+    deadline = parseInt(deadline);
+
+    function _showPhotoModal(){
+      // Evitar duplicados
+      if(document.getElementById('_photoRequiredModal')) return;
+      const overlay = document.createElement('div');
+      overlay.id = '_photoRequiredModal';
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+      overlay.innerHTML = `
+        <div style="background:#fff;border-radius:18px;padding:32px 28px;max-width:380px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.35);animation:mIn .3s ease;">
+          <div style="font-size:3rem;margin-bottom:10px;">📸</div>
+          <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:#1a1a2e;margin-bottom:8px;">¡Foto de perfil requerida!</div>
+          <div style="font-size:.88rem;color:#5a6478;line-height:1.6;margin-bottom:20px;">
+            Para seguir usando la plataforma necesitás subir una foto de perfil.<br>
+            <strong style="color:#2ec4b6;">¡Además obtenés el badge de usuario verificado! ✅</strong>
+          </div>
+          <button onclick="document.getElementById('_photoRequiredModal').style.display='none';window.gp('profile');setTimeout(()=>document.getElementById('profAvEdit')?.click(),600);"
+            style="width:100%;padding:13px;background:linear-gradient(135deg,#2ec4b6,#25a99d);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:800;cursor:pointer;font-family:'Exo 2',sans-serif;letter-spacing:.03em;">
+            📷 Subir foto ahora
+          </button>
+          <div style="font-size:.72rem;color:#9aa0ab;margin-top:12px;">Sin foto no podés acceder a las funciones de Match ni al feed completo.</div>
+        </div>`;
+      document.body.appendChild(overlay);
+    }
+
+    const remaining = deadline - Date.now();
+    if(remaining <= 0){
+      // Ya pasó el tiempo: mostrar inmediatamente
+      setTimeout(_showPhotoModal, 1500);
+    } else {
+      // Esperar al tiempo restante
+      setTimeout(function(){
+        // Re-verificar que sigue sin foto
+        if(!window.CU?.av || !window.CU.av.startsWith('http')){
+          _showPhotoModal();
+        }
+      }, remaining);
+    }
+  })();
+}
+
+// Función para arrancar el timer de foto desde registro nuevo
+function _startPhotoTimer(){
+  if(!window.CU) return;
+  if(window.CU.av && window.CU.av.startsWith('http')) return;
+  const PHOTO_KEY = 'rf4_photo_deadline_' + window.CU.id;
+  if(!localStorage.getItem(PHOTO_KEY)){
+    localStorage.setItem(PHOTO_KEY, Date.now() + 10 * 60 * 1000);
   }
 }
 
@@ -11350,9 +11427,18 @@ function renderProfile(){
   nameEl.classList.remove('verif-name-gold');
   if(isPremiumUser){ nameEl.classList.add('premium-name'); } else { nameEl.classList.remove('premium-name'); }
 
-  // ── BADGE ──
+  // ── BADGE: mostrar si tiene foto de perfil ──
   const badge = document.getElementById('profVerifiedBadge');
-  if(badge) badge.style.display = 'none';
+  const hasProfilePhoto = !!(window.CU.av && typeof window.CU.av === 'string' && window.CU.av.startsWith('http'));
+  if(badge){
+    if(hasProfilePhoto){
+      badge.style.display = 'inline-flex';
+      badge.title = 'Usuario verificado — tiene foto de perfil';
+      badge.innerHTML = `<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Twitter_Verified_Badge.svg/200px-Twitter_Verified_Badge.svg.png" title="Verificado" style="width:22px;height:22px;vertical-align:middle;filter:drop-shadow(0 0 4px rgba(29,155,240,.7));" alt="✅">`;
+    } else {
+      badge.style.display = 'none';
+    }
+  }
 
   // ── BADGE PREMIUM ──
   let _profPremBadge = document.getElementById('_profPremiumBadge');
@@ -17053,6 +17139,16 @@ async function _loadUserProfilePage(uid, nick){
     if(isPremium){ nEl.classList.add('premium-name'); } else { nEl.classList.remove('premium-name'); }
     document.getElementById('upVerifBadge').style.display = 'none';
     document.getElementById('upVerifBanner').style.display = 'none';
+    // ── BADGE VERIFICADO: si tiene foto de perfil, mostrar badge ──
+    const uHasPhoto = !!(u.av && typeof u.av === 'string' && u.av.startsWith('http'));
+    const upVerifBadgeEl = document.getElementById('upVerifBadge');
+    if(upVerifBadgeEl && uHasPhoto){
+      upVerifBadgeEl.style.display = 'inline-flex';
+      upVerifBadgeEl.title = 'Usuario verificado — tiene foto de perfil';
+      if(!upVerifBadgeEl.querySelector('img')){
+        upVerifBadgeEl.innerHTML = `<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Twitter_Verified_Badge.svg/200px-Twitter_Verified_Badge.svg.png" title="Verificado" style="width:22px;height:22px;vertical-align:middle;filter:drop-shadow(0 0 4px rgba(29,155,240,.7));" alt="✅">`;
+      }
+    }
     // Badge Premium
     let _upPremBadge = document.getElementById('_upPremiumBadge');
     if(isPremium){
@@ -27040,6 +27136,8 @@ window._showBanScreen = _showBanScreen;
 
     _filtered = _allUsers.filter(u => {
       if(u.id === window.CU?.id) return false;
+      // Solo mostrar usuarios con foto de perfil
+      if(!u.av || typeof u.av !== 'string' || !u.av.startsWith('http')) return false;
       if(_genderFilter && (u.gender||'') !== _genderFilter) return false;
       if(country && !(u.country||'').includes(country)) return false;
       const age = parseInt(u.age)||0;
