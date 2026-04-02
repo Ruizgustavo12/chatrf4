@@ -4714,7 +4714,9 @@ function _renderMsgs(msgs){
     if(!m || !m.id) return;
     var ts = m.ts;
     if(ts && typeof ts.toMillis === 'function') ts = ts.toMillis();
-    if(!ts || typeof ts !== 'number') return; // ignorar msgs sin timestamp válido
+    else if(ts && ts.seconds) ts = ts.seconds * 1000 + Math.floor((ts.nanoseconds||0)/1e6);
+    ts = Number(ts);
+    if(!ts || isNaN(ts)) ts = Date.now(); // fallback: usar tiempo actual en vez de descartar
     var d = new Date(ts);
     var dateStr = d.toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit',year:'numeric'});
     if(dateStr !== lastDate){
