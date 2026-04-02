@@ -26616,7 +26616,7 @@ window._showBanScreen = _showBanScreen;
 @keyframes mcSlideInL { from{transform:translateX(-80%);opacity:0} to{transform:translateX(0);opacity:1} }
 
 /* Foto */
-.mc-photo-wrap { position:relative;width:100%;aspect-ratio:3/4;overflow:hidden;background:linear-gradient(135deg,#1a2030,#0d1117); }
+.mc-photo-wrap { position:relative;width:100%;aspect-ratio:4/3;overflow:hidden;background:linear-gradient(135deg,#1a2030,#0d1117); }
 .mc-photo-wrap img { width:100%;height:100%;object-fit:cover;display:block; }
 .mc-photo-initials { width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:6rem;font-weight:900;color:var(--accent);background:linear-gradient(135deg,#1a2030,#0d1117); }
 .mc-photo-grad { position:absolute;bottom:0;left:0;right:0;height:60%;background:linear-gradient(to top,rgba(0,0,0,.92) 0%,transparent 100%);pointer-events:none; }
@@ -26797,6 +26797,7 @@ window._showBanScreen = _showBanScreen;
 
   // ── Init ─────────────────────────────────────────────────────────────────
   window.initMatchPage = function(){
+    _loading = false; // reset por si quedó colgado de una carga anterior
     _loadUsers();
     _subscribeLikes();
     if(window._sidebarAllOnline){
@@ -26807,6 +26808,18 @@ window._showBanScreen = _showBanScreen;
   // ── Carga usuarios ────────────────────────────────────────────────────────
   function _loadUsers(){
     if(_loading) return;
+    // Si ya tenemos usuarios cacheados, mostrarlos de inmediato
+    if(_allUsers.length > 0){
+      _applyFilters();
+      return;
+    }
+    // Si hay caché global de una carga previa (ej: widget de home), usarla
+    if(window._matchAllUsers && window._matchAllUsers.length > 0){
+      _allUsers = window._matchAllUsers;
+      _applyFilters();
+      _subscribeRealtime();
+      return;
+    }
     _loading = true;
     _showSkeleton();
     getDocs(collection(db, 'users'))
