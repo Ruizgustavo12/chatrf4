@@ -7461,6 +7461,11 @@ window.gp = (id, pushState = true) => {
   if(!pg) return;
   pg.classList.add('active');
   window.scrollTo(0,0);
+  // Ocultar el footer global en páginas que tienen su propio layout (match, etc.)
+  const siteFooter = document.getElementById('siteFooter');
+  if(siteFooter){
+    siteFooter.style.display = (id === 'match') ? 'none' : 'block';
+  }
   navigateTo(id, pushState);
   if(id==='profile') renderProfile();
   if(id==='admin') { loadAdminData(); loadPezSemana(); loadSoporteBadge(); }
@@ -22253,31 +22258,7 @@ window.responderSoporte    = responderSoporte;
   </div>
 </div>
 
-<div id="siteFooter" style="display:none;background:#161b22;border-top:1px solid #30363d;margin-top:32px;">
-  <div style="max-width:980px;margin:0 auto;padding:18px 24px 20px;">
-    
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-      <img width="34" height="34" src="icon-192.png" alt="WikiPediaRF4.UY" style="width:34px;height:34px;border-radius:50%;object-fit:cover;box-shadow:0 0 12px rgba(46,196,182,.4);">
-      <span style="font-family:'Orbitron',monospace;font-size:.85rem;font-weight:900;color:var(--text);">Wikipedia<span style="color:var(--accent);">RF4</span></span>
-      <img src="https://flagcdn.com/w40/uy.png" alt="Uruguay" style="width:26px;height:auto;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.4);">
-      <img src="https://flagcdn.com/w40/ar.png" alt="Argentina" style="width:26px;height:auto;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.4);">
-    </div>
-    
-    <div style="display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;font-size:.72rem;margin-bottom:8px;">
-      <span onclick="openPrivacyModal()" style="color:#8b949e;cursor:pointer;transition:color .2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='#8b949e'">Reglas de WikiPediaRF4.UY</span>
-      <span style="color:#30363d;">·</span>
-      <span onclick="openPrivacyModal()" style="color:#8b949e;cursor:pointer;transition:color .2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='#8b949e'">Política de Privacidad</span>
-      <span style="color:#30363d;">·</span>
-      <span onclick="document.getElementById('modalAcuerdo').style.display='flex'" style="color:#8b949e;cursor:pointer;transition:color .2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='#8b949e'">Acuerdo de Usuario</span>
-      <span style="color:#30363d;">·</span>
-      <span onclick="document.getElementById('modalAccesibilidad').style.display='flex'" style="color:#8b949e;cursor:pointer;transition:color .2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='#8b949e'">Accesibilidad</span>
-    </div>
-    
-    <div style="font-size:.68rem;color:#6b6f75;font-family:'Orbitron',monospace;letter-spacing:.03em;">
-      WikiPediaRF4.UY, Inc. &copy; <span style="color:var(--accent);font-weight:700;">2026</span>. Todos los derechos reservados.
-    </div>
-  </div>
-</div>
+
 <script>
 (function svEmojiInit_done(){
   // Story reactions popup — fixed al body, nunca cortado
@@ -26894,6 +26875,11 @@ window._showBanScreen = _showBanScreen;
 
   // ── Init ─────────────────────────────────────────────────────────────────
   window.initMatchPage = function(){
+    // Si Firebase no está listo, reintentar en 1 segundo
+    if(typeof db === 'undefined' || !db){
+      setTimeout(window.initMatchPage, 1000);
+      return;
+    }
     _loading = false; // reset por si quedó colgado de una carga anterior
     _loadUsers();
     _subscribeLikes();
@@ -27040,7 +27026,7 @@ window._showBanScreen = _showBanScreen;
   // ── Render card única ─────────────────────────────────────────────────────
   function _renderCard(direction){
     try { _renderCardInner(direction); }
-    catch(e){ console.warn('_renderCard error:', e); _showError(); }
+    catch(e){ console.warn('_renderCard error:', e); }
   }
   function _renderCardInner(direction){
     const area = document.getElementById('matchSwipeArea');
@@ -27263,6 +27249,30 @@ window._showBanScreen = _showBanScreen;
 })();
 </script>
 <!-- ═══════════════════════════ FIN MATCH ════════════════════════════ -->
+
+
+<div id="siteFooter" style="display:none;background:#161b22;border-top:1px solid #30363d;margin-top:32px;">
+  <div style="max-width:980px;margin:0 auto;padding:18px 24px 20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <img width="34" height="34" src="icon-192.png" alt="WikiPediaRF4.UY" style="width:34px;height:34px;border-radius:50%;object-fit:cover;box-shadow:0 0 12px rgba(46,196,182,.4);">
+      <span style="font-family:'Orbitron',monospace;font-size:.85rem;font-weight:900;color:var(--text);">Wikipedia<span style="color:var(--accent);">RF4</span></span>
+      <img src="https://flagcdn.com/w40/uy.png" alt="Uruguay" style="width:26px;height:auto;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.4);">
+      <img src="https://flagcdn.com/w40/ar.png" alt="Argentina" style="width:26px;height:auto;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.4);">
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;font-size:.72rem;margin-bottom:8px;">
+      <span onclick="openPrivacyModal()" style="color:#8b949e;cursor:pointer;transition:color .2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='#8b949e'">Reglas de WikiPediaRF4.UY</span>
+      <span style="color:#30363d;">·</span>
+      <span onclick="openPrivacyModal()" style="color:#8b949e;cursor:pointer;transition:color .2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='#8b949e'">Política de Privacidad</span>
+      <span style="color:#30363d;">·</span>
+      <span onclick="document.getElementById('modalAcuerdo').style.display='flex'" style="color:#8b949e;cursor:pointer;transition:color .2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='#8b949e'">Acuerdo de Usuario</span>
+      <span style="color:#30363d;">·</span>
+      <span onclick="document.getElementById('modalAccesibilidad').style.display='flex'" style="color:#8b949e;cursor:pointer;transition:color .2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='#8b949e'">Accesibilidad</span>
+    </div>
+    <div style="font-size:.68rem;color:#6b6f75;font-family:'Orbitron',monospace;letter-spacing:.03em;">
+      WikiPediaRF4.UY, Inc. &copy; <span style="color:var(--accent);font-weight:700;">2026</span>. Todos los derechos reservados.
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
