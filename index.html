@@ -2069,7 +2069,7 @@ input:focus, textarea:focus {
 
 <div id="splash">
   <img src="https://wikipediarf4.github.io/enamorate.png" style="width:min(320px,80vw);height:auto;object-fit:contain;filter:drop-shadow(0 0 30px rgba(0,198,255,.4));animation:pulse 1.5s infinite;" alt="WikiPediaRF4">
-  <div style="color:var(--muted);font-size:.85rem;letter-spacing:3px">RED SOCIAL DE PESCA</div>
+  <div style="display:flex;align-items:center;gap:10px;font-size:.85rem;letter-spacing:3px;color:var(--muted)"><span style="font-size:1.6rem">👫</span><span>RED SOCIAL DE CITAS</span><span style="font-size:1.6rem">❤️</span></div>
   <div class="splash-bar"><div class="splash-fill"></div></div>
 </div>
 
@@ -2282,7 +2282,7 @@ input:focus, textarea:focus {
             <button class="pba" onclick="om('mCreatePost')">😊 Estado</button>
           </div>
         </div>
-        <div id="feedPosts"><div style="text-align:center;padding:40px;color:var(--muted);font-size:.85rem;">🎣 Cargando feed...</div></div>
+        <div id="feedPosts"><div style="text-align:center;padding:40px;color:var(--muted);font-size:.85rem;">👫 Cargando feed... ❤️</div></div>
       </div>
 
 
@@ -3060,7 +3060,7 @@ input:focus, textarea:focus {
       <!-- Slogan red social -->
       <div style="text-align:center;margin-bottom:16px;padding:0 8px;">
         <div style="font-family:'Orbitron',monospace;font-size:1.05rem;font-weight:900;color:var(--accent);letter-spacing:.04em;margin-bottom:6px;line-height:1.3;">La red social de los pescadores</div>
-        <div style="font-size:.82rem;color:#8b949e;line-height:1.6;">Conocé nuevas personas, seguí a tus amigos<br>y quedate al día con la comunidad 🎣</div>
+        <div style="font-size:.82rem;color:#8b949e;line-height:1.6;">Conocé nuevas personas, seguí a tus amigos<br>y encontrá tu match perfecto ❤️</div>
       </div>
       <img src="https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/enamorate.png" alt="WikiPediaRF4 - Conecta, Chatea, Enamórate" style="width:100%;max-width:400px;display:block;border-radius:16px;">
     </div>
@@ -6140,6 +6140,11 @@ window._fsImports = { collection, query, where, orderBy, onSnapshot, addDoc };
 // Exponer funciones Firestore para módulos externos (cebos, chat global, etc.)
 window._fsLib = { getDocs, query, collection, where, orderBy, limit, startAfter, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc };
 window.firebaseFirestore = { getDocs, query, collection, where, orderBy, limit, startAfter, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc };
+window.getDocs = getDocs; window.collection = collection; window.doc = doc;
+window.setDoc = setDoc; window.getDoc = getDoc; window.deleteDoc = deleteDoc;
+window.onSnapshot = onSnapshot; window.query = query; window.where = where;
+window.orderBy = orderBy; window.limit = limit; window.addDoc = addDoc;
+window.updateDoc = updateDoc; window.serverTimestamp = serverTimestamp;
 
 // ===== STATE =====
 window.CU = null;
@@ -26637,6 +26642,8 @@ window._showBanScreen = _showBanScreen;
 <style>
 #page-match { max-width:480px;margin:0 auto;padding:16px 12px 100px;flex-direction:column;align-items:center; }
 #page-match.active { display:flex; }
+@keyframes heartbeat { 0%,100%{transform:scale(1)} 15%{transform:scale(1.25)} 30%{transform:scale(1)} 45%{transform:scale(1.15)} 60%{transform:scale(1)} }
+.match-heart-icon { display:inline-block;animation:heartbeat 1.4s ease-in-out infinite;transform-origin:center; }
 
 /* Header */
 .match-header { width:100%;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px; }
@@ -26757,7 +26764,7 @@ window._showBanScreen = _showBanScreen;
 <div class="page" id="page-match">
   <!-- Header -->
   <div class="match-header">
-    <div class="match-title">💘 Match <span id="matchCountPill" class="match-count-pill">—</span></div>
+    <div class="match-title"><span class="match-heart-icon">❤️</span> Match <span id="matchCountPill" class="match-count-pill">—</span></div>
     <div style="font-size:.72rem;color:var(--muted);">Tu país aparece primero</div>
   </div>
 
