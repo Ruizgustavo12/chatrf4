@@ -2228,6 +2228,31 @@ input:focus, textarea:focus {
           <div id="storyAddPhoto" style="position:absolute;top:0;left:0;right:0;height:65%;background:var(--bg3);overflow:hidden;display:flex;align-items:center;justify-content:center;">
             <span id="storyAddPhotoInner" style="font-size:2.2rem;opacity:.3;">👤</span>
           </div>
+          <script>
+          (function(){
+            function _tryFillStoryPhoto(){
+              if(window._storyCardFilled) return; // ya fue actualizado por login
+              var el = document.getElementById('storyAddPhoto');
+              if(!el) return;
+              var cu = window.CU;
+              if(cu && cu.av){
+                window._storyCardFilled = true;
+                el.innerHTML = '<img src="'+cu.av+'" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display=\'none\'">';
+              } else if(cu && cu.nick){
+                window._storyCardFilled = true;
+                el.innerHTML = '<span style="font-size:3rem;font-weight:800;color:var(--accent);opacity:.8;">'+cu.nick[0].toUpperCase()+'</span>';
+              } else {
+                // Reintentar cada 500ms hasta tener datos
+                setTimeout(_tryFillStoryPhoto, 500);
+              }
+            }
+            if(document.readyState==='loading'){
+              document.addEventListener('DOMContentLoaded', function(){ setTimeout(_tryFillStoryPhoto, 300); });
+            } else {
+              setTimeout(_tryFillStoryPhoto, 300);
+            }
+          })();
+          </script>
           
           <div style="position:absolute;bottom:0;left:0;right:0;height:38%;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:7px;">
             <div style="font-size:.58rem;font-weight:700;color:var(--text);text-align:center;line-height:1.2;margin-top:16px;">Crear historia</div>
@@ -7099,8 +7124,9 @@ function onLogin(){
   function _updateStoryCard(){
     const storyPhoto = document.getElementById('storyAddPhoto');
     if(!storyPhoto || !window.CU) return;
+    window._storyCardFilled = true; // detener polling inline
     if(window.CU.av){
-      storyPhoto.innerHTML = `<img src="${window.CU.av}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`;
+      storyPhoto.innerHTML = `<img src="${window.CU.av}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.style.display='none'">`;
     } else {
       const ini = (window.CU.nick||'?')[0].toUpperCase();
       storyPhoto.innerHTML = `<span style="font-size:3.5rem;opacity:.7;font-weight:800;color:var(--accent);">${ini}</span>`;
@@ -27025,9 +27051,16 @@ window._showBanScreen = _showBanScreen;
     }
 
     const u = _filtered[_idx];
-    if(!u) return;
-
-    const isOnline = _onlineSet.has(u.id);
+    if(!u){
+      // Se terminaron los perfiles
+      area.innerHTML = `<div class="match-empty-state">
+        <div style="font-size:3rem;margin-bottom:12px;">🎉</div>
+        <div style="font-size:1rem;font-weight:700;color:var(--text);">¡Ya viste todos los perfiles!</div>
+        <div style="font-size:.82rem;margin-top:6px;color:var(--muted);">Volvé más tarde o cambiá los filtros.</div>
+        <button onclick="window.initMatchPage()" style="margin-top:14px;padding:9px 22px;background:var(--accent);border:none;border-radius:10px;color:#000;font-weight:800;cursor:pointer;font-size:.85rem;">🔄 Ver de nuevo</button>
+      </div>`;
+      return;
+    }
     const liked    = !!_likes[u.id];
     const age      = u.age ? u.age + ' años' : '';
     const dept     = u.dept || u.city || '';
@@ -27048,6 +27081,10 @@ window._showBanScreen = _showBanScreen;
     if(u.verified) tags.push('✓ Verificado');
     if(u.role === 'admin') tags.push('🛡️ Admin');
     else if(u.role === 'premium') tags.push('⭐ Premium');
+
+    // Quitar skeleton si existe (no tiene animación)
+    const skel = area.querySelector('.mc-skeleton-card');
+    if(skel) skel.remove();
 
     // Quitar card vieja con animación si hay dirección
     const old = area.querySelector('.mc-single-card');
