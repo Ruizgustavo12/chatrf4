@@ -4649,8 +4649,8 @@ function _loadSalaMsgs(sala){
 
   // Intentar con Firestore (si está disponible)
   try {
-    const { collection, query, orderBy, limit, onSnapshot, doc, getFirestore } = window._fbModules || {};
-    const db = window.db || (typeof getFirestore==='function' ? getFirestore() : null);
+    const { collection, query, orderBy, limit, onSnapshot, doc } = window.firebaseFirestore || window._fsLib || {};
+    const db = window.db;
 
     if(db && collection && query && orderBy && limit && onSnapshot){
       const q = query(
@@ -4660,7 +4660,12 @@ function _loadSalaMsgs(sala){
       );
       const unsub = onSnapshot(q, snap=>{
         const msgs = [];
-        snap.forEach(d=>msgs.push({id:d.id,...d.data()}));
+        snap.forEach(d=>{
+          const data = d.data();
+          // Convertir serverTimestamp a ms si viene como Timestamp de Firestore
+          if(data.serverTs && data.serverTs.toMillis) data.ts = data.serverTs.toMillis();
+          msgs.push({id:d.id,...data});
+        });
         _msgs[sala.id] = msgs;
         if(_curSala?.id === sala.id) _renderMsgs(msgs);
       }, err=>{
@@ -4762,12 +4767,15 @@ window.sendSalaMsg = async function(){
   inp.style.height = '';
 
   const cu = window.CU;
+  const { serverTimestamp } = window.firebaseFirestore || window._fsLib || {};
+  const ts = Date.now();
   const msg = {
     uid: cu.id,
     nick: cu.nick||'Usuario',
     av: cu.av||'',
     text,
-    ts: Date.now(),
+    ts,
+    serverTs: serverTimestamp ? serverTimestamp() : null,
     verified: !!cu.verified,
     reactions: {}
   };
@@ -4776,20 +4784,25 @@ window.sendSalaMsg = async function(){
     cancelSalaReply();
   }
 
-  // Agregar optimistamente
-  const localId = 'local_'+Date.now();
+  // Agregar optimistamente con id temporal
+  const localId = 'local_'+ts+'_'+Math.random().toString(36).slice(2,6);
   if(!_msgs[_curSala.id]) _msgs[_curSala.id] = [];
-  _msgs[_curSala.id].push({...msg, id: localId});
+  _msgs[_curSala.id].push({...msg, id: localId, _local: true});
   _renderMsgs(_msgs[_curSala.id]);
 
-  // Guardar en Firestore
+  // Guardar en Firestore (el onSnapshot lo reemplazará con el real)
   try {
-    const { collection, addDoc, getFirestore } = window._fbModules || {};
-    const db = window.db || (typeof getFirestore==='function' ? getFirestore() : null);
+    const { collection, addDoc } = window.firebaseFirestore || window._fsLib || {};
+    const db = window.db;
     if(db && collection && addDoc){
       await addDoc(collection(db, 'chatSalas', _curSala.id, 'msgs'), msg);
     }
-  } catch(e){ console.warn('No se pudo guardar mensaje:', e); }
+  } catch(e){
+    // Si falla, quitar mensaje optimista
+    if(_msgs[_curSala.id]) _msgs[_curSala.id] = _msgs[_curSala.id].filter(m=>m.id!==localId);
+    _renderMsgs(_msgs[_curSala.id]||[]);
+    if(typeof toast === 'function') toast('Error al enviar. Verificá tu conexión', 'err');
+  }
 };
 
 window.handleSalaKey = function(e){
@@ -4831,7 +4844,7 @@ window.closeSalaReactPopups = function(){
 window.toggleSalaReaction = async function(msgId, emoji){
   if(!window.CU){ toast('Iniciá sesión para reaccionar','err'); return; }
   try {
-    const { doc, updateDoc, getFirestore, getDoc } = window._fbModules || {};
+    const { doc, updateDoc, getDoc } = window.firebaseFirestore || window._fsLib || {};
     const db = window.db;
     if(!db||!doc||!updateDoc) return;
     const msgRef = doc(db,'chatSalas',_curSala.id,'msgs',msgId);
@@ -4852,7 +4865,7 @@ window.toggleSalaReaction = async function(msgId, emoji){
 window.deleteSalaMsg = async function(msgId){
   if(!confirm('¿Eliminar este mensaje?')) return;
   try {
-    const { doc, deleteDoc, getFirestore } = window._fbModules || {};
+    const { doc, deleteDoc } = window.firebaseFirestore || window._fsLib || {};
     const db = window.db;
     if(!db||!doc||!deleteDoc) return;
     await deleteDoc(doc(db,'chatSalas',_curSala.id,'msgs',msgId));
@@ -4861,9 +4874,87 @@ window.deleteSalaMsg = async function(msgId){
 
 // ── TYPING INDICATOR ───────────────────────────────────────────────────────────
 window.onSalaTyping = function(){
-  // Simular "está escribiendo..." — en producción conectaría con Firestore
   clearTimeout(_typingTimer);
 };
+
+// ── PRESENCIA EN SALA (counter en tiempo real) ────────────────────────────────
+let _presenceSalaUnsub = null;
+let _presenceSalaInterval = null;
+
+function _writeSalaPresence(salaId){
+  if(!window.CU || !window.db) return;
+  try{
+    const { doc, setDoc, serverTimestamp } = window._fbModules || window.firebaseFirestore || {};
+    if(!doc || !setDoc) return;
+    setDoc(doc(window.db, 'salaPresence', salaId+'_'+window.CU.id), {
+      salaId, uid: window.CU.id, nick: window.CU.nick||'', ts: Date.now(), serverTs: serverTimestamp ? serverTimestamp() : null
+    }, { merge: true }).catch(()=>{});
+  } catch(e){}
+}
+
+function _removeSalaPresence(salaId){
+  if(!window.CU || !window.db) return;
+  try{
+    const { doc, deleteDoc } = window._fbModules || window.firebaseFirestore || {};
+    if(doc && deleteDoc) deleteDoc(doc(window.db, 'salaPresence', salaId+'_'+window.CU.id)).catch(()=>{});
+  } catch(e){}
+}
+
+function _subscribeAllSalaPresence(){
+  if(!window.db) return;
+  try{
+    const { collection, onSnapshot, where, query } = window._fbModules || window.firebaseFirestore || {};
+    if(!collection || !onSnapshot) return;
+    const cutoff = Date.now() - 90000; // 90 segundos
+    const q = query ? query(collection(window.db,'salaPresence'), where ? where('ts','>',cutoff) : null) : collection(window.db,'salaPresence');
+    if(_presenceSalaUnsub) try{ _presenceSalaUnsub(); }catch(e){}
+    _presenceSalaUnsub = onSnapshot(q, snap=>{
+      const counts = {};
+      const now = Date.now();
+      snap.forEach(d=>{
+        const data = d.data();
+        if(data.ts && (now - data.ts) < 90000){
+          counts[data.salaId] = (counts[data.salaId]||0) + 1;
+        }
+      });
+      _onlineCounts = counts;
+      // Actualizar UI de cada sala en la sidebar
+      Object.keys(counts).forEach(salaId=>{
+        const el = document.getElementById('salaOnline_'+salaId);
+        if(el) el.textContent = counts[salaId]+'👤';
+      });
+      // Actualizar header de sala actual
+      if(_curSala){
+        const onlineEl = document.getElementById('salaChatOnline');
+        if(onlineEl) onlineEl.textContent = (_onlineCounts[_curSala.id]||1)+' en línea';
+      }
+    }, err=>{ console.warn('salaPresence error:', err); });
+  } catch(e){}
+}
+
+// Llamar al seleccionar sala: escribir presencia y pedir permiso de notificación
+const _origSelectSala = window.selectSala;
+window.selectSala = function(salaId, catId){
+  // Limpiar presencia anterior
+  if(_curSala && _curSala.id !== salaId) _removeSalaPresence(_curSala.id);
+  clearInterval(_presenceSalaInterval);
+  // Llamar original
+  _origSelectSala(salaId, catId);
+  // Escribir presencia nueva
+  _writeSalaPresence(salaId);
+  _presenceSalaInterval = setInterval(()=>_writeSalaPresence(salaId), 60000);
+  // Suscribir counter en tiempo real de todas las salas
+  _subscribeAllSalaPresence();
+};
+
+// Limpiar presencia al cerrar
+window.addEventListener('beforeunload', ()=>{
+  if(_curSala) _removeSalaPresence(_curSala.id);
+});
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden){ if(_curSala) _removeSalaPresence(_curSala.id); }
+  else { if(_curSala) _writeSalaPresence(_curSala.id); }
+});
 
 // ── EMOJI ──────────────────────────────────────────────────────────────────────
 window.insertSalaEmoji = function(emoji){
@@ -13973,6 +14064,14 @@ function listenNotifs(){
       }
       if(newNonMsgs.length > 0){
         const latest = newNonMsgs.sort((a,b)=>(b.time||0)-(a.time||0))[0];
+        // Detectar match mutuo recibido → modal especial
+        const matchMutual = newNonMsgs.find(n => n.text && n.text.includes('🎉') && n.fromUid);
+        if(matchMutual) _showMatchReceivedModal(matchMutual);
+        // Like recibido → browser notification
+        const likeNotif = newNonMsgs.find(n => n.text && n.text.includes('💘') && n.fromUid);
+        if(likeNotif && typeof Notification !== 'undefined' && Notification.permission === 'granted'){
+          try{ new Notification('💘 ¡Te dieron like en MiLatido!', { body: (likeNotif.fromNick||'Alguien') + ' le gustó tu perfil. ¡Entrá a Match!', icon:'/icon-192.png' }); }catch(e){}
+        }
         playNotifSound();
         showNotifToast(latest.text||'Nueva notificación');
       }
@@ -13989,6 +14088,57 @@ function listenNotifs(){
   // Listener en tiempo real para badge de mensajes
   listenUnreadMsgsBadge();
 }
+
+// ── Modal de match recibido (para quien recibe la notif) ─────────────────────
+function _showMatchReceivedModal(notif){
+  const name = notif.fromNick || 'alguien';
+  const av   = notif.fromAv  || '';
+  const uid  = notif.fromUid || '';
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);';
+  const avHtml = av ? '<img src="'+av+'" style="width:68px;height:68px;border-radius:50%;border:3px solid #e040fb;object-fit:cover;margin-bottom:16px;box-shadow:0 0 20px rgba(224,64,251,.5);" onerror="this.style.display=\'none\'">' : '<div style="font-size:2.5rem;margin-bottom:16px;">&#x1F464;</div>';
+  t.innerHTML = '<div style="background:linear-gradient(135deg,#1a0a1e,#0d1117);border:2px solid #e040fb;border-radius:24px;padding:36px 32px;max-width:320px;width:90%;text-align:center;box-shadow:0 0 60px rgba(224,64,251,.35),0 8px 40px rgba(0,0,0,.6);">'
+    + '<div style="font-size:3rem;margin-bottom:8px;">&#x1F496;</div>'
+    + '<div style="font-family:Orbitron,monospace;font-size:1.3rem;font-weight:900;color:#e040fb;margin-bottom:6px;">&#xA1;ES UN MATCH!</div>'
+    + '<div style="font-size:.92rem;color:#e6edf3;margin-bottom:20px;">Vos y <strong style="color:#f48fb1;">'+name+'</strong><br>se dieron like mutuamente &#x1F498;</div>'
+    + avHtml
+    + '<div style="display:flex;gap:10px;justify-content:center;">'
+    + '<button onclick="(function(el){typeof openChatWith===\'function\'&&openChatWith(\''+uid+'\',\''+name+'\');el.closest(\'[style*=fixed]\').remove();})(this)" style="background:linear-gradient(135deg,#e040fb,#9c27b0);color:#fff;border:none;border-radius:100px;padding:11px 22px;font-size:.86rem;font-weight:800;cursor:pointer;font-family:Exo 2,sans-serif;">&#x1F4AC; Enviar mensaje</button>'
+    + '<button onclick="this.closest(\'[style*=fixed]\').remove();" style="background:rgba(255,255,255,.08);color:#e6edf3;border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:11px 18px;font-size:.86rem;font-weight:700;cursor:pointer;">Ahora no</button>'
+    + '</div></div>';
+  document.body.appendChild(t);
+  t.addEventListener('click', e=>{ if(e.target===t) t.remove(); });
+  setTimeout(()=>{ if(t.parentNode){ t.style.opacity='0'; t.style.transition='opacity .5s'; setTimeout(()=>t.remove(),500); } }, 9000);
+  // Sonido chime
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    [523.25,659.25,783.99,1046.5].forEach(function(f,i){
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value=f; o.type='sine';
+      g.gain.setValueAtTime(0,ctx.currentTime+i*.13);
+      g.gain.linearRampToValueAtTime(.25,ctx.currentTime+i*.13+.05);
+      g.gain.linearRampToValueAtTime(0,ctx.currentTime+i*.13+.32);
+      o.start(ctx.currentTime+i*.13); o.stop(ctx.currentTime+i*.13+.4);
+    });
+  }catch(e){}
+  // Browser notification
+  if(typeof Notification !== 'undefined' && Notification.permission === 'granted'){
+    try{ new Notification('\uD83D\uDC98 \u00A1Match en MiLatido!', { body: 'Vos y '+name+' se dieron like. \u00A1Escribile!', icon:'/icon-192.png' }); }catch(e){}
+  }
+}
+
+// Pedir permiso de notificaciones al arrancar (solo si no preguntaron antes)
+(function _requestNotifPerm(){
+  if(typeof Notification === 'undefined') return;
+  if(Notification.permission === 'default'){
+    // Esperar interacción del usuario (click) para pedir permiso
+    document.addEventListener('click', function _askPerm(){
+      document.removeEventListener('click', _askPerm);
+      Notification.requestPermission().catch(()=>{});
+    }, { once: true });
+  }
+})();
 
 // Badge de mensajes — polling cada 30s en vez de onSnapshot por cada amigo
 // (N onSnapshots = N conexiones permanentes → barra de carga constante)
@@ -27687,6 +27837,7 @@ window._showBanScreen = _showBanScreen;
   animation:mcToastIn .3s ease;pointer-events:none;
 }
 @keyframes mcToastIn { from{opacity:0;transform:translateX(-50%) translateY(-20px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+@keyframes matchHeartPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.18)} }
 
 /* Skeleton estilo Badoo */
 .mc-skeleton-card { width:100%;max-width:420px;border-radius:20px;overflow:hidden;background:var(--bg2);border:1px solid var(--border); }
@@ -28372,11 +28523,44 @@ window._showBanScreen = _showBanScreen;
   function _showMutualMatch(uid){
     const u = _allUsers.find(x=>x.id===uid);
     const name = u?.nick || 'alguien';
+    const av   = u?.av   || '';
+
+    // Toast modal con boton de chat
     const t = document.createElement('div');
-    t.className = 'match-mutual-toast';
-    t.innerHTML = `🎉 ¡Es un match con <strong>${_esc(name)}</strong>!<br><span style="font-size:.8rem;font-weight:400;opacity:.9;">¡Los dos se dieron like!</span>`;
+    t.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);';
+    t.innerHTML = `
+      <div style="background:linear-gradient(135deg,#1a0a1e,#0d1117);border:2px solid #e040fb;border-radius:24px;padding:36px 32px;max-width:320px;width:90%;text-align:center;box-shadow:0 0 60px rgba(224,64,251,.35),0 8px 40px rgba(0,0,0,.6);">
+        <div style="font-size:3.5rem;margin-bottom:8px;">&#x1F498;</div>
+        <div style="font-family:Orbitron,monospace;font-size:1.3rem;font-weight:900;color:#e040fb;margin-bottom:6px;">&#xA1;ES UN MATCH!</div>
+        <div style="font-size:.95rem;color:#e6edf3;margin-bottom:20px;">Vos y <strong style="color:#f48fb1;">${_esc(name)}</strong><br>se dieron like mutuamente &#x1F496;</div>
+        ${av ? '<img src="'+_esc(av)+'" style="width:68px;height:68px;border-radius:50%;border:3px solid #e040fb;object-fit:cover;margin-bottom:16px;box-shadow:0 0 20px rgba(224,64,251,.5);" onerror="this.style.display=\'none\'">' : '<div style="font-size:2.5rem;margin-bottom:16px;">&#x1F464;</div>'}
+        <div style="display:flex;gap:10px;justify-content:center;">
+          <button onclick="(function(el){openChatWith&&openChatWith('${_esc(uid)}','${_esc(name)}');el.closest(\'[style*=fixed]\').remove();})(this)" style="background:linear-gradient(135deg,#e040fb,#9c27b0);color:#fff;border:none;border-radius:100px;padding:11px 22px;font-size:.86rem;font-weight:800;cursor:pointer;font-family:Exo 2,sans-serif;">&#x1F4AC; Enviar mensaje</button>
+          <button onclick="this.closest(\'[style*=fixed]\').remove();" style="background:rgba(255,255,255,.08);color:#e6edf3;border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:11px 18px;font-size:.86rem;font-weight:700;cursor:pointer;">Ahora no</button>
+        </div>
+      </div>`;
     document.body.appendChild(t);
-    setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .5s'; setTimeout(()=>t.remove(),500); }, 3500);
+    t.addEventListener('click', e=>{ if(e.target===t) t.remove(); });
+    setTimeout(()=>{ if(t.parentNode){ t.style.opacity='0'; t.style.transition='opacity .5s'; setTimeout(()=>t.remove(),500); } }, 9000);
+
+    // Browser notification si tiene permiso
+    if(typeof Notification !== 'undefined' && Notification.permission === 'granted'){
+      try{ new Notification('\uD83D\uDC98 \xA1Es un Match en MiLatido!', { body: 'Vos y '+name+' se dieron like. \xA1Escribile!', icon:'/icon-192.png' }); }catch(e){}
+    }
+
+    // Sonido chime
+    try{
+      const ctx = new (window.AudioContext||window.webkitAudioContext)();
+      [523.25,659.25,783.99,1046.5].forEach(function(f,i){
+        const o=ctx.createOscillator(), g=ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value=f; o.type='sine';
+        g.gain.setValueAtTime(0,ctx.currentTime+i*.13);
+        g.gain.linearRampToValueAtTime(.28,ctx.currentTime+i*.13+.05);
+        g.gain.linearRampToValueAtTime(0,ctx.currentTime+i*.13+.32);
+        o.start(ctx.currentTime+i*.13); o.stop(ctx.currentTime+i*.13+.4);
+      });
+    }catch(e){}
   }
 
   function _showSkeleton(){
