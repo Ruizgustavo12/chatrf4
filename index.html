@@ -4137,7 +4137,7 @@ input:focus, textarea:focus {
   
   <div id="rf4PanelMensajes" style="flex:1;display:none;flex-direction:column;min-height:0;">
     <div id="messengerList" style="padding:6px;overflow-y:auto;flex:1;"></div>
-    <div id="chatWindow" style="display:none;flex-direction:column;flex:1;min-height:0;"></div>
+    <div id="chatWindow" style="display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden;"></div>
   <div id="chatInputRow" style="display:none;padding:8px 10px;border-top:1px solid var(--border);flex-shrink:0;gap:6px;align-items:flex-end;background:var(--bg2);">
     
     <div style="display:flex;gap:2px;align-items:center;flex-shrink:0;">
@@ -19811,6 +19811,9 @@ function openChatWith(uid, nick){
   if(chatWin){
     chatWin.style.display='flex';
     chatWin.style.flexDirection='column';
+    chatWin.style.flex='1';
+    chatWin.style.minHeight='0';
+    chatWin.style.height='';
     // Try to find avatar from friends list or online users
   const chatAv = window._chatUserAvCache && window._chatUserAvCache[uid] ? window._chatUserAvCache[uid] : '';
   const avHtml = chatAv
@@ -19867,6 +19870,10 @@ function openChatWith(uid, nick){
   }
 
   const chatId = [window.CU.id, uid].sort().join('_');
+  // Mostrar spinner mientras carga
+  const _msgElInit = document.getElementById('chatMessages');
+  if(_msgElInit) _msgElInit.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem;">Cargando mensajes...</div>';
+
   _unsubChat = onSnapshot(
     query(collection(db,'chats',chatId,'messages'), orderBy('time','asc')),
     snap=>{
@@ -19975,6 +19982,11 @@ function openChatWith(uid, nick){
           }).join('')
         : '<div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem;">Empezá la conversación 👋</div>';
       el.scrollTop = el.scrollHeight;
+    },
+    err=>{
+      console.error('Chat onSnapshot error:', err);
+      const el = document.getElementById('chatMessages');
+      if(el) el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--red);font-size:.8rem;">⚠️ Error al cargar mensajes<br><span style="font-size:.7rem;color:var(--muted);">${err.code||err.message||'Sin permisos'}</span><br><button onclick="openChatWith('${uid}','${nick}')" style="margin-top:8px;padding:6px 14px;background:var(--accent);border:none;border-radius:6px;color:#000;font-size:.75rem;font-weight:700;cursor:pointer;">🔄 Reintentar</button></div>`;
     }
   );
 }
@@ -25266,6 +25278,10 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
       });
 
       renderJugadores(_jugadoresAll);
+
+      // Poblar caché de avatares para openChatWith
+      if(!window._chatUserAvCache) window._chatUserAvCache = {};
+      _jugadoresAll.forEach(function(u){ if(u.av) window._chatUserAvCache[u.id] = u.av; });
 
       // Contador en header
       var onlineCount = _jugadoresAll.filter(function(u){ return u.online; }).length;
