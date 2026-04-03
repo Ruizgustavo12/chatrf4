@@ -2357,7 +2357,6 @@ input:focus, textarea:focus {
         .sw-nu-open-btn{width:100%;padding:7px 0;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#000;font-size:.75rem;font-weight:800;cursor:pointer;font-family:'Exo 2',sans-serif;letter-spacing:.03em;transition:opacity .15s;}
         .sw-nu-open-btn:hover{opacity:.88;}
         .sw-nu-empty{text-align:center;padding:14px 8px;font-size:.72rem;color:var(--muted);}
-        .sw-nu-meta{font-size:.58rem;color:rgba(255,255,255,.75);margin-top:1px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
       </style>
       <div class="sw-nu-widget">
         <div class="sw-nu-header">
@@ -2414,25 +2413,15 @@ input:focus, textarea:focus {
           var nick = _esc((u.nick || '?').slice(0, 12));
           var ini  = (u.nick || '?')[0].toUpperCase();
           var av   = u.av || '';
-          var age  = u.age ? u.age + ' años' : '';
-          var loc  = _esc((u.dept || u.city || u.country || '').slice(0, 14));
           var imgHtml = av
             ? '<img src="' + _esc(av) + '" loading="lazy" onerror="this.remove();">'
               + '<div class="sw-nu-ini" style="display:none;">' + ini + '</div>'
             : '<div class="sw-nu-ini">' + ini + '</div>';
-          var meta = '';
-          if (age || loc) {
-            meta = '<div class="sw-nu-meta">'
-              + (age ? '<span>' + age + '</span>' : '')
-              + (age && loc ? ' · ' : '')
-              + (loc ? '<span>' + loc + '</span>' : '')
-              + '</div>';
-          }
           return '<div class="sw-nu-card" onclick="openUserProfile(' + "'" + id + "','" + nick + "')" + '>'
             + imgHtml
             + '<div class="sw-nu-grad"></div>'
             + '<div class="sw-nu-badge">NEW</div>'
-            + '<div class="sw-nu-info"><div class="sw-nu-name">' + nick + '</div>' + meta + '</div>'
+            + '<div class="sw-nu-info"><div class="sw-nu-name">' + nick + '</div></div>'
             + '</div>';
         }
 
@@ -9061,6 +9050,7 @@ async function reactStory(em){
       const chatId = [window.CU.id, s.userId].sort().join('_');
       await addDoc(collection(db,'chats',chatId,'messages'),{
         uid: window.CU.id,
+        senderId: window.CU.id,
         nick: window.CU.nick,
         text: `${window.CU.nick} reaccionó con ${em} a tu historia: "${storyPreview}"`,
         storyComment: true,
@@ -9092,6 +9082,7 @@ async function submitStoryComment(){
     const chatId = [window.CU.id, s.userId].sort().join('_');
     await addDoc(collection(db,'chats',chatId,'messages'),{
       uid: window.CU.id,
+      senderId: window.CU.id,
       nick: window.CU.nick,
       text: `${window.CU.nick} comentó tu historia:\n"${storyPreview}"\n${text}`,
       storyComment: true,
@@ -19616,6 +19607,15 @@ function renderMessengerList(){
 
 
 
+// Wrapper para abrir chat privado desde cualquier página (Match, etc.)
+// Navega al feed primero y luego abre el chat limpio
+window.openPrivateChat = function(uid, nick){
+  // Ir al feed/inicio primero para que el chat no quede flotando sobre Match
+  if(typeof gp === 'function') gp('feed');
+  // Pequeño delay para que la navegación ocurra antes de abrir el chat
+  setTimeout(function(){ openChatWith(uid, nick); }, 120);
+};
+
 function openChatWith(uid, nick){
   if(!uid||!window.CU){ toast('Iniciá sesión primero','err'); return; }
   // Si ya estamos en este chat, no hacer nada
@@ -20199,7 +20199,7 @@ async function sendChatMsg(gifUrl){
   inp.value='';
   try{ setDoc(doc(db,'presence',window.CU.id),{typingTo:'',typingAt:serverTimestamp()},{merge:true}); }catch(e2){}
   const chatId = [window.CU.id, _chatUserId].sort().join('_');
-  const msgData = { uid: window.CU.id, nick: window.CU.nick, time: serverTimestamp() };
+  const msgData = { uid: window.CU.id, senderId: window.CU.id, nick: window.CU.nick, time: serverTimestamp() };
   if(gifUrl){ msgData.gif = gifUrl; msgData.text = ''; }
   else { msgData.text = text; }
   try {
@@ -27861,6 +27861,14 @@ window._showBanScreen = _showBanScreen;
   box-shadow:0 4px 18px rgba(0,0,0,.35);
 }
 .mc-btn-profile:hover { transform:scale(1.1);color:#f33e58; }
+.mc-btn-msg {
+  width:58px;height:58px;border-radius:50%;
+  border:none;
+  background:#fff;color:#2ec4b6;cursor:pointer;font-size:1.4rem;
+  display:flex;align-items:center;justify-content:center;transition:all .18s;flex-shrink:0;
+  box-shadow:0 4px 18px rgba(0,0,0,.35);
+}
+.mc-btn-msg:hover { transform:scale(1.1);box-shadow:0 6px 24px rgba(46,196,182,.45); }
 
 /* Nav prev/next */
 .mc-nav { display:flex;align-items:center;justify-content:space-between;width:100%;max-width:420px;padding:0 12px; }
@@ -28426,6 +28434,7 @@ window._showBanScreen = _showBanScreen;
           ${liked ? '💖' : '❤️'}
         </button>
         <button class="mc-btn-profile" onclick="openUserProfile('${_esc(u.id)}','${_esc(nick)}')" title="Ver perfil">👤</button>
+        <button class="mc-btn-msg" onclick="openPrivateChat('${_esc(u.id)}','${_esc(nick)}')" title="Enviar mensaje">💬</button>
       </div>
       <div class="mc-body"></div>`;
 
