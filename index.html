@@ -28503,8 +28503,9 @@ window._showBanScreen = _showBanScreen;
       card.style.pointerEvents = 'none';
     }
 
-    // 3. Avanzar al siguiente después de la animación (320ms)
+    // 3. Avanzar al siguiente después de la animación (320ms) — liberar lock antes de avanzar
     setTimeout(function(){
+      if(btn) btn.dataset.processing = 'false';
       if(_idx < _filtered.length - 1){
         _idx++;
         _renderCard('next');
@@ -28513,14 +28514,12 @@ window._showBanScreen = _showBanScreen;
       }
     }, 320);
 
-    // 4. Guardar en Firestore + notificar + verificar match (en paralelo, no bloquea UI)
+    // 4. Guardar en Firestore (en paralelo, no bloquea UI)
     try {
       await setDoc(likeRef, { ts: Date.now(), nick: window.CU.nick||'', av: window.CU.av||'' });
     } catch(e){
       console.warn('like setDoc error:', e);
-      // El like visualmente ya se dio y avanzó; si falla Firestore sólo lo notificamos
       toast('No se pudo guardar el like, verificá tu conexión','err');
-      if(btn) btn.dataset.processing = 'false';
       return;
     }
 
@@ -28542,6 +28541,22 @@ window._showBanScreen = _showBanScreen;
       const theirLike = await getDoc(doc(db,'users',uid,'matchLikes',window.CU.id));
       if(theirLike.exists()){
         _showMutualMatch(uid);
+        const matchedUser = _allUsers.find(x=>x.id===uid);
+        const matchedNick = matchedUser?.nick || 'alguien';
+        const matchedAv   = matchedUser?.av   || '';
+
+        // Notificación al usuario ACTUAL (vos)
+        try {
+          await updateDoc(doc(db,'users',window.CU.id), {
+            notifs: arrayUnion({
+              text: '\u{1F389} \u{a1}Match con ' + matchedNick + '! Los dos se dieron like \u{1F496}',
+              time: Date.now(), read: false,
+              fromUid: uid, fromAv: matchedAv, fromNick: matchedNick
+            })
+          });
+        } catch(me2){ console.error('[match self notif ERROR]', me2.code, me2.message); }
+
+        // Notificación a la otra persona
         if(uid !== window.CU.id){
           try {
             await updateDoc(doc(db,'users',uid), {
@@ -28555,8 +28570,6 @@ window._showBanScreen = _showBanScreen;
         }
       }
     } catch(e){ console.warn('mutual match check error:', e); }
-
-    if(btn) btn.dataset.processing = 'false';
   };
 
   function _showMutualMatch(uid){
