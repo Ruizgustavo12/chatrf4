@@ -19803,7 +19803,38 @@ function openChatWith(uid, nick){
 
   // Make sure messenger modal is open and on mensajes tab
   om('mMessenger');
-  if(typeof rf4SwitchTab === 'function') rf4SwitchTab('mensajes');
+
+  // Switch tab — con retry por si rf4SwitchTab aun no esta definida
+  function _doSwitchToMensajes(){
+    var pChat = document.getElementById('rf4PanelChat');
+    var pJug  = document.getElementById('rf4PanelJugadores');
+    var pMsg  = document.getElementById('rf4PanelMensajes');
+    var tJ    = document.getElementById('rf4TabJugadores');
+    var tM    = document.getElementById('rf4TabMensajes');
+    if(typeof rf4SwitchTab === 'function'){
+      rf4SwitchTab('mensajes');
+    } else {
+      if(pChat) pChat.style.display = 'none';
+      if(pJug)  pJug.style.display  = 'none';
+      if(pMsg)  { pMsg.style.display = 'flex'; pMsg.style.flexDirection = 'column'; }
+      if(tJ)    tJ.classList.remove('on');
+      if(tM)    tM.classList.add('on');
+    }
+    // Asegurar que chatWindow se vea y messengerList se oculte
+    var _list = document.getElementById('messengerList');
+    var _win  = document.getElementById('chatWindow');
+    if(_list) _list.style.display = 'none';
+    if(_win && _win.innerHTML.trim()){
+      _win.style.display = 'flex';
+      _win.style.flexDirection = 'column';
+      _win.style.flex = '1';
+      _win.style.minHeight = '0';
+    }
+    var _row = document.getElementById('chatInputRow');
+    if(_row) _row.style.display = 'flex';
+  }
+  _doSwitchToMensajes();
+  setTimeout(_doSwitchToMensajes, 150);
 
   const list = document.getElementById('messengerList');
   const chatWin = document.getElementById('chatWindow');
