@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-03 18:02 UTC",
+  "updated": "2026-04-03 19:13 UTC",
   "records": [
     {
       "pez": "Albino barbel",
@@ -918,12 +918,12 @@
       "pez": "Atlantic halibut",
       "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/halibut_w.png",
-      "peso": "132.492 kg",
+      "peso": "146.079 kg",
       "ubicacion": "Norwegian Sea",
       "señuelo": "Hunter 1000-5",
       "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/pilkerlures_2691.png",
-      "jugador": "gabibacsi0227",
-      "fecha": "31.03.26"
+      "jugador": "RapalaFish",
+      "fecha": "3.04.26"
     },
     {
       "pez": "Atlantic herring",
@@ -1721,6 +1721,17 @@
       "pez": "Bighead Carp",
       "rank": 3,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/bh_carp.png",
+      "peso": "29.215 kg",
+      "ubicacion": "Sura River",
+      "señuelo": "Banana 20 Pop-Up; Banana Flavor Yellow",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/boils_op_ban_pu20.png",
+      "jugador": "drmonja",
+      "fecha": "3.04.26"
+    },
+    {
+      "pez": "Bighead Carp",
+      "rank": 4,
+      "img_pez": "https://en.rf4-stat.ru/images/rf4game/bh_carp.png",
       "peso": "28.394 kg",
       "ubicacion": "Sura River",
       "señuelo": "Freshwater Krill Pellets 18; Tuna & Pepper 20 Soluble",
@@ -1730,24 +1741,13 @@
     },
     {
       "pez": "Bighead Carp",
-      "rank": 4,
+      "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/bh_carp.png",
       "peso": "27.688 kg",
       "ubicacion": "Sura River",
       "señuelo": "Halibut Pellets 18; Crab & Mussels 20 Soluble",
       "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/plt_op_hbp18.png",
       "jugador": "ChL _ LV",
-      "fecha": "3.04.26"
-    },
-    {
-      "pez": "Bighead Carp",
-      "rank": 5,
-      "img_pez": "https://en.rf4-stat.ru/images/rf4game/bh_carp.png",
-      "peso": "27.573 kg",
-      "ubicacion": "Sura River",
-      "señuelo": "Freshwater Krill Pellets 25; Tuna and pepper 20",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/plt_op_fkp25.png",
-      "jugador": "diegoabdala1975",
       "fecha": "3.04.26"
     },
     {
@@ -2348,6 +2348,17 @@
       "pez": "Blue Bream",
       "rank": 2,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/b_bream.png",
+      "peso": "880 g",
+      "ubicacion": "Volkhov River",
+      "señuelo": "A bunch of algae",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/watergrass.png",
+      "jugador": "piranita",
+      "fecha": "3.04.26"
+    },
+    {
+      "pez": "Blue Bream",
+      "rank": 3,
+      "img_pez": "https://en.rf4-stat.ru/images/rf4game/b_bream.png",
       "peso": "874 g",
       "ubicacion": "Volkhov River",
       "señuelo": "A bunch of algae",
@@ -2357,7 +2368,7 @@
     },
     {
       "pez": "Blue Bream",
-      "rank": 3,
+      "rank": 4,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/b_bream.png",
       "peso": "828 g",
       "ubicacion": "Volkhov River",
@@ -2368,7 +2379,7 @@
     },
     {
       "pez": "Blue Bream",
-      "rank": 4,
+      "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/b_bream.png",
       "peso": "826 g",
       "ubicacion": "Volkhov River",
@@ -2378,19 +2389,19 @@
       "fecha": "31.03.26"
     },
     {
-      "pez": "Blue Bream",
-      "rank": 5,
-      "img_pez": "https://en.rf4-stat.ru/images/rf4game/b_bream.png",
-      "peso": "784 g",
-      "ubicacion": "Volkhov River",
-      "señuelo": "Diced cheese",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/cheese_cube.png",
-      "jugador": "Kolarov",
-      "fecha": "30.03.26"
+      "pez": "Blue ling",
+      "rank": 1,
+      "img_pez": "https://en.rf4-stat.ru/images/rf4game/molva.png",
+      "peso": "27.016 kg",
+      "ubicacion": "Norwegian Sea",
+      "señuelo": "Hunter 1000-5",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/pilkerlures_2691.png",
+      "jugador": "Avasko",
+      "fecha": "3.04.26"
     },
     {
       "pez": "Blue ling",
-      "rank": 1,
+      "rank": 2,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/molva.png",
       "peso": "26.052 kg",
       "ubicacion": "Norwegian Sea",
@@ -2401,7 +2412,7 @@
     },
     {
       "pez": "Blue ling",
-      "rank": 2,
+      "rank": 3,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/molva.png",
       "peso": "25.561 kg",
       "ubicacion": "Norwegian Sea",
@@ -2412,7 +2423,7 @@
     },
     {
       "pez": "Blue ling",
-      "rank": 3,
+      "rank": 4,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/molva.png",
       "peso": "25.442 kg",
       "ubicacion": "Norwegian Sea",
@@ -2423,7 +2434,7 @@
     },
     {
       "pez": "Blue ling",
-      "rank": 4,
+      "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/molva.png",
       "peso": "25.439 kg",
       "ubicacion": "Norwegian Sea",
@@ -2431,17 +2442,6 @@
       "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/okt_21098_3.png",
       "jugador": "BlackHomie",
       "fecha": "2.04.26"
-    },
-    {
-      "pez": "Blue ling",
-      "rank": 5,
-      "img_pez": "https://en.rf4-stat.ru/images/rf4game/molva.png",
-      "peso": "25.390 kg",
-      "ubicacion": "Norwegian Sea",
-      "señuelo": "Lynns Huge Minnow 120-001",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/softplastic_m_1888.png",
-      "jugador": "chepuracatia",
-      "fecha": "1.04.26"
     },
     {
       "pez": "Blue whiting",
@@ -3393,6 +3393,17 @@
       "pez": "Chinese Sleeper",
       "rank": 2,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/a.sleeper.png",
+      "peso": "637 g",
+      "ubicacion": "Mosquito Lake",
+      "señuelo": "Nightcrawler",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/vypolzok_01.png",
+      "jugador": "kqwet",
+      "fecha": "3.04.26"
+    },
+    {
+      "pez": "Chinese Sleeper",
+      "rank": 3,
+      "img_pez": "https://en.rf4-stat.ru/images/rf4game/a.sleeper.png",
       "peso": "594 g",
       "ubicacion": "Mosquito Lake",
       "señuelo": "Pieces of fish",
@@ -3402,7 +3413,7 @@
     },
     {
       "pez": "Chinese Sleeper",
-      "rank": 3,
+      "rank": 4,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/a.sleeper.png",
       "peso": "580 g",
       "ubicacion": "Mosquito Lake",
@@ -3413,7 +3424,7 @@
     },
     {
       "pez": "Chinese Sleeper",
-      "rank": 4,
+      "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/a.sleeper.png",
       "peso": "579 g",
       "ubicacion": "Mosquito Lake",
@@ -3421,17 +3432,6 @@
       "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/vypolzok_01.png",
       "jugador": "alexis425",
       "fecha": "1.04.26"
-    },
-    {
-      "pez": "Chinese Sleeper",
-      "rank": 5,
-      "img_pez": "https://en.rf4-stat.ru/images/rf4game/a.sleeper.png",
-      "peso": "563 g",
-      "ubicacion": "Mosquito Lake",
-      "señuelo": "Pieces of fish",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/fish_pieces.png",
-      "jugador": "ПОЙМАН ОГРОМНЫЙ",
-      "fecha": "31.03.26"
     },
     {
       "pez": "Chinook Salmon",
@@ -4460,23 +4460,23 @@
       "pez": "Dinks mirror carp",
       "rank": 4,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/din_m_carp.png",
-      "peso": "38.219 kg",
+      "peso": "39.543 kg",
       "ubicacion": "Copper lake",
       "señuelo": "Tutti-Frutti 20 Pop-Up; Tutti Frutti Red",
       "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/boils_cb_tf_pu20.png",
-      "jugador": "crashvlad",
+      "jugador": "MATT6686",
       "fecha": "3.04.26"
     },
     {
       "pez": "Dinks mirror carp",
       "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/din_m_carp.png",
-      "peso": "37.315 kg",
+      "peso": "39.127 kg",
       "ubicacion": "Copper lake",
-      "señuelo": "Spicy pepper 18; Spice mix 20",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/boils_hvz_hp18.png",
-      "jugador": "SinTwix82",
-      "fecha": "1.04.26"
+      "señuelo": "Tutti Frutti 25; Tutti-Frutti 20 Soluble",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/boils_op_tf25.png",
+      "jugador": "FurlanBR",
+      "fecha": "3.04.26"
     },
     {
       "pez": "Dolly Varden Trout",
@@ -6088,6 +6088,17 @@
       "pez": "Greenland shark",
       "rank": 2,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/somniosus_m.png",
+      "peso": "385.838 kg",
+      "ubicacion": "Norwegian Sea",
+      "señuelo": "Natural Squid - 23 - 03",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/okt_21092_3.png",
+      "jugador": "ANGLERS_Kuvalda Valda",
+      "fecha": "3.04.26"
+    },
+    {
+      "pez": "Greenland shark",
+      "rank": 3,
+      "img_pez": "https://en.rf4-stat.ru/images/rf4game/somniosus_m.png",
       "peso": "368.343 kg",
       "ubicacion": "Norwegian Sea",
       "señuelo": "Hunter 1000-5",
@@ -6097,7 +6108,7 @@
     },
     {
       "pez": "Greenland shark",
-      "rank": 3,
+      "rank": 4,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/somniosus_m.png",
       "peso": "308.791 kg",
       "ubicacion": "Norwegian Sea",
@@ -6108,24 +6119,13 @@
     },
     {
       "pez": "Greenland shark",
-      "rank": 4,
+      "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/somniosus_m.png",
       "peso": "303.833 kg",
       "ubicacion": "Norwegian Sea",
       "señuelo": "Hunter 1000-5",
       "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/pilkerlures_2691.png",
       "jugador": "Holycrap",
-      "fecha": "30.03.26"
-    },
-    {
-      "pez": "Greenland shark",
-      "rank": 5,
-      "img_pez": "https://en.rf4-stat.ru/images/rf4game/somniosus_m.png",
-      "peso": "283.072 kg",
-      "ubicacion": "Norwegian Sea",
-      "señuelo": "RealSquid - 26 - 07",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/okt_21105_3.png",
-      "jugador": "Stele9",
       "fecha": "30.03.26"
     },
     {
@@ -7254,12 +7254,12 @@
       "pez": "Leather Carp",
       "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/n_carp.png",
-      "peso": "29.759 kg",
+      "peso": "30.378 kg",
       "ubicacion": "Copper lake",
-      "señuelo": "Cream Flavor White",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/crn_op_ccw.png",
+      "señuelo": "Tutti-Frutti 20 Pop-Up; Tutti Frutti Red",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/boils_cb_tf_pu20.png",
       "jugador": "soarec",
-      "fecha": "1.04.26"
+      "fecha": "3.04.26"
     },
     {
       "pez": "Levanidov's Char",
@@ -8332,23 +8332,23 @@
       "pez": "Muksun",
       "rank": 4,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/muksun.png",
-      "peso": "2.927 kg",
+      "peso": "3.470 kg",
       "ubicacion": "Lower Tunguska River",
       "señuelo": "Spiker #2 012",
       "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/spinnerbaits_2234.png",
-      "jugador": "TheOldAngler",
+      "jugador": "SEU.PAI",
       "fecha": "3.04.26"
     },
     {
       "pez": "Muksun",
       "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/muksun.png",
-      "peso": "2.869 kg",
+      "peso": "2.927 kg",
       "ubicacion": "Lower Tunguska River",
-      "señuelo": "Orig Popper 4-F006",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/topwater_1928.png",
-      "jugador": "Крабик под камнем",
-      "fecha": "30.03.26"
+      "señuelo": "Spiker #2 012",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/spinnerbaits_2234.png",
+      "jugador": "TheOldAngler",
+      "fecha": "3.04.26"
     },
     {
       "pez": "Mussel",
@@ -10367,6 +10367,17 @@
       "pez": "Sharp-snouted Lenok",
       "rank": 3,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/lenok_o.png",
+      "peso": "5.117 kg",
+      "ubicacion": "Lower Tunguska River",
+      "señuelo": "Spinnerbait #1 004",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/hm_spinner_n1_bl_hq.png",
+      "jugador": "Fishing-Star",
+      "fecha": "3.04.26"
+    },
+    {
+      "pez": "Sharp-snouted Lenok",
+      "rank": 4,
+      "img_pez": "https://en.rf4-stat.ru/images/rf4game/lenok_o.png",
       "peso": "5.006 kg",
       "ubicacion": "Yama River",
       "señuelo": "Dung beetle; Grasshopper",
@@ -10376,7 +10387,7 @@
     },
     {
       "pez": "Sharp-snouted Lenok",
-      "rank": 4,
+      "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/lenok_o.png",
       "peso": "4.998 kg",
       "ubicacion": "Yama River",
@@ -10384,17 +10395,6 @@
       "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/dorbeetle.png",
       "jugador": "folgir",
       "fecha": "30.03.26"
-    },
-    {
-      "pez": "Sharp-snouted Lenok",
-      "rank": 5,
-      "img_pez": "https://en.rf4-stat.ru/images/rf4game/lenok_o.png",
-      "peso": "4.914 kg",
-      "ubicacion": "Lower Tunguska River",
-      "señuelo": "Orig Popper 4-F004",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/topwater_1926.png",
-      "jugador": "Харибо",
-      "fecha": "2.04.26"
     },
     {
       "pez": "Shemaya",
@@ -11599,12 +11599,12 @@
       "pez": "Starvas Red Carp - Mirror",
       "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/m_carp_red.png",
-      "peso": "14.645 kg",
+      "peso": "15.171 kg",
       "ubicacion": "The Amber Lake",
-      "señuelo": "Neutral 20; Raspberry 20",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/boils_pm_nu20.png",
-      "jugador": "Lupu219",
-      "fecha": "2.04.26"
+      "señuelo": "Raspberry jam 25; Fresh Raspberry 26",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/boils_op_rj25.png",
+      "jugador": "Die Hengelaar",
+      "fecha": "3.04.26"
     },
     {
       "pez": "Stellate Sturgeon",
@@ -12875,23 +12875,23 @@
       "pez": "White bass",
       "rank": 4,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/wh_bass.png",
+      "peso": "2.042 kg",
+      "ubicacion": "Elk Lake",
+      "señuelo": "Perfect Craw 4.5 003",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/softplastic_2618.png",
+      "jugador": "YourDaddy8",
+      "fecha": "3.04.26"
+    },
+    {
+      "pez": "White bass",
+      "rank": 5,
+      "img_pez": "https://en.rf4-stat.ru/images/rf4game/wh_bass.png",
       "peso": "1.979 kg",
       "ubicacion": "Elk Lake",
       "señuelo": "Pro Double Willow 3/8 oz 001",
       "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/spinner_2858.png",
       "jugador": "karateev4r",
       "fecha": "31.03.26"
-    },
-    {
-      "pez": "White bass",
-      "rank": 5,
-      "img_pez": "https://en.rf4-stat.ru/images/rf4game/wh_bass.png",
-      "peso": "1.923 kg",
-      "ubicacion": "Elk Lake",
-      "señuelo": "Brilliance Colorado 1/4 oz 001",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/spinner_2712.png",
-      "jugador": "KupLungHunRF4",
-      "fecha": "3.04.26"
     },
     {
       "pez": "White Bream",
