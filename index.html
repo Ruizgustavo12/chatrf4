@@ -19527,6 +19527,9 @@ async function openUserProfile(uid, nick){
 }
 
 async function _loadUserProfilePage(uid, nick){
+  // Cancelar listener anterior ANTES de cambiar _viewingUserId para evitar race condition
+  if(window._upPostsUnsub){ window._upPostsUnsub(); window._upPostsUnsub = null; }
+  if(window._upPostsTimeoutId){ clearTimeout(window._upPostsTimeoutId); window._upPostsTimeoutId = null; }
   window._viewingUserId = uid; // track which profile we're viewing for photo modal
   if(!window._anonMode) registerProfileVisit(uid);
   // Reset
@@ -19535,7 +19538,7 @@ async function _loadUserProfilePage(uid, nick){
   document.getElementById('upAv').innerHTML = '👤';
   // Solo limpiar contenido interior, NO destruir la estructura del grid de 2 columnas
   const upPostsList = document.getElementById('upPostsList');
-  if(upPostsList) upPostsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);">Cargando publicaciones...</div>';
+  if(upPostsList){ upPostsList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);">Cargando publicaciones...</div>'; upPostsList.dataset.profileUid = ''; }
   const upInfoItems2 = document.getElementById('upInfoItems');
   if(upInfoItems2) upInfoItems2.innerHTML = '';
   document.getElementById('upTabInfo').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);">⏳ Cargando información...</div>';
@@ -19677,13 +19680,12 @@ async function _loadUserProfilePage(uid, nick){
     const _upList = document.getElementById('upPostsList');
     if(_upList) _upList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);">Cargando publicaciones...</div>';
 
-    // Cancelar listener anterior si existe
-    if(window._upPostsUnsub){ window._upPostsUnsub(); window._upPostsUnsub = null; }
-
     // Helper: renderiza upPostsList con los posts dados
     function _renderUpPostsList(posts){
       const listEl = document.getElementById('upPostsList');
       if(!listEl) return;
+      // Guard: ignorar si ya se navegó a otro perfil
+      if(window._viewingUserId !== uid) return;
       // Ordenar en el cliente (evita requerir índice compuesto en Firestore)
       const sorted = posts.slice().sort((a,b)=>{
         return (b.time?.toMillis?.()??b.time??0) - (a.time?.toMillis?.()??a.time??0);
@@ -19693,9 +19695,11 @@ async function _loadUserProfilePage(uid, nick){
         return;
       }
       const scrollY = window.scrollY;
-      // Smart update: si ya hay posts en el DOM, actualizar stats/acciones/comentarios sin repintado total
-      const hasRendered = sorted.some(p => document.getElementById('post_'+p.id));
+      // Smart update: solo si los posts del DOM pertenecen al mismo usuario (evita mezclar perfiles)
+      const domUid = listEl.dataset.profileUid;
+      const hasRendered = domUid === uid && sorted.some(p => document.getElementById('post_'+p.id));
       if(!hasRendered){
+        listEl.dataset.profileUid = uid;
         const rendered = [];
         for(const p of sorted){
           try { rendered.push(postHTML(p)); } catch(ex){ console.warn('postHTML error',p.id,ex); }
