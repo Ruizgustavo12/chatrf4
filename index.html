@@ -8369,7 +8369,7 @@ function onLogin(){
 
   const wkPub = document.getElementById('wkNbPublish');
   if(wkPub) wkPub.style.display = '';
-  if(window.CU && (window.CU.nick===WK_ADMIN||window.CU.role==='admin')) {
+  if(window.CU && (window.CU.role==='admin' || (typeof WK_ADMIN !== 'undefined' && window.CU.nick===WK_ADMIN))) {
     const wkAdm = document.getElementById('wkNbAdmin');
     if(wkAdm) wkAdm.style.display = '';
   }
@@ -20154,6 +20154,7 @@ function _buildMessengerHTML(){
 }
 
 function renderMessengerList(){
+  window.renderMessengerList = renderMessengerList; // ensure global access
   const list = document.getElementById('messengerList');
   if(!list) return;
 
@@ -25764,7 +25765,10 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
     if(pMsg)  pMsg.style.display  = tab==='mensajes'  ? 'flex' : 'none';
 
     if(tab==='jugadores' && !_jLoaded)  loadJugadores();
-    if(tab==='mensajes')                renderMessengerList();
+    if(tab==='mensajes'){
+      if(typeof renderMessengerList === 'function') renderMessengerList();
+      else if(typeof window.renderMessengerList === 'function') window.renderMessengerList();
+    }
   };
 
   // ────────────────────────────────────────────────────────────
