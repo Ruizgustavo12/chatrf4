@@ -902,7 +902,7 @@ img[title="Verificado"]:hover{
 @keyframes rxnPop{from{opacity:0;transform:translateY(calc(-100% - 6px)) scale(.7)}to{opacity:1;transform:translateY(calc(-100% - 6px)) scale(1)}}
 .rxn-cats{display:none;}
 .rxn-grid{display:flex;gap:2px;}
-.rxn-btn{background:none;border:none;cursor:pointer;padding:4px;border-radius:50%;transition:transform .13s;position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;width:56px;}
+.rxn-btn{background:none;border:none;cursor:pointer;padding:4px;border-radius:50%;transition:transform .13s;position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;width:48px;}
 .rxn-btn:hover{transform:scale(1.5) translateY(-6px);}
 .rxn-btn:hover .rxn-tooltip{opacity:1!important;}
 .rxn-btn.rxn-active{background:rgba(46,196,182,.18);}
@@ -1932,7 +1932,30 @@ body {
   background: var(--bg2, #0d1117) !important;
   border: 1px solid rgba(255,255,255,.12) !important;
   box-shadow: 0 4px 20px rgba(0,0,0,.7) !important;
+  flex-wrap: nowrap !important;
+  max-width: 98vw;
+  overflow-x: auto;
 }
+/* Etiqueta debajo del emoji */
+.rxn-btn-label {
+  font-size: .52rem;
+  color: rgba(255,255,255,.75);
+  white-space: nowrap;
+  pointer-events: none;
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 700;
+  letter-spacing: .01em;
+  opacity: 0;
+  transition: opacity .13s;
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,.85);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.rxn-btn:hover .rxn-btn-label { opacity: 1; }
 
 /* ── STORIES ── */
 .story-card {
@@ -7053,12 +7076,14 @@ let _unsubPosts = null;
 let _unsubStories = null;
 
 const REACTIONS = [
-  {emoji:'👍', label:'Me gusta',      color:'#1877f2', lottieSegment:'Happy'   },
-  {emoji:'❤️', label:'Me encanta',    color:'#f33e58', lottieSegment:'Romantic'},
-  {emoji:'🤣', label:'Me divierte',   color:'#f7b125', lottieSegment:'Naughty' },
-  {emoji:'😮', label:'Me sorprende',  color:'#f7b125', lottieSegment:'Scared'  },
-  {emoji:'😢', label:'Me entristece', color:'#60a5fa', lottieSegment:'Sad'     },
-  {emoji:'😡', label:'Me enoja',      color:'#e85d4a', lottieSegment:'Angry'   },
+  {emoji:'🔥', label:'Me calienta',   color:'#ff4500', lottieSegment:'Hot'     },
+  {emoji:'😍', label:'Me encanta',    color:'#f33e58', lottieSegment:'Romantic'},
+  {emoji:'💋', label:'Me excita',     color:'#e040fb', lottieSegment:'Kiss'    },
+  {emoji:'🥵', label:'Qué rico',      color:'#ff6b35', lottieSegment:'Naughty' },
+  {emoji:'💦', label:'Me derrite',    color:'#00b4d8', lottieSegment:'Wet'     },
+  {emoji:'❤️', label:'Me enamora',    color:'#e63946', lottieSegment:'Love'    },
+  {emoji:'😈', label:'Qué travieso',  color:'#9c27b0', lottieSegment:'Devil'   },
+  {emoji:'🤤', label:'Me babeo',      color:'#f7b125', lottieSegment:'Drool'   },
 ];
 window.REACTIONS = REACTIONS;
 window.REACTIONS = REACTIONS;
@@ -9050,7 +9075,6 @@ async function reactStory(em){
       const chatId = [window.CU.id, s.userId].sort().join('_');
       await addDoc(collection(db,'chats',chatId,'messages'),{
         uid: window.CU.id,
-        senderId: window.CU.id,
         nick: window.CU.nick,
         text: `${window.CU.nick} reaccionó con ${em} a tu historia: "${storyPreview}"`,
         storyComment: true,
@@ -9082,7 +9106,6 @@ async function submitStoryComment(){
     const chatId = [window.CU.id, s.userId].sort().join('_');
     await addDoc(collection(db,'chats',chatId,'messages'),{
       uid: window.CU.id,
-      senderId: window.CU.id,
       nick: window.CU.nick,
       text: `${window.CU.nick} comentó tu historia:\n"${storyPreview}"\n${text}`,
       storyComment: true,
@@ -19607,15 +19630,6 @@ function renderMessengerList(){
 
 
 
-// Wrapper para abrir chat privado desde cualquier página (Match, etc.)
-// Navega al feed primero y luego abre el chat limpio
-window.openPrivateChat = function(uid, nick){
-  // Ir al feed/inicio primero para que el chat no quede flotando sobre Match
-  if(typeof gp === 'function') gp('feed');
-  // Pequeño delay para que la navegación ocurra antes de abrir el chat
-  setTimeout(function(){ openChatWith(uid, nick); }, 120);
-};
-
 function openChatWith(uid, nick){
   if(!uid||!window.CU){ toast('Iniciá sesión primero','err'); return; }
   // Si ya estamos en este chat, no hacer nada
@@ -20199,7 +20213,7 @@ async function sendChatMsg(gifUrl){
   inp.value='';
   try{ setDoc(doc(db,'presence',window.CU.id),{typingTo:'',typingAt:serverTimestamp()},{merge:true}); }catch(e2){}
   const chatId = [window.CU.id, _chatUserId].sort().join('_');
-  const msgData = { uid: window.CU.id, senderId: window.CU.id, nick: window.CU.nick, time: serverTimestamp() };
+  const msgData = { uid: window.CU.id, nick: window.CU.nick, time: serverTimestamp() };
   if(gifUrl){ msgData.gif = gifUrl; msgData.text = ''; }
   else { msgData.text = text; }
   try {
@@ -27586,12 +27600,14 @@ setTimeout(function(){
 
   // Mapa emoji → clase de animación
   const RXN_ANIM = {
-    '👍': 'anim-like',
+    '🔥': 'anim-like',
+    '😍': 'anim-love',
+    '💋': 'anim-haha',
+    '🥵': 'anim-wow-fb',
+    '💦': 'anim-sad',
     '❤️': 'anim-love',
-    '🤣': 'anim-haha',
-    '😮': 'anim-wow-fb',
-    '😢': 'anim-sad',
-    '😡': 'anim-angry',
+    '😈': 'anim-angry',
+    '🤤': 'anim-haha',
   };
 
   // Genera los botones de reacción
@@ -27861,14 +27877,6 @@ window._showBanScreen = _showBanScreen;
   box-shadow:0 4px 18px rgba(0,0,0,.35);
 }
 .mc-btn-profile:hover { transform:scale(1.1);color:#f33e58; }
-.mc-btn-msg {
-  width:58px;height:58px;border-radius:50%;
-  border:none;
-  background:#fff;color:#2ec4b6;cursor:pointer;font-size:1.4rem;
-  display:flex;align-items:center;justify-content:center;transition:all .18s;flex-shrink:0;
-  box-shadow:0 4px 18px rgba(0,0,0,.35);
-}
-.mc-btn-msg:hover { transform:scale(1.1);box-shadow:0 6px 24px rgba(46,196,182,.45); }
 
 /* Nav prev/next */
 .mc-nav { display:flex;align-items:center;justify-content:space-between;width:100%;max-width:420px;padding:0 12px; }
@@ -28434,7 +28442,6 @@ window._showBanScreen = _showBanScreen;
           ${liked ? '💖' : '❤️'}
         </button>
         <button class="mc-btn-profile" onclick="openUserProfile('${_esc(u.id)}','${_esc(nick)}')" title="Ver perfil">👤</button>
-        <button class="mc-btn-msg" onclick="openPrivateChat('${_esc(u.id)}','${_esc(nick)}')" title="Enviar mensaje">💬</button>
       </div>
       <div class="mc-body"></div>`;
 
