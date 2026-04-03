@@ -3456,7 +3456,7 @@ a[style*="color:var(--accent)"] { color: #1877f2 !important; }
         <div style="flex:1;min-width:0;padding-top:12px;padding-bottom:2px;">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
             <div class="profile-name" id="profName" style="font-size:1.75rem;">Mi Perfil</div>
-            <img id="profVerifiedBadge" src="vereficado.png" style="display:none;width:26px;height:26px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 0 5px gold);" title="Usuario Verificado" draggable="false">
+            <img id="profVerifiedBadge" src="https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/vereficado.png" style="display:none;width:26px;height:26px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 0 5px gold);" title="Usuario Verificado" draggable="false">
           </div>
 
           
@@ -9700,7 +9700,7 @@ function renderStories(){
       <div class="story-user-av">${s.userAv ? `<img src="${s.userAv}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--accent),#0077b6);font-size:.9rem;border-radius:50%;">${(g.userNick||'?')[0].toUpperCase()}</div>`}</div>
       ${countBadge}
       <div class="story-gradient"></div>
-      <div class="story-bottom-name" style="display:flex;align-items:center;gap:3px;">${g.userNick}${g.userVerified && s.userAv ? `<img src="vereficado.png" title="Verificado" style="width:14px;height:14px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 0 2px gold);" draggable="false">` : ''}</div>`;
+      <div class="story-bottom-name" style="display:flex;align-items:center;gap:3px;">${g.userNick}${g.userVerified && s.userAv ? `<img src="https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/vereficado.png" title="Verificado" style="width:14px;height:14px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 0 2px gold);" draggable="false">` : ''}</div>`;
     row.appendChild(div);
   });
   setTimeout(applyVerifStoryRings,60);
@@ -9967,7 +9967,7 @@ function renderSV(){
     _svNameEl.appendChild(_svNickSpan);
     if(s.userVerified && s.userAv){
       const _svBadge = document.createElement('img');
-      _svBadge.src = 'vereficado.png';
+      _svBadge.src = 'https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/vereficado.png';
       _svBadge.title = 'Verificado';
       _svBadge.draggable = false;
       _svBadge.style.cssText = 'width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-left:4px;flex-shrink:0;filter:drop-shadow(0 0 3px gold);';
@@ -11314,103 +11314,6 @@ async function _loadMostViewedPosts(el){
   }
 }
 
-/* ── WIDGET "PERSONAS QUE QUIZÁ CONOZCAS" EN EL FEED ── */
-window._pymkInjected = false;
-window._pymkUsers    = null;
-
-async function _loadPYMKUsers(){
-  if(window._pymkUsers) return window._pymkUsers;
-  try {
-    const snap = await getDocs(query(collection(db,'users'), orderBy('createdAt','desc'), limit(40)));
-    const myId      = window.CU?.id;
-    const myFriends = window.CU?.friends || [];
-    window._pymkUsers = snap.docs
-      .map(d=>({id:d.id,...d.data()}))
-      .filter(u => u.id !== myId && !myFriends.includes(u.id))
-      .sort(()=>Math.random()-0.5)
-      .slice(0,6);
-  } catch(e){ window._pymkUsers = []; }
-  return window._pymkUsers;
-}
-
-async function _injectPYMKWidget(){
-  if(window._pymkInjected) return;
-  const feedEl = document.getElementById('feedPosts');
-  if(!feedEl) return;
-  const posts = Array.from(feedEl.children).filter(c=>c.id&&c.id.startsWith('post_'));
-  if(posts.length < 3) return; // esperar al menos 3 posts
-
-  const users = await _loadPYMKUsers();
-  if(!users || !users.length) return;
-
-  // Posición aleatoria: entre el post 2 y 5
-  const maxPos = Math.min(posts.length - 1, 5);
-  const minPos = Math.min(2, posts.length - 1);
-  const insertAfterIdx = minPos + Math.floor(Math.random() * (maxPos - minPos + 1));
-  const insertAfter = posts[insertAfterIdx];
-
-  const widget = document.createElement('div');
-  widget.id = '_pymkFeedWidget';
-  widget.style.cssText = 'background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.1);';
-
-  const cardsHTML = users.map(u => {
-    const safenick = (u.nick||'').replace(/'/g,"\\'");
-    const mutuals  = (window.CU?.friends||[]).filter(fid=>(u.friends||[]).includes(fid)).length;
-    const mutualsHtml = mutuals > 0
-      ? `<div style="display:flex;align-items:center;gap:4px;font-size:.72rem;color:var(--muted);margin:3px 0;">
-           <img src="${u.av||getDefaultAv(u.gender||'')}" style="width:16px;height:16px;border-radius:50%;object-fit:cover;border:1px solid var(--border);">
-           ${mutuals} amigo${mutuals>1?'s':''} en común
-         </div>`
-      : '';
-    return `
-      <div style="min-width:160px;max-width:180px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;overflow:hidden;flex-shrink:0;cursor:pointer;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'" onclick="openUserProfile('${u.id}','${safenick}')">
-        <div style="position:relative;">
-          <div style="height:72px;overflow:hidden;background:var(--bg4);">
-            <img src="${u.cover||u.av||getDefaultAv(u.gender||'')}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
-          </div>
-          <div style="position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);width:44px;height:44px;border-radius:50%;overflow:hidden;border:3px solid var(--bg3);background:var(--bg4);">
-            <img src="${u.av||getDefaultAv(u.gender||'')}" style="width:100%;height:100%;object-fit:cover;">
-          </div>
-          <button onclick="event.stopPropagation();this.closest('div[onclick]').querySelector('._pymk-x').click();" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.5);border:none;border-radius:50%;width:22px;height:22px;color:#fff;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>
-          <span class="_pymk-x" style="display:none;" onclick="event.stopPropagation();this.closest('[id^=_pymk]')?.remove||this.closest('._pymk-card')?.remove();_removePYMKUser('${u.id}')"></span>
-        </div>
-        <div style="padding:28px 8px 10px;text-align:center;">
-          <div style="font-size:.8rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(u.nick||'?')}</div>
-          ${mutualsHtml}
-          <button onclick="sendFriendRequest('${u.id}','${safenick}','page');event.stopPropagation();" style="margin-top:6px;width:100%;padding:6px;background:var(--accent);border:none;border-radius:var(--rs);color:#000;font-size:.72rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">
-            👥 Agregar a amigos
-          </button>
-        </div>
-      </div>`;
-  }).join('');
-
-  widget.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:1rem;">👥</span>
-        <span style="font-size:.95rem;font-weight:800;color:var(--text);">Personas que quizá conozcas</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span onclick="window._pymkUsers=null;_pymkInjected=false;document.getElementById('_pymkFeedWidget')?.remove();_injectPYMKWidget();" style="font-size:.78rem;color:var(--accent);cursor:pointer;font-weight:700;">···</span>
-        <a onclick="gp('amigos')" style="font-size:.78rem;color:var(--accent);cursor:pointer;font-weight:700;text-decoration:none;">Ver todas</a>
-      </div>
-    </div>
-    <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin;">
-      ${cardsHTML}
-    </div>`;
-
-  // Insertar después del post elegido
-  insertAfter.insertAdjacentElement('afterend', widget);
-  window._pymkInjected = true;
-}
-
-window._removePYMKUser = function(uid){
-  if(window._pymkUsers) window._pymkUsers = window._pymkUsers.filter(u=>u.id!==uid);
-  const widget = document.getElementById('_pymkFeedWidget');
-  if(!widget) return;
-  if(window._pymkUsers && window._pymkUsers.length === 0) { widget.remove(); window._pymkInjected = false; }
-};
-
 function renderFeed(){
   const el = document.getElementById('feedPosts');
   if(!el) return;
@@ -11437,8 +11340,6 @@ function renderFeed(){
         subscribePostViews(p.id);
       }
     });
-    // Inyectar widget PYMK después de renderizar
-    setTimeout(_injectPYMKWidget, 800);
     return;
   }
 
@@ -11908,7 +11809,7 @@ function postHTML(p){
             const _plvl = getLevel(_uXp);
             const _nick = esc(p.userNick);
             if(_isAdm) return `<span class="admin-name">${_nick}</span><span class="admin-crown">👑</span>`;
-            if(_isVerif) return `<span style="font-weight:800;font-family:'Exo 2',sans-serif;background:linear-gradient(90deg,#f5a623,#ffe082,#f5a623);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:_vShine 2s linear infinite;">${_nick}</span>${p.userAv?`<img src="vereficado.png" title="Verificado" style="-webkit-text-fill-color:initial;width:18px;height:18px;object-fit:contain;vertical-align:middle;margin-left:2px;flex-shrink:0;filter:drop-shadow(0 0 3px gold);" draggable="false">`:`<span style="-webkit-text-fill-color:initial;filter:drop-shadow(0 0 3px gold);">✅</span>`}`;
+            if(_isVerif) return `<span style="font-weight:800;font-family:'Exo 2',sans-serif;background:linear-gradient(90deg,#f5a623,#ffe082,#f5a623);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:_vShine 2s linear infinite;">${_nick}</span>${p.userAv?`<img src="https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/vereficado.png" title="Verificado" style="-webkit-text-fill-color:initial;width:18px;height:18px;object-fit:contain;vertical-align:middle;margin-left:2px;flex-shrink:0;filter:drop-shadow(0 0 3px gold);" draggable="false">`:`<span style="-webkit-text-fill-color:initial;filter:drop-shadow(0 0 3px gold);">✅</span>`}`;
             if(_isLegend) return `<span style="font-weight:800;font-family:'Exo 2',sans-serif;background:linear-gradient(90deg,#ce93d8,#f48fb1,#b39ddb,#ce93d8);background-size:250% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:_legShine 2.5s linear infinite;">${_nick}</span><span style="-webkit-text-fill-color:initial;filter:drop-shadow(0 0 3px #b39ddb);">⚡</span>`;
             if(_isHighLvl) return `<span style="font-weight:700;font-family:'Exo 2',sans-serif;color:${_plvl.color};text-shadow:0 0 6px ${_plvl.color}44;">${_nick}</span>`;
             return `<span class="user-name">${_nick}</span>`;
@@ -12816,7 +12717,7 @@ async function toggleComments(pid){
       const cRxnTotalM = Object.values(cRxnsM).reduce((a,b)=>a+b,0);
       const cTopRxnM = Object.entries(cRxnsM).filter(e=>e[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,2).map(e=>e[0]).join('');
       const nameColor = isVerified ? '#f5a623' : isAuthor ? '#1877f2' : '#e6edf3';
-      const verifiedBadge = (isVerified && c.av) ? `<img src="vereficado.png" title="Verificado" style="width:14px;height:14px;object-fit:contain;vertical-align:middle;margin-left:2px;flex-shrink:0;filter:drop-shadow(0 0 2px gold);" draggable="false">` : '';
+      const verifiedBadge = (isVerified && c.av) ? `<img src="https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/vereficado.png" title="Verificado" style="width:14px;height:14px;object-fit:contain;vertical-align:middle;margin-left:2px;flex-shrink:0;filter:drop-shadow(0 0 2px gold);" draggable="false">` : '';
       const isAdminCmt = c.nick==='ruizgustavo12' || c.role==='admin';
       const adminNameHtml = isAdminCmt
         ? `<span class="admin-name" style="font-size:.82rem;">${esc(c.nick||'')}</span><span class="admin-crown" style="font-size:.72rem;">👑</span>`
@@ -13599,7 +13500,7 @@ function renderProfile(){
   if(badge){
     if(window.CU.verified && hasProfilePhoto){
       badge.style.display = 'inline-block';
-      badge.src = 'vereficado.png';
+      badge.src = 'https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/vereficado.png';
       badge.title = 'Usuario Verificado';
     } else {
       badge.style.display = 'none';
@@ -18789,7 +18690,7 @@ function _stopVerifParticles(){
 }
 
 function verifiedHTML(nick, av){ 
-  if(av) return `<img src="vereficado.png" title="Usuario Verificado" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-left:4px;flex-shrink:0;filter:drop-shadow(0 0 4px gold);" draggable="false">`;
+  if(av) return `<img src="https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/vereficado.png" title="Usuario Verificado" style="width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-left:4px;flex-shrink:0;filter:drop-shadow(0 0 4px gold);" draggable="false">`;
   return `<span title="Usuario Verificado" style="display:inline-flex;align-items:center;">✅</span>`; 
 }
 
@@ -19723,7 +19624,7 @@ async function _loadUserProfilePage(uid, nick){
     if(upVerifBadgeEl && u.verified && uHasPhoto){
       upVerifBadgeEl.style.display = 'inline-block';
       upVerifBadgeEl.title = 'Usuario Verificado';
-      upVerifBadgeEl.innerHTML = `<img src="vereficado.png" title="Verificado" style="width:24px;height:24px;object-fit:contain;vertical-align:middle;filter:drop-shadow(0 0 5px gold);" draggable="false">`;
+      upVerifBadgeEl.innerHTML = `<img src="https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/vereficado.png" title="Verificado" style="width:24px;height:24px;object-fit:contain;vertical-align:middle;filter:drop-shadow(0 0 5px gold);" draggable="false">`;
     }
     // Badge Premium
     let _upPremBadge = document.getElementById('_upPremiumBadge');
@@ -19846,57 +19747,92 @@ async function _loadUserProfilePage(uid, nick){
       if(cntEl) cntEl.textContent = sorted.length;
     }
 
-    // Iniciar listener en tiempo real — solo where (sin orderBy) para evitar índice compuesto
+    // Helper: actualiza grid de fotos con los posts ya cargados
+    function _updateUpFotos(posts){
+      const imgMap = {};
+      posts.forEach(p=>{ (p.images||[]).forEach(img=>{ imgMap[img]=p.id; }); });
+      const imgs = posts.flatMap(p=>p.images||[]).filter(Boolean);
+      window._upProfileImgs = imgs;
+      window._upImgPostMap  = imgMap;
+      const _lfg = document.getElementById('upLeftFotosGrid');
+      const _lfc = document.getElementById('upLeftFotosCard');
+      if(_lfg && imgs.length){
+        _lfg.innerHTML = imgs.slice(0,9).map((img,i)=>`<div style="aspect-ratio:1;overflow:hidden;cursor:pointer;background:var(--bg3);" onclick="openImgLightbox(window._upProfileImgs[${i}],window._upProfileImgs,window._upImgPostMap[window._upProfileImgs[${i}]]||'')"><img src="${img}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>`).join('');
+        if(_lfc) _lfc.style.display='block';
+      }
+      const _tf = document.getElementById('upTabFotos');
+      if(_tf) _tf.innerHTML = imgs.length
+        ? `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;"><div style="padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:.95rem;">🖼️ Fotos · <span style="color:var(--muted);font-weight:400;font-size:.82rem;">${imgs.length} foto${imgs.length!==1?'s':''}</span></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">${imgs.map((img,i)=>`<div style="aspect-ratio:1;overflow:hidden;cursor:pointer;" onclick="openImgLightbox(window._upProfileImgs[${i}],window._upProfileImgs,window._upImgPostMap[window._upProfileImgs[${i}]]||'')" onmouseover="this.querySelector('img').style.transform='scale(1.05)'" onmouseout="this.querySelector('img').style.transform='scale(1)'"><img src="${img}" style="width:100%;height:100%;object-fit:cover;transition:transform .2s;" loading="lazy"></div>`).join('')}</div></div>`
+        : '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--muted);text-align:center;padding:50px 20px;"><div style="font-size:2.5rem;margin-bottom:10px;">📷</div><div>Sin fotos aún</div></div>';
+    }
+
+    // Timeout fallback: si en 8s el onSnapshot no disparó (Firebase offline), usar getDocs
+    window._upPostsTimeoutId = setTimeout(async ()=>{
+      const listEl = document.getElementById('upPostsList');
+      if(!listEl || !listEl.innerHTML.includes('Cargando publicaciones')) return;
+      console.warn('[upPosts] timeout — Firebase offline, usando getDocs fallback');
+      try {
+        const snap = await getDocs(query(collection(db,'posts'), where('userId','==',uid)));
+        userPosts = snap.docs.map(d=>({id:d.id,...d.data()}));
+        userPosts.forEach(p=>{ const idx=(_posts||[]).findIndex(x=>x.id===p.id); if(idx>=0) _posts[idx]=p; else (_posts||[]).unshift(p); });
+        _renderUpPostsList(userPosts);
+        _updateUpFotos(userPosts);
+      } catch(e){
+        if(listEl) listEl.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted);">⚠️ Sin conexión.<br><button onclick="window._retryUpPosts('${uid}')" style="margin-top:12px;padding:8px 20px;background:var(--accent);border:none;border-radius:100px;color:#000;font-weight:800;cursor:pointer;">🔄 Reintentar</button></div>`;
+      }
+    }, 8000);
+
+    window._retryUpPosts = async function(retryUid){
+      const listEl = document.getElementById('upPostsList');
+      if(listEl) listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);">Cargando publicaciones...</div>';
+      try {
+        const snap = await getDocs(query(collection(db,'posts'), where('userId','==',retryUid)));
+        userPosts = snap.docs.map(d=>({id:d.id,...d.data()}));
+        userPosts.forEach(p=>{ const idx=(_posts||[]).findIndex(x=>x.id===p.id); if(idx>=0) _posts[idx]=p; else (_posts||[]).unshift(p); });
+        _renderUpPostsList(userPosts);
+        _updateUpFotos(userPosts);
+      } catch(e){
+        if(listEl) listEl.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);">⚠️ Sin conexión al servidor.</div>';
+      }
+    };
+
+    // Iniciar listener en tiempo real
     try {
       window._upPostsUnsub = onSnapshot(
         query(collection(db,'posts'), where('userId','==',uid)),
         { includeMetadataChanges: false },
         snap => {
+          clearTimeout(window._upPostsTimeoutId);
           const isFirst = userPosts.length === 0;
           userPosts = snap.docs.map(d=>({id:d.id,...d.data()}));
-          // Mergear al caché global _posts para que doReact/submitComment funcionen
           userPosts.forEach(p=>{
             const idx = (_posts||[]).findIndex(x=>x.id===p.id);
             if(idx>=0) _posts[idx]=p; else (_posts||[]).unshift(p);
           });
           _renderUpPostsList(userPosts);
-          // Actualizar grid de fotos solo la primera vez que llegan los posts
-          if(isFirst){
-            const _imgPostMap2 = {};
-            userPosts.forEach(p=>{ (p.images||[]).forEach(img=>{ _imgPostMap2[img]=p.id; }); });
-            const allImgs2 = userPosts.flatMap(p=>p.images||[]).filter(Boolean);
-            window._upProfileImgs = allImgs2;
-            window._upImgPostMap = _imgPostMap2;
-            const _lfg = document.getElementById('upLeftFotosGrid');
-            const _lfc2 = document.getElementById('upLeftFotosCard');
-            if(_lfg && allImgs2.length){
-              _lfg.innerHTML = allImgs2.slice(0,9).map((img,i)=>`<div style="aspect-ratio:1;overflow:hidden;cursor:pointer;background:var(--bg3);" onclick="openImgLightbox(window._upProfileImgs[${i}],window._upProfileImgs,window._upImgPostMap[window._upProfileImgs[${i}]]||'')"><img src="${img}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>`).join('');
-              if(_lfc2) _lfc2.style.display='block';
-            }
-            const _tf2 = document.getElementById('upTabFotos');
-            if(_tf2) _tf2.innerHTML = allImgs2.length
-              ? `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;"><div style="padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:.95rem;">🖼️ Fotos · <span style="color:var(--muted);font-weight:400;font-size:.82rem;">${allImgs2.length} foto${allImgs2.length!==1?'s':''}</span></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">${allImgs2.map((img,i)=>`<div style="aspect-ratio:1;overflow:hidden;cursor:pointer;" onclick="openImgLightbox(window._upProfileImgs[${i}],window._upProfileImgs,window._upImgPostMap[window._upProfileImgs[${i}]]||'')" onmouseover="this.querySelector('img').style.transform='scale(1.05)'" onmouseout="this.querySelector('img').style.transform='scale(1)'"><img src="${img}" style="width:100%;height:100%;object-fit:cover;transition:transform .2s;" loading="lazy"></div>`).join('')}</div></div>`
-              : '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--muted);text-align:center;padding:50px 20px;"><div style="font-size:2.5rem;margin-bottom:10px;">📷</div><div>Sin fotos aún</div></div>';
-          }
+          if(isFirst) _updateUpFotos(userPosts);
         },
         err => {
+          clearTimeout(window._upPostsTimeoutId);
           console.warn('onSnapshot posts perfil error:', err);
-          // Fallback: getDocs una vez
           getDocs(query(collection(db,'posts'), where('userId','==',uid))).then(snap=>{
             userPosts = snap.docs.map(d=>({id:d.id,...d.data()}));
             userPosts.forEach(p=>{ const idx=(_posts||[]).findIndex(x=>x.id===p.id); if(idx>=0) _posts[idx]=p; else (_posts||[]).unshift(p); });
             _renderUpPostsList(userPosts);
+            _updateUpFotos(userPosts);
           }).catch(()=>{
             if(_upList) _upList.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);">No se pudieron cargar las publicaciones</div>';
           });
         }
       );
     } catch(e){
+      clearTimeout(window._upPostsTimeoutId);
       console.warn('onSnapshot posts perfil setup error:', e);
       getDocs(query(collection(db,'posts'), where('userId','==',uid))).then(snap=>{
         userPosts = snap.docs.map(d=>({id:d.id,...d.data()}));
         userPosts.forEach(p=>{ const idx=(_posts||[]).findIndex(x=>x.id===p.id); if(idx>=0) _posts[idx]=p; else (_posts||[]).unshift(p); });
         _renderUpPostsList(userPosts);
+        _updateUpFotos(userPosts);
       }).catch(()=>{
         if(_upList) _upList.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);">No se pudieron cargar las publicaciones</div>';
       });
@@ -20087,11 +20023,32 @@ async function _loadUserProfilePage(uid, nick){
       upInfoItems.innerHTML = infoLines.length ? infoLines.join('') : '<div style="color:var(--muted);font-size:.8rem;">Sin información pública</div>';
     }
 
-    // ── TAB FOTOS: se actualiza desde el callback del onSnapshot ──
+    // ── COLUMNA IZQUIERDA: Fotos miniatura ──
+    const upLeftFotosCard = document.getElementById('upLeftFotosCard');
+    const upLeftFotosGrid = document.getElementById('upLeftFotosGrid');
     const _imgPostMap = {};
-    const allImgs = [];
+    userPosts.forEach(p=>{ (p.images||[]).forEach(img=>{ _imgPostMap[img]=p.id; }); });
+    const allImgs = userPosts.flatMap(p=>p.images||[]).filter(Boolean);
+    // Store globally so onclick handlers can reference without inline JSON
     window._upProfileImgs = allImgs;
     window._upImgPostMap = _imgPostMap;
+
+    if(upLeftFotosGrid && allImgs.length){
+      upLeftFotosGrid.innerHTML = allImgs.slice(0,9).map((img,i)=>{
+        return `<div style="aspect-ratio:1;overflow:hidden;cursor:pointer;background:var(--bg3);" onclick="openImgLightbox(window._upProfileImgs[${i}],window._upProfileImgs,window._upImgPostMap[window._upProfileImgs[${i}]]||'')"><img src="${img}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>`;
+      }).join('');
+      if(upLeftFotosCard) upLeftFotosCard.style.display='block';
+    }
+
+    // ── TAB FOTOS: grid completo ──
+    document.getElementById('upTabFotos').innerHTML = allImgs.length
+      ? `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">
+          <div style="padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:.95rem;">🖼️ Fotos · <span style="color:var(--muted);font-weight:400;font-size:.82rem;">${allImgs.length} foto${allImgs.length!==1?'s':''}</span></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">${allImgs.map((img,i)=>{
+            return `<div style="aspect-ratio:1;overflow:hidden;cursor:pointer;position:relative;transition:opacity .15s;" onclick="openImgLightbox(window._upProfileImgs[${i}],window._upProfileImgs,window._upImgPostMap[window._upProfileImgs[${i}]]||'')" onmouseover="this.querySelector('img').style.transform='scale(1.05)'" onmouseout="this.querySelector('img').style.transform='scale(1)'"><img src="${img}" style="width:100%;height:100%;object-fit:cover;transition:transform .2s;" loading="lazy"></div>`;
+          }).join('')}</div>
+        </div>`
+      : '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--muted);text-align:center;padding:50px 20px;"><div style="font-size:2.5rem;margin-bottom:10px;">📷</div><div>Sin fotos aún</div></div>';
 
     // ── TAB AMIGOS + Columna izquierda mini amigos ──
     if((u.friends||[]).length){
@@ -23389,7 +23346,7 @@ function _reelCard(p, H){
 
       
       <div style="flex:1;min-width:0;overflow:hidden;">
-        <div style="font-size:.78rem;font-weight:800;color:#050505;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px;">${esc(nick)}${p.userVerified && av && !av.includes('getDefaultAv') ? `<img src="vereficado.png" title="Verificado" style="width:15px;height:15px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 0 2px gold);" draggable="false">` : ''} ${badge}</div>
+        <div style="font-size:.78rem;font-weight:800;color:#050505;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px;">${esc(nick)}${p.userVerified && av && !av.includes('getDefaultAv') ? `<img src="https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/vereficado.png" title="Verificado" style="width:15px;height:15px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 0 2px gold);" draggable="false">` : ''} ${badge}</div>
         ${text?`<div style="font-size:.68rem;color:#65676b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(text)}</div>`:''}
       </div>
 
@@ -24630,12 +24587,12 @@ function openChatMenu(e, uid, nick, hasUnread, isArchived){
   const safeNick = nick.replace(/'/g,'&apos;');
   const items = [
     !isArchived
-      ? { icon:'📦', label:'Archivar chat',    fn:()=>archiveChat(uid, nick) }
-      : { icon:'📤', label:'Desarchivar chat', fn:()=>unarchiveChat(uid) },
+      ? { icon:'📦', label:'Archivar chat',    fn:`archiveChat('${uid}','${safeNick}')` }
+      : { icon:'📤', label:'Desarchivar chat', fn:`unarchiveChat('${uid}')` },
     hasUnread
-      ? { icon:'✓',  label:'Marcar como leído',    fn:()=>markChatRead(uid) }
-      : { icon:'●',  label:'Marcar como no leído',  fn:()=>markChatUnread(uid, nick) },
-    { icon:'🗑', label:'Eliminar chat', fn:()=>deleteChatConfirm(uid, nick), danger:true },
+      ? { icon:'✓',  label:'Marcar como leído',    fn:`markChatRead('${uid}')` }
+      : { icon:'●',  label:'Marcar como no leído',  fn:`markChatUnread('${uid}','${safeNick}')` },
+    { icon:'🗑', label:'Eliminar chat', fn:`deleteChatConfirm('${uid}','${safeNick}')`, danger:true },
   ];
 
   items.forEach(item=>{
@@ -24644,7 +24601,7 @@ function openChatMenu(e, uid, nick, hasUnread, isArchived){
     btn.innerHTML = `<span style="font-size:1rem;">${item.icon}</span>${item.label}`;
     btn.onmouseover = ()=>btn.style.background='var(--bg3)';
     btn.onmouseout  = ()=>btn.style.background='none';
-    btn.onclick = (ev)=>{ ev.stopPropagation(); document.getElementById('chatContextMenu')?.remove(); item.fn(); };
+    btn.onclick = (ev)=>{ ev.stopPropagation(); document.getElementById('chatContextMenu')?.remove(); new Function(item.fn)(); };
     menu.appendChild(btn);
   });
 
