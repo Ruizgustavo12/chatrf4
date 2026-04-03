@@ -11805,7 +11805,7 @@ function postHTML(p){
             const _isVerif = !!p.userVerified;
             const _nick = esc(p.userNick);
             if(_isAdm) return `<span class="admin-name">${_nick}</span><span class="admin-crown">👑</span>`;
-            if(_isVerif) return `<span style="font-weight:700;color:var(--text);">${_nick}</span><img src="https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/vereficado.png" title="Verificado" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-left:3px;flex-shrink:0;" draggable="false">`;
+            if(_isVerif) return `<span style="font-weight:700;color:var(--text);">${_nick}</span><img src="https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/vereficado.png" title="Verificado" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-left:3px;flex-shrink:0;" draggable="false">`;
             return `<span style="font-weight:700;color:var(--text);">${_nick}</span>`;
           })()}${p.feeling?` <span style="font-weight:400;font-size:.85rem;">está ${p.feeling.emoji} <span style="color:var(--muted);">me siento ${p.feeling.label}.</span></span>`:''}</div>
           ${_postTitulo?`<span style="font-size:.6rem;font-weight:800;color:var(--muted);background:rgba(0,0,0,.06);border-radius:100px;padding:1px 8px;letter-spacing:.04em;">${esc(_postTitulo)}</span>`:''}
