@@ -24533,12 +24533,12 @@ function openChatMenu(e, uid, nick, hasUnread, isArchived){
   const safeNick = nick.replace(/'/g,'&apos;');
   const items = [
     !isArchived
-      ? { icon:'📦', label:'Archivar chat',    fn:`archiveChat('${uid}','${safeNick}')` }
-      : { icon:'📤', label:'Desarchivar chat', fn:`unarchiveChat('${uid}')` },
+      ? { icon:'📦', label:'Archivar chat',    fn:()=>archiveChat(uid, nick) }
+      : { icon:'📤', label:'Desarchivar chat', fn:()=>unarchiveChat(uid) },
     hasUnread
-      ? { icon:'✓',  label:'Marcar como leído',    fn:`markChatRead('${uid}')` }
-      : { icon:'●',  label:'Marcar como no leído',  fn:`markChatUnread('${uid}','${safeNick}')` },
-    { icon:'🗑', label:'Eliminar chat', fn:`deleteChatConfirm('${uid}','${safeNick}')`, danger:true },
+      ? { icon:'✓',  label:'Marcar como leído',    fn:()=>markChatRead(uid) }
+      : { icon:'●',  label:'Marcar como no leído',  fn:()=>markChatUnread(uid, nick) },
+    { icon:'🗑', label:'Eliminar chat', fn:()=>deleteChatConfirm(uid, nick), danger:true },
   ];
 
   items.forEach(item=>{
@@ -24547,7 +24547,7 @@ function openChatMenu(e, uid, nick, hasUnread, isArchived){
     btn.innerHTML = `<span style="font-size:1rem;">${item.icon}</span>${item.label}`;
     btn.onmouseover = ()=>btn.style.background='var(--bg3)';
     btn.onmouseout  = ()=>btn.style.background='none';
-    btn.onclick = (ev)=>{ ev.stopPropagation(); document.getElementById('chatContextMenu')?.remove(); new Function(item.fn)(); };
+    btn.onclick = (ev)=>{ ev.stopPropagation(); document.getElementById('chatContextMenu')?.remove(); item.fn(); };
     menu.appendChild(btn);
   });
 
