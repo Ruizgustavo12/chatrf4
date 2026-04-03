@@ -2711,7 +2711,7 @@ a[style*="color:var(--accent)"] { color: #1877f2 !important; }
       <div class="divider"></div>
       <div class="sl-item" onclick="gp('profile')"><span class="sl-item-icon">👤</span> Mi Perfil</div>
       <div class="sl-item" onclick="gp('amigos');renderAmigosPage()"><span class="sl-item-icon">👥</span> Amigos</div>
-      <div class="sl-item" onclick="gp('match');initMatchPage()"><span class="sl-item-icon">💘</span> Match</div>
+      <div class="sl-item" onclick="gp('match')"><span class="sl-item-icon">💘</span> Match</div>
       <div class="sl-item" onclick="gp('fotos');initFotosPage()"><span class="sl-item-icon">📸</span> Fotos</div>
       
       <div class="sl-item" onclick="gp('reels');setNav(document.querySelectorAll('.tb-nav-btn')[4])"><span class="sl-item-icon">🎬</span> Reels</div>
@@ -9493,6 +9493,7 @@ window.gp = (id, pushState = true) => {
   }
   navigateTo(id, pushState);
   if(id==='profile') renderProfile();
+  if(id==='match') { if(typeof window.initMatchPage==='function') window.initMatchPage(); }
   if(id==='fotos') { if(typeof window.initFotosPage==='function') setTimeout(window.initFotosPage, 50); }
   if(id==='admin') { loadAdminData(); loadPezSemana(); loadSoporteBadge(); }
   // Show video button in posts only for verified users
@@ -26231,7 +26232,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   <button class="bottom-nav-btn" id="bnAmigos" onclick="gp('amigos');setBottomNav('bnAmigos');renderAmigosPage()">
     <span class="bn-icon">👥</span>Amigos
   </button>
-  <button class="bottom-nav-btn" id="bnMatch" onclick="gp('match');setBottomNav('bnMatch');initMatchPage()">
+  <button class="bottom-nav-btn" id="bnMatch" onclick="gp('match');setBottomNav('bnMatch')">
     <span class="bn-icon">💘</span>Match
   </button>
   <button class="bottom-nav-btn" id="bnPerfil" onclick="gp('profile');setBottomNav('bnPerfil')">
@@ -29847,6 +29848,7 @@ let _drag = { active:false, startX:0, startY:0, curX:0, curY:0, card:null };
 window.initMatchPage = function(){
   if(typeof db==='undefined'||!db){ setTimeout(window.initMatchPage,1000); return; }
   _loading = false;
+  _idx = 0;  // ← resetear índice siempre que se entra a Match
   if(window._sidebarAllOnline){
     _online = new Set((window._sidebarAllOnline||[]).map(u=>u.id));
   }
@@ -29860,9 +29862,10 @@ window.initMatchPage = function(){
 ───────────────────────────────────────────── */
 function _loadUsers(){
   if(_loading) return;
-  if(_all.length > 0){ _applyMatchFilters(); return; }
+  if(_all.length > 0){ _idx = 0; _applyMatchFilters(); return; }
   if(window._matchAllUsers&&window._matchAllUsers.length>0){
     _all = window._matchAllUsers;
+    _idx = 0;
     _applyMatchFilters();
     _subscribeRT();
     return;
@@ -30341,7 +30344,59 @@ window._matchViewProfile = function(){
 
 window._matchShowInfo = function(){
   const u=_filtered[_idx]; if(!u) return;
-  if(typeof openUserProfile==='function') openUserProfile(u.id, u.nick||'');
+  // Mostrar modal con info — no navegar fuera de Match
+  const compat = _compat(u);
+  const compatColor = compat>=75?'#34d399':compat>=50?'#fbbf24':'#f33e58';
+  const seekLabels = {serious:'💑 Algo serio',friend:'🤝 Amigos',casual:'🌊 Casual',chat:'💬 Charlar'};
+  const seekChips = (u.seeking||[]).map(s=>seekLabels[s]||s).filter(Boolean).join(' · ');
+  const loc = [u.city||u.dept||'', (u.country||'').replace(/^[^\s]+\s/,'').trim()].filter(Boolean).join(', ');
+
+  const existing = document.getElementById('_matchInfoModal');
+  if(existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = '_matchInfoModal';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);';
+
+  overlay.innerHTML = `
+    <div style="background:#1a1025;border:1px solid rgba(255,255,255,.12);border-radius:20px 20px 0 0;padding:24px 20px 36px;width:100%;max-width:520px;animation:cardIn .3s cubic-bezier(.34,1.56,.64,1) both;">
+      <div style="width:40px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin:0 auto 20px;"></div>
+      <!-- Avatar + nombre -->
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+        <div style="width:64px;height:64px;border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,.15);flex-shrink:0;background:#2a1f3d;">
+          ${u.av ? `<img src="${_esc(u.av)}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:900;color:#f33e58;">${(u.nick||'?')[0].toUpperCase()}</div>`}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:1.1rem;font-weight:800;color:#fff;">${_esc(u.nick||'Usuario')}${u.age?` <span style="font-size:.85rem;color:rgba(255,255,255,.5);font-weight:400;">${_esc(u.age)}</span>`:''}</div>
+          ${loc ? `<div style="font-size:.78rem;color:rgba(255,255,255,.5);margin-top:2px;">📍 ${_esc(loc)}</div>` : ''}
+          <div style="margin-top:6px;display:inline-flex;align-items:center;gap:5px;background:rgba(${compat>=75?'52,211,153':compat>=50?'251,191,36':'243,62,88'},.15);border:1px solid rgba(${compat>=75?'52,211,153':compat>=50?'251,191,36':'243,62,88'},.4);border-radius:100px;padding:3px 10px;">
+            <span style="font-size:.7rem;font-weight:800;color:${compatColor};">${compat}% compatibilidad</span>
+          </div>
+        </div>
+      </div>
+      <!-- Bio -->
+      ${(u.bio||u.quote) ? `<div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:.85rem;color:rgba(255,255,255,.7);line-height:1.6;">"${_esc(u.bio||u.quote)}"</div>` : ''}
+      <!-- Detalles -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px;">
+        ${u.favFish?`<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px;font-size:.78rem;color:rgba(255,255,255,.6);">🎣 <strong style="color:#fff;">${_esc(u.favFish)}</strong></div>`:''}
+        ${u.favMap?`<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px;font-size:.78rem;color:rgba(255,255,255,.6);">🗺️ <strong style="color:#fff;">${_esc(u.favMap)}</strong></div>`:''}
+        ${seekChips?`<div style="background:rgba(243,62,88,.08);border:1px solid rgba(243,62,88,.2);border-radius:10px;padding:10px 12px;font-size:.78rem;color:rgba(255,255,255,.7);grid-column:1/-1;">💘 Busca: <strong style="color:#f33e58;">${_esc(seekChips)}</strong></div>`:''}
+      </div>
+      <!-- Botones -->
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('_matchInfoModal').remove();openUserProfile('${_esc(u.id)}','${_esc(u.nick||'')}');"
+          style="flex:1;padding:13px;background:rgba(46,196,182,.15);border:1px solid rgba(46,196,182,.3);border-radius:12px;color:#2ec4b6;font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;">
+          👤 Ver perfil completo
+        </button>
+        <button onclick="document.getElementById('_matchInfoModal').remove();"
+          style="flex:1;padding:13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:rgba(255,255,255,.7);font-size:.85rem;font-weight:700;cursor:pointer;">
+          Cerrar
+        </button>
+      </div>
+    </div>`;
+
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
 };
 
 async function _doLike(uid){
