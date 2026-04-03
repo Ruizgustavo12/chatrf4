@@ -11314,6 +11314,103 @@ async function _loadMostViewedPosts(el){
   }
 }
 
+/* ── WIDGET "PERSONAS QUE QUIZÁ CONOZCAS" EN EL FEED ── */
+window._pymkInjected = false;
+window._pymkUsers    = null;
+
+async function _loadPYMKUsers(){
+  if(window._pymkUsers) return window._pymkUsers;
+  try {
+    const snap = await getDocs(query(collection(db,'users'), orderBy('createdAt','desc'), limit(40)));
+    const myId      = window.CU?.id;
+    const myFriends = window.CU?.friends || [];
+    window._pymkUsers = snap.docs
+      .map(d=>({id:d.id,...d.data()}))
+      .filter(u => u.id !== myId && !myFriends.includes(u.id))
+      .sort(()=>Math.random()-0.5)
+      .slice(0,6);
+  } catch(e){ window._pymkUsers = []; }
+  return window._pymkUsers;
+}
+
+async function _injectPYMKWidget(){
+  if(window._pymkInjected) return;
+  const feedEl = document.getElementById('feedPosts');
+  if(!feedEl) return;
+  const posts = Array.from(feedEl.children).filter(c=>c.id&&c.id.startsWith('post_'));
+  if(posts.length < 3) return; // esperar al menos 3 posts
+
+  const users = await _loadPYMKUsers();
+  if(!users || !users.length) return;
+
+  // Posición aleatoria: entre el post 2 y 5
+  const maxPos = Math.min(posts.length - 1, 5);
+  const minPos = Math.min(2, posts.length - 1);
+  const insertAfterIdx = minPos + Math.floor(Math.random() * (maxPos - minPos + 1));
+  const insertAfter = posts[insertAfterIdx];
+
+  const widget = document.createElement('div');
+  widget.id = '_pymkFeedWidget';
+  widget.style.cssText = 'background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.1);';
+
+  const cardsHTML = users.map(u => {
+    const safenick = (u.nick||'').replace(/'/g,"\\'");
+    const mutuals  = (window.CU?.friends||[]).filter(fid=>(u.friends||[]).includes(fid)).length;
+    const mutualsHtml = mutuals > 0
+      ? `<div style="display:flex;align-items:center;gap:4px;font-size:.72rem;color:var(--muted);margin:3px 0;">
+           <img src="${u.av||getDefaultAv(u.gender||'')}" style="width:16px;height:16px;border-radius:50%;object-fit:cover;border:1px solid var(--border);">
+           ${mutuals} amigo${mutuals>1?'s':''} en común
+         </div>`
+      : '';
+    return `
+      <div style="min-width:160px;max-width:180px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;overflow:hidden;flex-shrink:0;cursor:pointer;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'" onclick="openUserProfile('${u.id}','${safenick}')">
+        <div style="position:relative;">
+          <div style="height:72px;overflow:hidden;background:var(--bg4);">
+            <img src="${u.cover||u.av||getDefaultAv(u.gender||'')}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
+          </div>
+          <div style="position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);width:44px;height:44px;border-radius:50%;overflow:hidden;border:3px solid var(--bg3);background:var(--bg4);">
+            <img src="${u.av||getDefaultAv(u.gender||'')}" style="width:100%;height:100%;object-fit:cover;">
+          </div>
+          <button onclick="event.stopPropagation();this.closest('div[onclick]').querySelector('._pymk-x').click();" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.5);border:none;border-radius:50%;width:22px;height:22px;color:#fff;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>
+          <span class="_pymk-x" style="display:none;" onclick="event.stopPropagation();this.closest('[id^=_pymk]')?.remove||this.closest('._pymk-card')?.remove();_removePYMKUser('${u.id}')"></span>
+        </div>
+        <div style="padding:28px 8px 10px;text-align:center;">
+          <div style="font-size:.8rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(u.nick||'?')}</div>
+          ${mutualsHtml}
+          <button onclick="sendFriendRequest('${u.id}','${safenick}','page');event.stopPropagation();" style="margin-top:6px;width:100%;padding:6px;background:var(--accent);border:none;border-radius:var(--rs);color:#000;font-size:.72rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">
+            👥 Agregar a amigos
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+
+  widget.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:1rem;">👥</span>
+        <span style="font-size:.95rem;font-weight:800;color:var(--text);">Personas que quizá conozcas</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span onclick="window._pymkUsers=null;_pymkInjected=false;document.getElementById('_pymkFeedWidget')?.remove();_injectPYMKWidget();" style="font-size:.78rem;color:var(--accent);cursor:pointer;font-weight:700;">···</span>
+        <a onclick="gp('amigos')" style="font-size:.78rem;color:var(--accent);cursor:pointer;font-weight:700;text-decoration:none;">Ver todas</a>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin;">
+      ${cardsHTML}
+    </div>`;
+
+  // Insertar después del post elegido
+  insertAfter.insertAdjacentElement('afterend', widget);
+  window._pymkInjected = true;
+}
+
+window._removePYMKUser = function(uid){
+  if(window._pymkUsers) window._pymkUsers = window._pymkUsers.filter(u=>u.id!==uid);
+  const widget = document.getElementById('_pymkFeedWidget');
+  if(!widget) return;
+  if(window._pymkUsers && window._pymkUsers.length === 0) { widget.remove(); window._pymkInjected = false; }
+};
+
 function renderFeed(){
   const el = document.getElementById('feedPosts');
   if(!el) return;
@@ -11340,6 +11437,8 @@ function renderFeed(){
         subscribePostViews(p.id);
       }
     });
+    // Inyectar widget PYMK después de renderizar
+    setTimeout(_injectPYMKWidget, 800);
     return;
   }
 
