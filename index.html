@@ -11803,17 +11803,11 @@ function postHTML(p){
           <div class="post-author">${(()=>{
             const _isAdm = p.userNick==='ruizgustavo12'||p.userRole==='admin';
             const _isVerif = !!p.userVerified;
-            const _uXp = p.userXp||0;
-            const _isLegend = _uXp >= 2000;
-            const _isHighLvl = _uXp >= 500;
-            const _plvl = getLevel(_uXp);
             const _nick = esc(p.userNick);
             if(_isAdm) return `<span class="admin-name">${_nick}</span><span class="admin-crown">👑</span>`;
-            if(_isVerif) return `<span style="font-weight:800;font-family:'Exo 2',sans-serif;background:linear-gradient(90deg,#f5a623,#ffe082,#f5a623);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:_vShine 2s linear infinite;">${_nick}</span>${p.userAv?`<img src="https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/vereficado.png" title="Verificado" style="-webkit-text-fill-color:initial;width:18px;height:18px;object-fit:contain;vertical-align:middle;margin-left:2px;flex-shrink:0;filter:drop-shadow(0 0 3px gold);" draggable="false">`:`<span style="-webkit-text-fill-color:initial;filter:drop-shadow(0 0 3px gold);">✅</span>`}`;
-            if(_isLegend) return `<span style="font-weight:800;font-family:'Exo 2',sans-serif;background:linear-gradient(90deg,#ce93d8,#f48fb1,#b39ddb,#ce93d8);background-size:250% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:_legShine 2.5s linear infinite;">${_nick}</span><span style="-webkit-text-fill-color:initial;filter:drop-shadow(0 0 3px #b39ddb);">⚡</span>`;
-            if(_isHighLvl) return `<span style="font-weight:700;font-family:'Exo 2',sans-serif;color:${_plvl.color};text-shadow:0 0 6px ${_plvl.color}44;">${_nick}</span>`;
-            return `<span class="user-name">${_nick}</span>`;
-          })()}${_postBadge?' <span style="font-size:1rem;" title="Badge">'+_postBadge+'</span>':''}${p.feeling?` <span style="font-weight:400;font-size:.85rem;">está ${p.feeling.emoji} <span style="color:var(--muted);">me siento ${p.feeling.label}.</span></span>`:''}</div>
+            if(_isVerif) return `<span style="font-weight:700;color:var(--text);">${_nick}</span><img src="https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/vereficado.png" title="Verificado" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-left:3px;flex-shrink:0;" draggable="false">`;
+            return `<span style="font-weight:700;color:var(--text);">${_nick}</span>`;
+          })()}${p.feeling?` <span style="font-weight:400;font-size:.85rem;">está ${p.feeling.emoji} <span style="color:var(--muted);">me siento ${p.feeling.label}.</span></span>`:''}</div>
           ${_postTitulo?`<span style="font-size:.6rem;font-weight:800;color:var(--muted);background:rgba(0,0,0,.06);border-radius:100px;padding:1px 8px;letter-spacing:.04em;">${esc(_postTitulo)}</span>`:''}
           ${(()=>{ const plvl=getLevel(p.userXp||0); return `<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:100px;border:1px solid;color:${plvl.color};border-color:${plvl.border};background:${plvl.border.replace(/[\d.]+\)$/,'.08)')};">${plvl.name}</span>`; })()}
         </div>
@@ -19747,7 +19741,7 @@ async function _loadUserProfilePage(uid, nick){
       if(cntEl) cntEl.textContent = sorted.length;
     }
 
-    // Helper: actualiza grid de fotos con los posts ya cargados
+    // Helper: actualiza grid de fotos con los posts cargados
     function _updateUpFotos(posts){
       const imgMap = {};
       posts.forEach(p=>{ (p.images||[]).forEach(img=>{ imgMap[img]=p.id; }); });
@@ -19762,11 +19756,11 @@ async function _loadUserProfilePage(uid, nick){
       }
       const _tf = document.getElementById('upTabFotos');
       if(_tf) _tf.innerHTML = imgs.length
-        ? `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;"><div style="padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:.95rem;">🖼️ Fotos · <span style="color:var(--muted);font-weight:400;font-size:.82rem;">${imgs.length} foto${imgs.length!==1?'s':''}</span></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">${imgs.map((img,i)=>`<div style="aspect-ratio:1;overflow:hidden;cursor:pointer;" onclick="openImgLightbox(window._upProfileImgs[${i}],window._upProfileImgs,window._upImgPostMap[window._upProfileImgs[${i}]]||'')" onmouseover="this.querySelector('img').style.transform='scale(1.05)'" onmouseout="this.querySelector('img').style.transform='scale(1)'"><img src="${img}" style="width:100%;height:100%;object-fit:cover;transition:transform .2s;" loading="lazy"></div>`).join('')}</div></div>`
-        : '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--muted);text-align:center;padding:50px 20px;"><div style="font-size:2.5rem;margin-bottom:10px;">📷</div><div>Sin fotos aún</div></div>';
+        ? `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;"><div style="padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:.95rem;">🖼️ Fotos</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">${imgs.map((img,i)=>`<div style="aspect-ratio:1;overflow:hidden;cursor:pointer;" onclick="openImgLightbox(window._upProfileImgs[${i}],window._upProfileImgs,window._upImgPostMap[window._upProfileImgs[${i}]]||'')" onmouseover="this.querySelector('img').style.transform='scale(1.05)'" onmouseout="this.querySelector('img').style.transform='scale(1)'"><img src="${img}" style="width:100%;height:100%;object-fit:cover;transition:transform .2s;" loading="lazy"></div>`).join('')}</div></div>`
+        : '<div style="color:var(--muted);text-align:center;padding:50px 20px;"><div style="font-size:2.5rem;margin-bottom:10px;">📷</div><div>Sin fotos aún</div></div>';
     }
 
-    // Timeout fallback: si en 8s el onSnapshot no disparó (Firebase offline), usar getDocs
+    // Timeout fallback: si en 8s el onSnapshot no disparó (Firebase offline), usar getDocs directo
     window._upPostsTimeoutId = setTimeout(async ()=>{
       const listEl = document.getElementById('upPostsList');
       if(!listEl || !listEl.innerHTML.includes('Cargando publicaciones')) return;
@@ -20023,32 +20017,7 @@ async function _loadUserProfilePage(uid, nick){
       upInfoItems.innerHTML = infoLines.length ? infoLines.join('') : '<div style="color:var(--muted);font-size:.8rem;">Sin información pública</div>';
     }
 
-    // ── COLUMNA IZQUIERDA: Fotos miniatura ──
-    const upLeftFotosCard = document.getElementById('upLeftFotosCard');
-    const upLeftFotosGrid = document.getElementById('upLeftFotosGrid');
-    const _imgPostMap = {};
-    userPosts.forEach(p=>{ (p.images||[]).forEach(img=>{ _imgPostMap[img]=p.id; }); });
-    const allImgs = userPosts.flatMap(p=>p.images||[]).filter(Boolean);
-    // Store globally so onclick handlers can reference without inline JSON
-    window._upProfileImgs = allImgs;
-    window._upImgPostMap = _imgPostMap;
-
-    if(upLeftFotosGrid && allImgs.length){
-      upLeftFotosGrid.innerHTML = allImgs.slice(0,9).map((img,i)=>{
-        return `<div style="aspect-ratio:1;overflow:hidden;cursor:pointer;background:var(--bg3);" onclick="openImgLightbox(window._upProfileImgs[${i}],window._upProfileImgs,window._upImgPostMap[window._upProfileImgs[${i}]]||'')"><img src="${img}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>`;
-      }).join('');
-      if(upLeftFotosCard) upLeftFotosCard.style.display='block';
-    }
-
-    // ── TAB FOTOS: grid completo ──
-    document.getElementById('upTabFotos').innerHTML = allImgs.length
-      ? `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">
-          <div style="padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:.95rem;">🖼️ Fotos · <span style="color:var(--muted);font-weight:400;font-size:.82rem;">${allImgs.length} foto${allImgs.length!==1?'s':''}</span></div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">${allImgs.map((img,i)=>{
-            return `<div style="aspect-ratio:1;overflow:hidden;cursor:pointer;position:relative;transition:opacity .15s;" onclick="openImgLightbox(window._upProfileImgs[${i}],window._upProfileImgs,window._upImgPostMap[window._upProfileImgs[${i}]]||'')" onmouseover="this.querySelector('img').style.transform='scale(1.05)'" onmouseout="this.querySelector('img').style.transform='scale(1)'"><img src="${img}" style="width:100%;height:100%;object-fit:cover;transition:transform .2s;" loading="lazy"></div>`;
-          }).join('')}</div>
-        </div>`
-      : '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--muted);text-align:center;padding:50px 20px;"><div style="font-size:2.5rem;margin-bottom:10px;">📷</div><div>Sin fotos aún</div></div>';
+    // ── FOTOS: se construyen desde _updateUpFotos() una vez que los posts lleguen ──
 
     // ── TAB AMIGOS + Columna izquierda mini amigos ──
     if((u.friends||[]).length){
