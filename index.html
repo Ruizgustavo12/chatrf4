@@ -902,7 +902,7 @@ img[title="Verificado"]:hover{
 @keyframes rxnPop{from{opacity:0;transform:translateY(calc(-100% - 6px)) scale(.7)}to{opacity:1;transform:translateY(calc(-100% - 6px)) scale(1)}}
 .rxn-cats{display:none;}
 .rxn-grid{display:flex;gap:2px;}
-.rxn-btn{background:none;border:none;cursor:pointer;padding:4px;border-radius:50%;transition:transform .13s;position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;width:48px;}
+.rxn-btn{background:none;border:none;cursor:pointer;padding:4px;border-radius:50%;transition:transform .13s;position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;width:56px;}
 .rxn-btn:hover{transform:scale(1.5) translateY(-6px);}
 .rxn-btn:hover .rxn-tooltip{opacity:1!important;}
 .rxn-btn.rxn-active{background:rgba(46,196,182,.18);}
@@ -1932,30 +1932,7 @@ body {
   background: var(--bg2, #0d1117) !important;
   border: 1px solid rgba(255,255,255,.12) !important;
   box-shadow: 0 4px 20px rgba(0,0,0,.7) !important;
-  flex-wrap: nowrap !important;
-  max-width: 98vw;
-  overflow-x: auto;
 }
-/* Etiqueta debajo del emoji */
-.rxn-btn-label {
-  font-size: .52rem;
-  color: rgba(255,255,255,.75);
-  white-space: nowrap;
-  pointer-events: none;
-  font-family: 'Exo 2', sans-serif;
-  font-weight: 700;
-  letter-spacing: .01em;
-  opacity: 0;
-  transition: opacity .13s;
-  position: absolute;
-  bottom: -14px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,.85);
-  padding: 1px 5px;
-  border-radius: 4px;
-}
-.rxn-btn:hover .rxn-btn-label { opacity: 1; }
 
 /* ── STORIES ── */
 .story-card {
@@ -2927,7 +2904,7 @@ input:focus, textarea:focus {
           onclick="_svToggleRxnPop()"
           style="background:rgba(255,255,255,.18);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.3);border-radius:100px;padding:8px 18px;color:#fff;font-size:.88rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all .15s;box-shadow:0 2px 10px rgba(0,0,0,.3);"
           onmouseover="this.style.background='rgba(255,255,255,.28)'" onmouseout="this.style.background='rgba(255,255,255,.18)'">
-          <span id="svReactIcon">❤️</span> <span id="svReactLabel">Me gusta</span>
+          <span id="svReactIcon">❤️</span> <span id="svReactLabel">Reaccionar</span>
         </button>
         
         <div id="svRxnCountBar" style="display:none;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);border-radius:100px;padding:4px 10px;font-size:.8rem;color:#fff;"></div>
@@ -9063,7 +9040,7 @@ async function reactStory(em){
   const icon = document.getElementById('svReactIcon');
   const lbl = document.getElementById('svReactLabel');
   if(icon) icon.textContent = em;
-  if(lbl) lbl.textContent = 'Me gusta';
+  if(lbl) lbl.textContent = 'Reaccionar';
   // Hide popup
   _svCloseRxnPop();
   // Floating emoji animation
@@ -10568,7 +10545,7 @@ function postHTML(p){
           +'<span class="cmt-meta-time">'+timeStr+'</span>'
           +'<div class="cmt-rxn-wrap">'
             +'<button class="cmt-like-btn'+(myRxnC?' active':'')+'" onclick="quickCmtRxn(event,\''+p.id+'\','+ci+')">'
-            +(myRxnC?myRxnC+' Me gusta':'Me gusta')
+            +(myRxnC?myRxnC+' '+(window.REACTIONS?.find(r=>r.emoji===myRxnC)?.label||''):'🔥 Reaccionar')
             +'</button>'
             +'<div class="cmt-rxn-popup">'+rxnBtnsHtml+'</div>'
           +'</div>'
@@ -10611,7 +10588,7 @@ function postHTML(p){
                 +'<span style="font-size:.66rem;color:var(--muted);">'+(r2.time?fmtT(r2.time):'')+'</span>'
                 +'<button onclick="replyCmt(event,\''+p.id+'\',\''+esc(c.nick)+'\')" class="cmt-reply-btn" style="font-size:.7rem;">Responder</button>'
                 +'<div class="cmt-rxn-wrap">'
-                  +'<button onclick="quickCmtRxn(event,\''+p.id+'\','+r2Idx+')" style="background:none;border:none;font-size:.72rem;font-weight:700;cursor:pointer;padding:2px 5px;border-radius:100px;color:'+(myR2Rxn?'var(--accent)':'var(--muted)')+';">'+(myR2Rxn?myR2Rxn+' ':'')+' Me gusta</button>'
+                  +'<button onclick="quickCmtRxn(event,\''+p.id+'\','+r2Idx+')" style="background:none;border:none;font-size:.72rem;font-weight:700;cursor:pointer;padding:2px 5px;border-radius:100px;color:'+(myR2Rxn?'var(--accent)':'var(--muted)')+';">'+( myR2Rxn ? myR2Rxn+' '+(window.REACTIONS?.find(r=>r.emoji===myR2Rxn)?.label||'') : '🔥 Reaccionar')+'</button>'
                   +'<div class="cmt-rxn-popup">'+r2RxnBtns+'</div>'
                 +'</div>'
                 +(r2RxnTotal>0?'<span style="font-size:.68rem;background:var(--bg3);border-radius:100px;padding:1px 5px;color:var(--muted);">'+r2TopRxn+' '+r2RxnTotal+'</span>':'')
@@ -10719,7 +10696,7 @@ function postHTML(p){
             ? `<span style="font-size:1.05rem;line-height:1;">${myRxn}</span>`
             : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`
           }
-          <span class="tw-act-count">${myRxn?(REACTIONS.find(r=>r.emoji===myRxn)?.label||''):''}</span>
+          <span class="tw-act-count">${myRxn?(REACTIONS.find(r=>r.emoji===myRxn)?.label||'Reaccionar'):'Reaccionar'}</span>
         </button>
         <div class="rxn-popup" id="rxnp_${p.id}" onmouseenter="cancelHideRxnPop('${p.id}')" onmouseleave="schedHideRxnPop('${p.id}')">${rxnBtns}</div>
       </div>
@@ -11412,7 +11389,7 @@ async function doReact(pid, emoji){
   // Botón post normal
   const rxnBtn = document.getElementById('rxnt_'+pid);
   if(rxnBtn){
-    rxnBtn.innerHTML = (myNewRxn||'🔥') + ' <span style="font-size:.82rem;">' + (rxnDef?.label||'🔥 Reaccionar') + '</span>';
+    rxnBtn.innerHTML = myNewRxn ? (myNewRxn + ' <span style="font-size:.82rem;">' + (rxnDef?.label||'Reaccionar') + '</span>') : '<span style="font-size:.82rem;">Reaccionar</span>';
     rxnBtn.style.color = myNewRxn ? (rxnDef?.color||'var(--accent)') : '';
     rxnBtn.classList.toggle('active', !!myNewRxn);
   }
@@ -11432,7 +11409,7 @@ async function doReact(pid, emoji){
   // Modal abierto
   const modalRxnBtn = document.getElementById('_modalRxnBtn_'+pid);
   if(modalRxnBtn){
-    modalRxnBtn.innerHTML = (myNewRxn||'👍') + ' Me gusta';
+    modalRxnBtn.innerHTML = (myNewRxn||'🔥') + ' ' + (REACTIONS?.find(r=>r.emoji===myNewRxn)?.label||'Reaccionar');
     modalRxnBtn.style.color = myNewRxn ? (REACTIONS?.find(r=>r.emoji===myNewRxn)?.color||'var(--accent)') : '#65676b';
   }
 
@@ -11574,7 +11551,7 @@ async function toggleComments(pid){
               <button id="_mlikebtn_${pid}_${ci}" style="background:none;border:none;font-size:.75rem;font-weight:700;color:${myRxnM?'#1877f2':'#8b949e'};cursor:pointer;padding:0;transition:color .15s;"
                 onclick="quickCmtRxn(event,'${pid}',${ci})"
                 onmouseenter="clearTimeout(window['_mrxnhide_${pid}_${ci}']);var p=document.getElementById('${rxnPopupId}');if(p)p.style.display='flex';"
-                onmouseleave="window['_mrxnhide_${pid}_${ci}']=setTimeout(function(){var p=document.getElementById('${rxnPopupId}');if(p)p.style.display='none';},400)">${myRxnM?myRxnM+' Me gusta':'👍 Me gusta'}</button>
+                onmouseleave="window['_mrxnhide_${pid}_${ci}']=setTimeout(function(){var p=document.getElementById('${rxnPopupId}');if(p)p.style.display='none';},400)">${myRxnM?myRxnM+' '+(window.REACTIONS?.find(r=>r.emoji===myRxnM)?.label||''):'🔥 Reaccionar'}</button>
               <div id="${rxnPopupId}" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:5px 8px;align-items:center;gap:2px;box-shadow:0 4px 20px rgba(0,0,0,.5);white-space:nowrap;z-index:9999;flex-direction:row;"
                 onmouseenter="clearTimeout(window['_mrxnhide_${pid}_${ci}'])"
                 onmouseleave="window['_mrxnhide_${pid}_${ci}']=setTimeout(function(){var p=document.getElementById('${rxnPopupId}');if(p)p.style.display='none';},200)">
@@ -11624,7 +11601,7 @@ async function toggleComments(pid){
         <button id="_modalRxnBtn_${pid}" onclick="doReact('${pid}','👍')" 
           onmouseenter="showRxnPop('_modal_${pid}')" onmouseleave="schedHideRxnPop('_modal_${pid}')"
           style="width:100%;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:0;cursor:pointer;font-size:.88rem;font-weight:700;color:#8b949e;" 
-          onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='none'">👍 Me gusta</button>
+          onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='none'">🔥 Reaccionar</button>
         <div class="rxn-popup" id="rxnp__modal_${pid}" 
           onmouseenter="cancelHideRxnPop('_modal_${pid}')" onmouseleave="schedHideRxnPop('_modal_${pid}')"
           style="bottom:100%;top:auto;left:50%;transform:translateX(-50%);">
@@ -11932,7 +11909,7 @@ function _reRenderInlineCmts(pid, p, cmts){
         +'<div class="cmt-meta">'
           +'<span class="cmt-meta-time">'+t+'</span>'
           +'<div class="cmt-rxn-wrap">'
-            +'<button class="cmt-like-btn'+(myRxn?' active':'')+'" onclick="quickCmtRxn(event,\''+pid+'\','+ci+')">'+(myRxn?myRxn+' Me gusta':'Me gusta')+'</button>'
+            +'<button class="cmt-like-btn'+(myRxn?' active':'')+'" onclick="quickCmtRxn(event,\''+pid+'\','+ci+')">'+(myRxn?myRxn+' '+(window.REACTIONS?.find(r=>r.emoji===myRxn)?.label||''):'🔥 Reaccionar')+'</button>'
             +'<div class="cmt-rxn-popup">'+rxnBtns+'</div>'
           +'</div>'
           +'<button onclick="replyCmt(event,\''+pid+'\',\''+safeN+'\')" class="cmt-reply-btn">Responder</button>'
@@ -14580,7 +14557,7 @@ function openImgLightbox(src, allImgs, postId){
   const cu = window.CU;
   const avHtml = cu ? `<img src="${cu.av||getDefaultAv(cu.gender||'')}" style="width:100%;height:100%;object-fit:cover;" onerror="if(!this.dataset.e){this.dataset.e=1;this.src=getDefaultAv();}">` : '';
   const postAvHtml = post ? `<img src="${post.userAv||getDefaultAv()}" style="width:100%;height:100%;object-fit:cover;" onerror="if(!this.dataset.e){this.dataset.e=1;this.src=getDefaultAv();}">` : '';
-  const RXNS = [{e:'👍',l:'Me gusta'},{e:'❤️',l:'Me encanta'},{e:'😂',l:'Me divierte'},{e:'😮',l:'Me asombra'},{e:'😢',l:'Me entristece'},{e:'😡',l:'Me enoja'},{e:'🎣',l:'Pescador'}];
+  const RXNS = [{e:'🔥',l:'Me calienta'},{e:'😍',l:'Me encanta'},{e:'💋',l:'Me excita'},{e:'🥵',l:'Qué rico'},{e:'💦',l:'Me derrite'},{e:'❤️',l:'Me enamora'},{e:'😈',l:'Qué travieso'},{e:'🤤',l:'Me babeo'}];
 
   const modal = document.createElement('div');
   modal.id = '_igModal';
@@ -14676,7 +14653,7 @@ function openImgLightbox(src, allImgs, postId){
           <div style="position:relative;flex:1;">
             <button class="ig-act-btn" id="_igMyRxnBtn" onclick="igReact('👍')"
               onmouseenter="igShowRxnPop(this)" onmouseleave="igHideRxnPop()">
-              <span id="_igMyRxnIcon">👍</span> <span id="_igMyRxnLabel">Me gusta</span>
+              <span id="_igMyRxnIcon">👍</span> <span id="_igMyRxnLabel">Reaccionar</span>
             </button>
           </div>
           <button class="ig-act-btn" onclick="document.getElementById('_igCmtInp').focus()">💬 Comentar</button>
@@ -14908,7 +14885,7 @@ function igRenderReactions(reactions, counts){
   const myLabel = document.getElementById('_igMyRxnLabel');
   const myBtn = document.getElementById('_igMyRxnBtn');
   if(myIcon) myIcon.textContent = myRxn||'👍';
-  if(myLabel) myLabel.textContent = myRxn ? 'Me gusta' : 'Me gusta';
+  if(myLabel) myLabel.textContent = myRxn ? (window.REACTIONS?.find(r=>r.emoji===myRxn)?.label||'Reaccionar') : 'Reaccionar';
   if(myBtn) myBtn.style.color = myRxn ? 'var(--accent)' : '#8b949e';
   const topRxns = Object.entries(counts||{}).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([e])=>e).join('');
   const summary = document.getElementById('_igRxnSummary');
@@ -14991,7 +14968,7 @@ function igRenderComments(comments, imgIdx){
               style="font-size:.75rem;font-weight:700;color:${myRxn?'var(--accent)':'#8b949e'};background:none;border:none;cursor:pointer;padding:0;transition:color .15s;"
               onmouseenter="document.getElementById('${popId}').style.display='flex'"
               onmouseleave="setTimeout(()=>{const p=document.getElementById('${popId}');if(p&&!p.matches(':hover'))p.style.display='none'},280)">
-              ${myRxn?myRxn+' ':''}Me gusta
+              ${myRxn?myRxn+' '+(window.REACTIONS?.find(r=>r.emoji===myRxn)?.label||''):'🔥 Reaccionar'}
             </button>
             <div id="${popId}" style="display:none;position:absolute;bottom:calc(100%+4px);left:0;background:#161b22;border:1px solid #30363d;border-radius:100px;padding:5px 7px;flex-direction:row;align-items:center;gap:2px;box-shadow:0 4px 16px rgba(0,0,0,.4);white-space:nowrap;z-index:9999;"
               onmouseenter="this.style.display='flex'" onmouseleave="this.style.display='none'">
@@ -23967,7 +23944,7 @@ window.I18N = {
     sl_trophy_weight:'Peso del Trofeo', sl_skill:'Subir Skill', sl_publish_trophies:'Publicar Trofeos',
     sl_saved:'Guardados', sl_patches:'Parches y Actualizaciones', sl_support:'Soporte Técnico',
     // POST ACCIONES
-    btn_like:'Me gusta', btn_comment:'Comentar', btn_share:'Compartir',
+    btn_like:'Reaccionar', btn_comment:'Comentar', btn_share:'Compartir',
     btn_translate:'🌐 Traducir', btn_show_original:'Ver original',
     btn_translating:'Traduciendo...',
     // POST MENÚ
@@ -24004,7 +23981,7 @@ window.I18N = {
     save:'Guardar', cancel:'Cancelar', close:'Cerrar', send:'Enviar',
     no_results:'Sin resultados', error_generic:'Algo salió mal. Intentá de nuevo.',
     // REACCIONES
-    rxn_like:'Me gusta', rxn_love:'Me encanta', rxn_haha:'Me divierte',
+    rxn_like:'Me calienta', rxn_love:'Me encanta', rxn_haha:'Me excita',
     rxn_wow:'Me asombra', rxn_sad:'Me entristece', rxn_angry:'Me enoja', rxn_fisher:'Pescador',
     // TIEMPO
     time_just_now:'Ahora mismo', time_minutes:'min', time_hours:'h', time_days:'d',
