@@ -2729,12 +2729,26 @@ input:focus, textarea:focus {
       </div>
 
       
+      <!-- ── QUOTE + STATUS + SEEKING + INTERESES ── -->
+      <div id="profQuoteBlock" style="display:none;margin:8px 0 4px;padding:0 0 4px;">
+        <div id="profQuoteEl" style="font-size:.88rem;font-style:italic;color:rgba(240,236,255,.75);line-height:1.5;padding-left:10px;border-left:2px solid var(--accent);"></div>
+      </div>
+      <div id="profStatusBlock" style="display:none;margin:6px 0 4px;flex-wrap:wrap;gap:6px;align-items:center;">
+        <span id="profStatusPill" style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:100px;font-size:.74rem;font-weight:600;border:1px solid;backdrop-filter:blur(8px);"></span>
+      </div>
+      <div id="profSeekingBlock" style="display:none;margin:6px 0 4px;">
+        <div id="profSeekingTags" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </div>
+      <div id="profInterestsBlock" style="display:none;margin:6px 0 8px;">
+        <div id="profInterestsTags" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </div>
+
       <div class="profile-tabs">
         <div class="ptab on" onclick="swPTab(this,'ptPosts')">Publicaciones</div>
         <div class="ptab" onclick="swPTab(this,'ptAbout')">Información</div>
         <div class="ptab" onclick="swPTab(this,'ptGallery')">🖼 Galería</div>
         <div class="ptab" onclick="swPTab(this,'ptFriends')">Amigos</div>
-        
+        <div class="ptab" id="ptReelsTab" style="display:none;" onclick="swPTab(this,'ptReelsPerfil')">🎬 Reels</div>
       </div>
     </div>
   </div>
@@ -2787,6 +2801,22 @@ input:focus, textarea:focus {
           <div class="pac-item" id="profDCRow" style="display:none">💬 Discord: <strong id="profDC">—</strong></div>
           <div class="pac-item" id="profYTRow" style="display:none">▶️ YouTube: <a id="profYT" style="color:var(--accent);word-break:break-all;" target="_blank" rel="noopener">—</a></div>
           <div class="pac-item" id="profTWRow" style="display:none">🎮 Twitch: <a id="profTW" style="color:var(--accent);" target="_blank" rel="noopener">—</a></div>
+          <!-- Canción favorita -->
+          <div id="profSongRow" style="display:none;margin-top:10px;">
+            <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:10px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border);">🎵 Canción favorita</div>
+            <div id="profSongCard" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:10px 14px;display:flex;align-items:center;gap:10px;">
+              <span style="font-size:1.6rem;flex-shrink:0;">🎵</span>
+              <div style="min-width:0;">
+                <div id="profSongName" style="font-size:.85rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+                <div id="profArtistName" style="font-size:.75rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Dato curioso -->
+          <div id="profDatoRow" style="display:none;margin-top:10px;">
+            <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:10px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border);">💡 Dato curioso</div>
+            <div id="profDatoEl" style="font-size:.83rem;color:var(--text);line-height:1.5;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:10px 14px;font-style:italic;"></div>
+          </div>
           <button class="btn btn-s" style="width:100%;margin-top:12px;font-size:.8rem" onclick="openEditProfile()">✏ Editar información</button>
         </div>
       </div>
@@ -2794,6 +2824,23 @@ input:focus, textarea:focus {
       <div id="ptGallery" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;">
         <div style="font-family:'Orbitron',monospace;font-size:.82rem;font-weight:700;color:var(--accent);margin-bottom:12px;">🖼 Galería completa</div>
         <div id="profileGalleryGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;border-radius:var(--rs);overflow:hidden"></div>
+      </div>
+
+      <!-- ── PESTAÑA REELS DEL PERFIL (Canal YouTube del usuario) ── -->
+      <div id="ptReelsPerfil" style="display:none;margin-bottom:14px;">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+            <span style="font-family:'Orbitron',monospace;font-size:.82rem;font-weight:700;color:var(--accent);">🎬 Reels</span>
+            <span id="profYTChannelLink" style="display:none;font-size:.72rem;color:var(--muted);"></span>
+          </div>
+          <div id="profReelsFeed" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;">
+            <div style="text-align:center;padding:30px 0;color:var(--muted);grid-column:1/-1;font-size:.85rem;">
+              <div style="font-size:2rem;margin-bottom:8px;">🎬</div>
+              <div>Este usuario no tiene reels aún.</div>
+              <div style="font-size:.75rem;margin-top:4px;">Para agregar reels, configurá tu canal de YouTube en <strong>Editar perfil</strong>.</div>
+            </div>
+          </div>
+        </div>
       </div>
       
       <div id="ptFriends" style="display:none;margin-bottom:14px;">
@@ -3901,6 +3948,72 @@ input:focus, textarea:focus {
 
 
     
+    <!-- ── SECCIÓN SOBRE MÍ ── -->
+    <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:14px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);">✨ Sobre mí</div>
+
+    <div class="fg">
+      <label class="fl">💬 Frase / Quote</label>
+      <input class="fi" id="epQuote" placeholder="Tu frase favorita o algo que te defina..." maxlength="120">
+      <div style="font-size:.63rem;color:var(--muted);margin-top:3px;">Aparece destacada en tu perfil. Máx. 120 caracteres.</div>
+    </div>
+
+    <div class="fg">
+      <label class="fl">🟢 Estado</label>
+      <select class="fi" id="epStatus">
+        <option value="">Sin estado</option>
+        <option value="available">🟢 Disponible</option>
+        <option value="talking">🟡 Hablando con alguien</option>
+        <option value="browsing">🔵 Explorando</option>
+        <option value="busy">🔴 Ocupado/a</option>
+      </select>
+    </div>
+
+    <div class="fg">
+      <label class="fl">💡 Dato curioso sobre vos</label>
+      <input class="fi" id="epDato" placeholder="Ej: Nunca suelto el pez que pesco de noche..." maxlength="100">
+    </div>
+
+    <div class="fg">
+      <label class="fl">🎵 Canción favorita</label>
+      <div class="frow" style="gap:8px;margin:0;">
+        <div class="fg" style="margin:0;"><input class="fi" id="epSong" placeholder="Nombre de la canción"></div>
+        <div class="fg" style="margin:0;"><input class="fi" id="epArtist" placeholder="Artista"></div>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label class="fl">🏷️ Intereses / Tags</label>
+      <input class="fi" id="epInterests" placeholder="Ej: pesca, naturaleza, asado, música... (separados por coma)" maxlength="200">
+      <div style="font-size:.63rem;color:var(--muted);margin-top:3px;">Separá los intereses con coma. Ej: pesca, viajes, rock</div>
+    </div>
+
+    <div class="fg">
+      <label class="fl">💘 ¿Qué estoy buscando?</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.8rem;background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:6px 14px;transition:all .15s;">
+          <input type="checkbox" id="epSeekSerious" style="accent-color:var(--accent);"> 💑 Algo serio
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.8rem;background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:6px 14px;transition:all .15s;">
+          <input type="checkbox" id="epSeekFriend" style="accent-color:var(--accent);"> 🤝 Amigos
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.8rem;background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:6px 14px;transition:all .15s;">
+          <input type="checkbox" id="epSeekCasual" style="accent-color:var(--accent);"> 🌊 Algo casual
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.8rem;background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:6px 14px;transition:all .15s;">
+          <input type="checkbox" id="epSeekChat" style="accent-color:var(--accent);"> 💬 Solo charlar
+        </label>
+      </div>
+    </div>
+
+    <!-- ── SECCIÓN REELS: Canal YouTube ── -->
+    <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:14px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🎬 Mis Reels · Canal de YouTube</div>
+    <div class="fg">
+      <label class="fl">🎬 ID del canal de YouTube <span style="font-size:.65rem;color:var(--muted);font-weight:400;">(para mostrar tus reels en tu perfil)</span></label>
+      <input class="fi" id="epYTChannelId" placeholder="Ej: UCxxxxxxxxxxxxxxxxxxxxxx o @tucanal">
+      <div style="font-size:.63rem;color:var(--muted);margin-top:3px;">Los últimos videos de tu canal aparecerán como reels en tu perfil. Podés pegar la URL completa o solo el ID/handle.</div>
+    </div>
+
+    <!-- ── SECCIÓN REDES ── -->
     <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:14px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🌐 Redes y Contacto</div>
     <div class="frow">
       <div class="fg"><label class="fl">📘 Facebook</label><input class="fi" id="epFB" placeholder="tu usuario (ej: ruizgustavo12)"></div>
@@ -10214,6 +10327,65 @@ function renderFeed(){
   });
 }
 
+// ── REELS DEL PERFIL PROPIO (canal YouTube del usuario) ──
+function _renderProfileReels(){
+  const el = document.getElementById('profReelsFeed');
+  const linkEl = document.getElementById('profYTChannelLink');
+  if(!el) return;
+  const ytChId = window.CU?.ytChannelId || '';
+  if(!ytChId){
+    el.innerHTML = '<div style="text-align:center;padding:30px 0;color:var(--muted);grid-column:1/-1;font-size:.85rem;"><div style="font-size:2rem;margin-bottom:8px;">🎬</div><div>No configuraste tu canal de YouTube todavía.</div><div style="font-size:.75rem;margin-top:4px;"><button onclick="openEditProfile()" style="background:var(--accent);color:#000;border:none;border-radius:8px;padding:6px 14px;font-size:.78rem;font-weight:700;cursor:pointer;margin-top:8px;">⚙️ Configurar canal</button></div></div>';
+    return;
+  }
+  // Construir URL del canal
+  const isHandle = ytChId.startsWith('@');
+  const channelUrl = isHandle
+    ? 'https://www.youtube.com/' + ytChId
+    : 'https://www.youtube.com/channel/' + ytChId;
+  if(linkEl){
+    linkEl.innerHTML = `<a href="${channelUrl}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;font-weight:600;">${ytChId}</a>`;
+    linkEl.style.display = 'inline';
+  }
+  // Los reels del canal ya los gestiona el sistema de reels principal (que usa videoId de los posts de Firestore).
+  // Aquí mostramos un embed del canal usando el RSS de YouTube como iframes.
+  // Usamos el canal mediante playlist de uploads: convertir channel id a playlist (UC → UU)
+  if(!isHandle && ytChId.startsWith('UC')){
+    const playlistId = 'UU' + ytChId.slice(2);
+    // Mostrar primeros 6 videos de la playlist de uploads
+    const videoSlots = 6;
+    // Sin API key pública segura, embebemos la playlist directamente con un iframe
+    el.innerHTML = `
+      <div style="grid-column:1/-1;border-radius:var(--rs);overflow:hidden;background:#000;aspect-ratio:16/9;">
+        <iframe
+          src="https://www.youtube.com/embed?listType=playlist&list=${playlistId}&index=1&rel=0&autoplay=0"
+          frameborder="0" allowfullscreen
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          style="width:100%;height:100%;display:block;border:none;"
+          loading="lazy"
+        ></iframe>
+      </div>
+      <div style="grid-column:1/-1;text-align:center;margin-top:10px;">
+        <a href="${channelUrl}" target="_blank" rel="noopener"
+          style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,0,0,.15);border:1px solid rgba(255,0,0,.35);color:#ff4444;border-radius:100px;padding:8px 18px;font-size:.8rem;font-weight:700;text-decoration:none;transition:all .2s;"
+          onmouseover="this.style.background='rgba(255,0,0,.25)'" onmouseout="this.style.background='rgba(255,0,0,.15)'">
+          ▶ Ver canal completo en YouTube
+        </a>
+      </div>`;
+  } else {
+    // Handle @usuario o ID no-UC: mostrar enlace directo al canal
+    el.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:24px 0;">
+        <div style="font-size:2.5rem;margin-bottom:10px;">🎬</div>
+        <div style="font-size:.88rem;color:var(--text);margin-bottom:14px;">Canal de YouTube configurado</div>
+        <a href="${channelUrl}" target="_blank" rel="noopener"
+          style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,0,0,.15);border:1px solid rgba(255,0,0,.35);color:#ff4444;border-radius:100px;padding:10px 20px;font-size:.85rem;font-weight:700;text-decoration:none;transition:all .2s;"
+          onmouseover="this.style.background='rgba(255,0,0,.25)'" onmouseout="this.style.background='rgba(255,0,0,.15)'">
+          ▶ Ver canal en YouTube
+        </a>
+      </div>`;
+  }
+}
+
 function renderProfileFeed(){
   const el = document.getElementById('profileFeed');
   if(!el||!window.CU) return;
@@ -12442,6 +12614,68 @@ function renderProfile(){
   // Mostrar pestaña tienda solo para admin
   const shopTab = document.getElementById('ptShopTab');
   if(shopTab) shopTab.style.display = 'block'; // visible para todos
+  // ── Nuevos campos de perfil extendido ──
+  // Quote
+  const _quoteBlock = document.getElementById('profQuoteBlock');
+  const _quoteEl    = document.getElementById('profQuoteEl');
+  if(_quoteBlock && _quoteEl){
+    if(window.CU.quote){ _quoteEl.textContent = '\u201C' + window.CU.quote + '\u201D'; _quoteBlock.style.display='block'; }
+    else { _quoteBlock.style.display='none'; }
+  }
+  // Status pill
+  const _statusBlock = document.getElementById('profStatusBlock');
+  const _statusPill  = document.getElementById('profStatusPill');
+  const _statusMap   = {
+    available:{ text:'🟢 Disponible',      bg:'rgba(52,211,153,.12)', border:'rgba(52,211,153,.35)', color:'#34d399' },
+    talking:  { text:'🟡 Hablando con alguien', bg:'rgba(251,191,36,.12)', border:'rgba(251,191,36,.35)', color:'#fbbf24' },
+    browsing: { text:'🔵 Explorando',      bg:'rgba(96,165,250,.12)', border:'rgba(96,165,250,.35)', color:'#60a5fa' },
+    busy:     { text:'🔴 Ocupado/a',        bg:'rgba(248,81,73,.12)',  border:'rgba(248,81,73,.35)',  color:'#f85149' }
+  };
+  if(_statusBlock && _statusPill && window.CU.profStatus && _statusMap[window.CU.profStatus]){
+    const s = _statusMap[window.CU.profStatus];
+    _statusPill.textContent = s.text;
+    _statusPill.style.background = s.bg;
+    _statusPill.style.borderColor = s.border;
+    _statusPill.style.color = s.color;
+    _statusBlock.style.display='flex';
+  } else if(_statusBlock) { _statusBlock.style.display='none'; }
+  // Seeking tags
+  const _seekBlock = document.getElementById('profSeekingBlock');
+  const _seekTags  = document.getElementById('profSeekingTags');
+  const _seekLabels = { serious:'💑 Algo serio', friend:'🤝 Amigos', casual:'🌊 Algo casual', chat:'💬 Solo charlar' };
+  if(_seekBlock && _seekTags && (window.CU.seeking||[]).length){
+    _seekTags.innerHTML = (window.CU.seeking||[]).map(s=>_seekLabels[s]?`<span style="font-size:.75rem;background:rgba(185,103,255,.12);border:1px solid rgba(185,103,255,.3);color:#b967ff;border-radius:100px;padding:4px 12px;font-weight:600;">${_seekLabels[s]}</span>`:'').join('');
+    _seekBlock.style.display='block';
+  } else if(_seekBlock) { _seekBlock.style.display='none'; }
+  // Intereses tags
+  const _interBlock = document.getElementById('profInterestsBlock');
+  const _interTags  = document.getElementById('profInterestsTags');
+  if(_interBlock && _interTags && (window.CU.interests||[]).length){
+    _interTags.innerHTML = (window.CU.interests||[]).slice(0,12).map(t=>`<span style="font-size:.75rem;background:var(--bg3);border:1px solid var(--border);color:var(--text2||var(--muted));border-radius:100px;padding:4px 11px;">${t}</span>`).join('');
+    _interBlock.style.display='block';
+  } else if(_interBlock) { _interBlock.style.display='none'; }
+  // Canción favorita en ptAbout
+  const _songRow = document.getElementById('profSongRow');
+  if(_songRow){
+    if(window.CU.song){
+      document.getElementById('profSongName').textContent = window.CU.song;
+      document.getElementById('profArtistName').textContent = window.CU.songArtist || '';
+      _songRow.style.display='block';
+    } else { _songRow.style.display='none'; }
+  }
+  // Dato curioso en ptAbout
+  const _datoRow = document.getElementById('profDatoRow');
+  const _datoEl  = document.getElementById('profDatoEl');
+  if(_datoRow && _datoEl){
+    if(window.CU.dato){ _datoEl.textContent = window.CU.dato; _datoRow.style.display='block'; }
+    else { _datoRow.style.display='none'; }
+  }
+  // Pestaña Reels del perfil: mostrar si tiene canal YT configurado
+  const _reelsTab = document.getElementById('ptReelsTab');
+  if(_reelsTab) _reelsTab.style.display = window.CU.ytChannelId ? 'block' : 'none';
+  // Prerender reels del perfil (si tiene canal)
+  _renderProfileReels();
+
   // Cover
   if(window.CU.cover){ document.getElementById('profCover').style.backgroundImage=`url(${window.CU.cover})`; document.getElementById('profCover').style.backgroundSize='cover'; document.getElementById('profCoverInner').style.display='none'; }
   // Cargar fotos y stats directamente desde Firestore (no depender del cache _posts)
@@ -12532,6 +12766,27 @@ async function saveProfile(){
   window.CU.social_fb = (document.getElementById('epFB').value.trim()).replace(/^@/,'').replace(/^https?:\/\/(www\.)?facebook\.com\/?/,'').replace(/\/$/,'');
   window.CU.social_ig = (document.getElementById('epIG').value.trim()).replace(/^@/,'').replace(/^https?:\/\/(www\.)?instagram\.com\/?/,'').replace(/\/$/,'');
   window.CU.social_tt = (document.getElementById('epTT').value.trim()).replace(/^@/,'').replace(/^https?:\/\/(www\.)?tiktok\.com\/@?/,'').replace(/\/$/,'');
+  // ── Nuevos campos de perfil extendido ──
+  window.CU.quote       = document.getElementById('epQuote')?.value.trim() || '';
+  window.CU.profStatus  = document.getElementById('epStatus')?.value || '';
+  window.CU.dato        = document.getElementById('epDato')?.value.trim() || '';
+  window.CU.song        = document.getElementById('epSong')?.value.trim() || '';
+  window.CU.songArtist  = document.getElementById('epArtist')?.value.trim() || '';
+  const rawInterests    = document.getElementById('epInterests')?.value || '';
+  window.CU.interests   = rawInterests.split(',').map(s=>s.trim()).filter(Boolean);
+  const seeking = [];
+  if(document.getElementById('epSeekSerious')?.checked) seeking.push('serious');
+  if(document.getElementById('epSeekFriend')?.checked) seeking.push('friend');
+  if(document.getElementById('epSeekCasual')?.checked) seeking.push('casual');
+  if(document.getElementById('epSeekChat')?.checked) seeking.push('chat');
+  window.CU.seeking     = seeking;
+  // Canal YouTube para reels
+  let ytCh = document.getElementById('epYTChannelId')?.value.trim() || '';
+  if(ytCh.startsWith('https://')) {
+    const m = ytCh.match(/youtube\.com\/(channel\/|@)([\w-]+)/);
+    if(m) ytCh = (m[1]==='@' ? '@' : '') + m[2];
+  }
+  window.CU.ytChannelId = ytCh;
   await updateDoc(doc(db, 'users', window.CU.id), window.CU);
   cm('mEditProfile'); updateNavUI(); renderProfile();
   toast('Perfil actualizado ✅','ok');
@@ -12606,6 +12861,30 @@ function openEditProfile(){
   document.getElementById('epFB').value = window.CU.social_fb||'';
   document.getElementById('epIG').value = window.CU.social_ig||'';
   document.getElementById('epTT').value = window.CU.social_tt||'';
+  // ── Nuevos campos ──
+  const epQuoteEl = document.getElementById('epQuote');
+  if(epQuoteEl) epQuoteEl.value = window.CU.quote||'';
+  const epStatusEl = document.getElementById('epStatus');
+  if(epStatusEl) epStatusEl.value = window.CU.profStatus||'';
+  const epDatoEl = document.getElementById('epDato');
+  if(epDatoEl) epDatoEl.value = window.CU.dato||'';
+  const epSongEl = document.getElementById('epSong');
+  if(epSongEl) epSongEl.value = window.CU.song||'';
+  const epArtistEl = document.getElementById('epArtist');
+  if(epArtistEl) epArtistEl.value = window.CU.songArtist||'';
+  const epInterestsEl = document.getElementById('epInterests');
+  if(epInterestsEl) epInterestsEl.value = (window.CU.interests||[]).join(', ');
+  const seeking = window.CU.seeking||[];
+  const epSeekSeriousEl = document.getElementById('epSeekSerious');
+  if(epSeekSeriousEl) epSeekSeriousEl.checked = seeking.includes('serious');
+  const epSeekFriendEl = document.getElementById('epSeekFriend');
+  if(epSeekFriendEl) epSeekFriendEl.checked = seeking.includes('friend');
+  const epSeekCasualEl = document.getElementById('epSeekCasual');
+  if(epSeekCasualEl) epSeekCasualEl.checked = seeking.includes('casual');
+  const epSeekChatEl = document.getElementById('epSeekChat');
+  if(epSeekChatEl) epSeekChatEl.checked = seeking.includes('chat');
+  const epYTChEl = document.getElementById('epYTChannelId');
+  if(epYTChEl) epYTChEl.value = window.CU.ytChannelId||'';
   om('mEditProfile');
   setTimeout(setupBioLimit,50);
 }
@@ -12737,10 +13016,12 @@ function swPTab(el, tabId){
   const feedEl = document.getElementById('profileFeed');
   const postBox = document.getElementById('profilePostBox');
   const leftCol = document.getElementById('profileLeftCol');
+  const reelsPerfilEl = document.getElementById('ptReelsPerfil');
   if(aboutEl) aboutEl.style.display = tabId==='ptAbout' ? 'block' : 'none';
   if(galleryEl) galleryEl.style.display = tabId==='ptGallery' ? 'block' : 'none';
   if(friendsEl) friendsEl.style.display = tabId==='ptFriends' ? 'block' : 'none';
   if(shopEl) shopEl.style.display = tabId==='ptShop' ? 'block' : 'none';
+  if(reelsPerfilEl) reelsPerfilEl.style.display = tabId==='ptReelsPerfil' ? 'block' : 'none';
   if(feedEl) feedEl.style.display = tabId==='ptPosts' ? 'block' : 'none';
   if(postBox) postBox.style.display = tabId==='ptPosts' ? 'block' : 'none';
   if(leftCol) leftCol.style.display = (tabId==='ptAbout' || tabId==='ptFriends') ? 'none' : 'block';
@@ -12748,6 +13029,7 @@ function swPTab(el, tabId){
   if(tabId==='ptGallery') renderGallery();
   if(tabId==='ptFriends') renderProfileFriendsList();
   if(tabId==='ptShop'){ loadShopEquipped().then(()=>renderShopGrid()); loadShopDiscount(); }
+  if(tabId==='ptReelsPerfil') _renderProfileReels();
 }
 
 // ===== TIENDA DE ÍTEMS DE PERFIL (admin only) =====
@@ -21994,7 +22276,7 @@ const _expose = {
   swAdminTab, loadAdminData, previewAdminMedia, saveSiteConfig,
   submitPatch, submitTorneo, submitAdminGroup, submitAd, toggleAd,
   banUser, deleteAdminContent, deleteAdminPost, resolveReport,
-  openUserProfile, sendFriendRequest, togglePostMenu, renderProfileFriendsList, openEditPost, saveEditPost, deleteMyPost, removeFriend,
+  openUserProfile, sendFriendRequest, togglePostMenu, renderProfileFriendsList, openEditPost, saveEditPost, deleteMyPost, removeFriend, _renderProfileReels,
   toggleMessenger, sendChatMsg, openChatWith, backToMessengerList, closeMessenger, minimizeMessenger, maximizeMessenger, toggleVoiceRecord, cancelVoiceRecord, stopAndSendVoice, toggleVoicePlay, toggleVoiceBtn, openPostWithYt, reactChatMsg, showMsgRxnBar, hideMsgRxnBar, keepMsgRxnBar, showCmtMenu, hideCmtMenu, setChatTyping, toggleGifPicker, closeGifPicker, searchGifs, sendGif, toggleMsgTime, sendChatSticker, searchChatStickers,
   joinGroup, leaveGroup, openGroupPost, showGroupWelcome, previewGroupPostImg, removeGroupPostImg, submitGroupPost,
   acceptFriendRequest, rejectFriendRequest, dismissFriendRequest, sendFriendRequestFromProfile, loadRealFriends, updateNotifBadge, updateMsgBadge,
