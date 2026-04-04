@@ -8393,14 +8393,14 @@ function _stub(name){ return function(){ _q.push([name, arguments]); }; }
 <script type="module" defer>
 // ===== FIREBASE SETUP (modular ESM — sin eval, compatible con CSP) =====
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithPopup, PhoneAuthProvider, RecaptchaVerifier, signInWithCredential } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, PhoneAuthProvider, RecaptchaVerifier, signInWithCredential } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, addDoc, deleteDoc, onSnapshot, query, orderBy, limit, startAfter, serverTimestamp, increment, where, deleteField, Timestamp, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging.js';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyA9oat9dd0S9vlxkg1osH4dW3XhRDGiOiw",
-  authDomain: "wikipediarf4.uy",
+  authDomain: "charlasrf4.firebaseapp.com",
   projectId: "charlasrf4",
   storageBucket: "charlasrf4.firebasestorage.app",
   messagingSenderId: "345019626508",
@@ -8486,6 +8486,32 @@ window.onSnapshot = onSnapshot; window.query = query; window.where = where;
 window.orderBy = orderBy; window.limit = limit; window.addDoc = addDoc;
 window.updateDoc = updateDoc; window.serverTimestamp = serverTimestamp;
 
+
+// ===== MANEJAR RESULTADO DE REDIRECT (Google login con redirect) =====
+(async () => {
+  try {
+    const result = await getRedirectResult(auth);
+    if (result && result.user) {
+      const user = result.user;
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+      if (!userSnap.exists()) {
+        const nick = (user.displayName?.replace(/\s+/g,"") || "User" + Date.now().toString().slice(-4));
+        const newUser = { nick, nickLower: nick.toLowerCase(), email: user.email, av: user.photoURL || "", cover: "", bio: "", country: "", favFish: "", favMap: "", social_yt: "", social_dc: "", joined: new Date().toLocaleDateString("es-AR",{day:"2-digit",month:"2-digit",year:"numeric"}), posts: 0, friends: 0, likes: 0, createdAt: serverTimestamp() };
+        await setDoc(userRef, newUser);
+        window.CU = { id: user.uid, ...newUser };
+        document.getElementById("mAuth").style.display = "none";
+        const cpModal = document.getElementById("mCountryPick");
+        if (cpModal) cpModal.style.display = "flex";
+      } else {
+        window.CU = { id: user.uid, ...userSnap.data() };
+        document.getElementById("mAuth").style.display = "none";
+        onLogin();
+        toast("¡Bienvenido " + (window.CU.nick || "Usuario") + "! 🎣", "ok");
+      }
+    }
+  } catch(e) { console.warn("getRedirectResult error:", e); }
+})();
 // ===== STATE =====
 window.CU = null;
 // ── HELPER: detectar si un usuario es admin ──
@@ -9150,7 +9176,17 @@ async function doGoogleLogin(){
   errEl.textContent = ''; errEl.style.display = 'none';
   try {
     const provider = new GoogleAuthProvider();
-    const cred = await signInWithPopup(auth, provider);
+    provider.setCustomParameters({ prompt: 'select_account' });
+    let cred;
+    try {
+      cred = await signInWithPopup(auth, provider);
+    } catch(popupErr) {
+      if(popupErr.code === 'auth/popup-blocked' || popupErr.code === 'auth/cancelled-popup-request') {
+        await signInWithRedirect(auth, provider);
+        return;
+      }
+      throw popupErr;
+    }
     const user = cred.user;
     const userRef = doc(db, 'users', user.uid);
     const userSnap = await getDoc(userRef);
