@@ -23708,6 +23708,9 @@ const _expose = {
   renderSidebarFriends, renderSuggestedUsers, renderAmigosPage, renderMisAmigos, renderNewFishers, renderSuggestedPosts, playNotifSound, showNotifToast, sendNotifToUserWithPost, openMessenger,
 };
 
+// Exponer todas las funciones al scope global (necesario porque este script es type="module")
+Object.assign(window, _expose);
+
 
 // ===== COMPARTIR SPOT (wiki-style) =====
 let _spFiles = [];
@@ -31635,7 +31638,7 @@ function _esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
       </label>
       <div style="display:flex;gap:10px;">
         <button onclick="document.getElementById('modalAvisoGoogle').style.display='none';document.getElementById('checkAvisoGoogle').checked=false;" style="flex:1;padding:11px;background:#f0f2f5;color:#65676b;border:none;border-radius:8px;font-weight:700;font-size:.88rem;cursor:pointer;">Cancelar</button>
-        <button id="btnConfirmarGoogle" onclick="if(document.getElementById('checkAvisoGoogle').checked){document.getElementById('modalAvisoGoogle').style.display='none';doGoogleLogin();}" style="flex:2;padding:11px;background:#1877f2;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:.88rem;cursor:pointer;opacity:.5;pointer-events:none;transition:opacity .2s;">
+        <button id="btnConfirmarGoogle" onclick="if(document.getElementById('checkAvisoGoogle').checked){document.getElementById('modalAvisoGoogle').style.display='none';(window.doGoogleLogin||doGoogleLogin)();}" style="flex:2;padding:11px;background:#1877f2;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:.88rem;cursor:pointer;opacity:.5;pointer-events:none;transition:opacity .2s;">
           <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:17px;height:17px;vertical-align:middle;margin-right:5px;">Continuar con Google
         </button>
       </div>
