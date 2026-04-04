@@ -22143,6 +22143,30 @@ function _renderReelsFeed(el, H){
   el.removeEventListener('click', _reelsHandleClick);
   el.addEventListener('click', _reelsHandleClick);
   requestAnimationFrame(()=>{ el.scrollTop=0; });
+
+  // ── Pausar YouTube al salir de pantalla ──────────────────────────────────
+  if(window._reelsObserver){ window._reelsObserver.disconnect(); }
+  window._reelsObserver = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      const card = entry.target;
+      const iframe = card.querySelector('iframe[src*="youtube.com"]');
+      if(!iframe) return;
+      if(entry.isIntersecting){
+        // Al entrar: agregar autoplay=1 si no lo tiene
+        const src = iframe.src;
+        if(!src.includes('autoplay=1')){
+          iframe.src = src.replace('?rel=0','?rel=0&autoplay=1').replace('autoplay=0','autoplay=1');
+        }
+      } else {
+        // Al salir: recargar src sin autoplay para detener el video
+        const src = iframe.src;
+        iframe.src = src.replace('&autoplay=1','').replace('autoplay=1&','').replace('?autoplay=1','?');
+      }
+    });
+  }, { threshold: 0.6 });
+  el.querySelectorAll('[data-reel-pid]').forEach(function(card){
+    window._reelsObserver.observe(card);
+  });
 }
 
 function _reelCard(p, H){
@@ -22165,7 +22189,7 @@ function _reelCard(p, H){
 
   let videoInner='';
   if(ytId){
-    videoInner=`<iframe src="https://www.youtube.com/embed/${ytId}?rel=0" frameborder="0" allowfullscreen allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" style="width:100%;height:100%;border:none;display:block;" loading="lazy"></iframe>`;
+    videoInner=`<iframe src="https://www.youtube.com/embed/${ytId}?rel=0&autoplay=0" frameborder="0" allowfullscreen allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" style="width:100%;height:100%;border:none;display:block;" loading="lazy"></iframe>`;
   } else if(ttId && !isTikTokShortLink(p.video)){
     videoInner=`<iframe src="https://www.tiktok.com/embed/v2/${ttId}" frameborder="0" allowfullscreen allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" style="width:100%;height:100%;border:none;display:block;" loading="lazy"></iframe>`;
   } else if(isTikTok(p.video)){
@@ -22224,6 +22248,12 @@ function closeReelsOverlay(){
   const overlay = document.getElementById('reelsOverlay');
   if(overlay) overlay.style.display='none';
   document.body.style.overflow='';
+  // Desconectar observer y pausar todos los iframes de YouTube
+  if(window._reelsObserver){ window._reelsObserver.disconnect(); window._reelsObserver = null; }
+  const feed = document.getElementById('reelsFeed');
+  if(feed){ feed.querySelectorAll('iframe[src*="youtube.com"]').forEach(function(iframe){
+    iframe.src = iframe.src.replace('&autoplay=1','').replace('autoplay=1&','').replace('?autoplay=1','?');
+  }); }
   if(window._reelsPrevPage) window.gp(window._reelsPrevPage, true);
 }
 window.closeReelsOverlay = closeReelsOverlay;
