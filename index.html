@@ -31674,7 +31674,7 @@ function _esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
       </label>
       <div style="display:flex;gap:10px;">
         <button onclick="document.getElementById('modalAvisoGoogle').style.display='none';document.getElementById('checkAvisoGoogle').checked=false;" style="flex:1;padding:11px;background:#f0f2f5;color:#65676b;border:none;border-radius:8px;font-weight:700;font-size:.88rem;cursor:pointer;">Cancelar</button>
-        <button id="btnConfirmarGoogle" onclick="if(document.getElementById('checkAvisoGoogle').checked){document.getElementById('modalAvisoGoogle').style.display='none';(window.doGoogleLogin||doGoogleLogin)();}" style="flex:2;padding:11px;background:#1877f2;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:.88rem;cursor:pointer;opacity:.5;pointer-events:none;transition:opacity .2s;">
+        <button id="btnConfirmarGoogle" onclick="if(document.getElementById('checkAvisoGoogle').checked){document.getElementById('modalAvisoGoogle').style.display='none';_triggerGoogleLogin();}" style="flex:2;padding:11px;background:#1877f2;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:.88rem;cursor:pointer;opacity:.5;pointer-events:none;transition:opacity .2s;">
           <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:17px;height:17px;vertical-align:middle;margin-right:5px;">Continuar con Google
         </button>
       </div>
@@ -31684,11 +31684,31 @@ function _esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 
 <script>
 function abrirAvisoGoogle() {
-  document.getElementById('checkAvisoGoogle').checked = false;
-  var b = document.getElementById('btnConfirmarGoogle');
-  b.style.opacity = '.5';
-  b.style.pointerEvents = 'none';
-  document.getElementById('modalAvisoGoogle').style.display = 'flex';
+  var modal = document.getElementById('modalAvisoGoogle');
+  var check = document.getElementById('checkAvisoGoogle');
+  var btn   = document.getElementById('btnConfirmarGoogle');
+  if (!modal) { console.error('Modal no encontrado'); return; }
+  if (check) check.checked = false;
+  if (btn) { btn.style.opacity = '.5'; btn.style.pointerEvents = 'none'; }
+  modal.style.display = 'flex';
+}
+
+function _triggerGoogleLogin() {
+  if (typeof window.doGoogleLogin === 'function') {
+    window.doGoogleLogin();
+  } else {
+    var intentos = 0;
+    var intervalo = setInterval(function() {
+      intentos++;
+      if (typeof window.doGoogleLogin === 'function') {
+        clearInterval(intervalo);
+        window.doGoogleLogin();
+      } else if (intentos > 20) {
+        clearInterval(intervalo);
+        alert('Error: No se pudo iniciar Google. Recargá la página e intentá de nuevo.');
+      }
+    }, 200);
+  }
 }
 </script>
 </body>
