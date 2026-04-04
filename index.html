@@ -24026,8 +24026,8 @@ async function submitSoporte(btn){
   if(btn){ btn.disabled = true; btn.textContent = '⏳ Enviando...'; }
 
   try{
-    await addDoc(collection(db,'soporte_tickets'),{
-      uid:       window.CU.id,
+    await addDoc(collection(db,'soporte'),{
+      userId:    window.CU.id,
       nick:      window.CU.nick || '',
       av:        window.CU.av   || '',
       categoria: cat,
@@ -24067,8 +24067,8 @@ async function loadMisTickets(){
   el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:.82rem;">⏳ Cargando...</div>';
   try{
     const snap = await getDocs(query(
-      collection(db,'soporte_tickets'),
-      where('uid','==',window.CU.id),
+      collection(db,'soporte'),
+      where('userId','==',window.CU.id),
       orderBy('time','desc'),
       limit(20)
     ));
@@ -24166,7 +24166,7 @@ async function loadAdminSoporteTickets(){
   if(!el) return;
   el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);">Cargando tickets...</div>';
   try{
-    const snap = await getDocs(query(collection(db,'soporte_tickets'), orderBy('time','desc'), limit(100)));
+    const snap = await getDocs(query(collection(db,'soporte'), orderBy('time','desc'), limit(100)));
     _soporteTickets = snap.docs.map(d=>({id:d.id,...d.data()}));
     renderAdminSoporteTickets();
   } catch(e){ console.error(e); }
@@ -24174,7 +24174,7 @@ async function loadAdminSoporteTickets(){
 
 async function marcarSoporteLeido(ticketId, nuevoEstado){
   try{
-    await updateDoc(doc(db,'soporte_tickets',ticketId),{ estado: nuevoEstado, leido: true });
+    await updateDoc(doc(db,'soporte',ticketId),{ estado: nuevoEstado, leido: true });
     const t = _soporteTickets.find(x=>x.id===ticketId);
     if(t) t.estado = nuevoEstado;
     toast('Estado actualizado','ok');
@@ -24184,7 +24184,7 @@ async function marcarSoporteLeido(ticketId, nuevoEstado){
 async function eliminarSoporteTicket(ticketId){
   if(!confirm('¿Eliminar este ticket?')) return;
   try{
-    await deleteDoc(doc(db,'soporte_tickets',ticketId));
+    await deleteDoc(doc(db,'soporte',ticketId));
     _soporteTickets = _soporteTickets.filter(t=>t.id!==ticketId);
     renderAdminSoporteTickets();
     toast('Ticket eliminado','ok');
@@ -24196,7 +24196,7 @@ async function responderSoporte(ticketId){
   const resp = ta?.value?.trim() || '';
   if(!resp){ toast('Escribí una respuesta','err'); return; }
   try{
-    await updateDoc(doc(db,'soporte_tickets',ticketId),{
+    await updateDoc(doc(db,'soporte',ticketId),{
       respuesta: resp,
       respondidoPor: window.CU?.nick || 'Admin',
       estado: 'resuelto',
