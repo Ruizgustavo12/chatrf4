@@ -5722,6 +5722,8 @@ window._rechazarAlbumDesdeNotif = async function(visitorUid, ownerUid, btn) {
 .cm-tick-label { font-size: .6rem; font-style: italic; letter-spacing: .01em; }
 .cm-read-tick.seen .cm-tick-label { color: #0084ff; }
 .cm-read-tick.sent .cm-tick-label { color: rgba(255,255,255,.45); }
+.cm-read-tick.sending { color: rgba(255,255,255,.35); }
+.cm-read-tick.sending .cm-tick-label { color: rgba(255,255,255,.35); font-style: italic; }
 .cm-read-tick.seen { color: #0084ff; }
 .cm-read-tick.sent { color: rgba(255,255,255,.5); }
 
@@ -22322,6 +22324,8 @@ function openChatWith(uid, nick){
 
       const chatAv_other = window._chatUserAvCache?.[uid] || '';
 
+      // Índice del último mensaje enviado por mí (para mostrar estado)
+      const lastMineIdx = msgs.reduce((acc, m, i) => m.uid === window.CU.id ? i : acc, -1);
       el.innerHTML = msgs.length
         ? msgs.map(m=>{
             const mine = m.uid === window.CU.id;
@@ -22331,7 +22335,8 @@ function openChatWith(uid, nick){
               const d = new Date(ms);
               return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
             })();
-            const tickHtml = mine ? (()=>{
+            const isLastMine = mine && (msgs.indexOf(m) === lastMineIdx);
+            const tickHtml = isLastMine ? (()=>{
               if(m.read && m.readAt){
                 const d = new Date(m.readAt);
                 const h = d.getHours().toString().padStart(2,'0');
@@ -22339,9 +22344,9 @@ function openChatWith(uid, nick){
                 return `<span class="cm-read-tick seen" title="Leído ${h}:${min}"><span class="cm-tick-icon">✓✓</span><span class="cm-tick-label">Leído ${h}:${min}</span></span>`;
               }
               if(m.read) return `<span class="cm-read-tick seen"><span class="cm-tick-icon">✓✓</span><span class="cm-tick-label">Leído</span></span>`;
-              return `<span class="cm-read-tick sent"><span class="cm-tick-icon">✓</span><span class="cm-tick-label">Entregado</span></span>`;
+              if(m.time) return `<span class="cm-read-tick sent"><span class="cm-tick-icon">✓</span><span class="cm-tick-label">Entregado</span></span>`;
+              return `<span class="cm-read-tick sending"><span class="cm-tick-icon">○</span><span class="cm-tick-label">Enviando...</span></span>`;
             })() : '';
-
             const msgRxns = m.reactions || {};
             const rxnEntries = Object.entries(msgRxns).filter(([,v])=>v);
             const msgRxnTotal = rxnEntries.length;
