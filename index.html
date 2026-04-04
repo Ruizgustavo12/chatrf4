@@ -8532,7 +8532,7 @@ function load(k,def){try{const v=localStorage.getItem('crf4_'+k);return v?JSON.p
 // ===== UPLOAD IMAGE TO IMGBB =====
 // ── Cloudinary config ──
 const CLOUDINARY_CLOUD = 'da0n5tg3g';
-const CLOUDINARY_PRESET = 'wikipediarf4';         // Con moderacion Rekognition (solo avatars)
+const CLOUDINARY_PRESET = 'milatido_fotos';        // Preset sin Rekognition (avatars y fotos)
 const CLOUDINARY_PRESET_FOTOS = 'milatido_fotos'; // Sin moderacion (posts, album, historias)
 const CLOUDINARY_VIDEO_PRESET = 'milatido_video';
 
@@ -8598,7 +8598,7 @@ async function uploadImage(fileOrBase64, folder) {
   const formData = new FormData();
   formData.append('file', blob);
   // Usar preset sin moderacion para fotos de usuarios (posts, album, historias, comentarios)
-  // Usar preset con Rekognition solo para avatars
+  // Usar el mismo preset sin moderacion para todos los uploads
   const _presetToUse = (folder === 'avatars') ? CLOUDINARY_PRESET : CLOUDINARY_PRESET_FOTOS;
   formData.append('upload_preset', _presetToUse);
   formData.append('folder', 'rf4/' + (folder || 'general'));
