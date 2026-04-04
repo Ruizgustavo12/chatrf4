@@ -3581,7 +3581,7 @@ a[style*="color:var(--accent)"] { color: #1877f2 !important; }
           🔒 Álbum Privado
           <span style="font-size:.58rem;background:rgba(200,0,40,.15);border:1px solid rgba(200,0,40,.3);color:#c0392b;border-radius:100px;padding:2px 8px;font-weight:800;">+18</span>
         </div>
-        <div style="font-size:.72rem;color:var(--muted);margin-top:3px;">Solo visible para quien vos aprobés · Solo mayores de 18 años</div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:3px;">Visible para todos · Las fotos solo para quienes tengan acceso · +18</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;" id="albumActions"></div>
     </div>
@@ -3590,7 +3590,7 @@ a[style*="color:var(--accent)"] { color: #1877f2 !important; }
     <div id="albumSolicitar" style="display:none;padding:32px 20px;text-align:center;">
       <div style="font-size:3rem;margin-bottom:12px;">🔐</div>
       <div style="font-weight:700;font-size:.95rem;color:var(--text);margin-bottom:6px;">Este álbum es privado</div>
-      <div style="font-size:.82rem;color:var(--muted);margin-bottom:18px;">El usuario debe aprobarte para ver el contenido.</div>
+      <div style="font-size:.82rem;color:var(--muted);margin-bottom:18px;">Solicitá acceso para ver las fotos privadas de este álbum.</div>
       <button onclick="solicitarAccesoAlbum()" id="btnSolicitarAcceso" style="padding:10px 24px;background:#c0392b;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:.88rem;transition:background .2s;" onmouseover="this.style.background='#a93226'" onmouseout="this.style.background='#c0392b'">Solicitar acceso</button>
     </div>
 
@@ -3665,20 +3665,30 @@ a[style*="color:var(--accent)"] { color: #1877f2 !important; }
 
     if (!window.db || !myUid) { _showAlbumSec('albumSolicitar'); return; }
 
+    var isAdmin = window.CU && (window.CU.role === 'admin' || window.CU.email === 'synxyes@gmail.com');
     if (isOwner) {
-      _renderAlbumAcciones(true);
+      _renderAlbumAcciones(true, false, false);
       await _cargarFotosAlbum(_albumProfileUid);
       _showAlbumSec('albumGrid');
       await _cargarSolicitudesAlbum();
+    } else if (isAdmin) {
+      // Admin: acceso total, puede ver y eliminar cualquier foto
+      _renderAlbumAcciones(false, false, true);
+      await _cargarFotosAlbum(_albumProfileUid);
+      _showAlbumSec('albumGrid');
     } else {
-      _renderAlbumAcciones(false);
+      // Visitante: el álbum es visible para todos, pero las fotos requieren acceso
       var acceso = await _verificarAccesoAlbum(_albumProfileUid, myUid);
       if (acceso === 'aprobado') {
+        _renderAlbumAcciones(false, false, false);
         await _cargarFotosAlbum(_albumProfileUid);
         _showAlbumSec('albumGrid');
       } else if (acceso === 'pendiente') {
+        _renderAlbumAcciones(false, false, false);
         _showAlbumSec('albumPendiente');
       } else {
+        // Mostrar el álbum con pantalla de solicitud (el álbum es visible, las fotos no)
+        _renderAlbumAcciones(false, false, false);
         _showAlbumSec('albumSolicitar');
       }
     }
@@ -3691,12 +3701,17 @@ a[style*="color:var(--accent)"] { color: #1877f2 !important; }
     });
   }
 
-  function _renderAlbumAcciones(isOwner) {
+  function _renderAlbumAcciones(isOwner, hasPending, isAdmin) {
     var wrap = document.getElementById('albumActions');
     if (!wrap) return;
-    wrap.innerHTML = isOwner
-      ? '<button onclick="om(\'mCreatePost\');setTimeout(function(){var s=document.getElementById(\'postDestino\');if(s){s.value=\'album\';s.dispatchEvent(new Event(\'change\'));}},200)" style="padding:8px 16px;background:#c0392b;color:#fff;border-radius:8px;font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;gap:6px;border:none;">📷 Agregar fotos al álbum</button>'
-      : '';
+    var html = '';
+    if (isOwner) {
+      html += '<button onclick="om(\'mCreatePost\');setTimeout(function(){var s=document.getElementById(\'postDestino\');if(s){s.value=\'album\';s.dispatchEvent(new Event(\'change\'));}},200)" style="padding:8px 16px;background:#c0392b;color:#fff;border-radius:8px;font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;gap:6px;border:none;">📷 Agregar fotos</button>';
+    }
+    if (isAdmin && !isOwner) {
+      html += '<span style="background:rgba(255,68,68,.12);border:1px solid rgba(255,68,68,.3);color:#c0392b;padding:4px 10px;border-radius:8px;font-size:.72rem;font-weight:800;">🛡️ Vista Admin</span>';
+    }
+    wrap.innerHTML = html;
   }
 
   async function _verificarAccesoAlbum(ownerUid, visitorUid) {
@@ -3777,12 +3792,7 @@ a[style*="color:var(--accent)"] { color: #1877f2 !important; }
       if(vacio) vacio.style.display = 'none';
       // Banner informativo si hay pendientes (solo para el dueño)
       var pendBanner = '';
-      if (isOwner && pendientesCount > 0) {
-        pendBanner = '<div style="background:rgba(230,126,34,.12);border:1px solid rgba(230,126,34,.4);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:.8rem;color:#e67e22;display:flex;align-items:center;gap:8px;">'
-          + '<span style="font-size:1.1rem;">⏳</span>'
-          + '<span><strong>' + pendientesCount + ' foto' + (pendientesCount > 1 ? 's' : '') + '</strong> en revisión — no visible' + (pendientesCount > 1 ? 's' : '') + ' aún para otros usuarios.</span>'
-          + '</div>';
-      }
+      // Las fotos se aprueban automáticamente, no hay pendientes
       grid.innerHTML = pendBanner + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;">'
         + _albumFotos.map((f,i) => {
           if (f._isPending) {
@@ -3859,7 +3869,7 @@ a[style*="color:var(--accent)"] { color: #1877f2 !important; }
           ownerUid: myUid,
           ownerNick: window.CU.nick || '',
           ownerAv: window.CU.av || '',
-          estado: 'pendiente'
+          estado: 'aprobado'
         });
         subidos++;
       } catch(e) {
@@ -3870,7 +3880,7 @@ a[style*="color:var(--accent)"] { color: #1877f2 !important; }
     }
 
     if (subidos > 0) {
-      toast('⏳ ' + subidos + ' foto' + (subidos>1?'s':'') + ' enviada' + (subidos>1?'s':'') + ' para revisión. El admin la aprobará pronto.');
+      toast('✅ ' + subidos + ' foto' + (subidos>1?'s':'') + ' subida' + (subidos>1?'s':'') + ' correctamente al álbum privado.');
       await _cargarFotosAlbum(myUid);
     } else if (errores > 0 && subidos === 0) {
       toast('❌ No se pudo subir ninguna foto. Verificá tu conexión.','err');
@@ -3890,7 +3900,16 @@ a[style*="color:var(--accent)"] { color: #1877f2 !important; }
     if(img) img.src = foto.url;
     if(caption) caption.textContent = 'Foto '+(idx+1)+' de '+_albumFotos.length;
     var isOwner = _albumProfileUid === (window.CU && window.CU.id);
-    if(delBtn) delBtn.style.display = isOwner ? 'block' : 'none';
+    var isAdminLb = window.CU && (window.CU.role === 'admin' || window.CU.email === 'synxyes@gmail.com');
+    if(delBtn) delBtn.style.display = (isOwner || isAdminLb) ? 'block' : 'none';
+    // Estilo diferente para admin
+    if(delBtn && isAdminLb && !isOwner) {
+      delBtn.textContent = '🛡️ Eliminar (Admin)';
+      delBtn.style.background = 'rgba(200,0,40,.7)';
+    } else if(delBtn) {
+      delBtn.textContent = '🗑 Eliminar';
+      delBtn.style.background = 'rgba(200,0,40,.5)';
+    }
     if(lb) lb.classList.add('open');
   };
 
@@ -3904,13 +3923,17 @@ a[style*="color:var(--accent)"] { color: #1877f2 !important; }
   window.eliminarFotoAlbum = async function() {
     if (!_albumLightboxFotoId || !_albumProfileUid) return;
     var myUid = window.CU && window.CU.id;
-    if (_albumProfileUid !== myUid) return;
-    if (!confirm('¿Eliminar esta foto del álbum privado?')) return;
+    var isAdminDel = window.CU && (window.CU.role === 'admin' || window.CU.email === 'synxyes@gmail.com');
+    if (_albumProfileUid !== myUid && !isAdminDel) return;
+    var confirmMsg = isAdminDel && _albumProfileUid !== myUid
+      ? '🛡️ [Admin] ¿Eliminar esta foto del álbum privado por contenido inapropiado?'
+      : '¿Eliminar esta foto del álbum privado?';
+    if (!confirm(confirmMsg)) return;
     try {
-      await window.deleteDoc(window.doc(window.db,'albumPrivado',myUid,'fotos',_albumLightboxFotoId));
+      await window.deleteDoc(window.doc(window.db,'albumPrivado',_albumProfileUid,'fotos',_albumLightboxFotoId));
       cerrarAlbumLightbox();
-      toast('Foto eliminada');
-      await _cargarFotosAlbum(myUid);
+      toast(isAdminDel && _albumProfileUid !== myUid ? '🛡️ Foto eliminada por el admin' : 'Foto eliminada');
+      await _cargarFotosAlbum(_albumProfileUid);
     } catch(e) { toast('Error al eliminar','err'); }
   };
 
@@ -6962,10 +6985,8 @@ window.initSalasPage = window.initSalasPage;
       <div id="admAlbumResumen" style="font-size:.75rem;color:var(--muted);margin-top:3px;"></div>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;">
-      <button onclick="loadAdminAlbum('pendiente')" id="albf-pend" class="cfbtn" style="color:#e67e22;">⏳ Pendientes</button>
-      <button onclick="loadAdminAlbum('aprobado')" id="albf-apro" class="cfbtn" style="color:var(--green);">✅ Aprobadas</button>
-      <button onclick="loadAdminAlbum('rechazado')" id="albf-rech" class="cfbtn" style="color:var(--red);">❌ Rechazadas</button>
       <button onclick="loadAdminAlbum('todas')" id="albf-all" class="cfbtn active">Todas</button>
+      <button onclick="loadAdminAlbum('aprobado')" id="albf-apro" class="cfbtn" style="color:var(--green);">✅ Aprobadas</button>
     </div>
   </div>
   <div id="adminAlbumList"><div style="text-align:center;padding:32px;color:var(--muted);">Cargando fotos...</div></div>
@@ -17791,7 +17812,7 @@ function swAdminTab(el, tabId){
   if(tabId==='admt-live') loadAdminLive();
   if(tabId==='admt-faq') loadAdminFaq();
   if(tabId==='admt-soporte') loadAdminSoporteTickets();
-  if(tabId==='admt-album') loadAdminAlbum('pendiente');
+  if(tabId==='admt-album') loadAdminAlbum('todas');
 }
 
 async function loadAdminData(){
@@ -25713,7 +25734,7 @@ const _origGpSoporte = window.gp;
 
 // ===== ADMIN ALBUM PRIVADO MODERACION =====
 var _adminAlbumFotos = [];
-var _adminAlbumFiltro = 'pendiente';
+var _adminAlbumFiltro = 'todas';
 
 async function loadAdminAlbum(filtro) {
   filtro = filtro || _adminAlbumFiltro;
@@ -25758,7 +25779,7 @@ async function loadAdminAlbum(filtro) {
       var allPend = 0, allApro = 0, allRech = 0;
       // Contar globalmente desde el snapshot original (antes del filtro)
       // usamos los datos disponibles en todasFotos antes de filtrar — actualizamos el resumen luego
-      resumen.textContent = pendCount + ' pendiente' + (pendCount!==1?'s':'') + ' de revisión';
+      var totalFotos = _adminAlbumFotos.length; resumen.textContent = totalFotos + ' foto' + (totalFotos!==1?'s':'') + ' en álbumes privados';
     }
     if(!todasFotos.length) {
       var msgVacio = {
@@ -25776,9 +25797,10 @@ async function loadAdminAlbum(filtro) {
       var estadoColor = estado === 'aprobado' ? '#2ecc71' : estado === 'rechazado' ? '#e74c3c' : '#e67e22';
       var estadoLabel = estado === 'aprobado' ? '✅ Aprobada' : estado === 'rechazado' ? '❌ Rechazada' : '⏳ Pendiente';
       var fecha = f.subidaEn ? new Date(f.subidaEn).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}) : '';
-      var btnAprobar = estado !== 'aprobado' ? '<button onclick="adminApproveAlbumFoto(\'' + f.ownerUid + '\',\'' + f.id + '\')" style="flex:1;padding:7px;background:#2ecc71;color:#fff;border:none;border-radius:6px;font-size:.78rem;font-weight:700;cursor:pointer;">✅ Aprobar</button>' : '';
-      var btnRechazar = estado !== 'rechazado' ? '<button onclick="adminRejectAlbumFoto(\'' + f.ownerUid + '\',\'' + f.id + '\')" style="flex:1;padding:7px;background:#e74c3c;color:#fff;border:none;border-radius:6px;font-size:.78rem;font-weight:700;cursor:pointer;">❌ Rechazar</button>' : '';
-      var btnEliminar = '<button onclick="adminDeleteAlbumFota(\'' + f.ownerUid + '\',\'' + f.id + '\')" style="padding:7px 10px;background:var(--bg3);color:var(--muted);border:none;border-radius:6px;font-size:.78rem;cursor:pointer;">🗑</button>';
+      // Las fotos se aprueban automáticamente, el admin solo elimina contenido inapropiado
+      var btnAprobar = '';
+      var btnRechazar = '';
+      var btnEliminar = '<button onclick="adminDeleteAlbumFota(\'' + f.ownerUid + '\',\'' + f.id + '\')" style="flex:1;padding:7px;background:rgba(231,76,60,.12);color:#e74c3c;border:1px solid rgba(231,76,60,.3);border-radius:6px;font-size:.78rem;font-weight:700;cursor:pointer;">🗑 Eliminar foto</button>';
       html += '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;">';
       html += '<div style="position:relative;">';
       html += '<img src="' + f.url + '" style="width:100%;aspect-ratio:1;object-fit:cover;display:block;" onerror="this.onerror=null">';
