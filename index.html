@@ -3983,6 +3983,10 @@ a[style*="color:var(--accent)"] { color: #1877f2 !important; }
         </div>
         <div id="termsWarning" style="display:none;color:#fa3e3e;font-size:.78rem;text-align:center;margin-bottom:8px;background:rgba(250,62,62,.08);border:1px solid rgba(250,62,62,.25);border-radius:6px;padding:7px 10px;">⚠️ Debés leer y aceptar los Términos y Condiciones para continuar.</div>
         <button class="fb-btn-create" onclick="if(!document.getElementById('acceptTerms').checked){document.getElementById('termsWarning').style.display='block';return;}document.getElementById('termsWarning').style.display='none';doReg();">Crear cuenta gratis</button>
+        <div class="fb-divider"><span style="background:#fff;padding:0 8px;color:#65676b;font-size:.78rem;">o</span></div>
+        <button onclick="showPhoneReg()" style="width:100%;padding:12px;background:#25d366;color:#fff;border:none;border-radius:6px;font-size:.95rem;font-weight:700;font-family:'Exo 2',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          📱 Registrarme con celular (SMS)
+        </button>
         <div class="fb-divider"></div>
         <div style="text-align:center;font-size:.85rem;color:#65676b;">¿Ya tenés cuenta? <span onclick="showLogin()" style="color:#1877f2;font-weight:700;cursor:pointer;">Iniciar sesión</span></div>
       </div>
@@ -4015,6 +4019,115 @@ a[style*="color:var(--accent)"] { color: #1877f2 !important; }
     </div>
   </div>
 </div>
+
+
+
+<!-- ══════════════ MODAL REGISTRO POR CELULAR ══════════════ -->
+<div id="mPhoneReg" style="display:none;position:fixed;inset:0;z-index:10005;background:rgba(0,0,0,.78);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#ffffff;border-radius:16px;max-width:400px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.5);animation:mIn .22s ease;overflow:hidden;">
+
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#25d366,#128c7e);padding:22px 24px 16px;position:relative;">
+      <button onclick="closePhoneReg()" style="position:absolute;top:12px;right:14px;background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:50%;width:28px;height:28px;font-size:1rem;cursor:pointer;line-height:1;">✕</button>
+      <div style="font-size:2rem;margin-bottom:6px;">📱</div>
+      <div style="font-family:'Orbitron',monospace;font-size:.95rem;font-weight:900;color:#fff;">Registro con celular</div>
+      <div style="font-size:.75rem;color:rgba(255,255,255,.8);margin-top:4px;">Te enviaremos un código SMS para verificar tu número</div>
+    </div>
+
+    <!-- Paso 1: datos + teléfono -->
+    <div id="phoneStep1" style="padding:22px 24px;">
+      <div id="phoneErr" style="display:none;color:#fa3e3e;font-size:.8rem;margin-bottom:12px;padding:8px 12px;background:#fff0f0;border-radius:8px;border:1px solid #ffd0d0;"></div>
+
+      <div style="margin-bottom:10px;">
+        <label style="font-size:.75rem;font-weight:700;color:#444;display:block;margin-bottom:4px;">Nick / Nombre de usuario *</label>
+        <input id="phNick" type="text" placeholder="Tu nombre en MiLatido" maxlength="30"
+          style="width:100%;padding:10px 14px;border:1.5px solid #dddfe2;border-radius:8px;font-family:'Exo 2',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;"
+          onfocus="this.style.borderColor='#25d366'" onblur="this.style.borderColor='#dddfe2'">
+      </div>
+
+      <div style="margin-bottom:10px;">
+        <label style="font-size:.75rem;font-weight:700;color:#444;display:block;margin-bottom:4px;">País *</label>
+        <select id="phCountry" style="width:100%;padding:10px 14px;border:1.5px solid #dddfe2;border-radius:8px;font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;background:#fff;"
+          onfocus="this.style.borderColor='#25d366'" onblur="this.style.borderColor='#dddfe2'">
+          <option value="">— Seleccioná tu país —</option>
+          <option value="🇦🇷 Argentina" data-code="+54">🇦🇷 Argentina (+54)</option>
+          <option value="🇺🇾 Uruguay" data-code="+598">🇺🇾 Uruguay (+598)</option>
+          <option value="🇲🇽 México" data-code="+52">🇲🇽 México (+52)</option>
+          <option value="🇨🇴 Colombia" data-code="+57">🇨🇴 Colombia (+57)</option>
+          <option value="🇨🇱 Chile" data-code="+56">🇨🇱 Chile (+56)</option>
+          <option value="🇵🇪 Perú" data-code="+51">🇵🇪 Perú (+51)</option>
+          <option value="🇻🇪 Venezuela" data-code="+58">🇻🇪 Venezuela (+58)</option>
+          <option value="🇧🇷 Brasil" data-code="+55">🇧🇷 Brasil (+55)</option>
+          <option value="🇧🇴 Bolivia" data-code="+591">🇧🇴 Bolivia (+591)</option>
+          <option value="🇵🇾 Paraguay" data-code="+595">🇵🇾 Paraguay (+595)</option>
+          <option value="🇪🇨 Ecuador" data-code="+593">🇪🇨 Ecuador (+593)</option>
+          <option value="🇪🇸 España" data-code="+34">🇪🇸 España (+34)</option>
+          <option value="🇺🇸 Estados Unidos" data-code="+1">🇺🇸 EEUU (+1)</option>
+          <option value="🌍 Otro" data-code="">🌍 Otro</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom:10px;">
+        <label style="font-size:.75rem;font-weight:700;color:#444;display:block;margin-bottom:4px;">Número de celular *</label>
+        <div style="display:flex;gap:6px;">
+          <input id="phDialCode" type="text" placeholder="+54" maxlength="5"
+            style="width:72px;padding:10px 10px;border:1.5px solid #dddfe2;border-radius:8px;font-family:'Exo 2',sans-serif;font-size:.9rem;outline:none;text-align:center;box-sizing:border-box;"
+            onfocus="this.style.borderColor='#25d366'" onblur="this.style.borderColor='#dddfe2'">
+          <input id="phNumber" type="tel" placeholder="Ej: 091234567" maxlength="15"
+            style="flex:1;padding:10px 14px;border:1.5px solid #dddfe2;border-radius:8px;font-family:'Exo 2',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;"
+            onfocus="this.style.borderColor='#25d366'" onblur="this.style.borderColor='#dddfe2'"
+            onkeypress="if(event.key==='Enter')sendPhoneSMS()">
+        </div>
+        <div style="font-size:.68rem;color:#999;margin-top:3px;">Ingresá el código de país y tu número sin el 0 inicial</div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:16px;">
+        <input type="checkbox" id="phTerms" style="width:15px;height:15px;accent-color:#25d366;cursor:pointer;margin-top:2px;flex-shrink:0;">
+        <label for="phTerms" style="font-size:.75rem;color:#65676b;cursor:pointer;line-height:1.4;">Acepto los <span onclick="showTerms()" style="color:#25d366;cursor:pointer;text-decoration:underline;">Términos y Condiciones</span></label>
+      </div>
+
+      <!-- reCAPTCHA invisible -->
+      <div id="phoneRecaptcha"></div>
+
+      <button onclick="sendPhoneSMS()" id="phSendBtn"
+        style="width:100%;padding:13px;background:#25d366;color:#fff;border:none;border-radius:8px;font-size:.95rem;font-weight:800;font-family:'Exo 2',sans-serif;cursor:pointer;transition:opacity .15s;"
+        onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+        📨 Enviar código SMS
+      </button>
+    </div>
+
+    <!-- Paso 2: verificar código -->
+    <div id="phoneStep2" style="display:none;padding:22px 24px;">
+      <div id="phoneErr2" style="display:none;color:#fa3e3e;font-size:.8rem;margin-bottom:12px;padding:8px 12px;background:#fff0f0;border-radius:8px;border:1px solid #ffd0d0;"></div>
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-size:2.5rem;margin-bottom:8px;">📩</div>
+        <div style="font-weight:700;font-size:.95rem;color:#222;">Ingresá el código SMS</div>
+        <div id="phCodeHint" style="font-size:.78rem;color:#666;margin-top:5px;">Te enviamos un código de 6 dígitos</div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <input id="phCode" type="text" placeholder="• • • • • •" maxlength="6"
+          style="width:100%;padding:14px;border:2px solid #25d366;border-radius:10px;font-family:monospace;font-size:1.6rem;letter-spacing:.4em;text-align:center;outline:none;box-sizing:border-box;"
+          oninput="this.value=this.value.replace(/\D/g,'')"
+          onkeypress="if(event.key==='Enter')verifyPhoneCode()">
+      </div>
+      <button onclick="verifyPhoneCode()" id="phVerifyBtn"
+        style="width:100%;padding:13px;background:#25d366;color:#fff;border:none;border-radius:8px;font-size:.95rem;font-weight:800;font-family:'Exo 2',sans-serif;cursor:pointer;transition:opacity .15s;margin-bottom:10px;"
+        onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+        ✅ Verificar y crear cuenta
+      </button>
+      <button onclick="document.getElementById('phoneStep1').style.display='block';document.getElementById('phoneStep2').style.display='none';"
+        style="width:100%;padding:10px;background:none;color:#666;border:1px solid #ddd;border-radius:8px;font-size:.85rem;font-family:'Exo 2',sans-serif;cursor:pointer;">
+        ← Cambiar número
+      </button>
+      <div style="text-align:center;margin-top:10px;">
+        <span id="phResendTimer" style="font-size:.75rem;color:#999;"></span>
+        <span id="phResendBtn" style="display:none;font-size:.78rem;color:#25d366;cursor:pointer;font-weight:700;" onclick="sendPhoneSMS()">Reenviar código</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+<!-- ══════════════ /MODAL REGISTRO POR CELULAR ══════════════ -->
 
 
 <div id="mCountryPick" style="display:none;position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px;">
@@ -7704,7 +7817,7 @@ function _stub(name){ return function(){ _q.push([name, arguments]); }; }
 <script type="module" defer>
 // ===== FIREBASE SETUP (modular ESM — sin eval, compatible con CSP) =====
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithPopup, PhoneAuthProvider, RecaptchaVerifier, signInWithCredential } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, addDoc, deleteDoc, onSnapshot, query, orderBy, limit, startAfter, serverTimestamp, increment, where, deleteField, Timestamp, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging.js';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js';
@@ -8672,6 +8785,191 @@ async function doReg(){
     document.getElementById('rErr').textContent = e.code === 'auth/email-already-in-use' ? 'Email ya registrado' : e.message;
   }
 }
+
+// ══════════════════════════════════════════════════════════
+// REGISTRO POR NÚMERO DE CELULAR — Firebase Phone Auth
+// ══════════════════════════════════════════════════════════
+var _phoneVerifId  = null;
+var _phoneRecaptcha = null;
+var _phoneResendInterval = null;
+
+// Mapa código de país → prefijo telefónico
+var DIAL_CODES = {
+  '🇦🇷 Argentina':'+54','🇺🇾 Uruguay':'+598','🇲🇽 México':'+52',
+  '🇨🇴 Colombia':'+57','🇨🇱 Chile':'+56','🇵🇪 Perú':'+51',
+  '🇻🇪 Venezuela':'+58','🇧🇷 Brasil':'+55','🇧🇴 Bolivia':'+591',
+  '🇵🇾 Paraguay':'+595','🇪🇨 Ecuador':'+593','🇪🇸 España':'+34',
+  '🇺🇸 Estados Unidos':'+1','🌍 Otro':''
+};
+
+window.showPhoneReg = function(){
+  // Copiar nick si ya lo llenó en regForm
+  var nick = (document.getElementById('rNick')||{}).value||'';
+  if(nick && document.getElementById('phNick')) document.getElementById('phNick').value = nick;
+  document.getElementById('mPhoneReg').style.display = 'flex';
+  document.getElementById('phoneStep1').style.display = 'block';
+  document.getElementById('phoneStep2').style.display = 'none';
+  document.getElementById('phoneErr').style.display = 'none';
+  // Auto-fill dial code when country changes
+  var sel = document.getElementById('phCountry');
+  if(sel && !sel._hasListener){
+    sel._hasListener = true;
+    sel.addEventListener('change', function(){
+      var code = DIAL_CODES[this.value] || '';
+      document.getElementById('phDialCode').value = code;
+    });
+  }
+};
+
+window.closePhoneReg = function(){
+  document.getElementById('mPhoneReg').style.display = 'none';
+  if(_phoneResendInterval) clearInterval(_phoneResendInterval);
+  // Destruir recaptcha si existe
+  if(_phoneRecaptcha){ try{ _phoneRecaptcha.clear(); }catch(e){} _phoneRecaptcha=null; }
+};
+
+window.sendPhoneSMS = async function(){
+  var errEl = document.getElementById('phoneErr');
+  errEl.style.display='none';
+
+  var nick    = (document.getElementById('phNick').value||'').trim();
+  var country = document.getElementById('phCountry').value;
+  var dial    = (document.getElementById('phDialCode').value||'').trim();
+  var number  = (document.getElementById('phNumber').value||'').replace(/\s/g,'').replace(/^0+/,'');
+  var terms   = document.getElementById('phTerms').checked;
+
+  if(!nick || nick.length < 2){
+    errEl.textContent = 'Ingresá tu nick (mínimo 2 caracteres).'; errEl.style.display='block'; return;
+  }
+  if(!dial || !dial.startsWith('+')){
+    errEl.textContent = 'Ingresá el código de país (ej: +54).'; errEl.style.display='block'; return;
+  }
+  if(!number || number.length < 6){
+    errEl.textContent = 'Ingresá tu número de celular.'; errEl.style.display='block'; return;
+  }
+  if(!terms){
+    errEl.textContent = 'Debés aceptar los Términos y Condiciones.'; errEl.style.display='block'; return;
+  }
+
+  var fullPhone = dial + number;
+  var btn = document.getElementById('phSendBtn');
+  btn.disabled = true; btn.textContent = '⏳ Enviando...';
+
+  try {
+    // Crear / recrear RecaptchaVerifier invisible
+    if(_phoneRecaptcha){ try{ _phoneRecaptcha.clear(); }catch(e){} _phoneRecaptcha=null; }
+    _phoneRecaptcha = new RecaptchaVerifier(auth, 'phoneRecaptcha', {
+      size: 'invisible',
+      callback: function(){}
+    });
+    await _phoneRecaptcha.render();
+
+    var provider = new PhoneAuthProvider(auth);
+    _phoneVerifId = await provider.verifyPhoneNumber(fullPhone, _phoneRecaptcha);
+
+    // Guardar datos para cuando se cree la cuenta
+    window._phoneRegData = { nick, country: country||'🌍 Otro', phone: fullPhone };
+
+    // Mostrar paso 2
+    document.getElementById('phoneStep1').style.display = 'none';
+    document.getElementById('phoneStep2').style.display = 'block';
+    document.getElementById('phCodeHint').textContent = 'Te enviamos un código SMS al ' + fullPhone;
+    document.getElementById('phCode').value = '';
+    document.getElementById('phoneErr2').style.display = 'none';
+
+    // Timer reenvío (60s)
+    _startPhoneResendTimer(60);
+
+  } catch(e){
+    console.error('Phone SMS error:', e);
+    var msg = 'Error al enviar SMS.';
+    if(e.code === 'auth/invalid-phone-number')   msg = 'Número de teléfono inválido. Verificá el formato.';
+    else if(e.code === 'auth/too-many-requests') msg = 'Demasiados intentos. Esperá unos minutos.';
+    else if(e.code === 'auth/captcha-check-failed') msg = 'Error de verificación. Recargá la página e intentá de nuevo.';
+    else if(e.code === 'auth/quota-exceeded')    msg = 'Límite de SMS alcanzado. Intentá más tarde.';
+    else if(e.message) msg = e.message;
+    errEl.textContent = msg; errEl.style.display = 'block';
+    if(_phoneRecaptcha){ try{ _phoneRecaptcha.clear(); }catch(ex){} _phoneRecaptcha=null; }
+  } finally {
+    btn.disabled = false; btn.textContent = '📨 Enviar código SMS';
+  }
+};
+
+function _startPhoneResendTimer(secs){
+  if(_phoneResendInterval) clearInterval(_phoneResendInterval);
+  var timerEl  = document.getElementById('phResendTimer');
+  var resendEl = document.getElementById('phResendBtn');
+  resendEl.style.display = 'none';
+  var remaining = secs;
+  function tick(){
+    if(remaining <= 0){
+      clearInterval(_phoneResendInterval);
+      timerEl.textContent  = '';
+      resendEl.style.display = 'inline';
+    } else {
+      timerEl.textContent = 'Reenviar en '+remaining+'s';
+      remaining--;
+    }
+  }
+  tick();
+  _phoneResendInterval = setInterval(tick, 1000);
+}
+
+window.verifyPhoneCode = async function(){
+  var code   = (document.getElementById('phCode').value||'').trim();
+  var errEl  = document.getElementById('phoneErr2');
+  errEl.style.display = 'none';
+
+  if(!code || code.length < 6){
+    errEl.textContent = 'Ingresá el código de 6 dígitos.'; errEl.style.display='block'; return;
+  }
+  if(!_phoneVerifId){
+    errEl.textContent = 'Sesión expirada. Volvé al paso anterior.'; errEl.style.display='block'; return;
+  }
+
+  var btn = document.getElementById('phVerifyBtn');
+  btn.disabled = true; btn.textContent = '⏳ Verificando...';
+
+  try {
+    var credential = PhoneAuthProvider.credential(_phoneVerifId, code);
+    var cred = await signInWithCredential(auth, credential);
+    var uid  = cred.user.uid;
+
+    var data = window._phoneRegData || {};
+    var nick    = data.nick    || 'Usuario'+uid.slice(0,4);
+    var country = data.country || '';
+    var phone   = data.phone   || '';
+
+    // Crear el documento de usuario en Firestore
+    window.CU = {
+      id: uid, nick, nickLower: nick.toLowerCase(),
+      email: '', phone: phone, country,
+      av:'', cover:'', bio:'', favFish:'', favMap:'',
+      social_yt:'', social_dc:'',
+      joined: new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}),
+      posts:0, friends:0, likes:0, regTs: Date.now()
+    };
+    await setDoc(doc(db, 'users', uid), window.CU, { merge: true });
+
+    // Cerrar modal y entrar
+    closePhoneReg();
+    document.getElementById('mAuth').style.display = 'none';
+    if(window._hideConstruction) window._hideConstruction();
+    onLogin();
+    setTimeout(_startPhotoTimer, 500);
+    toast('¡Bienvenido '+nick+'! 📱', 'ok');
+
+  } catch(e){
+    console.error('Phone verify error:', e);
+    var msg = 'Código incorrecto o expirado.';
+    if(e.code === 'auth/invalid-verification-code') msg = 'Código incorrecto. Revisá el SMS e intentá de nuevo.';
+    else if(e.code === 'auth/code-expired')         msg = 'El código expiró. Pedí uno nuevo.';
+    else if(e.code === 'auth/session-expired')      msg = 'Sesión expirada. Pedí un nuevo código.';
+    errEl.textContent = msg; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = '✅ Verificar y crear cuenta';
+  }
+};
 
 function onLogin(){
   // Mostrar sección Tienda si es admin
