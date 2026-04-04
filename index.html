@@ -3781,7 +3781,7 @@ a[style*="color:var(--accent)"] { color: #1877f2 !important; }
       if (file.size > 5*1024*1024) { toast('Una foto supera 5MB, se omitió','err'); errores++; continue; }
       try {
         // Usar uploadImage igual que posts e historias
-        var url = await uploadImage(file, 'albumPrivado');
+        var url = await (window.uploadImage || uploadImage)(file, 'albumPrivado');
         await window.addDoc(window.collection(window.db,'albumPrivado',myUid,'fotos'), { url, subidaEn: Date.now(), ownerUid: myUid, estado: 'pendiente', ownerNick: window.CU.nick||'', ownerAv: window.CU.av||'' });
         subidos++;
       } catch(e) {
@@ -17445,7 +17445,7 @@ async function submitReport(){
 function swAdminTab(el, tabId){
   document.querySelectorAll('.adm-tab').forEach(t=>t.classList.remove('adm-on'));
   el.classList.add('adm-on');
-  ['admt-reports','admt-posts','admt-users','admt-verif','admt-grupos','admt-ads','admt-live','admt-faq']
+  ['admt-reports','admt-posts','admt-users','admt-verif','admt-grupos','admt-ads','admt-live','admt-faq','admt-soporte','admt-album']
     .forEach(id=>{ const e=document.getElementById(id); if(e) e.style.display='none'; });
   const tab = document.getElementById(tabId);
   if(tab) tab.style.display='block';
@@ -17455,6 +17455,8 @@ function swAdminTab(el, tabId){
   if(tabId==='admt-ads') loadAdminAds();
   if(tabId==='admt-live') loadAdminLive();
   if(tabId==='admt-faq') loadAdminFaq();
+  if(tabId==='admt-soporte') loadAdminSoporteTickets();
+  if(tabId==='admt-album') loadAdminAlbum('pendiente');
 }
 
 async function loadAdminData(){
@@ -23768,6 +23770,7 @@ const _expose = {
 
 // Exponer todas las funciones al scope global (necesario porque este script es type="module")
 Object.assign(window, _expose);
+window.uploadImage = uploadImage; // Necesario para subirFotosAlbum (script externo al módulo)
 
 
 // ===== COMPARTIR SPOT (wiki-style) =====
