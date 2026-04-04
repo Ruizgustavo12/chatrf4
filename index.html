@@ -11210,13 +11210,49 @@ async function submitStory(){
   const _musicForLyrics = window._storyMusic || _storyMusic;
   if(_musicForLyrics && _musicForLyrics.title){
     try {
-      const _lrcQ = encodeURIComponent((_musicForLyrics.title||'') + ' ' + (_musicForLyrics.artist||''));
-      const _lrcRes = await fetch('https://lrclib.net/api/search?q=' + _lrcQ);
-      if(_lrcRes.ok){
-        const _lrcData = await _lrcRes.json();
-        const _lrcTrack = (_lrcData||[]).find(t => t.syncedLyrics) || _lrcData[0];
-        if(_lrcTrack && _lrcTrack.syncedLyrics){
-          _lyricsData = _lrcTrack.syncedLyrics;
+      // Limpiar título: quitar (feat. ...), (Remastered), (Live), etc.
+      const _cleanTitle = (_musicForLyrics.title||'')
+        .replace(/\(feat\.?.*?\)/gi,'')
+        .replace(/\(ft\.?.*?\)/gi,'')
+        .replace(/\(with.*?\)/gi,'')
+        .replace(/\(remaster.*?\)/gi,'')
+        .replace(/\(live.*?\)/gi,'')
+        .replace(/\(radio.*?\)/gi,'')
+        .replace(/\(official.*?\)/gi,'')
+        .replace(/\[.*?\]/g,'')
+        .trim();
+      const _cleanArtist = (_musicForLyrics.artist||'')
+        .split(',')[0] // solo el primer artista
+        .replace(/\(feat\.?.*?\)/gi,'')
+        .trim();
+
+      // Intentar primero con título + artista exactos via /api/get
+      const _lrcExact = await fetch(
+        `https://lrclib.net/api/get?track_name=${encodeURIComponent(_cleanTitle)}&artist_name=${encodeURIComponent(_cleanArtist)}`
+      ).catch(()=>null);
+
+      if(_lrcExact && _lrcExact.ok){
+        const _lrcExactData = await _lrcExact.json();
+        if(_lrcExactData && _lrcExactData.syncedLyrics){
+          _lyricsData = _lrcExactData.syncedLyrics;
+        }
+      }
+
+      // Si no encontró, buscar con /api/search
+      if(!_lyricsData){
+        const _lrcQ = encodeURIComponent(_cleanTitle + ' ' + _cleanArtist);
+        const _lrcRes = await fetch('https://lrclib.net/api/search?q=' + _lrcQ).catch(()=>null);
+        if(_lrcRes && _lrcRes.ok){
+          const _lrcData = await _lrcRes.json();
+          // Buscar la que más coincida: mismo artista primero
+          const _artistLower = _cleanArtist.toLowerCase();
+          const _titleLower  = _cleanTitle.toLowerCase();
+          const _best = (_lrcData||[]).find(t =>
+            t.syncedLyrics &&
+            (t.artistName||'').toLowerCase().includes(_artistLower) &&
+            (t.trackName||'').toLowerCase().includes(_titleLower)
+          ) || (_lrcData||[]).find(t => t.syncedLyrics);
+          if(_best) _lyricsData = _best.syncedLyrics;
         }
       }
     } catch(e){ console.warn('lyrics fetch error:', e); }
