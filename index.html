@@ -10892,7 +10892,14 @@ function renderSV(){
   if(!s) return;
   const bg = document.getElementById('svBg');
   if(s.video){
-    bg.innerHTML = `<video src="${s.video}" style="width:100%;height:100%;object-fit:contain;background:#000;" autoplay playsinline controls loop></video>`;
+    // Detectar si es URL de YouTube → usar iframe
+    const _ytMatch = s.video.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if(_ytMatch){
+      const _ytEmbedId = _ytMatch[1];
+      bg.innerHTML = `<iframe src="https://www.youtube.com/embed/${_ytEmbedId}?autoplay=1&rel=0&playsinline=1" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" style="width:100%;height:100%;border:none;display:block;background:#000;"></iframe>`;
+    } else {
+      bg.innerHTML = `<video src="${s.video}" style="width:100%;height:100%;object-fit:contain;background:#000;" autoplay playsinline controls loop></video>`;
+    }
   } else if(s.img){
     bg.innerHTML = `<img src="${s.img}" style="width:100%;height:100%;object-fit:contain;background:#000;">`;
   } else {
