@@ -5065,10 +5065,30 @@ window._rechazarAlbumDesdeNotif = async function(visitorUid, ownerUid, btn) {
             <input type="file" accept="image/*" id="storyImgInput" style="display:none" onchange="previewStoryImg(this);_scUpdatePreview()">
           </label>
           <div onclick="storyYtSubirVideo()" id="storyVideoBtn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border:2px dashed var(--border);border-radius:12px;cursor:pointer;color:var(--muted);font-size:.85rem;background:var(--bg3);transition:border-color .2s,color .2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
-            🎬 Video
+            🎬 Galería
             <input type="file" accept="video/*" id="_storyYtFileInput" style="display:none">
           </div>
+          <div onclick="storyGrabarVideo()" id="storyCamBtn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border:2px dashed var(--border);border-radius:12px;cursor:pointer;color:var(--muted);font-size:.85rem;background:var(--bg3);transition:border-color .2s,color .2s;" onmouseover="this.style.borderColor='#e74c3c';this.style.color='#e74c3c'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+            📷 Cámara
+          </div>
         </div>
+
+        <!-- Modal grabación con cámara -->
+        <div id="_storyCamModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.95);flex-direction:column;align-items:center;justify-content:center;gap:14px;">
+          <div style="font-size:.8rem;color:rgba(255,255,255,.6);font-family:'Orbitron',monospace;letter-spacing:1px;">GRABANDO HISTORIA</div>
+          <div style="position:relative;width:min(340px,90vw);aspect-ratio:9/16;border-radius:16px;overflow:hidden;background:#000;box-shadow:0 8px 40px rgba(0,0,0,.8);">
+            <video id="_storyCamPreview" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;display:block;"></video>
+            <div id="_storyCamTimer" style="display:none;position:absolute;top:12px;right:12px;background:rgba(220,50,50,.85);color:#fff;border-radius:100px;padding:4px 12px;font-size:.78rem;font-weight:800;font-family:'Orbitron',monospace;backdrop-filter:blur(4px);">⏺ 0s</div>
+            <div id="_storyCamCountdown" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,.6);align-items:center;justify-content:center;font-size:5rem;font-weight:900;color:#fff;font-family:'Orbitron',monospace;"></div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:center;">
+            <button onclick="storyCamCancelar()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:100px;padding:10px 22px;font-size:.85rem;cursor:pointer;font-family:'Exo 2',sans-serif;">✕ Cancelar</button>
+            <button id="_storyCamRecBtn" onclick="storyCamToggleRec()" style="width:64px;height:64px;border-radius:50%;background:#e74c3c;border:4px solid rgba(255,255,255,.3);cursor:pointer;font-size:1.6rem;display:flex;align-items:center;justify-content:center;transition:transform .15s;box-shadow:0 0 0 6px rgba(231,76,60,.3);" title="Grabar">⏺</button>
+            <button onclick="storyCamCambiarCamara()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:100px;padding:10px 22px;font-size:.85rem;cursor:pointer;font-family:'Exo 2',sans-serif;">🔄 Cámara</button>
+          </div>
+          <div id="_storyCamStatus" style="font-size:.75rem;color:rgba(255,255,255,.5);min-height:18px;"></div>
+        </div>
+
         <div id="storyVideoUploadStatus" style="display:none;margin-top:6px;font-size:.76rem;"></div>
         <div id="storyImgPrev" style="margin-top:4px;"></div>
         <div id="storyVideoPrev" style="margin-top:4px;"></div>
@@ -8714,7 +8734,7 @@ function _stub(name){ return function(){ _q.push([name, arguments]); }; }
  'previewStoryImg','pickStoryEmoji','insertEmoji','insertFishTag',
  'toggleComments','_submitModalCmt','_editModalCmt','_delModalCmt','sharePost','toggleCmtMenu','editCmt','delCmt','quickCmtRxn','replyCmt','toggleReplies','showCmtRxnPop','hideCmtRxnPop','cancelHideCmtRxn','reactCmt','openImgLightbox','openImgLightboxById','toggleStickerPicker','closeStickerPicker','loadStickerCat','searchStickers','sendSticker','resetStickerCats','swPTab','setAppTheme','reactChatMsg','showMsgRxnBar','hideMsgRxnBar','keepMsgRxnBar','showCmtMenu','hideCmtMenu','setChatTyping','filterShopCat','toggleEquipItem',
  'showRxnPop','schedHideRxnPop','cancelHideRxnPop',
- 'openSV','closeSV','svNav','reactStory','submitStoryComment','deleteMyStory','storyYtSubirVideo','doSearch',
+ 'openSV','closeSV','svNav','reactStory','submitStoryComment','deleteMyStory','storyYtSubirVideo','storyGrabarVideo','storyCamToggleRec','storyCamCambiarCamara','storyCamCancelar','doSearch',
  'reportPost','submitReport','loadAdminData','deleteAdminPost','resolveReport',
  'doForgotPassword','quickLogin','createGroup','previewGroupImg',
  'submitMapPost','previewMapMedia','filterMapPosts',
@@ -11391,6 +11411,11 @@ function openStoryChooser(){
   if(storyVideoPrevReset) storyVideoPrevReset.innerHTML = '';
   const _scPVid = document.getElementById('_scPreviewVideo');
   if(_scPVid){ _scPVid.src=''; _scPVid.style.display='none'; }
+  // Cerrar cámara si estaba abierta
+  var _camModalOpen = document.getElementById('_storyCamModal');
+  if(_camModalOpen && _camModalOpen.style.display !== 'none'){
+    if(typeof storyCamCancelar === 'function') storyCamCancelar();
+  }
   // Set user info
   if(window.CU){
     const av = document.getElementById('_scUserAv');
@@ -30071,6 +30096,180 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
     };
     inp.click();
   };
+
+  // ── Grabar video con cámara ──────────────────────────────
+  var _camStream    = null;
+  var _camRecorder  = null;
+  var _camChunks    = [];
+  var _camRecording = false;
+  var _camTimerInt  = null;
+  var _camSecs      = 0;
+  var _camFacing    = 'user';
+
+  window.storyGrabarVideo = function(){
+    if(!window.CU){ alert('Tenés que estar logueado.'); return; }
+    _camFacing = 'user';
+    _storyCamOpen();
+  };
+
+  async function _storyCamOpen(){
+    var modal = document.getElementById('_storyCamModal');
+    if(modal) modal.style.display = 'flex';
+    _camChunks = []; _camRecording = false; _camSecs = 0;
+    var btn = document.getElementById('_storyCamRecBtn');
+    if(btn){ btn.innerHTML = '⏺'; btn.style.background = '#e74c3c'; }
+    var timer = document.getElementById('_storyCamTimer');
+    if(timer) timer.style.display = 'none';
+    _storyCamSetStatus('');
+    await _storyCamIniciarStream();
+  }
+
+  async function _storyCamIniciarStream(){
+    if(_camStream){ _camStream.getTracks().forEach(function(t){ t.stop(); }); _camStream = null; }
+    try{
+      _storyCamSetStatus('Iniciando cámara...');
+      _camStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: _camFacing, width:{ideal:720}, height:{ideal:1280} },
+        audio: true
+      });
+      var prev = document.getElementById('_storyCamPreview');
+      if(prev){ prev.srcObject = _camStream; prev.play().catch(function(){}); }
+      _storyCamSetStatus('');
+    }catch(e){
+      _storyCamSetStatus('❌ No se pudo acceder a la cámara: '+e.message);
+    }
+  }
+
+  window.storyCamCambiarCamara = async function(){
+    _camFacing = _camFacing === 'user' ? 'environment' : 'user';
+    await _storyCamIniciarStream();
+  };
+
+  window.storyCamToggleRec = function(){
+    if(!_camRecording) _storyCamIniciar();
+    else _storyCamDetener();
+  };
+
+  function _storyCamIniciar(){
+    if(!_camStream){ _storyCamSetStatus('❌ Sin acceso a la cámara'); return; }
+    var cd = document.getElementById('_storyCamCountdown');
+    if(cd){ cd.style.display='flex'; cd.textContent='3'; }
+    var n = 3;
+    var cdInt = setInterval(function(){
+      n--;
+      if(n > 0){ if(cd) cd.textContent = n; }
+      else{
+        clearInterval(cdInt);
+        if(cd){ cd.style.display='none'; cd.textContent=''; }
+        _storyCamEmpezar();
+      }
+    }, 1000);
+  }
+
+  function _storyCamEmpezar(){
+    _camChunks = [];
+    var mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') ? 'video/webm;codecs=vp9,opus'
+                 : MediaRecorder.isTypeSupported('video/webm') ? 'video/webm'
+                 : MediaRecorder.isTypeSupported('video/mp4')  ? 'video/mp4' : '';
+    var opts = mimeType ? { mimeType: mimeType } : {};
+    try{ _camRecorder = new MediaRecorder(_camStream, opts); }
+    catch(e){ _storyCamSetStatus('❌ Error al iniciar grabación: '+e.message); return; }
+    _camRecorder.ondataavailable = function(e){ if(e.data && e.data.size>0) _camChunks.push(e.data); };
+    _camRecorder.onstop = _storyCamProcesar;
+    _camRecorder.start(200);
+    _camRecording = true;
+    var btn = document.getElementById('_storyCamRecBtn');
+    if(btn){ btn.innerHTML='⏹'; btn.style.background='#c0392b'; }
+    var timer = document.getElementById('_storyCamTimer');
+    if(timer) timer.style.display='block';
+    _camSecs = 0;
+    _camTimerInt = setInterval(function(){
+      _camSecs++;
+      if(timer) timer.textContent = '⏺ '+_camSecs+'s';
+      if(_camSecs >= 60) _storyCamDetener();
+    }, 1000);
+  }
+
+  function _storyCamDetener(){
+    if(_camTimerInt){ clearInterval(_camTimerInt); _camTimerInt=null; }
+    if(_camRecorder && _camRecording){ _camRecorder.stop(); }
+    _camRecording = false;
+    var btn = document.getElementById('_storyCamRecBtn');
+    if(btn){ btn.innerHTML='⏺'; btn.style.background='#e74c3c'; }
+    var timer = document.getElementById('_storyCamTimer');
+    if(timer) timer.style.display='none';
+  }
+
+  async function _storyCamProcesar(){
+    if(!_camChunks.length){ _storyCamSetStatus('❌ No se grabó nada'); return; }
+    var mimeType = _camChunks[0].type || 'video/webm';
+    var blob = new Blob(_camChunks, { type: mimeType });
+    var ext  = mimeType.includes('mp4') ? 'mp4' : 'webm';
+    var file = new File([blob], 'historia-'+Date.now()+'.'+ext, { type: mimeType });
+    storyCamCancelar(true);
+    var prevEl = document.getElementById('storyVideoPrev');
+    var localUrl = URL.createObjectURL(blob);
+    if(prevEl) prevEl.innerHTML = '<video src="'+localUrl+'" controls style="width:100%;max-height:180px;border-radius:10px;background:#000;display:block;" preload="metadata"></video>';
+    _storyYtUploading = true;
+    var btn2 = document.getElementById('storyVideoBtn');
+    var btn3 = document.getElementById('storyCamBtn');
+    if(btn2){ btn2.style.opacity='.5'; btn2.style.pointerEvents='none'; }
+    if(btn3){ btn3.style.opacity='.5'; btn3.style.pointerEvents='none'; }
+    _storySetStatus('⏳ Subiendo video grabado a YouTube...', 'var(--warn)');
+    try{
+      var resp = await fetch(WORKER_URL, {
+        method:'POST',
+        headers:{
+          'X-Action':    'yt_upload',
+          'X-File-Type': file.type,
+          'X-File-Size': String(file.size),
+          'X-User-Nick': window.CU.nick || window.CU.id,
+          'Content-Type': file.type
+        },
+        body: file
+      });
+      var data = await resp.json();
+      if(data.error) throw new Error(data.error);
+      if(!data.videoId) throw new Error('No se obtuvo ID del video');
+      window._storyYtUrl = data.videoUrl;
+      window._storyYtId  = data.videoId;
+      var _pvid = document.getElementById('_scPreviewVideo');
+      var _pimg = document.getElementById('_scPreviewImg');
+      var _pbg  = document.getElementById('_scPreviewBg');
+      var _pph  = document.getElementById('_scPreviewPlaceholder');
+      if(_pvid){ _pvid.src='https://www.youtube.com/embed/'+data.videoId+'?autoplay=1&rel=0&playsinline=1&mute=1'; _pvid.style.display='block'; }
+      if(_pimg) _pimg.style.display='none';
+      if(_pbg)  _pbg.style.background='#000';
+      if(_pph)  _pph.style.display='none';
+      _storySetStatus('✅ Video listo. Escribí algo (opcional) y publicá la historia.', 'var(--green)');
+      _toast('✅ Video grabado y listo — completá la historia y publicá','ok');
+    }catch(e){
+      window._storyYtUrl = null; window._storyYtId = null;
+      _storySetStatus('❌ Error: '+e.message, 'var(--red)');
+      _toast('Error al subir: '+e.message,'err');
+      if(prevEl) prevEl.innerHTML='';
+    }
+    _storyYtUploading = false;
+    if(btn2){ btn2.style.opacity=''; btn2.style.pointerEvents=''; }
+    if(btn3){ btn3.style.opacity=''; btn3.style.pointerEvents=''; }
+  }
+
+  window.storyCamCancelar = function(keepStatus){
+    if(_camTimerInt){ clearInterval(_camTimerInt); _camTimerInt=null; }
+    if(_camRecorder && _camRecording){ try{ _camRecorder.stop(); }catch(e){} }
+    _camRecording = false; _camRecorder = null;
+    if(_camStream){ _camStream.getTracks().forEach(function(t){ t.stop(); }); _camStream=null; }
+    var modal = document.getElementById('_storyCamModal');
+    if(modal) modal.style.display='none';
+    var prev = document.getElementById('_storyCamPreview');
+    if(prev) prev.srcObject=null;
+    if(!keepStatus) _storyCamSetStatus('');
+  };
+
+  function _storyCamSetStatus(msg){
+    var el = document.getElementById('_storyCamStatus');
+    if(el) el.textContent = msg;
+  }
 
 })();
 </script>
