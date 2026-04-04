@@ -31604,96 +31604,53 @@ function _esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 </div>
 
 
-<!-- ══════════════════════════════════════════════════════
-     MODAL AVISO LEGAL — ANTES DE LOGIN CON GOOGLE
-══════════════════════════════════════════════════════ -->
+<!-- MODAL AVISO LEGAL GOOGLE -->
 <div id="modalAvisoGoogle" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:16px;">
-  <div style="background:#fff;border-radius:14px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.3);">
-
-    <!-- Header -->
-    <div style="background:linear-gradient(135deg,#1877f2,#0d5dbf);padding:20px 24px;border-radius:14px 14px 0 0;text-align:center;">
-      <div style="font-size:2rem;margin-bottom:6px;">⚠️</div>
-      <div style="color:#fff;font-family:'Orbitron',monospace;font-size:1rem;font-weight:900;letter-spacing:.04em;">Antes de continuar</div>
-      <div style="color:rgba(255,255,255,.8);font-size:.75rem;margin-top:4px;">Leé y aceptá los términos para usar MiLatido</div>
+  <div style="background:#fff;border-radius:14px;max-width:460px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.35);">
+    <div style="background:linear-gradient(135deg,#1877f2,#0d5dbf);padding:18px 22px;border-radius:14px 14px 0 0;text-align:center;">
+      <div style="font-size:1.8rem;margin-bottom:4px;">⚠️</div>
+      <div style="color:#fff;font-weight:900;font-size:.95rem;font-family:'Orbitron',monospace;">Antes de continuar</div>
+      <div style="color:rgba(255,255,255,.8);font-size:.72rem;margin-top:3px;">Leé y aceptá los términos para usar MiLatido</div>
     </div>
-
-    <!-- Contenido -->
-    <div style="padding:20px 24px;font-family:'Exo 2',sans-serif;font-size:.87rem;color:#1a1a2e;line-height:1.7;">
-
-      <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:14px 16px;margin-bottom:16px;">
-        <div style="font-weight:800;color:#b8860b;margin-bottom:6px;font-size:.9rem;">🔞 Contenido para adultos</div>
-        <p style="margin:0;color:#555;">MiLatido es una red social para <strong>mayores de 18 años</strong>. Al continuar, declarás bajo tu responsabilidad que tenés 18 años o más. Las cuentas de menores serán eliminadas de forma inmediata.</p>
+    <div style="padding:18px 20px;font-family:'Exo 2',sans-serif;font-size:.85rem;color:#1a1a2e;line-height:1.6;">
+      <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:12px 14px;margin-bottom:12px;">
+        <div style="font-weight:800;color:#b8860b;margin-bottom:4px;">🔞 Solo para mayores de 18 años</div>
+        <p style="margin:0;color:#555;">Al continuar declarás que tenés 18 años o más. Las cuentas de menores son eliminadas de inmediato.</p>
       </div>
-
-      <div style="background:#fce4ec;border:1px solid #f48fb1;border-radius:10px;padding:14px 16px;margin-bottom:16px;">
-        <div style="font-weight:800;color:#c62828;margin-bottom:6px;font-size:.9rem;">🚫 Contenido prohibido</div>
-        <ul style="margin:0;padding-left:18px;color:#555;">
-          <li>Desnudo total o actos sexuales explícitos</li>
-          <li>Imágenes de menores de edad</li>
-          <li>Acoso, violencia o amenazas</li>
-          <li>Suplantación de identidad</li>
-          <li>Spam o contenido fraudulento</li>
-        </ul>
+      <div style="background:#fce4ec;border:1px solid #f48fb1;border-radius:10px;padding:12px 14px;margin-bottom:12px;">
+        <div style="font-weight:800;color:#c62828;margin-bottom:4px;">🚫 Contenido prohibido</div>
+        <p style="margin:0;color:#555;">Desnudo explícito, imágenes de menores, acoso, violencia, spam o suplantación de identidad.</p>
       </div>
-
-      <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;padding:14px 16px;margin-bottom:16px;">
-        <div style="font-weight:800;color:#2e7d32;margin-bottom:6px;font-size:.9rem;">✅ Contenido permitido</div>
-        <p style="margin:0;color:#555;">Fotos con ropa interior, bikini, contenido sugestivo y fotos personales sensuales están permitidas, siempre que no sean explícitas.</p>
+      <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;padding:12px 14px;margin-bottom:12px;">
+        <div style="font-weight:800;color:#2e7d32;margin-bottom:4px;">✅ Permitido</div>
+        <p style="margin:0;color:#555;">Ropa interior, bikini, fotos sugestivas y contenido sensual no explícito.</p>
       </div>
-
-      <div style="background:#f3e5f5;border:1px solid #ce93d8;border-radius:10px;padding:14px 16px;margin-bottom:20px;">
-        <div style="font-weight:800;color:#6a1b9a;margin-bottom:6px;font-size:.9rem;">⚖️ Responsabilidad</div>
-        <p style="margin:0;color:#555;"><strong>Wikipediarf4 / MiLatido</strong> no se hace responsable del uso que los usuarios hagan de la plataforma, ni del contenido que publiquen. Cada usuario es el único responsable de sus publicaciones e interacciones. El uso indebido puede resultar en la suspensión permanente de la cuenta y acciones legales.</p>
+      <div style="background:#f3e5f5;border:1px solid #ce93d8;border-radius:10px;padding:12px 14px;margin-bottom:16px;">
+        <div style="font-weight:800;color:#6a1b9a;margin-bottom:4px;">⚖️ Responsabilidad</div>
+        <p style="margin:0;color:#555;"><strong>Wikipediarf4 / MiLatido</strong> no se responsabiliza por el uso que los usuarios hagan de la plataforma ni por el contenido que publiquen. Cada usuario es responsable de sus acciones.</p>
       </div>
-
-      <!-- Checkbox obligatorio -->
-      <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:18px;background:#f0f2f5;border-radius:8px;padding:12px;">
-        <input type="checkbox" id="checkAvisoGoogle" style="margin-top:3px;width:18px;height:18px;flex-shrink:0;cursor:pointer;">
-        <span style="font-size:.83rem;color:#1a1a2e;">Leí y acepto los términos. Confirmo que tengo <strong>18 años o más</strong> y entiendo que <strong>Wikipediarf4 / MiLatido no se responsabiliza</strong> por el contenido publicado por los usuarios.</span>
+      <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:16px;background:#f0f2f5;border-radius:8px;padding:10px;">
+        <input type="checkbox" id="checkAvisoGoogle" style="margin-top:2px;width:17px;height:17px;flex-shrink:0;cursor:pointer;" onchange="var b=document.getElementById('btnConfirmarGoogle');if(this.checked){b.style.opacity='1';b.style.pointerEvents='auto';}else{b.style.opacity='.5';b.style.pointerEvents='none';}">
+        <span style="font-size:.82rem;">Leí y acepto. Confirmo que tengo <strong>18 años o más</strong> y entiendo que <strong>MiLatido no se responsabiliza</strong> por el contenido publicado.</span>
       </label>
-
-      <!-- Botones -->
       <div style="display:flex;gap:10px;">
-        <button onclick="document.getElementById('modalAvisoGoogle').style.display='none'" style="flex:1;padding:12px;background:#f0f2f5;color:#65676b;border:none;border-radius:8px;font-weight:700;font-size:.9rem;cursor:pointer;">Cancelar</button>
-        <button id="btnConfirmarGoogle" onclick="confirmarYLoginGoogle()" style="flex:2;padding:12px;background:#1877f2;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:.9rem;cursor:pointer;opacity:.5;pointer-events:none;transition:opacity .2s;">
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:6px;">
-          Continuar con Google
+        <button onclick="document.getElementById('modalAvisoGoogle').style.display='none';document.getElementById('checkAvisoGoogle').checked=false;" style="flex:1;padding:11px;background:#f0f2f5;color:#65676b;border:none;border-radius:8px;font-weight:700;font-size:.88rem;cursor:pointer;">Cancelar</button>
+        <button id="btnConfirmarGoogle" onclick="if(document.getElementById('checkAvisoGoogle').checked){document.getElementById('modalAvisoGoogle').style.display='none';doGoogleLogin();}" style="flex:2;padding:11px;background:#1877f2;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:.88rem;cursor:pointer;opacity:.5;pointer-events:none;transition:opacity .2s;">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:17px;height:17px;vertical-align:middle;margin-right:5px;">Continuar con Google
         </button>
       </div>
-
     </div>
   </div>
 </div>
 
 <script>
 function abrirAvisoGoogle() {
-  var modal = document.getElementById('modalAvisoGoogle');
-  var check = document.getElementById('checkAvisoGoogle');
-  var btn = document.getElementById('btnConfirmarGoogle');
-  // Resetear estado
-  check.checked = false;
-  btn.style.opacity = '.5';
-  btn.style.pointerEvents = 'none';
-  modal.style.display = 'flex';
-  // Activar botón solo cuando marca el checkbox
-  check.onchange = function() {
-    if (check.checked) {
-      btn.style.opacity = '1';
-      btn.style.pointerEvents = 'auto';
-    } else {
-      btn.style.opacity = '.5';
-      btn.style.pointerEvents = 'none';
-    }
-  };
-}
-
-function confirmarYLoginGoogle() {
-  var check = document.getElementById('checkAvisoGoogle');
-  if (!check.checked) return;
-  document.getElementById('modalAvisoGoogle').style.display = 'none';
-  doGoogleLogin();
+  document.getElementById('checkAvisoGoogle').checked = false;
+  var b = document.getElementById('btnConfirmarGoogle');
+  b.style.opacity = '.5';
+  b.style.pointerEvents = 'none';
+  document.getElementById('modalAvisoGoogle').style.display = 'flex';
 }
 </script>
-
 </body>
 </html>
