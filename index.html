@@ -11411,6 +11411,9 @@ function openStoryChooser(){
   if(storyVideoPrevReset) storyVideoPrevReset.innerHTML = '';
   const _scPVid = document.getElementById('_scPreviewVideo');
   if(_scPVid){ _scPVid.src=''; _scPVid.style.display='none'; }
+  const _scPBg = document.getElementById('_scPreviewBg');
+  if(_scPBg){ _scPBg.innerHTML=''; _scPBg.style.background='#111'; }
+  if(window._scYtPollTimer){ clearInterval(window._scYtPollTimer); window._scYtPollTimer=null; }
   // Cerrar cámara si estaba abierta
   var _camModalOpen = document.getElementById('_storyCamModal');
   if(_camModalOpen && _camModalOpen.style.display !== 'none'){
@@ -30070,20 +30073,8 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
         // Guardar en window para que submitStory lo use
         window._storyYtUrl = data.videoUrl;
         window._storyYtId  = data.videoId;
-        // Mostrar preview del video en el panel derecho
-        const _pvid = document.getElementById('_scPreviewVideo');
-        const _pimg = document.getElementById('_scPreviewImg');
-        const _pbg  = document.getElementById('_scPreviewBg');
-        const _pph  = document.getElementById('_scPreviewPlaceholder');
-        if(_pvid){
-          _pvid.src = 'https://www.youtube.com/embed/'+data.videoId+'?autoplay=1&rel=0&playsinline=1&mute=1';
-          _pvid.style.display = 'block';
-        }
-        if(_pimg) _pimg.style.display = 'none';
-        if(_pbg)  _pbg.style.background = '#000';
-        if(_pph)  _pph.style.display = 'none';
-        _storySetStatus('✅ Video listo. Escribí algo (opcional) y publicá la historia.', 'var(--green)');
-        _toast('✅ Video listo — completá la historia y publicá','ok');
+        // Mostrar placeholder y esperar que YT procese
+        _scMostrarPreviewYT(data.videoId, false);
       }catch(e){
         window._storyYtUrl = null;
         window._storyYtId  = null;
@@ -30233,16 +30224,8 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
       if(!data.videoId) throw new Error('No se obtuvo ID del video');
       window._storyYtUrl = data.videoUrl;
       window._storyYtId  = data.videoId;
-      var _pvid = document.getElementById('_scPreviewVideo');
-      var _pimg = document.getElementById('_scPreviewImg');
-      var _pbg  = document.getElementById('_scPreviewBg');
-      var _pph  = document.getElementById('_scPreviewPlaceholder');
-      if(_pvid){ _pvid.src='https://www.youtube.com/embed/'+data.videoId+'?autoplay=1&rel=0&playsinline=1&mute=1'; _pvid.style.display='block'; }
-      if(_pimg) _pimg.style.display='none';
-      if(_pbg)  _pbg.style.background='#000';
-      if(_pph)  _pph.style.display='none';
-      _storySetStatus('✅ Video listo. Escribí algo (opcional) y publicá la historia.', 'var(--green)');
-      _toast('✅ Video grabado y listo — completá la historia y publicá','ok');
+      // Mostrar placeholder y esperar que YT procese
+      _scMostrarPreviewYT(data.videoId, true);
     }catch(e){
       window._storyYtUrl = null; window._storyYtId = null;
       _storySetStatus('❌ Error: '+e.message, 'var(--red)');
@@ -30265,6 +30248,77 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
     if(prev) prev.srcObject=null;
     if(!keepStatus) _storyCamSetStatus('');
   };
+
+  // ── Preview YT con espera de procesamiento ──────────────
+  var _scYtPollTimer = null;
+
+  function _scMostrarPreviewYT(videoId, fromCam){
+    // Limpiar poll anterior si existía
+    if(_scYtPollTimer){ clearInterval(_scYtPollTimer); _scYtPollTimer=null; }
+
+    var _pvid = document.getElementById('_scPreviewVideo');
+    var _pimg = document.getElementById('_scPreviewImg');
+    var _pbg  = document.getElementById('_scPreviewBg');
+    var _pph  = document.getElementById('_scPreviewPlaceholder');
+
+    // Ocultar imagen y limpiar fondo
+    if(_pimg) _pimg.style.display = 'none';
+    if(_pvid) _pvid.style.display = 'none';
+
+    // Mostrar placeholder animado de procesamiento
+    if(_pbg){
+      _pbg.style.background = '#0d0d0d';
+      _pbg.innerHTML = '<div id="_scYtWaitBox" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;">'
+        + '<div style="width:44px;height:44px;border-radius:50%;border:3px solid rgba(255,255,255,.1);border-top-color:#ff3333;animation:_spinYt 0.9s linear infinite;"></div>'
+        + '<div style="color:rgba(255,255,255,.85);font-size:.75rem;font-weight:700;font-family:Orbitron,monospace;letter-spacing:.5px;text-align:center;">Procesando<br>en YouTube</div>'
+        + '<div id="_scYtWaitDots" style="color:rgba(255,255,255,.4);font-size:.65rem;text-align:center;">Esto puede tardar<br>unos segundos…</div>'
+        + '</div>'
+        + '<style>@keyframes _spinYt{to{transform:rotate(360deg);}}</style>';
+    }
+    if(_pph) _pph.style.display = 'none';
+    _storySetStatus('⏳ YouTube está procesando el video...', 'var(--warn)');
+
+    // Polling: verificar disponibilidad via oEmbed (no requiere API key)
+    var _pollAttempts = 0;
+    var _maxAttempts  = 40; // ~2 minutos (cada 3s)
+    _scYtPollTimer = setInterval(async function(){
+      _pollAttempts++;
+      try{
+        var oembedUrl = 'https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v='+videoId+'&format=json';
+        var res = await fetch(oembedUrl);
+        if(res.ok){
+          // Video disponible — mostrar iframe
+          clearInterval(_scYtPollTimer); _scYtPollTimer = null;
+          if(_pbg){ _pbg.innerHTML = ''; _pbg.style.background = '#000'; }
+          if(_pvid){
+            _pvid.src = 'https://www.youtube.com/embed/'+videoId+'?autoplay=1&rel=0&playsinline=1&mute=1';
+            _pvid.style.display = 'block';
+          }
+          var msg = fromCam ? '✅ Video grabado y listo — completá la historia y publicá' : '✅ Video listo — completá la historia y publicá';
+          _storySetStatus('✅ Video listo. Escribí algo (opcional) y publicá la historia.', 'var(--green)');
+          _toast(msg, 'ok');
+          return;
+        }
+      }catch(e){}
+      // Actualizar mensaje de espera
+      var dots = document.getElementById('_scYtWaitDots');
+      if(dots){
+        var secs = _pollAttempts * 3;
+        dots.textContent = 'Esperando… '+secs+'s';
+      }
+      // Timeout
+      if(_pollAttempts >= _maxAttempts){
+        clearInterval(_scYtPollTimer); _scYtPollTimer = null;
+        // Mostrar igualmente — puede que funcione
+        if(_pbg){ _pbg.innerHTML=''; _pbg.style.background='#000'; }
+        if(_pvid){
+          _pvid.src = 'https://www.youtube.com/embed/'+videoId+'?rel=0&playsinline=1';
+          _pvid.style.display = 'block';
+        }
+        _storySetStatus('⚠️ Video subido. Puede tardar unos minutos en verse.', 'var(--warn)');
+      }
+    }, 3000);
+  }
 
   function _storyCamSetStatus(msg){
     var el = document.getElementById('_storyCamStatus');
