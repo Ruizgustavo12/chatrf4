@@ -5288,7 +5288,7 @@ window._rechazarAlbumDesdeNotif = async function(visitorUid, ownerUid, btn) {
         
         <img id="_scPreviewImg" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;">
 
-        <video id="_scPreviewVideo" src="" autoplay playsinline muted loop style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;background:#000;"></video>
+        <iframe id="_scPreviewVideo" src="" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" style="position:absolute;inset:0;width:100%;height:100%;border:none;display:none;background:#000;"></iframe>
         
         <div id="_scPreviewText" style="position:relative;z-index:2;padding:20px;text-align:center;color:#fff;font-weight:700;font-size:1rem;text-shadow:0 2px 8px rgba(0,0,0,.5);word-break:break-word;max-width:100%;"></div>
         
@@ -10637,6 +10637,27 @@ function renderStories(){
     let bg;
     if(s.img){
       bg = `<img src="${s.img}" style="width:100%;height:100%;object-fit:cover">`;
+    } else if(s.video){
+      // Historia con video: extraer thumbnail de YouTube o mostrar ícono de play
+      const _ytMatchCard = s.video.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+      if(_ytMatchCard){
+        const _ytThumbId = _ytMatchCard[1];
+        bg = `<div style="width:100%;height:100%;position:relative;background:#000;overflow:hidden;">
+          <img src="https://i.ytimg.com/vi/${_ytThumbId}/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='https://i.ytimg.com/vi/${_ytThumbId}/mqdefault.jpg'">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+            <div style="width:36px;height:36px;border-radius:50%;background:rgba(255,0,0,.85);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);">
+              <div style="width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-left:14px solid #fff;margin-left:3px;"></div>
+            </div>
+          </div>
+        </div>`;
+      } else {
+        const cardBg = s.bg || 'linear-gradient(135deg,#0a2a4a,#0077b6)';
+        bg = `<div style="width:100%;height:100%;background:${cardBg};display:flex;align-items:center;justify-content:center;">
+          <div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;">
+            <div style="width:0;height:0;border-top:10px solid transparent;border-bottom:10px solid transparent;border-left:18px solid #fff;margin-left:4px;"></div>
+          </div>
+        </div>`;
+      }
     } else if(s.text){
       // Historia de texto: mostrar el fondo y el texto encima
       const cardBg = s.bg || 'linear-gradient(135deg,#0a2a4a,#0077b6)';
@@ -11414,7 +11435,6 @@ function openStoryChooser(){
   const _scPBg = document.getElementById('_scPreviewBg');
   if(_scPBg){ _scPBg.innerHTML=''; _scPBg.style.background='#111'; }
   if(window._scYtPollTimer){ clearInterval(window._scYtPollTimer); window._scYtPollTimer=null; }
-  window._storyYtLocalBlob = null;
   // Cerrar cámara si estaba abierta
   var _camModalOpen = document.getElementById('_storyCamModal');
   if(_camModalOpen && _camModalOpen.style.display !== 'none'){
@@ -12385,7 +12405,7 @@ async function submitStory(){
   _storyImgData = null; _storyVideoData = null; _storyEmojiPick = ''; _storyMusic = null; window._storyMusic = null;
   window._storyBg = null; window._storyGif = null; window._scMode = 'chooser';
   window._storyTextColor = '#ffffff'; window._storyTextStyle = 'normal';
-  window._storyYtUrl = null; window._storyYtId = null; window._storyYtLocalBlob = null;
+  window._storyYtUrl = null; window._storyYtId = null;
   const sv2 = document.getElementById('storyVideoPrev'); if(sv2) sv2.innerHTML='';
   const svSt = document.getElementById('storyVideoUploadStatus'); if(svSt){ svSt.style.display='none'; svSt.innerHTML=''; }
   const stBtn = document.getElementById('storyVideoBtn'); if(stBtn){ stBtn.style.opacity=''; stBtn.style.pointerEvents=''; }
@@ -30053,7 +30073,6 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
       if(btn){ btn.style.opacity='.5'; btn.style.pointerEvents='none'; }
       // Preview local
       var localUrl = URL.createObjectURL(file);
-      window._storyYtLocalBlob = localUrl;
       var prevEl = document.getElementById('storyVideoPrev');
       if(prevEl) prevEl.innerHTML = '<video src="'+localUrl+'" controls style="width:100%;max-height:180px;border-radius:10px;background:#000;display:block;" preload="metadata"></video>';
       _storySetStatus('⏳ Subiendo video a YouTube...', 'var(--warn)');
@@ -30202,7 +30221,6 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
     storyCamCancelar(true);
     var prevEl = document.getElementById('storyVideoPrev');
     var localUrl = URL.createObjectURL(blob);
-    window._storyYtLocalBlob = localUrl;
     if(prevEl) prevEl.innerHTML = '<video src="'+localUrl+'" controls style="width:100%;max-height:180px;border-radius:10px;background:#000;display:block;" preload="metadata"></video>';
     _storyYtUploading = true;
     var btn2 = document.getElementById('storyVideoBtn');
@@ -30255,9 +30273,8 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
   // ── Preview YT con espera de procesamiento ──────────────
   var _scYtPollTimer = null;
 
-  // localBlobUrl: URL.createObjectURL del archivo grabado/seleccionado
-  // Se setea antes de llamar esta función
   function _scMostrarPreviewYT(videoId, fromCam){
+    // Limpiar poll anterior si existía
     if(_scYtPollTimer){ clearInterval(_scYtPollTimer); _scYtPollTimer=null; }
 
     var _pvid = document.getElementById('_scPreviewVideo');
@@ -30265,20 +30282,63 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
     var _pbg  = document.getElementById('_scPreviewBg');
     var _pph  = document.getElementById('_scPreviewPlaceholder');
 
+    // Ocultar imagen y limpiar fondo
     if(_pimg) _pimg.style.display = 'none';
-    if(_pbg){ _pbg.innerHTML=''; _pbg.style.background='#000'; }
-    if(_pph) _pph.style.display = 'none';
+    if(_pvid) _pvid.style.display = 'none';
 
-    // Mostrar el blob local directamente — instantáneo, sin depender de YT
-    var localUrl = window._storyYtLocalBlob || '';
-    if(_pvid && localUrl){
-      _pvid.src = localUrl;
-      _pvid.style.display = 'block';
+    // Mostrar placeholder animado de procesamiento
+    if(_pbg){
+      _pbg.style.background = '#0d0d0d';
+      _pbg.innerHTML = '<div id="_scYtWaitBox" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;">'
+        + '<div style="width:44px;height:44px;border-radius:50%;border:3px solid rgba(255,255,255,.1);border-top-color:#ff3333;animation:_spinYt 0.9s linear infinite;"></div>'
+        + '<div style="color:rgba(255,255,255,.85);font-size:.75rem;font-weight:700;font-family:Orbitron,monospace;letter-spacing:.5px;text-align:center;">Procesando<br>en YouTube</div>'
+        + '<div id="_scYtWaitDots" style="color:rgba(255,255,255,.4);font-size:.65rem;text-align:center;">Esto puede tardar<br>unos segundos…</div>'
+        + '</div>'
+        + '<style>@keyframes _spinYt{to{transform:rotate(360deg);}}</style>';
     }
+    if(_pph) _pph.style.display = 'none';
+    _storySetStatus('⏳ YouTube está procesando el video...', 'var(--warn)');
 
-    var msg = fromCam ? '✅ Video grabado y listo — completá la historia y publicá' : '✅ Video listo — completá la historia y publicá';
-    _storySetStatus('✅ Video listo. Escribí algo (opcional) y publicá la historia.', 'var(--green)');
-    _toast(msg, 'ok');
+    // Polling: verificar disponibilidad via oEmbed (no requiere API key)
+    var _pollAttempts = 0;
+    var _maxAttempts  = 40; // ~2 minutos (cada 3s)
+    _scYtPollTimer = setInterval(async function(){
+      _pollAttempts++;
+      try{
+        var oembedUrl = 'https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v='+videoId+'&format=json';
+        var res = await fetch(oembedUrl);
+        if(res.ok){
+          // Video disponible — mostrar iframe
+          clearInterval(_scYtPollTimer); _scYtPollTimer = null;
+          if(_pbg){ _pbg.innerHTML = ''; _pbg.style.background = '#000'; }
+          if(_pvid){
+            _pvid.src = 'https://www.youtube.com/embed/'+videoId+'?autoplay=1&rel=0&playsinline=1&mute=1';
+            _pvid.style.display = 'block';
+          }
+          var msg = fromCam ? '✅ Video grabado y listo — completá la historia y publicá' : '✅ Video listo — completá la historia y publicá';
+          _storySetStatus('✅ Video listo. Escribí algo (opcional) y publicá la historia.', 'var(--green)');
+          _toast(msg, 'ok');
+          return;
+        }
+      }catch(e){}
+      // Actualizar mensaje de espera
+      var dots = document.getElementById('_scYtWaitDots');
+      if(dots){
+        var secs = _pollAttempts * 3;
+        dots.textContent = 'Esperando… '+secs+'s';
+      }
+      // Timeout
+      if(_pollAttempts >= _maxAttempts){
+        clearInterval(_scYtPollTimer); _scYtPollTimer = null;
+        // Mostrar igualmente — puede que funcione
+        if(_pbg){ _pbg.innerHTML=''; _pbg.style.background='#000'; }
+        if(_pvid){
+          _pvid.src = 'https://www.youtube.com/embed/'+videoId+'?rel=0&playsinline=1';
+          _pvid.style.display = 'block';
+        }
+        _storySetStatus('⚠️ Video subido. Puede tardar unos minutos en verse.', 'var(--warn)');
+      }
+    }, 3000);
   }
 
   function _storyCamSetStatus(msg){
