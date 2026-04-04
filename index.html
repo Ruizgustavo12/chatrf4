@@ -12774,7 +12774,10 @@ async function toggleComments(pid){
     if(e.target===modal) modal.remove();
   });
   document.addEventListener('keydown', function _esc(e){ if(e.key==='Escape'){ modal.remove(); document.removeEventListener('keydown',_esc); }});
-  document.body.appendChild(modal);
+  // Si estamos en reels, inyectar dentro del overlay para evitar problemas de z-index
+  const _reelsOv = document.getElementById('reelsOverlay');
+  const _cmtContainer = (_reelsOv && _reelsOv.style.display !== 'none') ? _reelsOv : document.body;
+  _cmtContainer.appendChild(modal);
   setTimeout(()=>{ const inp=document.getElementById('_cmtModalInp_'+pid); if(inp) inp.focus(); }, 100);
 }
 
@@ -22415,7 +22418,6 @@ async function _reelsHandleClick(e){
   const btn = e.target.closest('[data-action]');
   if(!btn) return;
   e.stopPropagation();
-  e.preventDefault();
   const action = btn.dataset.action;
   const pid = btn.dataset.pid;
 
@@ -22427,12 +22429,6 @@ async function _reelsHandleClick(e){
   if(action==='share' && pid){ sharePost(pid); return; }
 
   if(!pid) return;
-
-  // Verificar login antes de reaccionar o comentar
-  if((action==='like'||action==='comment') && !window.CU){
-    toast('Iniciá sesión para interactuar','err');
-    return;
-  }
 
   // Ensure post is in _posts cache before calling react/comment
   if(!(_posts||[]).find(p=>p.id===pid)){
@@ -22447,25 +22443,21 @@ async function _reelsHandleClick(e){
   }
 
   if(action==='like'){
-    try {
-      await doReact(pid,'❤️');
-      // Update reel like button visually
-      const p = (_posts||[]).find(p=>p.id===pid);
-      if(p){
-        const likeBtn = document.querySelector('[data-reel-pid="'+pid+'"] [data-action="like"]');
-        if(likeBtn){
-          const fmtN = n=>n>999?(n/1000).toFixed(1)+'K':(n||'0');
-          const total = Object.values(p.reactionCounts||{}).reduce((a,b)=>a+(b||0),0);
-          const myRxn = p.reactions?.[window.CU?.id];
-          likeBtn.innerHTML = (myRxn||'❤️') + ' ' + fmtN(total||p.likes||0);
-          likeBtn.style.color = myRxn ? '#f85149' : '';
-        }
+    await doReact(pid,'❤️');
+    // Update reel like button visually
+    const p = (_posts||[]).find(p=>p.id===pid);
+    if(p){
+      const likeBtn = document.querySelector('[data-reel-pid="'+pid+'"] [data-action="like"]');
+      if(likeBtn){
+        const fmtN = n=>n>999?(n/1000).toFixed(1)+'K':(n||'0');
+        const total = Object.values(p.reactionCounts||{}).reduce((a,b)=>a+(b||0),0);
+        const myRxn = p.reactions?.[window.CU?.id];
+        likeBtn.innerHTML = (myRxn||'❤️') + ' ' + fmtN(total||p.likes||0);
+        likeBtn.style.color = myRxn ? '#f85149' : '';
       }
-    } catch(err){ console.warn('reel like err',err); }
+    }
   }
-  if(action==='comment'){
-    try { toggleComments(pid); } catch(err){ console.warn('reel comment err',err); }
-  }
+  if(action==='comment'){ toggleComments(pid); }
 }
 
 function _renderReelsFeed(el, H){
