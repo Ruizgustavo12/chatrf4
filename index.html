@@ -3807,10 +3807,9 @@ a[style*="color:var(--accent)"] { color: #1877f2 !important; }
     var myUid = window.CU && window.CU.id;
     if (!myUid) { toast('Debés iniciar sesión','err'); return; }
 
-    // Máximo 5 fotos por vez
     if (files.length > 5) { toast('Podés subir máximo 5 fotos a la vez','err'); input.value=''; return; }
 
-    // Verificar límite total de 50 fotos (contar solo no-rechazadas)
+    // Verificar límite total (contar solo no-rechazadas)
     try {
       var countSnap = await window.getDocs(window.query(window.collection(window.db,'albumPrivado',myUid,'fotos'),window.limit(51)));
       var noRechazadas = 0;
@@ -3818,50 +3817,47 @@ a[style*="color:var(--accent)"] { color: #1877f2 !important; }
       if (noRechazadas + files.length > 50) { toast('Máximo 50 fotos en el álbum privado','err'); input.value=''; return; }
     } catch(e) { console.warn('No se pudo verificar cantidad:', e); }
 
-    toast('Subiendo fotos... ⏳');
     var subidos = 0;
     var errores = 0;
+    var total = files.length;
 
-    for (var file of files) {
-      if (file.size > 5*1024*1024) { toast('Una foto supera 5MB, se omitió','err'); errores++; continue; }
+    // Esperar a que uploadImage esté disponible (se define más adelante en el HTML)
+    var _uploadFn;
+    try {
+      _uploadFn = await _waitForUploadImage(8000);
+    } catch(e) {
+      toast('❌ Error interno: recargá la página e intentá de nuevo.', 'err');
+      input.value = '';
+      return;
+    }
+
+    for (var i = 0; i < files.length; i++) {
+      var file = files[i];
+      toast('📤 Subiendo foto ' + (i+1) + ' de ' + total + '...');
+      if (file.size > 5*1024*1024) { toast('❌ Foto ' + (i+1) + ' supera 5MB, fue omitida','err'); errores++; continue; }
       try {
-        // Subir directamente a Cloudinary para obtener también el public_id
-        var blob = file;
-        if (blob.size > 800000) {
-          try { blob = await _compressImage(blob, 1200, 0.82); } catch(ce) { /* ignorar si no existe */ }
-        }
-        var fd = new FormData();
-        fd.append('file', blob);
-        fd.append('upload_preset', CLOUDINARY_PRESET_FOTOS);
-        fd.append('folder', 'rf4/albumPrivado');
-        var res = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD + '/image/upload', { method:'POST', body:fd });
-        var data = await res.json();
-        if (!res.ok || !data.secure_url) throw new Error(data?.error?.message || 'Error Cloudinary');
-        var cloudUrl = data.secure_url;
-        var publicId = data.public_id || '';
-        // Guardar en Firestore con estado siempre pendiente, url, public_id, usuario
+        var url = await _uploadFn(file, 'albumPrivado');
         await window.addDoc(window.collection(window.db,'albumPrivado',myUid,'fotos'), {
-          url: cloudUrl,
-          publicId: publicId,
+          url: url,
           subidaEn: Date.now(),
           ownerUid: myUid,
           ownerNick: window.CU.nick || '',
           ownerAv: window.CU.av || '',
-          estado: 'pendiente'   // siempre pendiente hasta revisión admin
+          estado: 'pendiente'
         });
         subidos++;
       } catch(e) {
         console.error('Upload album error:', e);
-        toast('❌ ' + (e.message || 'Error al subir'), 'err');
+        toast('❌ ' + (e.message || 'Error al subir foto ' + (i+1)), 'err');
         errores++;
       }
     }
 
     if (subidos > 0) {
-      toast('⏳ ' + subidos + ' foto' + (subidos>1?'s':'') + ' enviada' + (subidos>1?'s':'') + ' para revisión. Será visible cuando el admin la apruebe.');
+      toast('⏳ ' + subidos + ' foto' + (subidos>1?'s':'') + ' enviada' + (subidos>1?'s':'') + ' para revisión. El admin la aprobará pronto.');
       await _cargarFotosAlbum(myUid);
     } else if (errores > 0 && subidos === 0) {
-      toast('No se pudo subir ninguna foto. Verificá tu conexión.','err');
+      toast('❌ No se pudo subir ninguna foto. Verificá tu conexión.','err');
     }
     input.value = '';
   };
