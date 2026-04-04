@@ -5717,7 +5717,11 @@ window._rechazarAlbumDesdeNotif = async function(visitorUid, ownerUid, btn) {
   gap: 3px;
 }
 .cm-row.mine .cm-time { justify-content: flex-end; color: rgba(255,255,255,.5); }
-.cm-read-tick { font-size: .7rem; }
+.cm-read-tick { font-size: .7rem; display: inline-flex; align-items: center; gap: 2px; }
+.cm-tick-icon { font-size: .7rem; }
+.cm-tick-label { font-size: .6rem; font-style: italic; letter-spacing: .01em; }
+.cm-read-tick.seen .cm-tick-label { color: #0084ff; }
+.cm-read-tick.sent .cm-tick-label { color: rgba(255,255,255,.45); }
 .cm-read-tick.seen { color: #0084ff; }
 .cm-read-tick.sent { color: rgba(255,255,255,.5); }
 
@@ -22332,10 +22336,10 @@ function openChatWith(uid, nick){
                 const d = new Date(m.readAt);
                 const h = d.getHours().toString().padStart(2,'0');
                 const min = d.getMinutes().toString().padStart(2,'0');
-                return `<span class="cm-read-tick seen" title="Leído ${h}:${min}">✓✓</span>`;
+                return `<span class="cm-read-tick seen" title="Leído ${h}:${min}"><span class="cm-tick-icon">✓✓</span><span class="cm-tick-label">Leído ${h}:${min}</span></span>`;
               }
-              if(m.read) return `<span class="cm-read-tick seen">✓✓</span>`;
-              return `<span class="cm-read-tick sent">✓</span>`;
+              if(m.read) return `<span class="cm-read-tick seen"><span class="cm-tick-icon">✓✓</span><span class="cm-tick-label">Leído</span></span>`;
+              return `<span class="cm-read-tick sent"><span class="cm-tick-icon">✓</span><span class="cm-tick-label">Entregado</span></span>`;
             })() : '';
 
             const msgRxns = m.reactions || {};
