@@ -1094,6 +1094,13 @@ button{font-family:'Exo 2',sans-serif;cursor:pointer;}
 .mobile-only-btn{display:none !important;}
 
 /* ===== RESPONSIVE MOBILE ===== */
+@media(max-width:1100px){
+  /* Sidebar se oculta en tablet — mostrar bottom nav */
+  .sidebar-left{display:none;}
+  .bottom-nav{display:flex !important;position:fixed;bottom:0;left:0;right:0;background:#ffffff;border-top:1px solid #dddfe2;z-index:1000;height:56px;align-items:center;justify-content:space-around;padding:0 4px;}
+  body{padding-bottom:56px;}
+}
+
 @media(max-width:768px){
   /* Topbar mobile */
   .topbar{padding:0 10px;height:52px;}
@@ -25778,14 +25785,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
   <button class="bottom-nav-btn on" id="bnHome" onclick="gp('home');setBottomNav('bnHome')">
     <span class="bn-icon">🏠</span>Home
   </button>
-  <button class="bottom-nav-btn" id="bnShop" onclick="gp('shop');setBottomNav('bnShop');renderShopPage()">
-    <span class="bn-icon" style="position:relative;">🛒<span style="position:absolute;top:-4px;right:-6px;width:8px;height:8px;background:gold;border-radius:50%;border:1.5px solid #161b22;"></span></span>Tienda
-  </button>
   <button class="bottom-nav-btn" id="bnAmigos" onclick="gp('amigos');setBottomNav('bnAmigos');renderAmigosPage()">
     <span class="bn-icon">👥</span>Amigos
   </button>
   <button class="bottom-nav-btn" id="bnMatch" onclick="gp('match');setBottomNav('bnMatch')">
     <span class="bn-icon">💘</span>Match
+  </button>
+  <button class="bottom-nav-btn" id="bnFotos" onclick="gp('fotos');initFotosPage();setBottomNav('bnFotos')">
+    <span class="bn-icon">📸</span>Fotos
+  </button>
+  <button class="bottom-nav-btn" id="bnReels" onclick="gp('reels');setBottomNav('bnReels')">
+    <span class="bn-icon">🎬</span>Reels
   </button>
   <button class="bottom-nav-btn" id="bnPerfil" onclick="gp('profile');setBottomNav('bnPerfil')">
     <span class="bn-icon">👤</span>Perfil
