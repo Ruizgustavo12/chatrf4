@@ -12251,7 +12251,12 @@ async function saveProfile(){
   const _cpFields2 = ['epZodiac','epRelStatus','epLookingWhat','epHasKids','epWantsKids','epSmokes','epDrinks','epEducation','epLivesAlone','epBody','epReligion','epExercise','epPets'];
   const _cpKeys2   = ['zodiac','relStatus','lookingWhat','hasKids','wantsKids','smokes','drinks','education','livesAlone','body','religion','exercise','pets'];
   _cpFields2.forEach((fid,i)=>{ const el=document.getElementById(fid); if(el) window.CU[_cpKeys2[i]]=el.value||''; });
-  await updateDoc(doc(db, 'users', window.CU.id), window.CU);
+  // Guardar sin notifs para evitar sobreescribir notificaciones nuevas en Firestore
+  const cuToSave = { ...window.CU };
+  delete cuToSave.notifs;
+  await updateDoc(doc(db, 'users', window.CU.id), cuToSave);
+  // Restaurar notifs localmente
+  if (_savedNotifs !== undefined) window.CU.notifs = _savedNotifs;
   cm('mEditProfile'); updateNavUI(); renderProfile();
   toast('Perfil actualizado ✅','ok');
 }
@@ -31149,10 +31154,14 @@ window.openEditProfile = function() {
   window._pendingPartnerId   = (window.CU && window.CU.partnerUid)  || null;
   window._pendingPartnerNick = (window.CU && window.CU.partnerNick) || null;
   _renderPartnerCurrent();
-  if (window.CU && window.CU.relStatus === '💑 En relación') {
-    const box = document.getElementById('epPartnerBox');
-    if (box) box.style.display = 'block';
-  }
+  // Forzar visibilidad del bloque de pareja segun el valor actual del selector.
+  // Setear .value por codigo no dispara onchange, asi que lo llamamos manualmente.
+  setTimeout(function() {
+    var relSel = document.getElementById('epRelStatus');
+    if (relSel && typeof window._onRelStatusChange === 'function') {
+      window._onRelStatusChange(relSel.value);
+    }
+  }, 50);
 };
 
 /* ════════════════════════════════════════════
