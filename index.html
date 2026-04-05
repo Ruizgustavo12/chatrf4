@@ -6157,6 +6157,8 @@ function applyAdminUploadUnlock(){
   window._adminUploadObserver.observe(document.body,{childList:true,subtree:true});
 }
 
+const IMGBB_API_KEY = '75c60bcb472ab597b1dee463438b18ba';
+
 async function uploadImage(fileOrBase64, folder) {
   let blob;
   if (typeof fileOrBase64 === 'string' && fileOrBase64.startsWith('data:')) {
@@ -6177,33 +6179,32 @@ async function uploadImage(fileOrBase64, folder) {
     blob = await _addWatermark(blob);
   }
 
+  // Convertir blob a base64
+  const base64 = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+
   const formData = new FormData();
-  formData.append('file', blob);
-  const _presetToUse = (folder === 'avatars') ? CLOUDINARY_PRESET : CLOUDINARY_PRESET_FOTOS;
-  formData.append('upload_preset', _presetToUse);
-  formData.append('folder', 'rf4/' + (folder || 'general'));
+  formData.append('image', base64);
+  formData.append('name', (folder || 'general') + '_' + Date.now());
 
   let res, data;
   try {
-    res  = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method:'POST', body:formData });
+    res  = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method:'POST', body:formData });
     data = await res.json();
   } catch(netErr) {
     throw new Error('Sin conexión. Verificá tu red e intentá de nuevo.');
   }
 
-  if (res.ok && data.secure_url) {
-    const modStatus = data?.moderation?.[0]?.status;
-    if (modStatus === 'rejected') {
-      throw new Error('🚫 Imagen rechazada por contenido inapropiado.');
-    }
-    return data.secure_url;
+  if (res.ok && data.success && data.data?.url) {
+    return data.data.url;
   }
 
   const errMsg = data?.error?.message || '';
-  console.error('Cloudinary uploadImage error:', JSON.stringify(data));
-  if (errMsg.toLowerCase().includes('preset')) {
-    throw new Error('Preset de Cloudinary sin configurar como Unsigned.');
-  }
+  console.error('ImgBB uploadImage error:', JSON.stringify(data));
   throw new Error(errMsg || 'Error al subir imagen. Intentá de nuevo.');
 }
 
@@ -19454,13 +19455,7 @@ window.sendChatPhoto = async function(input){
   if(!window.CU || !_chatUserId){ toast('Error: no hay conversación activa','err'); return; }
   toast('📷 Subiendo imagen...','ok');
   try {
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('upload_preset', CLOUDINARY_PRESET);
-    fd.append('folder', 'chat');
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method:'POST', body:fd });
-    const data = await res.json();
-    const imgUrl = data.secure_url;
+    const imgUrl = await uploadImage(file, 'chat');
     if(!imgUrl) throw new Error('Sin URL');
     const chatId = [window.CU.id, _chatUserId].sort().join('_');
     await addDoc(collection(db,'chats',chatId,'messages'),{
@@ -19630,14 +19625,9 @@ async function sendChatMsg(gifUrl){
     removeChatImgPreview();
     try {
       toast('📷 Subiendo imagen...','ok');
-      const fd = new FormData();
-      fd.append('file', imgFile);
-      fd.append('upload_preset', CLOUDINARY_PRESET);
-      fd.append('folder', 'chat');
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method:'POST', body:fd });
-      const data = await res.json();
-      if(!data.secure_url) throw new Error(data.error?.message||'Upload falló');
-      msgData.gif = data.secure_url;
+      const _imgUrl = await uploadImage(imgFile, 'chat');
+      if(!_imgUrl) throw new Error('Upload falló');
+      msgData.gif = _imgUrl;
       msgData.text = text || '';
     } catch(e){
       toast('Error al subir imagen: '+e.message,'err');
