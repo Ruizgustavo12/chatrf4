@@ -9652,7 +9652,7 @@ function postHTML(p){
   const myRxn = window.CU ? (p.reactions?.[window.CU.id]||null) : null;
   const totalRxn = Object.values(p.reactionCounts||{}).reduce((a,b)=>a+b,0);
   const topRxn = Object.entries(p.reactionCounts||{}).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([e])=>e).join('');
-  const myRxnObj = REACTIONS.find(r=>r.emoji===myRxn);
+  const myRxnObj = myRxn ? (REACTIONS.find(r=>r.emoji===myRxn) || REACTIONS.find(r=>r.emoji.replace(/\uFE0F/g,'')===myRxn.replace(/\uFE0F/g,''))) : null;
   const rxnBtns = window._buildRxnBtns ? window._buildRxnBtns(p.id, myRxn) : REACTIONS.map(r=>`<button class="rxn-btn${myRxn===r.emoji?' rxn-active':''}" onclick="doReact('${p.id}','${r.emoji}');schedHideRxnPop('${p.id}')" title="${r.label}"><span class="rxn-emoji-icon">${r.emoji}</span><span class="rxn-tooltip">${r.label}</span></button>`).join('');
   const fishTag = p.fish ? `<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,198,255,.08);border:1px solid rgba(0,198,255,.2);border-radius:100px;padding:4px 12px;font-size:.78rem;margin-bottom:10px;margin-left:14px"><span>🎣</span><strong>${p.fish}</strong>${p.weight?` · ${fmtKg(p.weight)}`:''} ${p.map?`· ${p.map}`:''} ${p.tech?`· ${p.tech}`:''}</div>` : '';
   window._postImgsMap = window._postImgsMap || {};
@@ -9995,11 +9995,11 @@ function postHTML(p){
         <button class="fb-act-btn fb-like-btn ${myRxn?'fb-reacted':''}" id="rxnt_${p.id}"
           onclick="quickReact('${p.id}')"
           title=""
-          style="${myRxn?`color:${REACTIONS.find(r=>r.emoji===myRxn)?.color||'#1877f2'};`:''}"
+          style="${myRxnObj?`color:${myRxnObj.color};`:''}"
         >
           <span class="fb-act-emoji" style="font-size:1.15rem;line-height:1;">${myRxn || '👍'}</span>
-          <span class="fb-act-label" style="${myRxn?`color:${REACTIONS.find(r=>r.emoji===myRxn)?.color||'#1877f2'};font-weight:700;`:''}">
-            ${myRxn?(REACTIONS.find(r=>r.emoji===myRxn)?.label||'Me gusta'):'Me gusta'}
+          <span class="fb-act-label" style="${myRxnObj?`color:${myRxnObj.color};font-weight:700;`:''}">
+            ${myRxnObj?myRxnObj.label:'Me gusta'}
           </span>
         </button>
         <div class="rxn-popup" id="rxnp_${p.id}" onmouseenter="cancelHideRxnPop('${p.id}')" onmouseleave="schedHideRxnPop('${p.id}')">${rxnBtns}</div>
@@ -10601,11 +10601,27 @@ function showRxnPop(id){
   cancelHideRxnPop(id);
   const popup = document.getElementById('rxnp_'+id);
   if(!popup) return;
-  // Regenerar botones con _buildRxnBtns si ya está disponible (garantiza tooltips correctos)
-  if(window._buildRxnBtns && !popup.dataset.upgraded){
-    const myRxn = window.CU ? (window._posts?.find(p=>p.id===id)?.reactions?.[window.CU.id]||null) : null;
+  // Obtener la reaccion actual del usuario para este post
+  const postId = id.replace(/^_modal_/, '');
+  const myRxn = window.CU ? (window._posts?.find(p=>p.id===postId)?.reactions?.[window.CU.id]||null) : null;
+  // Regenerar botones con _buildRxnBtns (garantiza tooltips correctos y animaciones)
+  if(window._buildRxnBtns){
     popup.innerHTML = window._buildRxnBtns(id, myRxn);
-    popup.dataset.upgraded = '1';
+  }
+  // Actualizar el label del boton principal con el nombre correcto de la reaccion
+  const mainBtn = document.getElementById('rxnt_'+postId);
+  if(mainBtn && window.REACTIONS){
+    const rxnDef = myRxn ? window.REACTIONS.find(r=>r.emoji===myRxn) : null;
+    const emoji = mainBtn.querySelector('.fb-act-emoji');
+    const label = mainBtn.querySelector('.fb-act-label');
+    if(emoji) emoji.textContent = myRxn || '👍';
+    if(label){
+      label.textContent = rxnDef ? rxnDef.label : 'Me gusta';
+      label.style.color = rxnDef ? rxnDef.color : '';
+      label.style.fontWeight = rxnDef ? '700' : '';
+    }
+    if(rxnDef){ mainBtn.style.color = rxnDef.color; mainBtn.classList.add('fb-reacted'); }
+    else { mainBtn.style.color = ''; mainBtn.classList.remove('fb-reacted'); }
   }
   const wrap = popup.closest('.fb-act-wrap');
   if(wrap){
