@@ -16831,6 +16831,7 @@ function renderNotifs(){
     // Vista previa del contenido al que se reaccionó/comentó
     const hasPostPreview = !!(n.postImg || n.postPreviewText) && postId;
     const isReactionNotif = (n.text||'').includes('reaccionó') || (n.text||'').match(/^[👍❤️😂😮😢🔥]/u);
+    const isCommentNotif  = (n.text||'').includes('🗨️') || (n.text||'').includes('comentó') || (n.text||'').includes('↩️') || (n.text||'').includes('respondió');
 
     // Separar el texto en partes: actor + acción (para resaltar el nick)
     let notifTextHtml = '';
@@ -16867,7 +16868,7 @@ function renderNotifs(){
     const matchUid    = n.matchUid||n.fromUid||'';
     const isMatchNotif = matchType==='match_mutual'||matchType==='match_like'||matchType==='match_superlike';
     const rowClickable = !!(postId || bdayUid || storyId || isMatchNotif);
-    return `<div data-action="notif-click" data-postid="${postId}" data-bdayuid="${bdayUid}" data-bdaynick="${n.bdayNick||''}" data-storyid="${storyId}" data-type="${matchType}" data-matchuid="${matchUid}" data-matchnick="${(n.fromNick||'').replace(/"/g,'&quot;')}"
+    return `<div data-action="notif-click" data-postid="${postId}" data-bdayuid="${bdayUid}" data-bdaynick="${n.bdayNick||''}" data-storyid="${storyId}" data-type="${matchType}" data-matchuid="${matchUid}" data-matchnick="${(n.fromNick||'').replace(/"/g,'&quot;')}" data-iscomment="${isCommentNotif?'1':''}"
       style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;transition:background .15s;${rowBg}cursor:${rowClickable?'pointer':'default'};border-bottom:1px solid rgba(255,255,255,.04);position:relative;"
       onmouseover="this.style.background='var(--bg3)';this.querySelector('.notif-del-btn')&&(this.querySelector('.notif-del-btn').style.opacity='1')"
       onmouseout="this.style.background='${unreadBg}';this.querySelector('.notif-del-btn')&&(this.querySelector('.notif-del-btn').style.opacity='0')">
@@ -16910,7 +16911,21 @@ function renderNotifs(){
     if(action==='notif-click'){
       const nType = row.dataset.type||'';
       if(row.dataset.storyid){ closeNotifDropdown(); openStoryById(row.dataset.storyid); }
-      else if(row.dataset.postid){ closeNotifDropdown(); scrollToPost(row.dataset.postid); }
+      else if(row.dataset.postid){
+        closeNotifDropdown();
+        const _pid = row.dataset.postid;
+        const _openCmt = row.dataset.iscomment === '1';
+        scrollToPost(_pid);
+        if(_openCmt){
+          // Abrir comentarios después de que scrollToPost navegue al home y haga scroll
+          setTimeout(async ()=>{
+            const _cmtsEl = document.getElementById('cmts_'+_pid);
+            if(_cmtsEl && !_cmtsEl.classList.contains('open')){
+              await toggleComments(_pid);
+            }
+          }, 700);
+        }
+      }
       else if(row.dataset.bdayuid){ closeNotifDropdown(); openUserProfile(row.dataset.bdayuid, row.dataset.bdaynick); }
       else if(nType==='match_mutual'){
         // Match mutuo: abrir chat con la persona o ir a Match
@@ -19657,18 +19672,23 @@ function scrollToPost(postId){
   // Cerrar messenger si está abierto
   const messengerModal = document.getElementById('mMessenger');
   if(messengerModal && messengerModal.classList.contains('open')) cm('mMessenger');
-  // Go to home page first
+  // Ir al home
   gp('home');
-  // Wait for render then scroll
-  setTimeout(()=>{
+  // Intentar scroll con reintentos por si el post aún no está en el DOM
+  let _attempts = 0;
+  function _tryScroll(){
     const el = document.getElementById('post_'+postId);
     if(el){
       el.scrollIntoView({behavior:'smooth', block:'center'});
-      el.style.transition='box-shadow .3s';
+      el.style.transition='box-shadow .4s';
       el.style.boxShadow='0 0 0 3px var(--accent)';
-      setTimeout(()=>{ el.style.boxShadow=''; },2500);
+      setTimeout(()=>{ el.style.boxShadow=''; }, 2500);
+    } else if(_attempts < 6){
+      _attempts++;
+      setTimeout(_tryScroll, 350);
     }
-  }, 350);
+  }
+  setTimeout(_tryScroll, 350);
 }
 
 // ===== SPOTS =====
