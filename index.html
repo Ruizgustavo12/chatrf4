@@ -9653,7 +9653,7 @@ function postHTML(p){
   const totalRxn = Object.values(p.reactionCounts||{}).reduce((a,b)=>a+b,0);
   const topRxn = Object.entries(p.reactionCounts||{}).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([e])=>e).join('');
   const myRxnObj = myRxn ? (REACTIONS.find(r=>r.emoji===myRxn) || REACTIONS.find(r=>r.emoji.replace(/\uFE0F/g,'')===myRxn.replace(/\uFE0F/g,''))) : null;
-  const rxnBtns = window._buildRxnBtns ? window._buildRxnBtns(p.id, myRxn) : REACTIONS.map(r=>`<button class="rxn-btn${myRxn===r.emoji?' rxn-active':''}" onclick="doReact('${p.id}','${r.emoji}');schedHideRxnPop('${p.id}')" title="${r.label}"><span class="rxn-emoji-icon">${r.emoji}</span><span class="rxn-tooltip">${r.label}</span></button>`).join('');
+  const rxnBtns = window._buildRxnBtns ? window._buildRxnBtns(p.id, myRxn) : REACTIONS.map(r=>`<button class="rxn-btn${myRxn===r.emoji?' rxn-active':''}" onclick="doReact('${p.id}','${r.emoji}');schedHideRxnPop('${p.id}')"><span class="rxn-emoji-icon">${r.emoji}</span><span class="rxn-tooltip">${r.label}</span></button>`).join('');
   const fishTag = p.fish ? `<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,198,255,.08);border:1px solid rgba(0,198,255,.2);border-radius:100px;padding:4px 12px;font-size:.78rem;margin-bottom:10px;margin-left:14px"><span>🎣</span><strong>${p.fish}</strong>${p.weight?` · ${fmtKg(p.weight)}`:''} ${p.map?`· ${p.map}`:''} ${p.tech?`· ${p.tech}`:''}</div>` : '';
   window._postImgsMap = window._postImgsMap || {};
   if(p.images&&p.images.length) window._postImgsMap[p.id] = p.images;
@@ -10646,7 +10646,7 @@ function rxnSwitchCat(btn, pid, catIdx){
   const myRxn = window.CU ? (window._posts?.find(p=>p.id===pid)?.reactions?.[window.CU.id]||null) : null;
   const cat = REACTION_CATEGORIES[catIdx];
   if(!cat) return;
-  grid.innerHTML = cat.emojis.map(r=>`<button class="rxn-btn${myRxn===r.emoji?' rxn-active':''}" onclick="doReact('${pid}','${r.emoji}');schedHideRxnPop('${pid}')" title="${r.label}"><span class="rxn-emoji-icon">${r.emoji}</span><span class="rxn-tooltip">${r.label}</span></button>`).join('');
+  grid.innerHTML = cat.emojis.map(r=>`<button class="rxn-btn${myRxn===r.emoji?' rxn-active':''}" onclick="doReact('${pid}','${r.emoji}');schedHideRxnPop('${pid}')"><span class="rxn-emoji-icon">${r.emoji}</span><span class="rxn-tooltip">${r.label}</span></button>`).join('');
 }
 
 function registerPostView(pid){
@@ -11014,7 +11014,7 @@ async function toggleComments(pid){
         <div class="rxn-popup" id="rxnp__modal_${pid}" 
           onmouseenter="cancelHideRxnPop('_modal_${pid}')" onmouseleave="schedHideRxnPop('_modal_${pid}')"
           style="bottom:100%;top:auto;left:50%;transform:translateX(-50%);">
-          ${window._buildRxnBtns ? window._buildRxnBtns('_modal_'+pid, window.CU?(post.reactions||{})[window.CU.id]||null:null) : (window.REACTIONS||[]).map(r=>`<button class="rxn-btn" onclick="doReact('${pid}','${r.emoji}');schedHideRxnPop('_modal_${pid}')" title="${r.label}"><span class="rxn-emoji-icon">${r.emoji}</span><span class="rxn-tooltip">${r.label}</span></button>`).join('')}
+          ${window._buildRxnBtns ? window._buildRxnBtns('_modal_'+pid, window.CU?(post.reactions||{})[window.CU.id]||null:null) : (window.REACTIONS||[]).map(r=>`<button class="rxn-btn" onclick="doReact('${pid}','${r.emoji}');schedHideRxnPop('_modal_${pid}')"><span class="rxn-emoji-icon">${r.emoji}</span><span class="rxn-tooltip">${r.label}</span></button>`).join('')}
         </div>
       </div>
       <button onclick="document.getElementById('_cmtModalInp_${pid}').focus()" style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;cursor:pointer;font-size:.88rem;font-weight:700;color:#65676b;" onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='none'">💬 Comentar</button>
@@ -27437,7 +27437,6 @@ setTimeout(function(){
         class="rxn-btn${isActive ? ' rxn-active' : ''}"
         data-emoji="${r.emoji}"
         onclick="doReact('${pid}','${r.emoji}');schedHideRxnPop('${pid}')"
-        title="${r.label}"
       ><span class="rxn-emoji-icon ${animClass}">${r.emoji}</span
       ><span class="rxn-tooltip">${r.label}</span></button>`;
     }).join('');
