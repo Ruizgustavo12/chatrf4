@@ -14274,22 +14274,26 @@ async function toggleComments(pid){
     const wasOpen = el.classList.contains('open');
     el.classList.toggle('open');
     if(!wasOpen){
-      // Al abrir: refrescar comentarios desde Firestore para ver los de todos
       const isTrofeo = pid.startsWith('trofeo_');
-      const realId = isTrofeo ? pid.replace('trofeo_','') : pid;
-      const colName = isTrofeo ? 'trofeosPendientes' : 'posts';
-      const p = (_posts||[]).find(p=>p.id===pid);
-      // Mostrar los locales primero (rápido) y luego refrescar
-      if(p) _reRenderInlineCmts(pid, p, p.comments||[]);
+      const realId   = isTrofeo ? pid.replace('trofeo_','') : pid;
+      const colName  = isTrofeo ? 'trofeosPendientes' : 'posts';
+      // 1. Mostrar comentarios locales inmediatamente
+      let p = (_posts||[]).find(x=>x.id===pid);
+      if(p && (p.comments||[]).length > 0){
+        _reRenderInlineCmts(pid, p, p.comments);
+      }
+      // 2. Ir a Firestore para traer todos los comentarios actualizados
       try {
         const snap = await getDoc(doc(db, colName, realId));
         if(snap.exists()){
-          const freshCmts = snap.data().comments || [];
+          const data = snap.data();
+          const freshCmts = data.comments || [];
           if(p){ p.comments = freshCmts; }
-          _reRenderInlineCmts(pid, p||{id:pid,...snap.data()}, freshCmts);
+          else { p = {id:pid, ...data}; _posts.push(p); }
+          _reRenderInlineCmts(pid, p, freshCmts);
         }
-      } catch(e){ /* silencioso, ya mostramos los locales */ }
-      setTimeout(()=>{ document.getElementById('cinp_'+pid)?.focus(); }, 50);
+      } catch(e){ console.warn('toggleComments error:', e); }
+      setTimeout(()=>{ document.getElementById('cinp_'+pid)?.focus(); }, 100);
     }
     return;
   }
@@ -14653,7 +14657,7 @@ async function _submitModalCmt(pid){
     // Update comment count in modal header
     const countEl = document.getElementById('_cmtModalCount_'+pid);
     if(countEl) countEl.textContent = newComments.length + ' comentario' + (newComments.length!==1?'s':'');
-    if(p.userId && p.userId !== window.CU.id) sendNotifToUserWithPost(p.userId, '💬 ' + window.CU.nick + ' comentó tu publicación', pid);
+    if(p.userId && p.userId !== window.CU.id) sendNotifToUserWithPost(p.userId, '🗨️ ' + window.CU.nick + ' comentó tu publicación', pid);
   } catch(e){ console.error(e); toast('Error al comentar','err'); }
   inp.disabled = false;
   inp.focus();
@@ -14984,7 +14988,7 @@ async function submitComment(pid){
     p.comments = newComments;
     inp.value='';
     if(p.userId && p.userId !== window.CU.id){
-      sendNotifToUserWithPost(p.userId, `💬 ${window.CU.nick} comentó: "${txt.slice(0,40)}"`, pid);
+      sendNotifToUserWithPost(p.userId, `🗨️ ${window.CU.nick} comentó: "${txt.slice(0,40)}"`, pid);
     }
     const mentions = txt.match(/@([\w\d_]+)/g);
     if(mentions){
@@ -16723,7 +16727,7 @@ function _notifIcon(n){
   if(t.includes('💘')||t.includes('le gustó tu perfil')) return {bg:'#f33e58', icon:'💘'};
   if(t.includes('cumpleaños')||t.includes('🎂')) return {bg:'#e91e63', icon:'🎂'};
   if(t.includes('reaccionó')||t.includes('❤️')||t.includes('😍')) return {bg:'#f02849', icon:'❤️'};
-  if(t.includes('comentó')||t.includes('💬')) return {bg:'#1877f2', icon:'💬'};
+  if(t.includes('comentó')||t.includes('💬')||t.includes('🗨️')) return {bg:'#1877f2', icon:'🗨️'};
   if(t.includes('compartió')||t.includes('🔁')) return {bg:'#1877f2', icon:'🔁'};
   if(t.includes('etiquetó')||t.includes('🏷')) return {bg:'#1877f2', icon:'🏷️'};
   if(t.includes('amigo')||t.includes('solicitud')||t.includes('aceptó')) return {bg:'#1877f2', icon:'👥'};
@@ -18205,7 +18209,7 @@ async function igSubmitComment(){
   const nc=[...(p.comments||[]),{userId:window.CU.id,nick:window.CU.nick,av:window.CU.av||'',gender:window.CU.gender||'',text:txt,time:Date.now()}];
   p.comments=nc;
   await updateDoc(doc(db, colName, realId),{comments:nc});
-  if(p.userId&&p.userId!==window.CU.id) sendNotifToUserWithPost(p.userId,`💬 ${window.CU.nick} comentó tu foto: "${txt.slice(0,40)}"`,_galPostId);
+  if(p.userId&&p.userId!==window.CU.id) sendNotifToUserWithPost(p.userId,`🗨️ ${window.CU.nick} comentó tu foto: "${txt.slice(0,40)}"`,_galPostId);
   if(inp) inp.value='';
 }
 
