@@ -32561,6 +32561,36 @@ window.initMatchPage = function(){
   if(window._sidebarAllOnline){
     _online = new Set((window._sidebarAllOnline||[]).map(u=>u.id));
   }
+
+  // ── AUTO-FILTRO: mostrar género opuesto al del usuario ──────────────
+  // Solo aplicar si el usuario tiene género definido y no hay filtro manual activo
+  const myGender = (window.CU?.gender||'').toLowerCase();
+  if(myGender === 'hombre' || myGender === 'masculino'){
+    // Hombre ve mujeres por defecto
+    _gFilter = 'Mujer';
+    setTimeout(function(){
+      document.querySelectorAll('.mf-pill[id^="mfp"]').forEach(p=>{
+        if(['mfpAll','mfpM','mfpF'].includes(p.id)) p.classList.remove('on');
+      });
+      const btn = document.getElementById('mfpF');
+      if(btn) btn.classList.add('on');
+    }, 300);
+  } else if(myGender === 'mujer' || myGender === 'femenino'){
+    // Mujer ve hombres por defecto
+    _gFilter = 'Hombre';
+    setTimeout(function(){
+      document.querySelectorAll('.mf-pill[id^="mfp"]').forEach(p=>{
+        if(['mfpAll','mfpM','mfpF'].includes(p.id)) p.classList.remove('on');
+      });
+      const btn = document.getElementById('mfpM');
+      if(btn) btn.classList.add('on');
+    }, 300);
+  } else {
+    // Sin género definido: mostrar todos
+    _gFilter = '';
+  }
+  // ────────────────────────────────────────────────────────────────────
+
   _loadUsers();
   _subscribeLikes();
   _subscribeIncomingLikes();
@@ -32752,6 +32782,22 @@ window._applyMatchFilters = function(){
       const seeking = u.seeking||[];
       if(!seeking.includes(_seekFilter)) return false;
     }
+    // ── FILTRO DURO POR wantsKids ────────────────────────────────────
+    // Si ambos usuarios tienen wantsKids definido y los valores son
+    // incompatibles (uno quiere y el otro no), se excluye del match.
+    if(window.CU?.wantsKids && u.wantsKids){
+      const myW = _normalizeKids(window.CU.wantsKids);
+      const theirW = _normalizeKids(u.wantsKids);
+      // Solo excluir si ambos tienen valor claro y son opuestos
+      // 'si' vs 'no' o 'nomasKids' vs 'si' son incompatibles
+      if(myW && theirW){
+        const incompat = (myW==='si' && (theirW==='no' || theirW==='nomasKids')) ||
+                         (myW==='no' && theirW==='si') ||
+                         (myW==='nomasKids' && theirW==='si');
+        if(incompat) return false;
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────
     return true;
   });
 
@@ -32817,7 +32863,40 @@ function _compat(u){
     const common2 = mySeeking.filter(s=>theirSeek.includes(s)).length;
     if(common2>0) score+=6;
   }
+  // ── COMPATIBILIDAD POR CAMPOS DE PERFIL ─────────────────────────────
+  if(window.CU.smokes && u.smokes){
+    if(window.CU.smokes === u.smokes) score += 8;
+  }
+  if(window.CU.drinks && u.drinks){
+    if(window.CU.drinks === u.drinks) score += 6;
+  }
+  if(window.CU.education && u.education){
+    if(window.CU.education === u.education) score += 5;
+  }
+  if(window.CU.livesAlone && u.livesAlone){
+    if(window.CU.livesAlone === u.livesAlone) score += 5;
+  }
+  if(window.CU.hasKids && u.hasKids){
+    if(window.CU.hasKids === u.hasKids) score += 7;
+  }
+  if(window.CU.wantsKids && u.wantsKids){
+    const myW = _normalizeKids(window.CU.wantsKids);
+    const theirW = _normalizeKids(u.wantsKids);
+    if(myW && theirW && myW === theirW) score += 10;
+  }
+  // ────────────────────────────────────────────────────────────────────
   return Math.min(score,99);
+}
+
+// Normaliza el valor de wantsKids para comparación
+function _normalizeKids(val){
+  if(!val) return '';
+  const v = val.toLowerCase();
+  if(v.includes('ya tengo') || v.includes('no quiero más') || v.includes('no quiero mas')) return 'nomasKids';
+  if(v.includes('❌') || (v.startsWith('no') && !v.includes('no sé'))) return 'no';
+  if(v.includes('tal vez') || v.includes('maybe') || v.includes('🤔')) return 'talvez';
+  if(v.includes('✅') || v.startsWith('sí') || v.startsWith('si ')) return 'si';
+  return v.trim();
 }
 
 /* ─────────────────────────────────────────────
