@@ -34391,12 +34391,13 @@ function _esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 
       grid.innerHTML = htmlParts.join('');
 
-      // Cargar comentarios desde Firestore para cada foto
+      // Cargar comentarios desde Firestore para cada foto (closure correcto con IIFE)
       allItems.forEach(function(f, idx){
-        var itemId = 'fp_' + idx + '_' + (f.ownerUid||'').slice(0,6);
-        setTimeout(function(){
-          window.fpLoadComments(itemId, f.ownerUid||'', f.url||'');
-        }, idx * 30); // escalonar para no saturar Firestore
+        (function(itemId, ownerUid, photoUrl){
+          setTimeout(function(){
+            window.fpLoadComments(itemId, ownerUid, photoUrl);
+          }, idx * 25);
+        })('fp_' + idx + '_' + (f.ownerUid||'').slice(0,6), f.ownerUid||'', f.url||'');
       });
 
       // Restaurar corazones desde localStorage
@@ -34488,17 +34489,34 @@ function _esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
   window.fpLoadComments = async function(itemId, ownerUid, photoUrl){
     var cl = document.getElementById(itemId+'_cl');
     if(!cl || !window.db || !window.getDocs || !window.collection || !window.query || !window.where) return;
+    // Generar clave estable de la foto (misma lógica que al guardar)
+    var photoKey = encodeURIComponent(photoUrl).slice(0, 200);
     try {
       var snap = await window.getDocs(
-        window.query(window.collection(window.db,'fpComments'), window.where('toUid','==',ownerUid))
+        window.query(
+          window.collection(window.db,'fpComments'),
+          window.where('toUid','==',ownerUid),
+          window.where('photoKey','==',photoKey)
+        )
       );
       var comments = [];
-      snap.forEach(function(d){
-        var dat = d.data();
-        if(dat.photoUrl === photoUrl) comments.push(Object.assign({id:d.id}, dat));
-      });
+      snap.forEach(function(d){ comments.push(Object.assign({id:d.id}, d.data())); });
       window.fpRenderComments(cl, comments);
-    } catch(e){ console.warn('fpLoadComments:', e); }
+    } catch(e){
+      // Fallback: query solo por toUid y filtrar por photoUrl en cliente
+      try {
+        var snap2 = await window.getDocs(
+          window.query(window.collection(window.db,'fpComments'), window.where('toUid','==',ownerUid))
+        );
+        var comments2 = [];
+        snap2.forEach(function(d){
+          var dat = d.data();
+          if(dat.photoUrl === photoUrl || dat.photoKey === photoKey)
+            comments2.push(Object.assign({id:d.id}, dat));
+        });
+        window.fpRenderComments(cl, comments2);
+      } catch(e2){ console.warn('fpLoadComments fallback:', e2); }
+    }
   };
 
   // ── Borrar comentario de foto popular ───────────────────────────────
@@ -34550,7 +34568,9 @@ function _esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
       if(window.db && window.addDoc && window.collection){
         docRef = await window.addDoc(window.collection(window.db,'fpComments'),{
           fromUid:window.CU.id, fromNick:window.CU.nick||'', fromAv:window.CU.av||'',
-          toUid:ownerUid, photoUrl:photoUrl, text:txt, time:Date.now()
+          toUid:ownerUid, photoUrl:photoUrl,
+          photoKey:encodeURIComponent(photoUrl).slice(0,200),
+          text:txt, time:Date.now()
         });
         if(docRef) newCmt.id = docRef.id;
       }
