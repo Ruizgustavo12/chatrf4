@@ -18372,6 +18372,27 @@ function swAdminTab(el, tabId){
   if(tabId==='admt-ageverif') { if(typeof loadAdminAgeVerif==='function') loadAdminAgeVerif('all'); }
 }
 
+// Exponer swAdminTab globalmente de forma temprana (igual que swSuperAdminTab)
+window.swAdminTab = function(el, tabId){
+  document.querySelectorAll('.adm-tab').forEach(t=>t.classList.remove('adm-on'));
+  if(el) el.classList.add('adm-on');
+  ['admt-reports','admt-posts','admt-users','admt-verif','admt-grupos','admt-ads','admt-live','admt-faq','admt-soporte','admt-album','admt-ageverif']
+    .forEach(id=>{ const e=document.getElementById(id); if(e) e.style.display='none'; });
+  const tab = document.getElementById(tabId);
+  if(tab) tab.style.display='block';
+  else { console.warn('swAdminTab: tab no encontrado:', tabId); return; }
+  if(tabId==='admt-reports' || tabId==='admt-posts') { if(typeof loadAdminData==='function') loadAdminData(); }
+  if(tabId==='admt-grupos') { if(typeof loadAdminGrupos==='function') loadAdminGrupos(); }
+  if(tabId==='admt-users') { if(typeof loadAdminUsers==='function') loadAdminUsers(); }
+  if(tabId==='admt-verif') { if(typeof loadVerifRequests==='function') loadVerifRequests(); }
+  if(tabId==='admt-ads') { if(typeof loadAdminAds==='function') loadAdminAds(); }
+  if(tabId==='admt-live') { if(typeof loadAdminLive==='function') loadAdminLive(); }
+  if(tabId==='admt-faq') { if(typeof loadAdminFaq==='function') loadAdminFaq(); }
+  if(tabId==='admt-soporte') { if(typeof loadAdminSoporteTickets==='function') loadAdminSoporteTickets(); }
+  if(tabId==='admt-album') { if(typeof loadAdminAlbum==='function') loadAdminAlbum('todas'); }
+  if(tabId==='admt-ageverif') { if(typeof loadAdminAgeVerif==='function') loadAdminAgeVerif('all'); }
+};
+
 // Exponer swSuperAdminTab globalmente de forma temprana para que los botones del panel la encuentren
 // (la definición real está más abajo, pero la registramos en window aquí para evitar ReferenceError)
 window.swSuperAdminTab = function(el, tabId){
