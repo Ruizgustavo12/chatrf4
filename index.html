@@ -3392,11 +3392,27 @@ a[style*="color:var(--accent)"] { color: #1877f2 !important; }
 </div>
 
 <!-- LIGHTBOX ÁLBUM USERPROFILE -->
-<div id="upAlbumLightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:99999;align-items:center;justify-content:center;flex-direction:column;">
-  <button onclick="upCerrarLightbox()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
-  <button id="upAlbumLightboxDel" style="display:none;position:absolute;top:16px;left:16px;background:rgba(200,0,40,.65);border:1px solid rgba(200,0,40,.8);color:#fff;border-radius:8px;padding:7px 14px;font-size:.82rem;font-weight:700;cursor:pointer;" onclick="upEliminarFoto()">🛡️ Eliminar foto</button>
-  <img id="upAlbumLightboxImg" src="" style="max-width:90vw;max-height:80vh;border-radius:10px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,.7);">
-  <div id="upAlbumLightboxCaption" style="color:rgba(255,255,255,.6);font-size:.75rem;margin-top:10px;"></div>
+<div id="upAlbumLightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:99999;align-items:flex-start;justify-content:flex-start;flex-direction:column;overflow-y:auto;padding:60px 12px 24px;box-sizing:border-box;">
+  <button onclick="upCerrarLightbox()" style="position:fixed;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:100000;">✕</button>
+  <button id="upAlbumLightboxDel" style="display:none;position:fixed;top:16px;left:16px;background:rgba(200,0,40,.65);border:1px solid rgba(200,0,40,.8);color:#fff;border-radius:8px;padding:7px 14px;font-size:.82rem;font-weight:700;cursor:pointer;z-index:100000;" onclick="upEliminarFoto()">🛡️ Eliminar foto</button>
+  <img id="upAlbumLightboxImg" src="" style="max-width:90vw;max-height:55vh;border-radius:10px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,.7);flex-shrink:0;display:block;margin:0 auto;">
+  <div id="upAlbumLightboxCaption" style="color:rgba(255,255,255,.6);font-size:.75rem;margin-top:10px;text-align:center;width:100%;"></div>
+
+  <!-- Reacciones -->
+  <div id="upAlbumLbReactions" style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;justify-content:center;width:100%;">
+    <button onclick="upReaccionarFoto('❤️')" style="background:rgba(255,255,255,.15);border:none;border-radius:20px;padding:6px 14px;font-size:1.1rem;cursor:pointer;color:#fff;transition:background .2s;" onmouseover="this.style.background='rgba(255,255,255,.3)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">❤️</button>
+    <button onclick="upReaccionarFoto('🔥')" style="background:rgba(255,255,255,.15);border:none;border-radius:20px;padding:6px 14px;font-size:1.1rem;cursor:pointer;color:#fff;transition:background .2s;" onmouseover="this.style.background='rgba(255,255,255,.3)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">🔥</button>
+    <button onclick="upReaccionarFoto('😍')" style="background:rgba(255,255,255,.15);border:none;border-radius:20px;padding:6px 14px;font-size:1.1rem;cursor:pointer;color:#fff;transition:background .2s;" onmouseover="this.style.background='rgba(255,255,255,.3)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">😍</button>
+    <button onclick="upReaccionarFoto('💯')" style="background:rgba(255,255,255,.15);border:none;border-radius:20px;padding:6px 14px;font-size:1.1rem;cursor:pointer;color:#fff;transition:background .2s;" onmouseover="this.style.background='rgba(255,255,255,.3)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">💯</button>
+    <button onclick="upReaccionarFoto('🤩')" style="background:rgba(255,255,255,.15);border:none;border-radius:20px;padding:6px 14px;font-size:1.1rem;cursor:pointer;color:#fff;transition:background .2s;" onmouseover="this.style.background='rgba(255,255,255,.3)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">🤩</button>
+  </div>
+  <div id="upAlbumLbReactionCounts" style="color:rgba(255,255,255,.7);font-size:.78rem;margin-top:4px;min-height:18px;text-align:center;width:100%;"></div>
+
+  <!-- Comentario → va como mensaje privado al dueño -->
+  <div style="display:flex;gap:8px;align-items:center;margin-top:12px;width:min(420px,90vw);align-self:center;">
+    <input id="upAlbumLbCommentInput" type="text" maxlength="300" placeholder="Comentá... (llega como mensaje privado al dueño)" style="flex:1;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:8px 14px;color:#fff;font-size:.85rem;outline:none;" onkeydown="if(event.key==='Enter')upEnviarComentario()">
+    <button onclick="upEnviarComentario()" style="background:#1877f2;border:none;border-radius:20px;padding:8px 14px;color:#fff;font-size:.85rem;font-weight:700;cursor:pointer;white-space:nowrap;">Enviar</button>
+  </div>
 </div>
 
 <script>
@@ -3545,7 +3561,103 @@ a[style*="color:var(--accent)"] { color: #1877f2 !important; }
     if(caption) caption.textContent = 'Foto '+(idx+1)+' de '+_upAlbumFotos.length;
     var isAdmin = window.CU && (window.CU.role === 'admin' || window.CU.email === 'synxyes@gmail.com');
     if(delBtn) delBtn.style.display = isAdmin ? 'block' : 'none';
+    // Render reacciones
+    _upRenderReacciones(foto);
+    var cinp = document.getElementById('upAlbumLbCommentInput');
+    if(cinp) cinp.value = '';
     if(lb){ lb.style.display='flex'; }
+  };
+
+  function _upRenderReacciones(foto) {
+    var counts = foto.reactions || {};
+    var myUid = window.CU && window.CU.id;
+    var countEl = document.getElementById('upAlbumLbReactionCounts');
+    if(!countEl) return;
+    var parts = Object.entries(counts).filter(function(e){ return e[1]>0; }).map(function(e){ return e[0]+' '+e[1]; });
+    countEl.textContent = parts.length ? parts.join('  ') : '';
+    // Highlight botón activo
+    var btns = document.querySelectorAll('#upAlbumLbReactions button');
+    btns.forEach(function(btn) {
+      var em = btn.textContent.trim();
+      var active = myUid && foto.reactedBy && foto.reactedBy[myUid] === em;
+      btn.style.background = active ? 'rgba(255,255,255,.45)' : 'rgba(255,255,255,.15)';
+    });
+  }
+
+  window.upReaccionarFoto = async function(emoji) {
+    if(!window.CU) { if(typeof toast==='function') toast('Iniciá sesión para reaccionar','err'); return; }
+    if(!_upAlbumLbFotoId || !_upAlbumOwnerUid) return;
+    var myUid = window.CU.id;
+    try {
+      var fotoRef = window.doc(window.db,'albumPrivado',_upAlbumOwnerUid,'fotos',_upAlbumLbFotoId);
+      var snap = await window.getDoc(fotoRef);
+      if(!snap.exists()) return;
+      var data = snap.data();
+      var reactions = data.reactions || {};
+      var reactedBy = data.reactedBy || {};
+      var prevEmoji = reactedBy[myUid];
+      if(prevEmoji === emoji) {
+        reactions[emoji] = Math.max(0, (reactions[emoji]||0) - 1);
+        delete reactedBy[myUid];
+      } else {
+        if(prevEmoji && reactions[prevEmoji]) reactions[prevEmoji] = Math.max(0, reactions[prevEmoji]-1);
+        reactions[emoji] = (reactions[emoji]||0) + 1;
+        reactedBy[myUid] = emoji;
+      }
+      await window.updateDoc(fotoRef, { reactions: reactions, reactedBy: reactedBy });
+      // Actualizar local
+      var fIdx = _upAlbumFotos.findIndex(function(f){ return f.id===_upAlbumLbFotoId; });
+      if(fIdx>=0) {
+        _upAlbumFotos[fIdx].reactions = reactions;
+        _upAlbumFotos[fIdx].reactedBy = reactedBy;
+        _upRenderReacciones(_upAlbumFotos[fIdx]);
+      }
+      // Notificar al dueño
+      if(_upAlbumOwnerUid !== myUid) {
+        try {
+          var notif = {
+            text: emoji + ' ' + (window.CU.nick||'Alguien') + ' reaccionó a una foto de tu álbum privado',
+            time: Date.now(), read: false,
+            fromUid: myUid, fromAv: window.CU.av||'', fromNick: window.CU.nick||'',
+            type: 'albumReaccion'
+          };
+          await window.updateDoc(window.doc(window.db,'users',_upAlbumOwnerUid),{notifs: window.arrayUnion(notif)});
+        } catch(ne){}
+      }
+    } catch(e) { if(typeof toast==='function') toast('Error al reaccionar','err'); }
+  };
+
+  window.upEnviarComentario = async function() {
+    if(!window.CU) { if(typeof toast==='function') toast('Iniciá sesión para comentar','err'); return; }
+    if(!_upAlbumLbFotoId || !_upAlbumOwnerUid) return;
+    var cinp = document.getElementById('upAlbumLbCommentInput');
+    var texto = cinp ? cinp.value.trim() : '';
+    if(!texto) return;
+    var myUid = window.CU.id;
+    if(_upAlbumOwnerUid === myUid) { if(typeof toast==='function') toast('Sos el dueño del álbum',''); return; }
+    try {
+      // Enviar como mensaje privado al dueño
+      var chatId = [myUid, _upAlbumOwnerUid].sort().join('_');
+      await window.addDoc(window.collection(window.db,'chats',chatId,'messages'), {
+        text: '📷 [Comentario en foto de álbum privado]: ' + texto,
+        uid: myUid,
+        nick: window.CU.nick || '?',
+        av: window.CU.av || '',
+        ts: Date.now(),
+        albumFotoId: _upAlbumLbFotoId,
+        type: 'albumComment'
+      });
+      // Notificación en campanita al dueño
+      var notif = {
+        text: '💬 ' + (window.CU.nick||'Alguien') + ': ' + texto,
+        time: Date.now(), read: false,
+        fromUid: myUid, fromAv: window.CU.av||'', fromNick: window.CU.nick||'',
+        type: 'albumComment', chatUid: myUid
+      };
+      await window.updateDoc(window.doc(window.db,'users',_upAlbumOwnerUid),{notifs: window.arrayUnion(notif)});
+      if(cinp) cinp.value = '';
+      if(typeof toast==='function') toast('💬 Comentario enviado como mensaje privado','ok');
+    } catch(e) { if(typeof toast==='function') toast('Error al enviar comentario','err'); console.error(e); }
   };
 
   window.upCerrarLightbox = function() {
@@ -3773,18 +3885,19 @@ a[style*="color:var(--accent)"] { color: #1877f2 !important; }
 <style>
 #albumLightbox {
   display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:99999;
-  align-items:center;justify-content:center;flex-direction:column;
+  align-items:center;justify-content:flex-start;flex-direction:column;
+  overflow-y:auto;padding:60px 12px 24px;box-sizing:border-box;
 }
 #albumLightbox.open { display:flex; }
-#albumLightboxImg { max-width:90vw;max-height:80vh;border-radius:10px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,.7); }
+#albumLightboxImg { max-width:90vw;max-height:55vh;border-radius:10px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,.7);flex-shrink:0; }
 #albumLightboxClose {
-  position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;
+  position:fixed;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;
   color:#fff;width:36px;height:36px;border-radius:50%;font-size:1.1rem;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
+  display:flex;align-items:center;justify-content:center;z-index:100000;
 }
 #albumLightboxDel {
-  position:absolute;top:16px;left:16px;background:rgba(200,0,40,.5);border:1px solid rgba(200,0,40,.6);
-  color:#fff;border-radius:8px;padding:6px 12px;font-size:.8rem;font-weight:700;cursor:pointer;
+  position:fixed;top:16px;left:16px;background:rgba(200,0,40,.5);border:1px solid rgba(200,0,40,.6);
+  color:#fff;border-radius:8px;padding:6px 12px;font-size:.8rem;font-weight:700;cursor:pointer;z-index:100000;
 }
 .album-thumb { aspect-ratio:1;object-fit:cover;border-radius:6px;cursor:pointer;transition:transform .2s,opacity .2s;display:block;width:100%; }
 .album-thumb:hover { transform:scale(1.04);opacity:.9; }
