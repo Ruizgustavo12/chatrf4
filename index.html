@@ -28537,27 +28537,24 @@ function _esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
         var av     = best.ownerAv || '';
         var score  = best.score || 0;
         var avHtml = av
-          ? '<img src="'+av+'" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,215,0,.7);flex-shrink:0;">'
-          : '<div style="width:38px;height:38px;border-radius:50%;background:gold;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:900;color:#000;flex-shrink:0;">'+nick[0].toUpperCase()+'</div>';
+          ? '<img src="'+av+'" style="width:22px;height:22px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,215,0,.7);flex-shrink:0;">'
+          : '<div style="width:22px;height:22px;border-radius:50%;background:gold;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:900;color:#000;flex-shrink:0;">'+nick[0].toUpperCase()+'</div>';
         sec.innerHTML = ''
-          + '<div style="border-radius:16px;overflow:hidden;border:2px solid rgba(255,215,0,.55);box-shadow:0 0 28px rgba(255,215,0,.18);background:linear-gradient(135deg,rgba(255,215,0,.06),rgba(255,165,0,.04));position:relative;">'
-          +   '<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:linear-gradient(90deg,rgba(255,215,0,.15),transparent);">'
-          +     '<span style="font-size:1.3rem;">☀️</span>'
-          +     '<div>'
-          +       '<div style="font-family:\'Orbitron\',monospace;font-size:.78rem;font-weight:900;color:#d4a017;text-transform:uppercase;letter-spacing:.06em;">Foto del Día</div>'
-          +       '<div style="font-size:.65rem;color:var(--muted);">La foto con más reacciones en las últimas 24 horas</div>'
-          +     '</div>'
-          +     '<span style="margin-left:auto;background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;font-size:.65rem;font-weight:900;padding:3px 10px;border-radius:100px;letter-spacing:.04em;">🏆 #1 hoy</span>'
-          +   '</div>'
-          +   '<div onclick="openUserProfile(\''+uid+'\',\''+safeNick+'\')" style="cursor:pointer;position:relative;">'
-          +     '<img src="'+best.url+'" style="width:100%;max-height:200px;object-fit:cover;object-position:top;display:block;" onerror="this.style.display=\'none\'">'
-          +     '<div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(0,0,0,.65) 100%);"></div>'
-          +     '<div style="position:absolute;bottom:12px;left:14px;display:flex;align-items:center;gap:8px;">'
-          +       avHtml
-          +       '<div>'
-          +         '<div style="font-size:.88rem;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.7);">'+nick+'</div>'
-          +         '<div style="font-size:.7rem;color:rgba(255,215,0,.9);font-weight:700;">❤️ '+score+' reacciones</div>'
-          +       '</div>'
+          + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">'
+          +   '<span style="font-size:.95rem;">☀️</span>'
+          +   '<span style="font-family:\'Orbitron\',monospace;font-size:.78rem;font-weight:900;color:#d4a017;text-transform:uppercase;letter-spacing:.06em;">Foto del Día</span>'
+          +   '<span style="font-size:.65rem;color:var(--muted);">· La foto con más reacciones en las últimas 24 horas</span>'
+          +   '<span style="margin-left:auto;background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;font-size:.62rem;font-weight:900;padding:2px 9px;border-radius:100px;">🏆 #1 hoy</span>'
+          + '</div>'
+          + '<div onclick="openUserProfile(\''+uid+'\',\''+safeNick+'\')" style="cursor:pointer;position:relative;width:calc(25% - 11px);padding-top:calc(25% - 11px);border-radius:12px;overflow:hidden;border:2px solid rgba(255,215,0,.6);box-shadow:0 0 16px rgba(255,215,0,.2);">'
+          +   '<img src="'+best.url+'" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:top;display:block;" onerror="this.style.display=\'none\'">'
+          +   '<div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 45%,rgba(0,0,0,.7) 100%);"></div>'
+          +   '<div style="position:absolute;top:7px;left:8px;background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;font-size:.6rem;font-weight:900;font-family:\'Orbitron\',monospace;padding:2px 7px;border-radius:20px;line-height:1.5;">☀️ Hoy</div>'
+          +   '<div style="position:absolute;bottom:7px;left:8px;right:8px;display:flex;align-items:center;gap:5px;">'
+          +     avHtml
+          +     '<div style="min-width:0;">'
+          +       '<div style="font-size:.72rem;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+nick+'</div>'
+          +       '<div style="font-size:.6rem;color:rgba(255,215,0,.95);font-weight:700;">❤️ '+score+'</div>'
           +     '</div>'
           +   '</div>'
           + '</div>';
