@@ -2659,6 +2659,12 @@ window._rechazarAlbumDesdeNotif = async function(visitorUid, ownerUid, btn) {
       <label class="btn btn-s" style="font-size:.8rem;cursor:pointer;display:flex;align-items:center;gap:5px">
         📸 Fotos (máx 5) <input type="file" accept="image/*" id="postImgInput" style="display:none" multiple onchange="previewPostMedia(this,'image')">
       </label>
+      <label class="btn btn-s" style="font-size:.8rem;cursor:pointer;display:flex;align-items:center;gap:5px" title="Sacar foto con la cámara">
+        📷 Cámara <input type="file" accept="image/*" capture="environment" style="display:none" multiple onchange="previewPostMedia(this,'image')">
+      </label>
+      <label class="btn btn-s" style="font-size:.8rem;cursor:pointer;display:flex;align-items:center;gap:5px" title="Grabar video con la cámara">
+        🎬 Grabar video <input type="file" accept="video/*" capture="environment" style="display:none" onchange="previewPostMedia(this,'video')"
+      </label>
       <button id="postVideoBtn" class="btn btn-s" style="font-size:.8rem;cursor:not-allowed;display:none;align-items:center;gap:5px;opacity:.5;border-color:#555;color:#888;" onclick="toast('🎬 Videos — Próximamente. Por ahora solo imágenes 📸','inf')" title="Próximamente">
         🎬 Video <span style="font-size:.65rem;background:rgba(255,200,0,.18);color:#f5c842;border-radius:100px;padding:1px 6px;margin-left:2px;font-weight:700;">Próximamente</span>
       </button>
@@ -2760,11 +2766,11 @@ window._rechazarAlbumDesdeNotif = async function(visitorUid, ownerUid, btn) {
         <div style="display:flex;gap:8px;">
           <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border:2px dashed var(--border);border-radius:12px;cursor:pointer;color:var(--muted);font-size:.85rem;background:var(--bg3);">
             📸 Foto
-            <input type="file" accept="image/*" id="storyImgInput" style="display:none" onchange="previewStoryImg(this);_scUpdatePreview()">
+            <input type="file" accept="image/*" capture="environment" id="storyImgInput" style="display:none" onchange="previewStoryImg(this);_scUpdatePreview()">
           </label>
           <div onclick="storyYtSubirVideo()" id="storyVideoBtn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border:2px dashed var(--border);border-radius:12px;cursor:pointer;color:var(--muted);font-size:.85rem;background:var(--bg3);transition:border-color .2s,color .2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
             🎬 Galería
-            <input type="file" accept="video/*" id="_storyYtFileInput" style="display:none">
+            <input type="file" accept="video/*" capture="environment" id="_storyYtFileInput" style="display:none">
           </div>
           <div onclick="storyGrabarVideo()" id="storyCamBtn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border:2px dashed var(--border);border-radius:12px;cursor:pointer;color:var(--muted);font-size:.85rem;background:var(--bg3);transition:border-color .2s,color .2s;" onmouseover="this.style.borderColor='#e74c3c';this.style.color='#e74c3c'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
             📷 Cámara
@@ -3394,7 +3400,7 @@ window._rechazarAlbumDesdeNotif = async function(visitorUid, ownerUid, btn) {
         </div>
         <!-- Botón foto mejorado: abre selector, previsualiza antes de enviar -->
         <button onclick="document.getElementById('chatPhotoInput').click()" title="Enviar foto" style="background:none;border:none;font-size:1.3rem;cursor:pointer;padding:4px;color:#0084ff;transition:transform .15s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">📷</button>
-        <input type="file" id="chatPhotoInput" accept="image/*" style="display:none;" onchange="previewChatPhoto(this)">
+        <input type="file" id="chatPhotoInput" accept="image/*" capture="environment" style="display:none;" onchange="previewChatPhoto(this)">
       </div>
       <div style="flex:1;background:#f0f2f5;border-radius:20px;padding:6px 14px;display:flex;align-items:center;min-height:36px;">
         <input id="chatInput" placeholder="Aa" style="flex:1;background:none;border:none;outline:none;color:#050505;font-family:'Exo 2',sans-serif;font-size:.88rem;" onkeypress="if(event.key==='Enter'&&!event.shiftKey){sendChatMsg();event.preventDefault();}" oninput="setChatTyping();toggleVoiceBtn()">
