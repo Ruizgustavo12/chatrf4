@@ -10998,7 +10998,7 @@ async function toggleComments(pid){
         <div class="rxn-popup" id="rxnp__modal_${pid}" 
           onmouseenter="cancelHideRxnPop('_modal_${pid}')" onmouseleave="schedHideRxnPop('_modal_${pid}')"
           style="bottom:100%;top:auto;left:50%;transform:translateX(-50%);">
-          ${rxnBtns}
+          ${window._buildRxnBtns ? window._buildRxnBtns('_modal_'+pid, window.CU?(post.reactions||{})[window.CU.id]||null:null) : (window.REACTIONS||[]).map(r=>`<button class="rxn-btn" onclick="doReact('${pid}','${r.emoji}');schedHideRxnPop('_modal_${pid}')" title="${r.label}"><span class="rxn-emoji-icon">${r.emoji}</span><span class="rxn-tooltip">${r.label}</span></button>`).join('')}
         </div>
       </div>
       <button onclick="document.getElementById('_cmtModalInp_${pid}').focus()" style="flex:1;background:none;border:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;cursor:pointer;font-size:.88rem;font-weight:700;color:#65676b;" onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='none'">💬 Comentar</button>
