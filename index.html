@@ -6296,10 +6296,10 @@ function _compressImage(blob, maxW, quality) {
 async function uploadVideo(file, folder) {
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('upload_preset', CLOUDINARY_VIDEO_PRESET);
+  // Usar el preset de fotos que ya funciona (Cloudinary acepta video con él)
+  formData.append('upload_preset', CLOUDINARY_PRESET_FOTOS);
   formData.append('folder', 'rf4/' + (folder || 'videos'));
   formData.append('resource_type', 'video');
-  // Pedir conversión a mp4 para máxima compatibilidad
   if(file.type && file.type.includes('webm')){
     formData.append('format', 'mp4');
   }
