@@ -2776,8 +2776,155 @@ a[style*="color:var(--accent)"] { color: #1877f2 !important; }
       <div class="sl-item" onclick="gp('cerca');initCercaDeMi()"><span class="sl-item-icon">📍</span> Cerca de Mí</div>
       <div class="sl-item" onclick="gp('privacidad')"><span class="sl-item-icon">🔒</span> Privacidad</div>
 
+      <div class="divider"></div>
 
+      <!-- ══ FOTOS POPULARES ══ -->
+      <div style="padding:8px 6px 4px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.27 2 8.5 2 5.41 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.41 22 8.5c0 3.77-3.4 6.86-8.55 11.53L12 21.35z" fill="#e0245e"/></svg>
+            <span style="font-size:.78rem;font-weight:800;color:var(--text);">Fotos populares</span>
+          </div>
+          <span style="font-size:.6rem;font-weight:800;background:#1877f2;color:#fff;padding:2px 7px;border-radius:20px;cursor:pointer;" onclick="gp('fotos');initFotosPage()">Nuevo</span>
+        </div>
+        <div id="slFotosPopulares" style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;">
+          <!-- se rellena dinámicamente -->
+          <div style="aspect-ratio:1;border-radius:6px;background:var(--bg4);"></div>
+          <div style="aspect-ratio:1;border-radius:6px;background:var(--bg4);"></div>
+          <div style="aspect-ratio:1;border-radius:6px;background:var(--bg4);"></div>
+          <div style="aspect-ratio:1;border-radius:6px;background:var(--bg4);"></div>
+          <div style="aspect-ratio:1;border-radius:6px;background:var(--bg4);"></div>
+          <div style="aspect-ratio:1;border-radius:6px;background:var(--bg4);"></div>
+        </div>
+      </div>
 
+      <div class="divider"></div>
+
+      <!-- ══ VISITANTES ══ -->
+      <div style="padding:8px 6px 4px;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" fill="var(--muted)"/></svg>
+          <span style="font-size:.78rem;font-weight:800;color:var(--text);">Visitantes</span>
+        </div>
+        <div id="slVisitantes" style="display:flex;flex-direction:column;gap:6px;">
+          <!-- se rellena dinámicamente -->
+          <div style="color:var(--muted);font-size:.72rem;text-align:center;padding:8px 0;">Cargando visitantes...</div>
+        </div>
+      </div>
+
+      <script>
+      (function(){
+        // ── FOTOS POPULARES: 6 perfiles más visitados ──────────────────────
+        function renderFotosPopulares(){
+          if(!window.CU) { setTimeout(renderFotosPopulares, 1000); return; }
+          var db = window._db;
+          if(!db || typeof db.collection !== 'function') { setTimeout(renderFotosPopulares, 1500); return; }
+
+          try {
+            db.collection('users')
+              .orderBy('visitas','desc')
+              .limit(6)
+              .get()
+              .then(function(snap){
+                var container = document.getElementById('slFotosPopulares');
+                if(!container) return;
+                if(snap.empty){ container.innerHTML='<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:8px;grid-column:span 3;">Sin datos aún</div>'; return; }
+                var html = '';
+                snap.forEach(function(doc){
+                  var d = doc.data();
+                  var av = d.avatar || d.photoURL || '';
+                  var nick = d.nick || d.displayName || '?';
+                  var uid = doc.id;
+                  var bg = av
+                    ? 'background:url(\''+av+'\') center/cover no-repeat;'
+                    : 'background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;color:var(--accent);';
+                  html += '<div onclick="openProfileModal(\''+uid+'\')" style="aspect-ratio:1;border-radius:6px;cursor:pointer;position:relative;overflow:hidden;'+bg+'" title="'+nick+'">'
+                    + (av ? '' : nick[0].toUpperCase())
+                    + '<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.5);color:#fff;font-size:.5rem;font-weight:700;text-align:center;padding:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+nick+'</div>'
+                    + '</div>';
+                });
+                container.innerHTML = html;
+              })
+              .catch(function(){ /* sin permiso o sin datos */ });
+          } catch(e){}
+        }
+
+        // ── VISITANTES: quiénes visitaron mi perfil ────────────────────────
+        function renderVisitantes(){
+          if(!window.CU || !window.CU.uid) { setTimeout(renderVisitantes, 1000); return; }
+          var db = window._db;
+          if(!db || typeof db.collection !== 'function') { setTimeout(renderVisitantes, 1500); return; }
+
+          try {
+            db.collection('users').doc(window.CU.uid)
+              .collection('visitantes')
+              .orderBy('ts','desc')
+              .limit(8)
+              .get()
+              .then(function(snap){
+                var container = document.getElementById('slVisitantes');
+                if(!container) return;
+                if(snap.empty){
+                  container.innerHTML='<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:8px 0;">Aún nadie visitó tu perfil</div>';
+                  return;
+                }
+                var html = '';
+                snap.forEach(function(doc){
+                  var d = doc.data();
+                  var av = d.avatar || d.photoURL || '';
+                  var nick = d.nick || d.displayName || 'Usuario';
+                  var uid = d.uid || doc.id;
+                  var ts = d.ts && d.ts.toMillis ? d.ts.toMillis() : (d.ts || 0);
+                  var hace = _tsRelativo(ts);
+                  var avHtml = av
+                    ? '<img src="'+av+'" style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display=\'none\'">'
+                    : '<div style="width:34px;height:34px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:800;color:#fff;flex-shrink:0;">'+nick[0].toUpperCase()+'</div>';
+                  html += '<div onclick="openProfileModal(\''+uid+'\')" style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 2px;border-radius:8px;transition:background .15s;" onmouseover="this.style.background=\'var(--bg4)\'" onmouseout="this.style.background=\'transparent\'">'
+                    + avHtml
+                    + '<div style="flex:1;min-width:0;">'
+                    + '<div style="font-size:.75rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+nick+'</div>'
+                    + '<div style="font-size:.62rem;color:var(--muted);">'+hace+'</div>'
+                    + '</div></div>';
+                });
+                container.innerHTML = html;
+              })
+              .catch(function(){
+                var c = document.getElementById('slVisitantes');
+                if(c) c.innerHTML='<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:8px 0;">Sin visitantes registrados</div>';
+              });
+          } catch(e){}
+        }
+
+        function _tsRelativo(ts){
+          if(!ts) return '';
+          var diff = Date.now() - ts;
+          var m = Math.floor(diff/60000);
+          if(m < 1) return 'Ahora';
+          if(m < 60) return 'Hace '+m+' min';
+          var h = Math.floor(m/60);
+          if(h < 24) return 'Hace '+h+'h';
+          var d = Math.floor(h/24);
+          return 'Hace '+d+'d';
+        }
+
+        // Esperar a que Firebase esté listo
+        if(document.readyState==='loading'){
+          document.addEventListener('DOMContentLoaded', function(){
+            setTimeout(renderFotosPopulares, 2000);
+            setTimeout(renderVisitantes, 2500);
+          });
+        } else {
+          setTimeout(renderFotosPopulares, 2000);
+          setTimeout(renderVisitantes, 2500);
+        }
+
+        // También recargar cuando el usuario inicia sesión
+        window.addEventListener('rf4-login', function(){
+          setTimeout(renderFotosPopulares, 1000);
+          setTimeout(renderVisitantes, 1200);
+        });
+      })();
+      </script>
 
       
       
