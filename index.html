@@ -15540,11 +15540,30 @@ function previewPostMedia(input, type){
     const remaining = maxImgs === Infinity ? files.length : maxImgs - currentImgs;
     if(files.length > remaining && maxImgs !== Infinity){ toast(`Máximo ${maxImgs} fotos. Solo se agregarán ${remaining}`,'err'); }
     files.slice(0, remaining).forEach(f => _postMediaFiles.push({file:f, type:'image'}));
+    renderPostMediaPreview();
   } else {
-    _postMediaFiles = _postMediaFiles.filter(f=>f.type!=='video');
-    _postMediaFiles.push({file:files[0], type:'video'});
+    const videoFile = files[0];
+    if(!videoFile) return;
+    const tmpUrl = URL.createObjectURL(videoFile);
+    const tmpVid = document.createElement('video');
+    tmpVid.preload = 'metadata';
+    tmpVid.onloadedmetadata = function(){
+      URL.revokeObjectURL(tmpUrl);
+      if(tmpVid.duration > 30){
+        toast('⏱ El video no puede superar los 30 segundos.','err');
+        input.value = '';
+        return;
+      }
+      _postMediaFiles = _postMediaFiles.filter(f=>f.type!=='video');
+      _postMediaFiles.push({file:videoFile, type:'video'});
+      renderPostMediaPreview();
+    };
+    tmpVid.onerror = function(){
+      URL.revokeObjectURL(tmpUrl);
+      toast('Error al leer el video.','err');
+    };
+    tmpVid.src = tmpUrl;
   }
-  renderPostMediaPreview();
 }
 
 function renderPostMediaPreview(){
@@ -26528,6 +26547,19 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
     inp.onchange = async function(){
       if(!inp.files || !inp.files[0]) return;
       var file = inp.files[0];
+      // Validar duración máxima 30 segundos
+      var checkDuration = await new Promise(function(resolve){
+        var tmpVid = document.createElement('video');
+        tmpVid.preload = 'metadata';
+        tmpVid.onloadedmetadata = function(){ URL.revokeObjectURL(tmpVid.src); resolve(tmpVid.duration); };
+        tmpVid.onerror = function(){ URL.revokeObjectURL(tmpVid.src); resolve(0); };
+        tmpVid.src = URL.createObjectURL(file);
+      });
+      if(checkDuration > 30){
+        _toast('⏱ El video no puede superar los 30 segundos.','err');
+        inp.value = '';
+        return;
+      }
       _storyYtUploading = true;
       var btn = document.getElementById('storyVideoBtn');
       if(btn){ btn.style.opacity='.5'; btn.style.pointerEvents='none'; }
@@ -26653,8 +26685,10 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
     _camSecs = 0;
     _camTimerInt = setInterval(function(){
       _camSecs++;
-      if(timer) timer.textContent = '⏺ '+_camSecs+'s';
-      if(_camSecs >= 60) _storyCamDetener();
+      var remaining = 30 - _camSecs;
+      if(timer) timer.textContent = '⏺ ' + _camSecs + 's / 30s';
+      if(remaining <= 5 && timer) timer.style.background = 'rgba(180,0,0,.95)';
+      if(_camSecs >= 30) _storyCamDetener();
     }, 1000);
   }
 
