@@ -14804,12 +14804,17 @@ async function loadAdminData(){
         <span style="font-size:.72rem;color:var(--muted);">${fmtT(r.time)}</span>
         <span style="background:${r.status==='pendiente'?'rgba(255,170,0,.1)':'rgba(0,230,118,.1)'};color:${r.status==='pendiente'?'var(--warn)':'var(--green)'};padding:2px 8px;border-radius:100px;font-size:.68rem;font-weight:700;">${r.status}</span>
       </div>
-      <div style="font-size:.83rem;">Reportado por: <strong>${r.reportedBy}</strong> · Usuario: <strong>${r.reportedUser}</strong></div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:.83rem;margin-bottom:4px;">
+        ${r.reportedByAv ? `<img src="${r.reportedByAv}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid var(--border);flex-shrink:0;" onerror="this.style.display='none'">` : `<div style="width:28px;height:28px;border-radius:50%;background:var(--bg4);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;">${(r.reportedBy||'?')[0].toUpperCase()}</div>`}
+        <span>Reportado por: <strong>${r.reportedBy}</strong> · Usuario: <strong>${r.reportedUser}</strong></span>
+      </div>
       ${r.desc?`<div style="font-size:.78rem;margin-top:4px;background:var(--bg3);padding:6px 10px;border-radius:6px;">"${r.desc}"</div>`:''}
       ${postPreview}
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
         ${rPost?`<button onclick="deleteAdminPost('${r.postId}','${r.id}')" style="background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.3);color:var(--red);padding:5px 12px;border-radius:var(--rs);font-size:.75rem;cursor:pointer;font-family:\'Exo 2\',sans-serif;">🗑 Borrar post</button>`:''}
         <button onclick="resolveReport('${r.id}')" style="background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:var(--green);padding:5px 12px;border-radius:var(--rs);font-size:.75rem;cursor:pointer;font-family:\'Exo 2\',sans-serif;">✓ Resolver</button>
+        <button onclick="deleteReport('${r.id}')" style="background:rgba(255,68,68,.06);border:1px solid rgba(255,68,68,.25);color:var(--red);padding:5px 12px;border-radius:var(--rs);font-size:.75rem;cursor:pointer;font-family:\'Exo 2\',sans-serif;">🗑 Eliminar reporte</button>
+        ${r.reportedUid?`<button onclick="banUser('${r.reportedUid}','${(r.reportedUser||'').replace(/'/g,"\\'")}')" style="background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.3);color:#f85149;padding:5px 12px;border-radius:var(--rs);font-size:.75rem;cursor:pointer;font-family:\'Exo 2\',sans-serif;font-weight:700;">🔨 Banear usuario</button>`:''}
       </div>
     </div>`;
   }).join('') : '<div style="text-align:center;padding:30px;color:var(--muted);">✅ Sin reportes pendientes</div>';
@@ -14991,7 +14996,7 @@ window.adminConfirmDelete = async function(uid, nick){
   } catch(e){ toast('Error al eliminar: '+e.message,'err'); }
 };
 
-async function banUser(uid, nick){
+window.banUser = async function banUser(uid, nick){
   const old = document.getElementById('_banModal');
   if(old) old.remove();
   const m = document.createElement('div');
@@ -15056,7 +15061,7 @@ window._confirmBan = async function(uid, nick){
   } catch(e){ toast('Error al banear: '+e.message,'err'); }
 };
 
-async function deleteAdminPost(postId, reportId){
+window.deleteAdminPost = async function deleteAdminPost(postId, reportId){
   if(!window.CU || (window.CU.nick !== 'Administrador' && window.CU.email !== 'synxyes@gmail.com' && window.CU.role !== 'admin' && !window.CU.admin)){
     toast('Sin permisos de admin','err'); return;
   }
@@ -15073,10 +15078,19 @@ async function deleteAdminPost(postId, reportId){
   } catch(e){ toast('Error al eliminar: '+e.message,'err'); }
 }
 
-async function resolveReport(reportId){
+window.resolveReport = async function resolveReport(reportId){
   await updateDoc(doc(db,'reports',reportId),{status:'resuelto'});
   toast('Reporte resuelto ✅','ok');
   loadAdminData();
+}
+
+window.deleteReport = async function deleteReport(reportId){
+  if(!confirm('¿Eliminar este reporte permanentemente?')) return;
+  try {
+    await deleteDoc(doc(db,'reports',reportId));
+    toast('Reporte eliminado ✅','ok');
+    loadAdminData();
+  } catch(e){ toast('Error al eliminar reporte: '+e.message,'err'); }
 }
 
 let _adminMediaFiles = {};
