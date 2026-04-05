@@ -15600,12 +15600,10 @@ function previewPostMedia(input, type){
     tmpVid.onloadedmetadata = function(){
       URL.revokeObjectURL(tmpUrl);
       if(tmpVid.duration > 30){
-        toast('⏱ El video no puede superar los 30 segundos.','err');
-        input.value = '';
-        return;
+        toast('▶️ Video largo detectado: se subirá vía YouTube automáticamente.','inf');
       }
       _postMediaFiles = _postMediaFiles.filter(f=>f.type!=='video');
-      _postMediaFiles.push({file:videoFile, type:'video'});
+      _postMediaFiles.push({file:videoFile, type:'video', duration: tmpVid.duration});
       renderPostMediaPreview();
     };
     tmpVid.onerror = function(){
@@ -15624,7 +15622,11 @@ function renderPostMediaPreview(){
   container.innerHTML = _postMediaFiles.map((m,i)=>{
     const url = URL.createObjectURL(m.file);
     if(m.type==='image') return `<div style="position:relative;width:80px;height:80px;border-radius:var(--rs);overflow:hidden;flex-shrink:0"><img src="${url}" style="width:100%;height:100%;object-fit:cover"><button onclick="removePostMedia(${i})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:#fff;width:20px;height:20px;border-radius:50%;font-size:.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button></div>`;
-    return `<div style="position:relative;width:120px;height:80px;border-radius:var(--rs);overflow:hidden;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0"><video src="${url}" style="width:100%;height:100%;object-fit:cover"></video><button onclick="removePostMedia(${i})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:#fff;width:20px;height:20px;border-radius:50%;font-size:.65rem;cursor:pointer;">✕</button><div style="position:absolute;font-size:1.5rem;">▶</div></div>`;
+    const _viaYt = (m.duration && m.duration > 30);
+    const _vidBadge = _viaYt
+      ? `<div style="position:absolute;bottom:4px;left:4px;background:#cc0000;color:#fff;font-size:.6rem;font-weight:700;padding:1px 5px;border-radius:3px;">▶ YouTube</div>`
+      : `<div style="position:absolute;bottom:4px;left:4px;background:#2e86ab;color:#fff;font-size:.6rem;font-weight:700;padding:1px 5px;border-radius:3px;">☁ Cloud</div>`;
+    return `<div style="position:relative;width:120px;height:80px;border-radius:var(--rs);overflow:hidden;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0"><video src="${url}" style="width:100%;height:100%;object-fit:cover"></video><button onclick="removePostMedia(${i})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:#fff;width:20px;height:20px;border-radius:50%;font-size:.65rem;cursor:pointer;">✕</button><div style="position:absolute;font-size:1.5rem;">▶</div>${_vidBadge}</div>`;
   }).join('');
   const imgs = _postMediaFiles.filter(f=>f.type==='image').length;
   const vids = _postMediaFiles.filter(f=>f.type==='video').length;
