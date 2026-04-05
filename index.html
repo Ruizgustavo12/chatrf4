@@ -34336,11 +34336,11 @@ function _esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
           : '<div style="width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:900;color:#fff;flex-shrink:0;">'+nick[0].toUpperCase()+'</div>';
 
         return [
-          '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);transition:transform .15s,box-shadow .15s;cursor:pointer;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 18px rgba(0,0,0,.13)'" onmouseout="this.style.transform='';this.style.boxShadow='0 1px 4px rgba(0,0,0,.08)'" onclick="openUserProfile(''+uid+'',''+nick+'')">',
+          '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);transition:transform .15s,box-shadow .15s;cursor:pointer;" onmouseover="this.style.transform=&apos;translateY(-2px)&apos;;this.style.boxShadow=&apos;0 6px 18px rgba(0,0,0,.13)&apos;" onmouseout="this.style.transform=&apos;&apos;;this.style.boxShadow=&apos;0 1px 4px rgba(0,0,0,.08)&apos;" onclick="openUserProfile(&apos;'+uid+'&apos;,&apos;'+nick+'&apos;)">',
 
             // Foto
             '<div style="width:100%;padding-top:105%;position:relative;background:var(--bg3);overflow:hidden;">',
-              '<img src="'+f.url+'" loading="lazy" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:top;" onerror="this.parentElement.style.background='var(--bg4)'">',
+              '<img src="'+f.url+'" loading="lazy" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:top;" onerror="this.parentElement.style.background=&apos;var(--bg4)&apos;">',
             '</div>',
 
             // Info inferior
