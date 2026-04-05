@@ -34312,53 +34312,53 @@ function _esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
     list.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--muted);font-size:.9rem;">⏳ Cargando visitantes...</div>';
     if(errEl) errEl.style.display = 'none';
 
-    // Esperar usuario
+    // Esperar usuario y Firebase
     var retries = 0;
-    while((!window.CU || (!window.CU.uid && !window.CU.id)) && retries < 20){
-      await new Promise(function(r){ setTimeout(r,500); });
+    while((!window.CU || !window.CU.id) && retries < 30){
+      await new Promise(function(r){ setTimeout(r,400); });
       retries++;
     }
-    if(!window.CU || (!window.CU.uid && !window.CU.id)){
+    if(!window.CU || !window.CU.id){
       list.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--muted);">Iniciá sesión para ver tus visitantes.</div>';
       return;
     }
-
-    // Esperar Firebase
     retries = 0;
-    while((!window.db || !window.firebaseFirestore) && retries < 20){
-      await new Promise(function(r){ setTimeout(r,500); });
+    while((!window.db || !window.collection || !window.query || !window.where || !window.getDocs) && retries < 30){
+      await new Promise(function(r){ setTimeout(r,400); });
       retries++;
     }
-    if(!window.db || !window.firebaseFirestore){
-      list.innerHTML = '';
+    if(!window.db || !window.getDocs){
       if(errEl){ errEl.textContent='Sin conexión a la base de datos.'; errEl.style.display='block'; }
+      list.innerHTML = '';
       return;
     }
 
-    try {
-      var _ff = window.firebaseFirestore;
-      var uid = window.CU.id || window.CU.uid;
+    function tsRel(ms){
+      if(!ms) return '';
+      var diff = Date.now() - ms;
+      var m = Math.floor(diff/60000);
+      if(m < 1) return 'Ahora mismo';
+      if(m < 60) return 'Hace '+m+' min';
+      var h = Math.floor(m/60);
+      if(h < 24) return 'Hace '+h+'h';
+      var d = Math.floor(h/24);
+      if(d < 30) return 'Hace '+d+'d';
+      var mo = Math.floor(d/30);
+      return 'Hace '+mo+' mes'+(mo>1?'es':'');
+    }
 
-      // Intentar subcoleción 'visitantes' bajo el doc del usuario
-      var vSnap = await _ff.getDocs(
-        _ff.query(
-          _ff.collection(window.db, 'users', uid, 'visitantes'),
-          _ff.orderBy('ts','desc'),
-          _ff.limit(50)
+    var esc = {'<':'&lt;','>':'&gt;','"':'&quot;','&':'&amp;'};
+    function escStr(s){ return (s||'').replace(/[<>"&]/g,function(c){ return esc[c]; }); }
+
+    try {
+      var myId = window.CU.id;
+      // Leer de profileVisits donde visitedId == mi uid, ordenado por time desc
+      var vSnap = await window.getDocs(
+        window.query(
+          window.collection(window.db, 'profileVisits'),
+          window.where('visitedId', '==', myId)
         )
       );
-
-      function tsRel(ts){
-        var ms = ts && ts.toMillis ? ts.toMillis() : (ts||0);
-        if(!ms) return '';
-        var diff = Date.now() - ms;
-        var m = Math.floor(diff/60000);
-        if(m < 1) return 'Ahora mismo';
-        if(m < 60) return 'Hace '+m+' min';
-        var h = Math.floor(m/60);
-        if(h < 24) return 'Hace '+h+'h';
-        return 'Hace '+Math.floor(h/24)+'d';
-      }
 
       if(vSnap.empty){
         list.innerHTML = [
@@ -34371,24 +34371,32 @@ function _esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
         return;
       }
 
-      var esc = {'<':'&lt;','>':'&gt;','"':'&quot;','&':'&amp;'};
-      function escStr(s){ return (s||'').replace(/[<>"&]/g,function(c){ return esc[c]; }); }
+      // Ordenar por time desc y filtrar que no sea uno mismo
+      var visitors = vSnap.docs.map(function(d){ return d.data(); })
+        .filter(function(v){ return v.visitorId !== myId; })
+        .sort(function(a,b){ return (b.time||0) - (a.time||0); })
+        .slice(0, 60);
 
-      list.innerHTML = vSnap.docs.map(function(doc){
-        var d    = doc.data();
-        var av   = d.avatar || d.photoURL || d.av || '';
-        var nick = escStr(d.nick || d.displayName || 'Usuario');
-        var vuid = d.uid || doc.id;
-        var hace = tsRel(d.ts);
+      if(!visitors.length){
+        list.innerHTML = '<div style="text-align:center;padding:60px 16px;"><div style="font-size:3rem;margin-bottom:12px;">👁️</div><div style="font-size:.95rem;font-weight:700;color:var(--text);">Aún no tenés visitantes</div></div>';
+        return;
+      }
+
+      list.innerHTML = visitors.map(function(v){
+        var nick  = escStr(v.visitorNick || 'Usuario');
+        var vuid  = v.visitorId || '';
+        var av    = v.visitorAv || '';
+        var hace  = tsRel(v.time || 0);
         var avHtml = av
-          ? '<img src="'+av+'" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--border);" onerror="this.style.display=\'none\'">'
+          ? '<img src="'+av+'" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--border);" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">'
+            + '<div style="display:none;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));align-items:center;justify-content:center;font-size:1.3rem;font-weight:900;color:#fff;flex-shrink:0;">'+nick[0].toUpperCase()+'</div>'
           : '<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:900;color:#fff;flex-shrink:0;">'+nick[0].toUpperCase()+'</div>';
         return [
           '<div onclick="openUserProfile(\''+vuid+'\',\''+nick+'\')" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:background .15s,box-shadow .15s;" onmouseover="this.style.background=\'var(--bg3)\';this.style.boxShadow=\'0 2px 10px rgba(0,0,0,.08)\'" onmouseout="this.style.background=\'var(--bg2)\';this.style.boxShadow=\'none\'">',
             avHtml,
             '<div style="flex:1;min-width:0;">',
               '<div style="font-size:.92rem;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+nick+'</div>',
-              hace ? '<div style="font-size:.72rem;color:var(--muted);margin-top:2px;">👁️ '+hace+'</div>' : '',
+              hace ? '<div style="font-size:.72rem;color:var(--muted);margin-top:3px;">👁 Visitó '+hace+'</div>' : '',
             '</div>',
             '<button onclick="event.stopPropagation();openUserProfile(\''+vuid+'\',\''+nick+'\')" style="flex-shrink:0;padding:7px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:\'Exo 2\',sans-serif;">Ver perfil</button>',
           '</div>'
