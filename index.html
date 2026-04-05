@@ -31293,21 +31293,59 @@ window._cl = {
   lastQuery:      '',
 };
 
-/* ── YOUTUBE DATA API (no-key iframe search via oEmbed proxy) ──
-   Usamos la API de búsqueda pública de invidious / piped como fallback
-   para obtener resultados sin API key. ── */
-const CL_INVIDIOUS = 'https://iv.ggtyler.dev'; // instancia pública
+/* ── YOUTUBE SEARCH — múltiples fuentes con fallback automático ── */
 
-async function clFetch(url){
-  const r = await fetch(url);
-  if(!r.ok) throw new Error('HTTP '+r.status);
-  return r.json();
+// Instancias Invidious públicas (se prueban en orden)
+const CL_INSTANCES = [
+  'https://inv.nadeko.net',
+  'https://invidious.nerdvpn.de',
+  'https://iv.ggtyler.dev',
+  'https://invidious.privacydev.net',
+  'https://yt.cdaut.de',
+];
+
+async function clFetchJSON(url, timeout=7000){
+  const ctrl = new AbortController();
+  const tid  = setTimeout(()=>ctrl.abort(), timeout);
+  try {
+    const r = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(tid);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return await r.json();
+  } catch(e){ clearTimeout(tid); throw e; }
 }
 
-async function clSearch(query, max=18){
-  const url = `${CL_INVIDIOUS}/api/v1/search?q=${encodeURIComponent(query)}&type=video&page=1`;
-  const data = await clFetch(url);
-  return (data || []).slice(0, max).filter(v=>v.videoId && v.title);
+// Busca probando instancias hasta que una responda
+async function clSearch(query, max=20){
+  let lastErr;
+  for(const base of CL_INSTANCES){
+    try {
+      const url  = `${base}/api/v1/search?q=${encodeURIComponent(query)}&type=video&page=1`;
+      const data = await clFetchJSON(url, 6000);
+      const list = (data||[]).filter(v=>v.videoId && v.title).slice(0, max);
+      if(list.length) return list;
+    } catch(e){ lastErr = e; }
+  }
+  // Último fallback: YouTube via proxy allorigins
+  try {
+    const ytUrl  = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+    const proxy  = `https://api.allorigins.win/get?url=${encodeURIComponent(ytUrl)}`;
+    const resp   = await clFetchJSON(proxy, 10000);
+    const html   = resp && resp.contents ? resp.contents : '';
+    const idMatches    = [...html.matchAll(/"videoId":"([a-zA-Z0-9_-]{11})"/g)];
+    const titleMatches = [...html.matchAll(/"title":\{"runs":\[\{"text":"([^"]+)"/g)];
+    const ids    = [...new Set(idMatches.map(m=>m[1]))].slice(0, max);
+    const titles = titleMatches.map(m=>m[1]);
+    if(ids.length){
+      return ids.map((id,i)=>({
+        videoId: id,
+        title: titles[i] || 'Película',
+        description: '',
+        lengthSeconds: 0
+      }));
+    }
+  } catch(e){ lastErr = e; }
+  throw lastErr || new Error('Sin resultados');
 }
 
 /* ── Thumbnail YouTube ── */
@@ -31413,7 +31451,15 @@ async function clLoadCat(query, label){
     console.warn('[CineLatido] Error cargando:', e);
     if(loader) loader.style.display = 'none';
     window._cl.loading = false;
-    if(grid) grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:#e50914;font-size:.88rem;">⚠️ Error al cargar. Revisá tu conexión e intentá de nuevo.</div>`;
+    if(grid) grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:48px 20px;">
+      <div style="font-size:2.5rem;margin-bottom:12px;">🎬</div>
+      <div style="color:#e50914;font-size:.95rem;font-weight:700;margin-bottom:6px;">No se pudo conectar al servidor de búsqueda</div>
+      <div style="color:#666;font-size:.82rem;margin-bottom:18px;">Los servidores de YouTube pueden estar ocupados. Intentá de nuevo.</div>
+      <button onclick="clLoadCat('${query.replace(/'/g,"\\'")}','${(label||query).replace(/'/g,"\\'")}');"
+        style="background:#e50914;border:none;border-radius:8px;padding:10px 24px;color:#fff;font-weight:700;font-family:'Exo 2',sans-serif;cursor:pointer;font-size:.9rem;">
+        🔄 Reintentar
+      </button>
+    </div>`;
   }
 }
 
