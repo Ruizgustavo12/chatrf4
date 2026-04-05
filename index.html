@@ -9994,6 +9994,7 @@ function postHTML(p){
       <div class="fb-act-wrap" onmouseenter="showRxnPop('${p.id}')" onmouseleave="schedHideRxnPop('${p.id}')">
         <button class="fb-act-btn fb-like-btn ${myRxn?'fb-reacted':''}" id="rxnt_${p.id}"
           onclick="quickReact('${p.id}')"
+          title=""
           style="${myRxn?`color:${REACTIONS.find(r=>r.emoji===myRxn)?.color||'#1877f2'};`:''}"
         >
           <span class="fb-act-emoji" style="font-size:1.15rem;line-height:1;">${myRxn || '👍'}</span>
@@ -10600,6 +10601,12 @@ function showRxnPop(id){
   cancelHideRxnPop(id);
   const popup = document.getElementById('rxnp_'+id);
   if(!popup) return;
+  // Regenerar botones con _buildRxnBtns si ya está disponible (garantiza tooltips correctos)
+  if(window._buildRxnBtns && !popup.dataset.upgraded){
+    const myRxn = window.CU ? (window._posts?.find(p=>p.id===id)?.reactions?.[window.CU.id]||null) : null;
+    popup.innerHTML = window._buildRxnBtns(id, myRxn);
+    popup.dataset.upgraded = '1';
+  }
   const wrap = popup.closest('.fb-act-wrap');
   if(wrap){
     const rect = wrap.getBoundingClientRect();
