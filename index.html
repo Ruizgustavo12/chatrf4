@@ -7041,6 +7041,12 @@ window.initSalasPage = window.initSalasPage;
     <span style="font-size:.67rem;font-weight:700;">Álbum <span id="admAlbumBadge" style="display:none;background:#e74c3c;color:#fff;border-radius:100px;padding:0 5px;font-size:.58rem;font-weight:800;margin-left:2px;">0</span></span>
   </button>
 
+  <button class="adm-tab" onclick="swAdminTab(this,'admt-ageverif');loadAdminAgeVerif()"
+    style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border-radius:10px;background:rgba(255,165,0,.06);border-color:rgba(255,165,0,.3);color:orange;">
+    <span style="font-size:1.2rem;">🪪</span>
+    <span style="font-size:.67rem;font-weight:700;">Edad +18 <span id="admAgeVerifBadge" style="display:none;background:orange;color:#000;border-radius:100px;padding:0 5px;font-size:.58rem;font-weight:800;margin-left:2px;">0</span></span>
+  </button>
+
 </div>
 
 <!-- ══ DIVISOR ═══════════════════════════════════════════════════════ -->
@@ -7167,7 +7173,39 @@ window.initSalasPage = window.initSalasPage;
   <div id="adminAlbumList"><div style="text-align:center;padding:32px;color:var(--muted);">Cargando fotos...</div></div>
 </div>
 
+<div id="admt-ageverif" style="display:none;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+    <div>
+      <div style="font-size:.92rem;font-weight:800;color:orange;">🪪 Verificación de Edad +18</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">Revisá el documento de identidad y aprobá o rechazá cada solicitud.</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="loadAdminAgeVerif('pending')" id="agef-pend" class="cfbtn" style="color:orange;">⏳ Pendientes</button>
+      <button onclick="loadAdminAgeVerif('approved')" id="agef-apro" class="cfbtn" style="color:var(--green);">✅ Aprobados</button>
+      <button onclick="loadAdminAgeVerif('rejected')" id="agef-rej" class="cfbtn" style="color:var(--red);">❌ Rechazados</button>
+      <button onclick="loadAdminAgeVerif('all')" id="agef-all" class="cfbtn active">Todos</button>
+    </div>
+  </div>
+  <div id="adminAgeVerifList"><div style="text-align:center;padding:32px;color:var(--muted);">Cargando...</div></div>
+</div>
+
 </div><!-- fin page-admin -->
+
+<!-- ══ MODAL VER DOCUMENTO DNI (ADMIN) ════════════════════════════════ -->
+<div id="modalAdminVerDoc" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;max-width:480px;width:100%;padding:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="font-weight:800;font-size:.95rem;color:var(--text);">🪪 Documento de identidad</div>
+      <button onclick="document.getElementById('modalAdminVerDoc').style.display='none'" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:1rem;">✕</button>
+    </div>
+    <img id="modalAdminVerDocImg" src="" style="width:100%;border-radius:10px;object-fit:contain;max-height:340px;background:#000;">
+    <div id="modalAdminVerDocInfo" style="margin-top:10px;font-size:.78rem;color:var(--muted);"></div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button id="modalAdminVerDocApprove" style="flex:1;background:rgba(0,200,0,.12);border:1px solid rgba(0,200,0,.3);color:#00c853;padding:10px;border-radius:var(--rs);font-weight:800;cursor:pointer;font-family:'Exo 2',sans-serif;font-size:.85rem;">✅ Aprobar edad</button>
+      <button id="modalAdminVerDocReject" style="flex:1;background:rgba(255,0,0,.08);border:1px solid rgba(255,0,0,.2);color:var(--red);padding:10px;border-radius:var(--rs);font-weight:800;cursor:pointer;font-family:'Exo 2',sans-serif;font-size:.85rem;">❌ Rechazar</button>
+    </div>
+  </div>
+</div>
 
 
 <div class="page" id="page-shop" style="max-width:860px;margin:0 auto;padding:20px 16px 80px;display:none!important;">
@@ -10637,27 +10675,6 @@ function renderStories(){
     let bg;
     if(s.img){
       bg = `<img src="${s.img}" style="width:100%;height:100%;object-fit:cover">`;
-    } else if(s.video){
-      // Historia con video: extraer thumbnail de YouTube o mostrar ícono de play
-      const _ytMatchCard = s.video.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-      if(_ytMatchCard){
-        const _ytThumbId = _ytMatchCard[1];
-        bg = `<div style="width:100%;height:100%;position:relative;background:#000;overflow:hidden;">
-          <img src="https://i.ytimg.com/vi/${_ytThumbId}/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='https://i.ytimg.com/vi/${_ytThumbId}/mqdefault.jpg'">
-          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
-            <div style="width:36px;height:36px;border-radius:50%;background:rgba(255,0,0,.85);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);">
-              <div style="width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-left:14px solid #fff;margin-left:3px;"></div>
-            </div>
-          </div>
-        </div>`;
-      } else {
-        const cardBg = s.bg || 'linear-gradient(135deg,#0a2a4a,#0077b6)';
-        bg = `<div style="width:100%;height:100%;background:${cardBg};display:flex;align-items:center;justify-content:center;">
-          <div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;">
-            <div style="width:0;height:0;border-top:10px solid transparent;border-bottom:10px solid transparent;border-left:18px solid #fff;margin-left:4px;"></div>
-          </div>
-        </div>`;
-      }
     } else if(s.text){
       // Historia de texto: mostrar el fondo y el texto encima
       const cardBg = s.bg || 'linear-gradient(135deg,#0a2a4a,#0077b6)';
@@ -14813,6 +14830,23 @@ function renderProfile(){
   // ── BOTÓN VERIFICACIÓN ──
   const verifBtn = document.getElementById('profVerifBtn');
   if(verifBtn) verifBtn.style.display='none';
+
+  // ── BOTÓN VERIFICACIÓN DE EDAD +18 ──
+  let ageVerifBtnEl = document.getElementById('profAgeVerifBtn');
+  if(!ageVerifBtnEl){
+    ageVerifBtnEl = document.createElement('div');
+    ageVerifBtnEl.id = 'profAgeVerifBtn';
+    ageVerifBtnEl.style.marginTop = '6px';
+    const vb = document.getElementById('profVerifBtn');
+    if(vb && vb.parentNode) vb.parentNode.insertBefore(ageVerifBtnEl, vb.nextSibling);
+  }
+  if(window.CU.ageVerified){
+    ageVerifBtnEl.innerHTML = '<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(255,165,0,.12);border:1px solid rgba(255,165,0,.35);border-radius:100px;padding:4px 12px;font-size:.72rem;font-weight:800;color:orange;">🪪 Edad verificada +18</span>';
+  } else if(window.CU.ageVerifPending){
+    ageVerifBtnEl.innerHTML = '<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(255,165,0,.08);border:1px solid rgba(255,165,0,.2);border-radius:100px;padding:4px 12px;font-size:.72rem;font-weight:700;color:rgba(255,165,0,.7);">⏳ Verificación de edad en revisión</span>';
+  } else {
+    ageVerifBtnEl.innerHTML = '<button onclick="openAgeVerifModal()" style="background:rgba(255,165,0,.1);border:1px solid rgba(255,165,0,.3);color:orange;padding:5px 14px;border-radius:100px;font-size:.72rem;font-weight:800;cursor:pointer;font-family:\'Exo 2\',sans-serif;transition:background .2s;" onmouseover="this.style.background=\'rgba(255,165,0,.2)\'" onmouseout="this.style.background=\'rgba(255,165,0,.1)\'">🪪 Verificar edad +18</button>';
+  }
   document.getElementById('profBioEl').textContent = window.CU.bio||'';
   // ── Meta info debajo de bio (ciudad, país, desde) ──
   const _profMetaEl = document.getElementById('profMetaRow');
@@ -18045,7 +18079,7 @@ async function submitReport(){
 function swAdminTab(el, tabId){
   document.querySelectorAll('.adm-tab').forEach(t=>t.classList.remove('adm-on'));
   if(el) el.classList.add('adm-on');
-  ['admt-reports','admt-posts','admt-users','admt-verif','admt-grupos','admt-ads','admt-live','admt-faq','admt-soporte','admt-album']
+  ['admt-reports','admt-posts','admt-users','admt-verif','admt-grupos','admt-ads','admt-live','admt-faq','admt-soporte','admt-album','admt-ageverif']
     .forEach(id=>{ const e=document.getElementById(id); if(e) e.style.display='none'; });
   const tab = document.getElementById(tabId);
   if(tab) tab.style.display='block';
@@ -18058,6 +18092,7 @@ function swAdminTab(el, tabId){
   if(tabId==='admt-faq') loadAdminFaq();
   if(tabId==='admt-soporte') loadAdminSoporteTickets();
   if(tabId==='admt-album') loadAdminAlbum('todas');
+  if(tabId==='admt-ageverif') loadAdminAgeVerif('all');
 }
 
 async function loadAdminData(){
@@ -19766,6 +19801,282 @@ async function adminRevokeVerif(reqId, nick, userId){
     toast(`Verificación de ${nick} revocada`,'inf');
     loadVerifRequests();
   } catch(e){ toast('Error al revocar','err'); }
+}
+
+/* ================================================================
+   VERIFICACIÓN DE EDAD +18 — SISTEMA COMPLETO
+   Colección Firestore: ageVerifications/{userId}
+   Campos: userId, nick, av, docImg, status, submittedAt,
+           reviewedAt, reviewedBy, rejectionReason, birthYear
+================================================================ */
+
+// ── USUARIO: solicitar verificación de edad ──────────────────────
+window.openAgeVerifModal = function(){
+  if(!window.CU){ toast('Tenés que estar logueado','err'); return; }
+  if(window.CU.ageVerified){ toast('Tu edad ya está verificada ✅','ok'); return; }
+  if(window.CU.ageVerifPending){ toast('Tu solicitud ya está en revisión ⏳','inf'); return; }
+
+  // Crear modal si no existe
+  let m = document.getElementById('_ageVerifModal');
+  if(!m){
+    m = document.createElement('div');
+    m.id = '_ageVerifModal';
+    m.style.cssText = 'display:none;position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,.75);align-items:center;justify-content:center;padding:16px;';
+    m.innerHTML = `
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;max-width:440px;width:100%;padding:22px;position:relative;">
+        <button onclick="document.getElementById('_ageVerifModal').style.display='none'" style="position:absolute;top:12px;right:12px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:50%;width:28px;height:28px;cursor:pointer;">✕</button>
+        <div style="font-family:'Orbitron',monospace;font-size:.9rem;font-weight:900;color:orange;margin-bottom:4px;">🪪 Verificación de Edad +18</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:16px;line-height:1.5;">Subí una foto de tu documento de identidad (DNI, cédula, pasaporte). Solo el admin lo verá para verificar que sos mayor de 18 años. La imagen se elimina después de la revisión.</div>
+
+        <div style="background:rgba(255,165,0,.07);border:1px solid rgba(255,165,0,.25);border-radius:10px;padding:12px;margin-bottom:14px;font-size:.72rem;color:rgba(255,165,0,.9);line-height:1.5;">
+          ⚠️ <strong>Privacidad:</strong> Solo se usa para verificar tu edad. No se comparte con otros usuarios. Podés tapar tu número de documento si querés — solo necesitamos ver tu fecha de nacimiento.
+        </div>
+
+        <label style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border:2px dashed var(--border);border-radius:12px;cursor:pointer;color:var(--muted);font-size:.85rem;background:var(--bg3);margin-bottom:10px;transition:border-color .2s;" onmouseover="this.style.borderColor='orange'" onmouseout="this.style.borderColor='var(--border)'">
+          📄 Seleccionar foto del documento
+          <input type="file" accept="image/*" id="_ageVerifDocInput" style="display:none" onchange="_ageVerifPreview(this)">
+        </label>
+        <div id="_ageVerifDocPrev" style="margin-bottom:10px;"></div>
+
+        <div style="margin-bottom:14px;">
+          <label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:5px;">Año de nacimiento (opcional, para agilizar la revisión)</label>
+          <input type="number" id="_ageVerifBirthYear" placeholder="Ej: 1995" min="1900" max="2010"
+            style="width:100%;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-size:.85rem;box-sizing:border-box;outline:none;">
+        </div>
+
+        <button onclick="_ageVerifSubmit()" style="width:100%;background:linear-gradient(135deg,orange,#e67e00);border:none;color:#000;padding:12px;border-radius:var(--rs);font-weight:900;font-size:.88rem;cursor:pointer;font-family:'Exo 2',sans-serif;">
+          📤 Enviar solicitud
+        </button>
+        <div id="_ageVerifStatus" style="margin-top:10px;font-size:.75rem;text-align:center;min-height:18px;"></div>
+      </div>`;
+    document.body.appendChild(m);
+  }
+  // Reset estado
+  const inp = document.getElementById('_ageVerifDocInput');
+  const prev = document.getElementById('_ageVerifDocPrev');
+  const st = document.getElementById('_ageVerifStatus');
+  const by = document.getElementById('_ageVerifBirthYear');
+  if(inp) inp.value = '';
+  if(prev) prev.innerHTML = '';
+  if(st) st.textContent = '';
+  if(by) by.value = '';
+  window._ageVerifFile = null;
+  m.style.display = 'flex';
+};
+
+window._ageVerifPreview = function(inp){
+  if(!inp.files||!inp.files[0]) return;
+  window._ageVerifFile = inp.files[0];
+  const url = URL.createObjectURL(inp.files[0]);
+  const prev = document.getElementById('_ageVerifDocPrev');
+  if(prev) prev.innerHTML = `<img src="${url}" style="width:100%;max-height:200px;object-fit:contain;border-radius:10px;background:#000;display:block;">`;
+};
+
+window._ageVerifSubmit = async function(){
+  const st = document.getElementById('_ageVerifStatus');
+  if(!window._ageVerifFile){ if(st) st.innerHTML='<span style="color:var(--red);">Seleccioná una foto del documento primero</span>'; return; }
+  if(!window.CU){ return; }
+  const by = document.getElementById('_ageVerifBirthYear');
+  const birthYear = by ? parseInt(by.value)||null : null;
+  if(birthYear && (birthYear < 1900 || birthYear > 2010)){ if(st) st.innerHTML='<span style="color:var(--red);">Año de nacimiento inválido</span>'; return; }
+
+  if(st) st.innerHTML='<span style="color:orange;">⏳ Subiendo documento...</span>';
+  try {
+    // Subir imagen a Cloudinary en carpeta age_verif
+    const docUrl = await uploadImage(window._ageVerifFile, 'age_verif');
+    if(!docUrl) throw new Error('No se pudo subir la imagen');
+
+    if(st) st.innerHTML='<span style="color:orange;">⏳ Enviando solicitud...</span>';
+
+    // Guardar en Firestore
+    await setDoc(doc(db,'ageVerifications', window.CU.id),{
+      userId: window.CU.id,
+      nick: window.CU.nick,
+      av: window.CU.av||'',
+      docImg: docUrl,
+      status: 'pending',
+      submittedAt: Date.now(),
+      birthYear: birthYear||null,
+      reviewedAt: null,
+      reviewedBy: null,
+      rejectionReason: null
+    });
+
+    // Marcar al usuario como pendiente
+    await updateDoc(doc(db,'users', window.CU.id),{ ageVerifPending: true });
+    window.CU.ageVerifPending = true;
+    window._ageVerifFile = null;
+
+    // Notificar al admin
+    try {
+      const admSnap = await getDocs(query(collection(db,'users'), where('email','==','synxyes@gmail.com')));
+      if(!admSnap.empty){
+        const admId = admSnap.docs[0].id;
+        const admData = admSnap.docs[0].data();
+        const notifs = admData.notifs||[];
+        notifs.unshift({ type:'ageVerifRequest', fromId:window.CU.id, fromNick:window.CU.nick, fromAv:window.CU.av||'', time:Date.now(), text:`${window.CU.nick} solicita verificación de edad +18` });
+        await updateDoc(doc(db,'users',admId),{ notifs: notifs.slice(0,50) });
+      }
+    } catch(e){}
+
+    // Actualizar badge del panel admin si está abierto
+    _updateAgeVerifAdminBadge();
+
+    if(st) st.innerHTML='<span style="color:#00c853;">✅ Solicitud enviada. El admin revisará tu documento en breve.</span>';
+    setTimeout(()=>{ const m=document.getElementById('_ageVerifModal'); if(m) m.style.display='none'; }, 2500);
+
+  } catch(e){
+    if(st) st.innerHTML=`<span style="color:var(--red);">❌ Error: ${e.message}</span>`;
+  }
+};
+
+// ── ADMIN: cargar panel de verificaciones de edad ────────────────
+window.loadAdminAgeVerif = async function(filter){
+  filter = filter || 'all';
+  // Actualizar botones de filtro
+  ['agef-pend','agef-apro','agef-rej','agef-all'].forEach(id=>{
+    const b = document.getElementById(id);
+    if(b){ b.classList.remove('active'); b.style.fontWeight=''; }
+  });
+  const activeMap = { pending:'agef-pend', approved:'agef-apro', rejected:'agef-rej', all:'agef-all' };
+  const activeBtn = document.getElementById(activeMap[filter]);
+  if(activeBtn){ activeBtn.classList.add('active'); }
+
+  const el = document.getElementById('adminAgeVerifList');
+  if(!el) return;
+  el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);">⏳ Cargando...</div>';
+
+  try {
+    let q;
+    if(filter === 'all'){
+      q = query(collection(db,'ageVerifications'), limit(100));
+    } else {
+      q = query(collection(db,'ageVerifications'), where('status','==',filter), limit(100));
+    }
+    const snap = await getDocs(q);
+    const reqs = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.submittedAt||0)-(a.submittedAt||0));
+
+    // Actualizar badge de pendientes
+    const pendCount = reqs.filter(r=>r.status==='pending').length;
+    const badge = document.getElementById('admAgeVerifBadge');
+    if(badge){ badge.style.display = pendCount>0?'inline':'none'; badge.textContent=pendCount; }
+
+    if(!reqs.length){
+      el.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);">Sin solicitudes 🎉</div>';
+      return;
+    }
+
+    el.innerHTML = reqs.map(r=>{
+      const statusColor = r.status==='approved'?'rgba(0,200,0,.12)':r.status==='rejected'?'rgba(255,0,0,.06)':'rgba(255,165,0,.07)';
+      const statusBorder = r.status==='approved'?'rgba(0,200,0,.25)':r.status==='rejected'?'rgba(255,0,0,.18)':'rgba(255,165,0,.3)';
+      const statusLabel = r.status==='approved'?'<span style="background:rgba(0,200,0,.15);color:#00c853;padding:2px 9px;border-radius:100px;font-size:.68rem;font-weight:800;">✅ Aprobado</span>'
+        :r.status==='rejected'?'<span style="background:rgba(255,0,0,.1);color:var(--red);padding:2px 9px;border-radius:100px;font-size:.68rem;font-weight:800;">❌ Rechazado</span>'
+        :'<span style="background:rgba(255,165,0,.15);color:orange;padding:2px 9px;border-radius:100px;font-size:.68rem;font-weight:800;">⏳ Pendiente</span>';
+      const fechaEnvio = r.submittedAt ? new Date(r.submittedAt).toLocaleString('es-AR') : '—';
+      const fechaReview = r.reviewedAt ? new Date(r.reviewedAt).toLocaleString('es-AR') : '—';
+      const nickSafe = (r.nick||'').replace(/'/g,"\\'");
+
+      return `<div style="background:${statusColor};border:1px solid ${statusBorder};border-radius:12px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div style="width:46px;height:46px;border-radius:50%;overflow:hidden;border:2px solid ${statusBorder};flex-shrink:0;background:var(--bg3);">
+          <img src="${r.av||''}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:800;font-size:.88rem;">${esc(r.nick||'?')}</div>
+          <div style="font-size:.7rem;color:var(--muted);margin-top:1px;">Enviado: ${fechaEnvio}${r.birthYear?` · Año nac.: <strong>${r.birthYear}</strong>`:''}</div>
+          ${r.status!=='pending'?`<div style="font-size:.7rem;color:var(--muted);">Revisado: ${fechaReview}${r.rejectionReason?` · Motivo: ${esc(r.rejectionReason)}`:''}</div>`:''}
+          <div style="margin-top:5px;">${statusLabel}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;">
+          <button onclick="adminViewAgeDoc('${r.id}','${nickSafe}','${r.userId}','${r.docImg||''}')" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:var(--rs);font-size:.73rem;cursor:pointer;font-family:'Exo 2',sans-serif;">🪪 Ver doc</button>
+          ${r.status==='pending'?`
+          <button onclick="adminApproveAgeVerif('${r.id}','${nickSafe}','${r.userId}')" style="background:rgba(0,200,0,.1);border:1px solid rgba(0,200,0,.3);color:#00c853;padding:6px 12px;border-radius:var(--rs);font-size:.73rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;">✅ Aprobar</button>
+          <button onclick="adminRejectAgeVerif('${r.id}','${nickSafe}','${r.userId}')" style="background:rgba(255,0,0,.06);border:1px solid rgba(255,0,0,.2);color:var(--red);padding:6px 12px;border-radius:var(--rs);font-size:.73rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;">❌ Rechazar</button>`
+          :r.status==='approved'?`<button onclick="adminRevokeAgeVerif('${r.id}','${nickSafe}','${r.userId}')" style="background:rgba(255,165,0,.08);border:1px solid rgba(255,165,0,.25);color:orange;padding:6px 12px;border-radius:var(--rs);font-size:.73rem;cursor:pointer;font-family:'Exo 2',sans-serif;">↩ Revocar</button>`
+          :`<button onclick="adminApproveAgeVerif('${r.id}','${nickSafe}','${r.userId}')" style="background:rgba(0,200,0,.1);border:1px solid rgba(0,200,0,.3);color:#00c853;padding:6px 12px;border-radius:var(--rs);font-size:.73rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;">✅ Aprobar</button>`}
+        </div>
+      </div>`;
+    }).join('');
+
+  } catch(e){ el.innerHTML='<div style="text-align:center;padding:32px;color:var(--muted);">Error al cargar</div>'; console.error(e); }
+};
+
+// ── ADMIN: ver documento ─────────────────────────────────────────
+window.adminViewAgeDoc = function(reqId, nick, userId, docImg){
+  const m = document.getElementById('modalAdminVerDoc');
+  const img = document.getElementById('modalAdminVerDocImg');
+  const info = document.getElementById('modalAdminVerDocInfo');
+  const btnApprove = document.getElementById('modalAdminVerDocApprove');
+  const btnReject = document.getElementById('modalAdminVerDocReject');
+  if(!m||!img) return;
+  img.src = docImg || '';
+  if(info) info.textContent = `Usuario: ${nick}`;
+  btnApprove.onclick = ()=>{ m.style.display='none'; adminApproveAgeVerif(reqId,nick,userId); };
+  btnReject.onclick  = ()=>{ m.style.display='none'; adminRejectAgeVerif(reqId,nick,userId); };
+  m.style.display = 'flex';
+};
+
+// ── ADMIN: aprobar ───────────────────────────────────────────────
+window.adminApproveAgeVerif = async function(reqId, nick, userId){
+  try {
+    const now = Date.now();
+    await updateDoc(doc(db,'users',userId),{ ageVerified:true, ageVerifPending:false });
+    await setDoc(doc(db,'ageVerifications',reqId),{ status:'approved', reviewedAt:now, reviewedBy: window.CU?window.CU.id:'admin' },{merge:true});
+    // Notificar al usuario
+    try {
+      const uSnap = await getDoc(doc(db,'users',userId));
+      if(uSnap.exists()){
+        const notifs = uSnap.data().notifs||[];
+        notifs.unshift({ type:'ageVerifApproved', time:now, text:'¡Tu edad fue verificada! Ya tenés acceso completo +18 🎉' });
+        await updateDoc(doc(db,'users',userId),{ notifs: notifs.slice(0,50) });
+      }
+    } catch(e){}
+    toast(`✅ Edad de ${nick} verificada`,'ok');
+    loadAdminAgeVerif('all');
+  } catch(e){ toast('Error al aprobar','err'); console.error(e); }
+};
+
+// ── ADMIN: rechazar ──────────────────────────────────────────────
+window.adminRejectAgeVerif = async function(reqId, nick, userId){
+  const motivo = prompt(`Motivo del rechazo para ${nick} (opcional):`);
+  if(motivo === null) return; // canceló
+  try {
+    const now = Date.now();
+    await updateDoc(doc(db,'users',userId),{ ageVerifPending:false });
+    await setDoc(doc(db,'ageVerifications',reqId),{ status:'rejected', reviewedAt:now, reviewedBy:window.CU?window.CU.id:'admin', rejectionReason:motivo||'' },{merge:true});
+    // Notificar al usuario
+    try {
+      const uSnap = await getDoc(doc(db,'users',userId));
+      if(uSnap.exists()){
+        const notifs = uSnap.data().notifs||[];
+        const txt = motivo ? `Tu verificación de edad fue rechazada. Motivo: ${motivo}` : 'Tu verificación de edad fue rechazada. Podés intentarlo de nuevo.';
+        notifs.unshift({ type:'ageVerifRejected', time:now, text:txt });
+        await updateDoc(doc(db,'users',userId),{ notifs: notifs.slice(0,50) });
+      }
+    } catch(e){}
+    toast(`Solicitud de ${nick} rechazada`,'inf');
+    loadAdminAgeVerif('all');
+  } catch(e){ toast('Error al rechazar','err'); console.error(e); }
+};
+
+// ── ADMIN: revocar ───────────────────────────────────────────────
+window.adminRevokeAgeVerif = async function(reqId, nick, userId){
+  if(!confirm(`¿Revocar la verificación de edad de ${nick}?`)) return;
+  try {
+    await updateDoc(doc(db,'users',userId),{ ageVerified:false });
+    await setDoc(doc(db,'ageVerifications',reqId),{ status:'rejected', reviewedAt:Date.now(), reviewedBy:window.CU?window.CU.id:'admin', rejectionReason:'Revocado por admin' },{merge:true});
+    toast(`Verificación de ${nick} revocada`,'inf');
+    loadAdminAgeVerif('all');
+  } catch(e){ toast('Error al revocar','err'); }
+};
+
+// ── Helper: actualizar badge del panel admin ─────────────────────
+async function _updateAgeVerifAdminBadge(){
+  try {
+    const snap = await getDocs(query(collection(db,'ageVerifications'), where('status','==','pending')));
+    const count = snap.size;
+    const badge = document.getElementById('admAgeVerifBadge');
+    if(badge){ badge.style.display = count>0?'inline':'none'; badge.textContent=count; }
+  } catch(e){}
 }
 
 /* ===== VERIFICACIÓN MASIVA POR FOTOS ===== */
@@ -24363,6 +24674,7 @@ const _expose = {
   reportPost,submitReport,
   loadAdminData,deleteAdminPost,resolveReport,
   requestVerification, loadVerifRequests, adminApproveVerif, adminRejectVerif, adminRevokeVerif,
+  openAgeVerifModal, _ageVerifPreview, _ageVerifSubmit, loadAdminAgeVerif, adminViewAgeDoc, adminApproveAgeVerif, adminRejectAgeVerif, adminRevokeAgeVerif,
   sendShopAnnouncementToAll,
   switchNotifTab, markAllNotifsRead, filterChatSearch,
   openChatMenu, archiveChat, unarchiveChat, markChatRead, markChatUnread, deleteChatConfirm,
