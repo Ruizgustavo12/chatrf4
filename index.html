@@ -13407,10 +13407,7 @@ function postHTML(p){
           onclick="quickReact('${p.id}')"
           style="${myRxn?`color:${REACTIONS.find(r=>r.emoji===myRxn)?.color||'#1877f2'};`:''}"
         >
-          ${myRxn
-            ? `<span class="fb-act-emoji">${myRxn}</span>`
-            : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>`
-          }
+          <span class="fb-act-emoji" style="font-size:1.15rem;line-height:1;">${myRxn || '👍'}</span>
           <span class="fb-act-label" style="${myRxn?`color:${REACTIONS.find(r=>r.emoji===myRxn)?.color||'#1877f2'};font-weight:700;`:''}">
             ${myRxn?(REACTIONS.find(r=>r.emoji===myRxn)?.label||'Me gusta'):'Me gusta'}
           </span>
@@ -14204,7 +14201,7 @@ async function doReact(pid, emoji){
       rxnBtn.innerHTML = `<span class="fb-act-emoji">${myNewRxn}</span><span class="fb-act-label" style="color:${rxnDef?.color||'#1877f2'};font-weight:700;">${rxnDef?.label||'Me gusta'}</span>`;
       rxnBtn.style.color = rxnDef?.color||'#1877f2';
     } else {
-      rxnBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg><span class="fb-act-label">Me gusta</span>`;
+      rxnBtn.innerHTML = `<span class="fb-act-emoji" style="font-size:1.15rem;line-height:1;">👍</span><span class="fb-act-label">Me gusta</span>`;
       rxnBtn.style.color = '';
     }
     rxnBtn.classList.toggle('fb-reacted', !!myNewRxn);
@@ -14262,7 +14259,13 @@ async function doReact(pid, emoji){
     toast('Error al reaccionar — ' + errMsg, 'err');
   }
 }
-function quickReact(pid){ if(!window.CU){toast('Inicia sesión','err');return;} doReact(pid,'👍'); }
+function quickReact(pid){
+  if(!window.CU){toast('Inicia sesión','err');return;}
+  const p = (_posts||[]).find(p=>p.id===pid);
+  const prev = p?.reactions?.[window.CU.id] || null;
+  // Si ya tiene reacción → quitarla (toggle off), sino → poner 👍
+  doReact(pid, prev ? prev : '👍');
+}
 
 // ===== COMMENTS =====
 async function toggleComments(pid){
@@ -14271,9 +14274,21 @@ async function toggleComments(pid){
     const wasOpen = el.classList.contains('open');
     el.classList.toggle('open');
     if(!wasOpen){
-      // Opening: render comments fresh from _posts cache
+      // Al abrir: refrescar comentarios desde Firestore para ver los de todos
+      const isTrofeo = pid.startsWith('trofeo_');
+      const realId = isTrofeo ? pid.replace('trofeo_','') : pid;
+      const colName = isTrofeo ? 'trofeosPendientes' : 'posts';
       const p = (_posts||[]).find(p=>p.id===pid);
+      // Mostrar los locales primero (rápido) y luego refrescar
       if(p) _reRenderInlineCmts(pid, p, p.comments||[]);
+      try {
+        const snap = await getDoc(doc(db, colName, realId));
+        if(snap.exists()){
+          const freshCmts = snap.data().comments || [];
+          if(p){ p.comments = freshCmts; }
+          _reRenderInlineCmts(pid, p||{id:pid,...snap.data()}, freshCmts);
+        }
+      } catch(e){ /* silencioso, ya mostramos los locales */ }
       setTimeout(()=>{ document.getElementById('cinp_'+pid)?.focus(); }, 50);
     }
     return;
@@ -14954,17 +14969,18 @@ async function submitComment(pid){
   const realId = isTrofeo ? pid.replace('trofeo_','') : pid;
   const colName = isTrofeo ? 'trofeosPendientes' : 'posts';
   try {
+    // Siempre refrescar desde Firestore para evitar pisar comentarios de otros usuarios
+    const freshSnap = await getDoc(doc(db, colName, realId));
+    if(!freshSnap.exists()){ toast('Post no encontrado','err'); inp.disabled=false; return; }
+    const freshData = freshSnap.data();
     let p = _posts.find(p=>p.id===pid);
-    if(!p){
-      const snap = await getDoc(doc(db, colName, realId));
-      if(!snap.exists()){ toast('Post no encontrado','err'); inp.disabled=false; return; }
-      p = {id:pid,...snap.data()};
-      _posts.push(p);
-    }
+    if(!p){ p = {id:pid,...freshData}; _posts.push(p); }
+    else { p.comments = freshData.comments || p.comments || []; }
     const replyToNick = txt.startsWith('@') ? (txt.match(/^@(\S+)/)||[])[1]||'' : '';
     const newC = {userId:window.CU.id,nick:window.CU.nick,av:window.CU.av||'',verified:window.CU.verified||false,text:txt,time:Date.now(),replyTo:replyToNick};
     const newComments = [...(p.comments||[]), newC];
-    await updateDoc(doc(db, colName, realId), {comments: newComments});
+    // Guardar el array completo (ya incluye los comentarios frescos del servidor)
+    await updateDoc(doc(db, colName, realId), {comments: newComments, commentCount: increment(1)});
     p.comments = newComments;
     inp.value='';
     if(p.userId && p.userId !== window.CU.id){
