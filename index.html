@@ -31147,9 +31147,9 @@ window._clearPartner = function() {
   _renderPartnerCurrent();
 };
 
-const _origOpenEditProfile = window.openEditProfile;
+const openEditProfile_orig = openEditProfile;
 window.openEditProfile = function() {
-  _origOpenEditProfile && _origOpenEditProfile();
+  openEditProfile_orig && openEditProfile_orig();
   window._pendingPartnerId   = (window.CU && window.CU.partnerUid)  || null;
   window._pendingPartnerNick = (window.CU && window.CU.partnerNick) || null;
   _renderPartnerCurrent();
@@ -31167,9 +31167,11 @@ window.openEditProfile = function() {
    GUARDAR PERFIL — envía solicitud, no guarda directo
    ════════════════════════════════════════════ */
 
-const _origSaveProfile = window.saveProfile;
+// saveProfile existe en el scope global pero no en window aun.
+// La renombramos para poder referenciarla directamente desde el override.
+const saveProfile_orig = saveProfile;
 window.saveProfile = async function() {
-  if (!window.CU) { await _origSaveProfile(); return; }
+  if (!window.CU) { await saveProfile_orig(); return; }
 
   const relStatus      = document.getElementById('epRelStatus')?.value || '';
   const wasInRel       = window.CU.relStatus === '💑 En relación';
@@ -31193,7 +31195,7 @@ window.saveProfile = async function() {
     window.CU.partnerNick  = newPartnerNick;
     window.CU.relPending   = true;  // flag local: esperando aceptación
 
-    await _origSaveProfile();   // guarda relStatus + partnerUid + partnerNick en Firestore
+    await saveProfile_orig();   // guarda relStatus + partnerUid + partnerNick en Firestore
     _renderRelBadgeOwn();
 
     // Enviar notificación con tipo especial a la pareja
@@ -31216,7 +31218,7 @@ window.saveProfile = async function() {
     if (oldPartnerUid) await _clearPartnerSide(oldPartnerUid);
   }
 
-  await _origSaveProfile();
+  await saveProfile_orig();
   _renderRelBadgeOwn();
 };
 
