@@ -30407,9 +30407,17 @@ window.playDailymotionVideo = function(id, title) {
       cfLoadDemo(); return;
     }
     if(cfUnsub) cfUnsub();
+    var _cfFirstLoad = true;
     var q = window.query(window.collection(window.db,CF_COL), window.orderBy('time','desc'), window.limit(50));
     cfUnsub = window.onSnapshot(q, function(snap){
-      // Actualizar reacciones y conteo de comentarios en tiempo real sin destruir comentarios abiertos
+      if(_cfFirstLoad){
+        // primer disparo: cargar todo y renderizar
+        _cfFirstLoad = false;
+        cfPosts = snap.docs.map(function(d){return Object.assign({id:d.id},d.data());});
+        cfRender();
+        return;
+      }
+      // cambios posteriores: actualizar solo lo necesario
       snap.docChanges().forEach(function(change){
         var newData = Object.assign({id:change.doc.id}, change.doc.data());
         if(change.type === 'removed'){
@@ -30420,13 +30428,12 @@ window.playDailymotionVideo = function(id, title) {
         }
         var idx = cfPosts.findIndex(function(p){ return p.id === newData.id; });
         if(idx >= 0){
-          // post existente — actualizar reacciones y conteo sin re-render completo
           cfPosts[idx] = newData;
           var card = document.getElementById('cfc_'+newData.id);
           if(card){
-            // actualizar bloque de reacciones
+            // actualizar reacciones sin re-render completo
             var rxnDiv = card.querySelector('.cf-rxns');
-            if(rxnDiv) rxnDiv.innerHTML = CF_REACTIONS.map(function(r){
+            if(rxnDiv) rxnDiv.innerHTML = CF_RXNS.map(function(r){
               var count = (newData.reactions && newData.reactions[r.id]) || 0;
               var reacted = (cfReacted[newData.id]||'')===r.id;
               return '<button class="cf-rxn'+(reacted?' cf-reacted':'')+'" onclick="cfReact(\''+newData.id+'\',\''+r.id+'\',this)" title="'+cfEsc(r.l)+'">'+r.e+' <span>'+count+'</span></button>';
@@ -30435,17 +30442,12 @@ window.playDailymotionVideo = function(id, title) {
             var cmtBtn = card.querySelector('.cf-cmt-toggle-btn');
             if(cmtBtn) cmtBtn.innerHTML = '&#x1F4AC; '+(newData.cmtCount||0)+' comentario'+(+(newData.cmtCount||0)===1?'':'s');
           }
-        } else {
-          // nuevo post — agregar al inicio
+        } else if(change.type === 'added'){
+          // post nuevo — agregar al inicio y re-render
           cfPosts.unshift(newData);
           cfRender();
         }
       });
-      // primer load: cfPosts vacío → cargar todo
-      if(!cfPosts.length){
-        cfPosts = snap.docs.map(function(d){return Object.assign({id:d.id},d.data());});
-        cfRender();
-      }
     }, function(){ cfLoadDemo(); });
   };
 
