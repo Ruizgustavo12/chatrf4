@@ -7284,6 +7284,11 @@ window.initSalasPage = window.initSalasPage;
     <span style="font-size:1.2rem;">📣</span><span>Broadcast</span>
   </button>
 
+  <button class="sa-tab" onclick="swSuperAdminTab(this,'sat-ageverif')"
+    style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border-radius:10px;background:rgba(180,0,0,.06);border:1px solid rgba(220,0,0,.25);color:#cc4444;cursor:pointer;font-family:'Exo 2',sans-serif;font-size:.67rem;font-weight:700;transition:all .18s;">
+    <span style="font-size:1.2rem;">🪪</span><span>Edad +18 <span id="saAgeVerifBadge" style="display:none;background:#cc0000;color:#fff;border-radius:100px;padding:0 5px;font-size:.58rem;font-weight:800;margin-left:2px;">0</span></span>
+  </button>
+
 </div>
 
 <!-- ══ TAB: USUARIOS ══ -->
@@ -7406,6 +7411,29 @@ window.initSalasPage = window.initSalasPage;
     <div class="fg" style="margin-bottom:14px;"><label class="fl" style="color:#ff6666;">Contenido</label><textarea class="fi" id="saBroadcastBody" rows="4" placeholder="Escribí el mensaje que recibirán todos los usuarios..." style="border-color:rgba(220,0,0,.4);background:rgba(160,0,0,.08);color:var(--text);resize:vertical;"></textarea></div>
     <button onclick="saSendBroadcast()" style="background:linear-gradient(135deg,#cc0000,#880000);color:#fff;border:none;border-radius:var(--rs);padding:11px 26px;font-size:.85rem;font-weight:800;cursor:pointer;font-family:'Exo 2',sans-serif;width:100%;">📣 Enviar a Todos</button>
     <div id="saBroadcastResult" style="margin-top:12px;font-size:.8rem;display:none;border-radius:var(--rs);padding:10px;"></div>
+  </div>
+</div>
+
+<!-- ══ TAB: EDAD +18 ══ -->
+<div id="sat-ageverif" style="display:none;">
+  <div style="background:rgba(160,0,0,.09);border:1px solid rgba(220,0,0,.3);border-radius:var(--r);padding:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:.88rem;font-weight:900;color:#ff3333;">🪪 Verificación de Edad +18</div>
+        <div style="font-size:.72rem;color:#ff6666;margin-top:3px;">Revisá el documento de identidad y aprobá o rechazá cada solicitud.</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="loadAdminAgeVerif('pending')" class="cfbtn" style="color:orange;border-color:rgba(220,0,0,.3);">⏳ Pendientes</button>
+        <button onclick="loadAdminAgeVerif('approved')" class="cfbtn" style="color:#44ff66;border-color:rgba(220,0,0,.3);">✅ Aprobados</button>
+        <button onclick="loadAdminAgeVerif('rejected')" class="cfbtn" style="color:#ff4444;border-color:rgba(220,0,0,.3);">❌ Rechazados</button>
+        <button onclick="loadAdminAgeVerif('all')" class="cfbtn active" style="border-color:rgba(220,0,0,.5);color:#ff3333;">Todos</button>
+      </div>
+    </div>
+    <div id="adminAgeVerifList2" style="display:none;"></div>
+    <!-- Reutiliza el mismo div que el panel admin para no duplicar lógica -->
+    <div id="saAgeVerifListWrapper">
+      <div style="text-align:center;padding:32px;color:#ff6666;font-size:.82rem;">Seleccioná un filtro para cargar las solicitudes.</div>
+    </div>
   </div>
 </div>
 
@@ -26575,13 +26603,27 @@ if(typeof onLogin === 'function') {
 function swSuperAdminTab(el, tabId){
   document.querySelectorAll('.sa-tab').forEach(t => t.classList.remove('sa-on'));
   if(el) el.classList.add('sa-on');
-  ['sat-usuarios','sat-roles','sat-bans','sat-reportes','sat-contenido','sat-logs','sat-config','sat-broadcast']
+  ['sat-usuarios','sat-roles','sat-bans','sat-reportes','sat-contenido','sat-logs','sat-config','sat-broadcast','sat-ageverif']
     .forEach(id => { const e = document.getElementById(id); if(e) e.style.display = 'none'; });
   const tab = document.getElementById(tabId);
   if(tab) tab.style.display = 'block';
   if(tabId === 'sat-bans') saLoadBanned();
   if(tabId === 'sat-reportes') saLoadReports('todos');
   if(tabId === 'sat-logs') saLoadLogs();
+  if(tabId === 'sat-ageverif') {
+    // Mover el div compartido de adminAgeVerifList al wrapper del super panel
+    const wrapper = document.getElementById('saAgeVerifListWrapper');
+    const sharedList = document.getElementById('adminAgeVerifList');
+    if(wrapper && sharedList && !wrapper.contains(sharedList)){
+      wrapper.innerHTML = '';
+      wrapper.appendChild(sharedList);
+    }
+    if(typeof loadAdminAgeVerif === 'function') loadAdminAgeVerif('pending');
+    // Actualizar badge
+    const badge = document.getElementById('saAgeVerifBadge');
+    const admBadge = document.getElementById('admAgeVerifBadge');
+    if(badge && admBadge) { badge.textContent = admBadge.textContent; badge.style.display = admBadge.style.display; }
+  }
 }
 
 async function loadSuperAdminData(){
