@@ -2619,7 +2619,6 @@ window._rechazarAlbumDesdeNotif = async function(visitorUid, ownerUid, btn) {
       </button>
       <button class="btn btn-s" style="font-size:.8rem" onclick="openEmojiPicker(event,'postText')">😊 Emoji</button>
       <button class="btn btn-s" style="font-size:.8rem" onclick="openFeelingModal()">🙂 Sentimiento</button>
-      <button class="btn btn-s" style="font-size:.8rem" onclick="insertFishTag()">🎣 Etiqueta pez</button>
       <button class="btn btn-s" style="font-size:.8rem" onclick="openTagPeopleModal()">🏷️ Etiquetar personas</button>
       <button class="btn btn-s" style="font-size:.8rem" onclick="toggleLinkInput()">🔗 Link</button>
     </div>
@@ -2636,29 +2635,6 @@ window._rechazarAlbumDesdeNotif = async function(visitorUid, ownerUid, btn) {
         <button onclick="clearPostLink()" style="background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:4px;">✕</button>
       </div>
       <div id="linkPreviewBox" style="margin-top:8px;display:none;"></div>
-    </div>
-    <div id="fishTagRow" style="display:none;margin-bottom:12px">
-      <div class="frow">
-        <div class="fg"><label class="fl">Intereses</label><input class="fi" id="tagFish"  autocomplete="off" placeholder="Ej: música, viajes, deporte..."></div>
-        <div class="fg"><label class="fl">Peso (kg)</label><input class="fi" type="number" step="0.001" id="tagWeight" placeholder="0.000"></div>
-      </div>
-      <div class="frow">
-        <div class="fg"><label class="fl">Mapa</label>
-          <select class="fi" id="tagMap">
-            <option value="">Seleccionar...</option>
-            <option>Belaya River</option><option>Volkhov River</option><option>Akhtuba River</option>
-            <option>Ladoga Lake</option><option>Sura River</option><option>Bear Lake</option>
-            <option>Mosquito Lake</option><option>Amber Lake</option><option>Yama River</option>
-          </select>
-        </div>
-        <div class="fg"><label class="fl">Técnica</label>
-          <select class="fi" id="tagTech">
-            <option value="">Seleccionar...</option>
-            <option>Spinning</option><option>Fondo</option><option>Flote</option>
-            <option>Jigging</option><option>Feeder</option><option>Hielo</option><option>Fly</option>
-          </select>
-        </div>
-      </div>
     </div>
     <button class="btn btn-p btn-full" onclick="submitPost()">Publicar</button>
   </div>
