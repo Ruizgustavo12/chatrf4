@@ -17645,7 +17645,8 @@ async function _loadUserProfilePage(uid, nick){
     const followBtn = (myId && myId !== uid && !isViewingAdmin)
       ? `<button id="btnFollow_${uid}" onclick="toggleFollow('${uid}','${uNick.replace(/'/g,"\\'")}',this)" style="display:flex;align-items:center;gap:7px;padding:9px 18px;background:${isFollowing?'rgba(46,196,182,.15)':'var(--accent)'};border:1px solid ${isFollowing?'var(--accent)':'transparent'};color:${isFollowing?'var(--accent)':'#000'};border-radius:8px;font-size:.85rem;font-weight:800;font-family:'Exo 2',sans-serif;cursor:pointer;transition:all .2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">${isFollowing?'✓ Siguiendo':'⭐ Seguir'}</button>`
       : '';
-    document.getElementById('upActions').innerHTML = msgBtn + followBtn + pescaBtn + friendBtn;
+    const reportProfileBtn = (window.CU?.id && window.CU.id !== uid) ? `<button onclick="reportPost('perfil_${uid}','${uNick.replace(/'/g,"\\'")}',' ${uid}')" style="display:flex;align-items:center;gap:7px;padding:9px 14px;background:rgba(207,34,46,.08);border:1px solid rgba(207,34,46,.25);color:var(--red);border-radius:8px;font-size:.85rem;font-weight:700;font-family:'Exo 2',sans-serif;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='rgba(207,34,46,.16)'" onmouseout="this.style.background='rgba(207,34,46,.08)'">⚠️ Reportar</button>` : '';
+    document.getElementById('upActions').innerHTML = msgBtn + followBtn + pescaBtn + friendBtn + reportProfileBtn;
 
     if(window._followersUnsub) window._followersUnsub();
     window._followersUnsub = onSnapshot(doc(db,'users',uid), fsnap=>{
