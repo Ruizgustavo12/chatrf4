@@ -10196,7 +10196,37 @@ async function submitPost(){
     if(m.type==='image') mediaUrls.push(await uploadImage(m.file,'posts'));
     else if(m.type==='video'){
       if(!window.CU?.verified){ toast('Solo verificados pueden subir videos','err'); return; }
-      uploadedVideoUrl = await uploadVideo(m.file,'posts');
+      // ≤30s → Cloudinary, >30s → YouTube
+      var _vidDuration = await new Promise(function(resolve){
+        var tv = document.createElement('video'); tv.preload='metadata';
+        tv.onloadedmetadata = function(){ URL.revokeObjectURL(tv.src); resolve(tv.duration); };
+        tv.onerror = function(){ URL.revokeObjectURL(tv.src); resolve(0); };
+        tv.src = URL.createObjectURL(m.file);
+      });
+      if(_vidDuration <= 30){
+        toast('⏳ Subiendo video a Cloudinary...','inf');
+        uploadedVideoUrl = await uploadVideo(m.file,'posts');
+      } else {
+        toast('⏳ Subiendo video a YouTube...','inf');
+        try{
+          var _ytResp = await fetch(window.WORKER_URL || 'https://wrf4-ai.synxyes.workers.dev', {
+            method:'POST',
+            headers:{
+              'X-Action':'yt_upload',
+              'X-File-Type': m.file.type,
+              'X-File-Size': String(m.file.size),
+              'X-User-Nick': window.CU.nick || window.CU.id,
+              'Content-Type': m.file.type
+            },
+            body: m.file
+          });
+          var _ytData = await _ytResp.json();
+          if(_ytData.error) throw new Error(_ytData.error);
+          uploadedVideoUrl = _ytData.videoUrl;
+        } catch(_ytErr){
+          toast('❌ Error al subir video: '+_ytErr.message,'err'); return;
+        }
+      }
     }
   }
   const videoUrl = uploadedVideoUrl;
@@ -26396,6 +26426,7 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
   'use strict';
 
   var WORKER_URL = 'https://wrf4-ai.synxyes.workers.dev';
+  window.WORKER_URL = WORKER_URL;
   var _ytUploading = false;
 
   function _toast(msg, type){
@@ -26547,7 +26578,7 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
     inp.onchange = async function(){
       if(!inp.files || !inp.files[0]) return;
       var file = inp.files[0];
-      // Validar duración máxima 30 segundos
+      // Medir duración: ≤30s → Cloudinary, >30s → YouTube
       var checkDuration = await new Promise(function(resolve){
         var tmpVid = document.createElement('video');
         tmpVid.preload = 'metadata';
@@ -26555,36 +26586,42 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
         tmpVid.onerror = function(){ URL.revokeObjectURL(tmpVid.src); resolve(0); };
         tmpVid.src = URL.createObjectURL(file);
       });
-      if(checkDuration > 30){
-        _toast('⏱ El video no puede superar los 30 segundos.','err');
-        inp.value = '';
-        return;
-      }
       _storyYtUploading = true;
       var btn = document.getElementById('storyVideoBtn');
       if(btn){ btn.style.opacity='.5'; btn.style.pointerEvents='none'; }
       var localUrl = URL.createObjectURL(file);
       var prevEl = document.getElementById('storyVideoPrev');
       if(prevEl) prevEl.innerHTML = '<video src="'+localUrl+'" controls style="width:100%;max-height:180px;border-radius:10px;background:#000;display:block;" preload="metadata"></video>';
-      _storySetStatus('⏳ Subiendo video a YouTube...', 'var(--warn)');
       try{
-        var resp = await fetch(WORKER_URL, {
-          method: 'POST',
-          headers: {
-            'X-Action':    'yt_upload',
-            'X-File-Type': file.type,
-            'X-File-Size': String(file.size),
-            'X-User-Nick': window.CU.nick || window.CU.id,
-            'Content-Type': file.type
-          },
-          body: file
-        });
-        var data = await resp.json();
-        if(data.error) throw new Error(data.error);
-        if(!data.videoId) throw new Error('No se obtuvo ID del video');
-        window._storyYtUrl = data.videoUrl;
-        window._storyYtId  = data.videoId;
-        _scMostrarPreviewYT(data.videoId, false);
+        if(checkDuration <= 30){
+          // Video corto → Cloudinary directo, guardar en _storyVideoData
+          _storySetStatus('⏳ Subiendo video a Cloudinary...', 'var(--warn)');
+          var cloudUrl = await uploadVideo(file, 'stories');
+          window._storyYtUrl = cloudUrl;
+          window._storyYtId  = null;
+          window._storyVideoData = file;
+          _storySetStatus('✅ Video listo. Presá Publicar.', 'var(--green)');
+        } else {
+          // Video largo → YouTube
+          _storySetStatus('⏳ Subiendo video a YouTube...', 'var(--warn)');
+          var resp = await fetch(WORKER_URL, {
+            method: 'POST',
+            headers: {
+              'X-Action':    'yt_upload',
+              'X-File-Type': file.type,
+              'X-File-Size': String(file.size),
+              'X-User-Nick': window.CU.nick || window.CU.id,
+              'Content-Type': file.type
+            },
+            body: file
+          });
+          var data = await resp.json();
+          if(data.error) throw new Error(data.error);
+          if(!data.videoId) throw new Error('No se obtuvo ID del video');
+          window._storyYtUrl = data.videoUrl;
+          window._storyYtId  = data.videoId;
+          _scMostrarPreviewYT(data.videoId, false);
+        }
       }catch(e){
         window._storyYtUrl = null;
         window._storyYtId  = null;
@@ -26709,42 +26746,12 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
     var ext  = mimeType.includes('mp4') ? 'mp4' : 'webm';
     var file = new File([blob], 'historia-'+Date.now()+'.'+ext, { type: mimeType });
     storyCamCancelar(true);
+    // Guardar en _storyVideoData para que submitStory lo suba a Cloudinary
+    window._storyVideoData = file;
     var prevEl = document.getElementById('storyVideoPrev');
     var localUrl = URL.createObjectURL(blob);
     if(prevEl) prevEl.innerHTML = '<video src="'+localUrl+'" controls style="width:100%;max-height:180px;border-radius:10px;background:#000;display:block;" preload="metadata"></video>';
-    _storyYtUploading = true;
-    var btn2 = document.getElementById('storyVideoBtn');
-    var btn3 = document.getElementById('storyCamBtn');
-    if(btn2){ btn2.style.opacity='.5'; btn2.style.pointerEvents='none'; }
-    if(btn3){ btn3.style.opacity='.5'; btn3.style.pointerEvents='none'; }
-    _storySetStatus('⏳ Subiendo video grabado a YouTube...', 'var(--warn)');
-    try{
-      var resp = await fetch(WORKER_URL, {
-        method:'POST',
-        headers:{
-          'X-Action':    'yt_upload',
-          'X-File-Type': file.type,
-          'X-File-Size': String(file.size),
-          'X-User-Nick': window.CU.nick || window.CU.id,
-          'Content-Type': file.type
-        },
-        body: file
-      });
-      var data = await resp.json();
-      if(data.error) throw new Error(data.error);
-      if(!data.videoId) throw new Error('No se obtuvo ID del video');
-      window._storyYtUrl = data.videoUrl;
-      window._storyYtId  = data.videoId;
-      _scMostrarPreviewYT(data.videoId, true);
-    }catch(e){
-      window._storyYtUrl = null; window._storyYtId = null;
-      _storySetStatus('❌ Error: '+e.message, 'var(--red)');
-      _toast('Error al subir: '+e.message,'err');
-      if(prevEl) prevEl.innerHTML='';
-    }
-    _storyYtUploading = false;
-    if(btn2){ btn2.style.opacity=''; btn2.style.pointerEvents=''; }
-    if(btn3){ btn3.style.opacity=''; btn3.style.pointerEvents=''; }
+    _storySetStatus('✅ Video listo. Presá Publicar para subirlo.', 'var(--green)');
   }
 
   window.storyCamCancelar = function(keepStatus){
