@@ -11088,6 +11088,8 @@ window.gp = (id, pushState = true) => {
     if(_equippedItems?.efecto) setTimeout(()=>_startShopParticles(_equippedItems.efecto), 100);
     // Cancelar listener en tiempo real de posts del perfil visitado
     if(window._upPostsUnsub){ window._upPostsUnsub(); window._upPostsUnsub = null; }
+    // Restaurar título de pestaña al salir del perfil ajeno
+    document.title = 'MiLatido \uD83D\uDC6B\u2764\uFE0F';
   }
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   const pg = document.getElementById('page-'+id);
@@ -21566,6 +21568,23 @@ async function _loadUserProfilePage(uid, nick){
       if(_upBioEl) _upBioEl.insertAdjacentElement('afterend', _upCompatEl);
     }
     _renderCompatChips(u, '_upCompatChips');
+
+    // ── TÍTULO DE PESTAÑA: "❤️ Nick, Género, Edad | Ciudad" ──
+    (function(){
+      try {
+        const _tNick   = uNick || nick || '';
+        const _tGender = u.gender ? (u.gender.charAt(0).toUpperCase() + u.gender.slice(1)) : '';
+        const _tAge    = u.age ? u.age : '';
+        const _tCity   = u.city || u.dept || (u.country ? u.country.replace(/^[^\s]+\s/,'').trim() : '');
+        let _titleParts = [_tNick];
+        if(_tGender && _tAge) _titleParts.push(_tGender + ', ' + _tAge);
+        else if(_tGender)     _titleParts.push(_tGender);
+        else if(_tAge)        _titleParts.push(_tAge);
+        const _titleBase = _titleParts.join(', ');
+        document.title = '\u2764\uFE0F ' + _titleBase + (_tCity ? ' | ' + _tCity : '') + ' - MiLatido';
+      } catch(_e){}
+    })();
+
     // Meta info con iconos estilo Facebook
     const metaParts = [];
     if(u.city)    metaParts.push(`<span>📍 <strong>${u.city}${u.country ? ', '+u.country : ''}</strong></span>`);
