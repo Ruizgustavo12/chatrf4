@@ -304,6 +304,7 @@ from var(--admin-angle,0deg),#ff0040,#ff8c00,#ffd700,#fffbe6,#ffd700,#ff8c00,#ff
 
       <div class="sl-item" onclick="gp('reels');setNav(document.querySelectorAll('.tb-nav-btn')[4])"><span class="sl-item-icon">🎬</span> Reels</div>
 
+      <div class="sl-item" onclick="gp('confesionario');cfListen()"><span class="sl-item-icon">🕯️</span> Confesionario</div>
       <div class="sl-item"><span class="sl-item-icon">🔖</span> Guardados</div>
       <div class="sl-item" onclick="gp('cerca');initCercaDeMi()"><span class="sl-item-icon">📍</span> Cerca de Mí</div>
       <div class="sl-item" onclick="gp('privacidad')"><span class="sl-item-icon">🔒</span> Privacidad</div>
@@ -20939,7 +20940,7 @@ const _expose = {
   openSV,closeSV,svNav,reactStory,reportStory,submitStoryComment,deleteMyStory,_svToggleRxnPop,_svCloseRxnPop,
   doSearch,
   reportPost,submitReport,
-  loadAdminData,deleteAdminPost,resolveReport,deleteReport,
+  loadAdminData,deleteAdminPost,resolveReport,
   requestVerification, loadVerifRequests, adminApproveVerif, adminRejectVerif, adminRevokeVerif,
   sendShopAnnouncementToAll,
   switchNotifTab, markAllNotifsRead, filterChatSearch,
@@ -20956,7 +20957,7 @@ const _expose = {
   submitMapPost,previewMapMedia,filterMapPosts,
   gp:window.gp, om:window.om, cm:window.cm, setNav,
   toggleUserMenu, doLogout,
-  banUser, deleteAdminContent, deleteAdminPost, resolveReport, deleteReport,
+  banUser, deleteAdminContent, deleteAdminPost, resolveReport,
   loadAdminAlbum, adminApproveAlbumFoto, adminRejectAlbumFoto, adminDeleteAlbumFota,
   openUserProfile, sendFriendRequest, togglePostMenu, renderProfileFriendsList, openEditPost, saveEditPost, deleteMyPost, removeFriend,
   toggleMessenger, sendChatMsg, openChatWith, backToMessengerList, closeMessenger, minimizeMessenger, maximizeMessenger, toggleVoiceRecord, cancelVoiceRecord, stopAndSendVoice, toggleVoicePlay, toggleVoiceBtn, openPostWithYt, reactChatMsg, showMsgRxnBar, hideMsgRxnBar, keepMsgRxnBar, showCmtMenu, hideCmtMenu, setChatTyping, toggleGifPicker, closeGifPicker, searchGifs, sendGif, toggleMsgTime, sendChatSticker, searchChatStickers, setChatReply, cancelChatReply, previewChatPhoto, removeChatImgPreview, showChatToast,
@@ -28613,6 +28614,141 @@ function _esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 </div>
 <!-- ══════════════ /PAGE VISITANTES ══════════════ -->
 
+<!-- PAGE CONFESIONARIO -->
+<style>
+#page-confesionario{max-width:680px;margin:0 auto;padding:20px 16px 80px}
+.cf-page-header{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.cf-page-icon{font-size:1.8rem;filter:drop-shadow(0 0 12px rgba(168,85,247,.5));animation:cfFloat 4s ease-in-out infinite}
+@keyframes cfFloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-6px) rotate(3deg)}}
+.cf-page-title{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--accent)}
+.cf-page-sub{font-size:.75rem;color:var(--muted);margin-top:2px}
+.cf-compose{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:20px;position:relative;overflow:hidden;transition:border-color .3s}
+.cf-compose::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#a855f7,#f59e0b,#f43f5e);opacity:0;transition:opacity .3s}
+.cf-compose:focus-within::before{opacity:1}
+.cf-compose:focus-within{border-color:rgba(168,85,247,.35)}
+.cf-anon-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.cf-anon-av{width:38px;height:38px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.cf-anon-info{font-size:.82rem;font-weight:700;color:var(--muted)}
+.cf-anon-info small{font-size:.7rem;color:var(--muted);font-weight:400;display:block;margin-top:1px}
+.cf-textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;font-family:'Exo 2',sans-serif;font-size:.9rem;font-style:italic;color:var(--text);resize:none;min-height:100px;outline:none;transition:border-color .2s;line-height:1.6}
+.cf-textarea::placeholder{color:var(--muted);font-style:italic}
+.cf-textarea:focus{border-color:rgba(168,85,247,.4)}
+.cf-char{text-align:right;font-size:.68rem;color:var(--muted);margin-top:3px}
+.cf-char.warn{color:var(--warn,#9a6700)}.cf-char.over{color:var(--red)}
+.cf-cats-lbl{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 6px}
+.cf-cats{display:flex;flex-wrap:wrap;gap:5px}
+.cf-cat-btn{background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:4px 13px;font-size:.76rem;font-weight:700;color:var(--muted);cursor:pointer;font-family:'Exo 2',sans-serif;transition:all .15s}
+.cf-cat-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cf-cat-btn.cf-active{background:rgba(168,85,247,.12);border-color:var(--accent);color:var(--accent)}
+.cf-opts{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap}
+.cf-toggle-wrap{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none}
+.cf-toggle-wrap input{display:none}
+.cf-ttrack{width:34px;height:18px;background:var(--bg4);border:1px solid var(--border);border-radius:100px;position:relative;transition:background .2s;flex-shrink:0}
+.cf-ttrack::after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--muted);transition:all .2s}
+.cf-toggle-wrap input:checked+.cf-ttrack{background:rgba(244,63,94,.25);border-color:rgba(244,63,94,.4)}
+.cf-toggle-wrap input:checked+.cf-ttrack::after{left:18px;background:#f43f5e}
+.cf-toggle-lbl{font-size:.76rem;color:var(--muted);font-weight:600}
+.cf-submit-btn{margin-left:auto;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;border:none;border-radius:var(--rs);padding:8px 20px;font-family:'Exo 2',sans-serif;font-size:.84rem;font-weight:700;cursor:pointer;transition:all .2s}
+.cf-submit-btn:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(168,85,247,.4)}
+.cf-submit-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.cf-filters{display:flex;gap:5px;overflow-x:auto;padding-bottom:4px;margin-bottom:18px}
+.cf-filters::-webkit-scrollbar{display:none}
+.cf-fbtn{flex-shrink:0;background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-size:.76rem;font-weight:700;color:var(--muted);cursor:pointer;font-family:'Exo 2',sans-serif;transition:all .15s;white-space:nowrap}
+.cf-fbtn:hover{border-color:var(--accent);color:var(--accent)}
+.cf-fbtn.cf-on{background:rgba(168,85,247,.12);border-color:var(--accent);color:var(--accent)}
+.cf-feed{display:flex;flex-direction:column;gap:12px}
+.cf-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;animation:mIn .28s ease both;transition:border-color .2s;position:relative}
+.cf-card.cf-featured{border-color:rgba(245,158,11,.35);background:linear-gradient(160deg,rgba(245,158,11,.04) 0%,var(--bg2) 40%)}
+.cf-card.cf-featured::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#f59e0b,#f97316,#f59e0b)}
+.cf-temp-badge{position:absolute;top:10px;right:10px;background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);border-radius:100px;padding:2px 9px;font-size:.63rem;font-weight:700;color:#f43f5e}
+.cf-card-hdr{padding:14px 14px 0;display:flex;align-items:center;gap:9px}
+.cf-card-av{width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.cf-card-meta{flex:1;min-width:0}
+.cf-card-nick{font-size:.84rem;font-weight:700;color:var(--text)}
+.cf-card-time{font-size:.68rem;color:var(--muted);margin-top:1px}
+.cf-pill{padding:2px 10px;border-radius:100px;font-size:.65rem;font-weight:700;letter-spacing:.04em;flex-shrink:0}
+.cfp-18{background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.25);color:#fb7185}
+.cfp-amor{background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.25);color:#f472b6}
+.cfp-inf{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);color:#fbbf24}
+.cfp-sec{background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.25);color:#a78bfa}
+.cfp-verg{background:rgba(20,184,166,.08);border:1px solid rgba(20,184,166,.25);color:#2dd4bf}
+.cf-feat-lbl{display:inline-flex;align-items:center;gap:5px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:100px;padding:3px 11px;font-size:.66rem;font-weight:700;color:#f59e0b;margin:10px 14px 0;letter-spacing:.04em;text-transform:uppercase}
+.cf-body{padding:12px 14px}
+.cf-text{font-size:.92rem;font-style:italic;line-height:1.72;color:var(--text);word-break:break-word}
+.cf-rxns{display:flex;gap:5px;padding:10px 14px;border-top:1px solid var(--border);flex-wrap:wrap}
+.cf-rxn{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:4px 11px;font-size:.76rem;font-weight:700;color:var(--muted);cursor:pointer;font-family:'Exo 2',sans-serif;transition:all .15s}
+.cf-rxn:hover{border-color:var(--accent);color:var(--accent);transform:scale(1.05)}
+.cf-rxn.cf-reacted{background:rgba(168,85,247,.1);border-color:var(--accent);color:var(--accent)}
+.cf-cmt-toggle-btn{display:flex;align-items:center;gap:5px;padding:0 14px 11px;font-size:.76rem;color:var(--muted);cursor:pointer;background:none;border:none;font-family:'Exo 2',sans-serif;font-weight:700;transition:color .15s}
+.cf-cmt-toggle-btn:hover{color:var(--accent)}
+.cf-cmts{display:none;border-top:1px solid var(--border);padding:12px 14px;background:rgba(0,0,0,.06)}
+.cf-cmts.cf-open{display:block}
+.cf-cmt-item{display:flex;gap:7px;margin-bottom:9px;animation:mIn .2s ease}
+.cf-cmt-av{width:26px;height:26px;border-radius:50%;background:var(--bg4);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.7rem;flex-shrink:0}
+.cf-cmt-bubble{background:var(--bg3);border-radius:0 9px 9px 9px;padding:7px 11px;flex:1}
+.cf-cmt-nick{font-size:.7rem;font-weight:700;color:var(--muted);margin-bottom:2px}
+.cf-cmt-txt{font-size:.82rem;line-height:1.5;color:var(--text);font-style:italic}
+.cf-cmt-ts{font-size:.62rem;color:var(--muted);margin-top:3px;font-style:normal}
+.cf-cmt-inp-row{display:flex;gap:7px;margin-top:9px;align-items:flex-end}
+.cf-cmt-inp{flex:1;background:var(--bg4);border:1px solid var(--border);border-radius:var(--rs);padding:7px 11px;font-family:'Exo 2',sans-serif;font-style:italic;font-size:.83rem;color:var(--text);outline:none;resize:none;min-height:34px;max-height:90px;transition:border-color .2s}
+.cf-cmt-inp::placeholder{color:var(--muted)}
+.cf-cmt-inp:focus{border-color:rgba(168,85,247,.4)}
+.cf-cmt-send{background:var(--accent);border:none;border-radius:var(--rs);padding:7px 14px;color:#fff;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Exo 2',sans-serif;transition:all .15s;flex-shrink:0}
+.cf-cmt-send:hover{opacity:.88}
+.cf-empty{text-align:center;padding:50px 16px;color:var(--muted)}
+.cf-empty-icon{font-size:2.5rem;opacity:.35;display:block;margin-bottom:12px}
+.cf-admin-eye{position:relative;display:inline-flex;align-items:center;cursor:help;margin-left:4px;font-size:.75rem}
+.cf-admin-eye .cf-admin-tip{display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--bg4);border:1px solid rgba(168,85,247,.3);border-radius:var(--rs);padding:5px 10px;font-size:.68rem;color:var(--accent);white-space:nowrap;z-index:100;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.cf-admin-eye:hover .cf-admin-tip{display:block}
+</style>
+
+<div class="page" id="page-confesionario">
+  <div class="cf-page-header">
+    <span class="cf-page-icon">&#x1F56F;&#xFE0F;</span>
+    <div>
+      <div class="cf-page-title">Confesionario</div>
+      <div class="cf-page-sub">Tu identidad está protegida · Solo la verdad queda</div>
+    </div>
+  </div>
+  <div class="cf-compose" id="cfCompose">
+    <div class="cf-anon-row">
+      <div class="cf-anon-av">&#x1F3AD;</div>
+      <div class="cf-anon-info">Anónimo <small>Tu identidad está protegida</small></div>
+    </div>
+    <textarea class="cf-textarea" id="cfText" maxlength="600" placeholder="Confiesa algo... Nadie sabrá que fuiste tú."></textarea>
+    <div class="cf-char" id="cfChar">0 / 600</div>
+    <div class="cf-cats-lbl">Categoría *</div>
+    <div class="cf-cats">
+      <button class="cf-cat-btn" data-cat="+18"         onclick="cfSelCat(this)">&#x1F51E; +18</button>
+      <button class="cf-cat-btn" data-cat="Amor"        onclick="cfSelCat(this)">&#x1F498; Amor</button>
+      <button class="cf-cat-btn" data-cat="Infidelidad" onclick="cfSelCat(this)">&#x1F40D; Infidelidad</button>
+      <button class="cf-cat-btn" data-cat="Secretos"    onclick="cfSelCat(this)">&#x1F92B; Secretos</button>
+      <button class="cf-cat-btn" data-cat="Vergüenza"   onclick="cfSelCat(this)">&#x1F633; Vergüenza</button>
+    </div>
+    <div class="cf-opts">
+      <label class="cf-toggle-wrap">
+        <input type="checkbox" id="cfTemporal">
+        <div class="cf-ttrack"></div>
+        <span class="cf-toggle-lbl">&#x23F3; Eliminar en 24h</span>
+      </label>
+      <button class="cf-submit-btn" onclick="cfSubmit()">Confesar &#x1F56F;</button>
+    </div>
+  </div>
+  <div class="cf-filters">
+    <button class="cf-fbtn cf-on" data-f="all"          onclick="cfSetF(this)">Todo</button>
+    <button class="cf-fbtn"       data-f="+18"           onclick="cfSetF(this)">&#x1F51E; +18</button>
+    <button class="cf-fbtn"       data-f="Amor"          onclick="cfSetF(this)">&#x1F498; Amor</button>
+    <button class="cf-fbtn"       data-f="Infidelidad"   onclick="cfSetF(this)">&#x1F40D; Infidelidad</button>
+    <button class="cf-fbtn"       data-f="Secretos"      onclick="cfSetF(this)">&#x1F92B; Secretos</button>
+    <button class="cf-fbtn"       data-f="Vergüenza"     onclick="cfSetF(this)">&#x1F633; Vergüenza</button>
+    <button class="cf-fbtn"       data-f="temporal"      onclick="cfSetF(this)">&#x23F3; Temporales</button>
+  </div>
+  <div class="cf-feed" id="cfFeed">
+    <div class="cf-empty"><span class="cf-empty-icon">&#x1F56F;</span><p>Cargando confesiones...</p></div>
+  </div>
+</div>
+<!-- /PAGE CONFESIONARIO -->
+
 <script>
 (function(){
 
@@ -29773,6 +29909,357 @@ window.playDailymotionVideo = function(id, title) {
 ══════════════════════════════════════════════════════════════════
 -->
 </body>
+
+<script>
+/* ═══════════════════════════════════════════
+   CONFESIONARIO - Script integrado
+═══════════════════════════════════════════ */
+(function(){
+  var CF_COL      = 'confesiones';
+  var CF_CMTS_COL = 'cf_comentarios';
+  var CF_MAX      = 600;
+
+  var CF_RXNS = [
+    {id:'shock', e:'&#x1F631;', l:'No puedo creer'},
+    {id:'fire',  e:'&#x1F525;', l:'Me pasó igual'},
+    {id:'skull', e:'&#x1F480;', l:'Qué locura'},
+    {id:'heart', e:'&#x2764;&#xFE0F;', l:'Te entiendo'},
+  ];
+
+  var CF_CAT_CLS = {
+    '+18':'cfp-18', 'Amor':'cfp-amor',
+    'Infidelidad':'cfp-inf', 'Secretos':'cfp-sec', 'Vergüenza':'cfp-verg'
+  };
+
+  var cfPosts    = [];
+  var cfFilter   = 'all';
+  var cfSelCatV  = '';
+  var cfReacted  = {};
+  var cfUnsub    = null;
+
+  try { cfReacted = JSON.parse(localStorage.getItem('cf_reacted')||'{}'); } catch(e){}
+
+  /* ── helpers ── */
+  function cfEsc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function cfFmt(ts){
+    if(!ts) return '';
+    var ms = ts.toMillis ? ts.toMillis() : (ts.seconds ? ts.seconds*1000 : +ts);
+    var d = Date.now()-ms, m=Math.floor(d/60000), h=Math.floor(d/3600000), dd=Math.floor(d/86400000);
+    if(m<1) return 'ahora';
+    if(m<60) return 'hace '+m+'m';
+    if(h<24) return 'hace '+h+'h';
+    return 'hace '+dd+'d';
+  }
+
+  function cfTimeLeft(exp){
+    if(!exp) return null;
+    var ms = exp.toMillis ? exp.toMillis() : (exp.seconds ? exp.seconds*1000 : +exp);
+    var diff = ms - Date.now();
+    if(diff<=0) return null;
+    var h=Math.floor(diff/3600000), m=Math.floor((diff%3600000)/60000);
+    return h>0 ? h+'h '+m+'m' : m+'m';
+  }
+
+  function cfIsAdmin(){
+    return window.CU && (window.CU.role==='admin' || window.CU.email==='synxyes@gmail.com');
+  }
+
+  function cfToast(msg){ if(window.toast) window.toast(msg,'ok'); }
+
+  /* ── featured ── */
+  function cfFeaturedId(){
+    if(!cfPosts.length) return null;
+    var today = new Date(); today.setHours(0,0,0,0);
+    var todayTs = today.getTime();
+    var tp = cfPosts.filter(function(p){
+      var ms = p.time && p.time.toMillis ? p.time.toMillis() : (p.time&&p.time.seconds ? p.time.seconds*1000 : 0);
+      return ms >= todayTs;
+    });
+    if(!tp.length) return cfPosts[0] ? cfPosts[0].id : null;
+    return tp.reduce(function(best,p){
+      var ta = Object.values((p.reactions||{})).reduce(function(a,b){return a+b},0);
+      var tb = Object.values((best.reactions||{})).reduce(function(a,b){return a+b},0);
+      return ta>tb ? p : best;
+    }, tp[0]).id;
+  }
+
+  /* ── compose ── */
+  var txtEl = document.getElementById('cfText');
+  if(txtEl) txtEl.addEventListener('input', function(){
+    var len = this.value.length;
+    var el = document.getElementById('cfChar');
+    if(el){
+      el.textContent = len+' / '+CF_MAX;
+      el.className = 'cf-char'+(len>CF_MAX*.9?' warn':'')+(len>=CF_MAX?' over':'');
+    }
+  });
+
+  window.cfSelCat = function(btn){
+    document.querySelectorAll('.cf-cat-btn').forEach(function(b){b.classList.remove('cf-active');});
+    btn.classList.add('cf-active');
+    cfSelCatV = btn.dataset.cat;
+  };
+
+  /* ── submit ── */
+  window.cfSubmit = async function(){
+    var text = (document.getElementById('cfText')||{}).value;
+    if(!text || !text.trim()){ cfToast('Escribí tu confesión'); return; }
+    if(text.length > CF_MAX){ cfToast('Texto muy largo'); return; }
+    if(!cfSelCatV){ cfToast('Elegí una categoría'); return; }
+    if(!window.CU){ cfToast('Necesitás iniciar sesión'); return; }
+
+    var btn = document.querySelector('.cf-submit-btn');
+    if(btn){ btn.disabled=true; btn.textContent='...'; }
+
+    try{
+      var temporal = (document.getElementById('cfTemporal')||{}).checked;
+      var expDate  = temporal ? new Date(Date.now()+24*3600000) : null;
+
+      var data = {
+        text:       text.trim(),
+        cat:        cfSelCatV,
+        temporal:   temporal,
+        expiresAt:  expDate && window.Timestamp ? window.Timestamp.fromDate(expDate) : expDate,
+        time:       window.serverTimestamp ? window.serverTimestamp() : new Date(),
+        authorId:   window.CU.id,
+        authorNick: window.CU.nick||'Usuario',
+        authorAv:   window.CU.av||'',
+        reactions:  {shock:0,fire:0,skull:0,heart:0},
+        cmtCount:   0,
+      };
+
+      if(window.addDoc && window.collection && window.db){
+        await window.addDoc(window.collection(window.db, CF_COL), data);
+      } else {
+        // demo fallback
+        var id = 'demo_'+Date.now();
+        cfPosts.unshift(Object.assign({id:id}, data, {time:{toMillis:function(){return Date.now();}}}));
+        cfRender();
+      }
+
+      document.getElementById('cfText').value='';
+      document.getElementById('cfChar').textContent='0 / '+CF_MAX;
+      document.getElementById('cfChar').className='cf-char';
+      document.getElementById('cfTemporal').checked=false;
+      document.querySelectorAll('.cf-cat-btn').forEach(function(b){b.classList.remove('cf-active');});
+      cfSelCatV='';
+      cfToast('Confesión publicada en secreto');
+    }catch(e){ cfToast('Error: '+(e.message||e)); }
+    finally{ if(btn){ btn.disabled=false; btn.textContent='Confesar'; } }
+  };
+
+  /* ── filters ── */
+  window.cfSetF = function(btn){
+    document.querySelectorAll('.cf-fbtn').forEach(function(b){b.classList.remove('cf-on');});
+    btn.classList.add('cf-on');
+    cfFilter = btn.dataset.f;
+    cfRender();
+  };
+
+  /* ── render ── */
+  function cfRender(){
+    var featId = cfFeaturedId();
+    var now = Date.now();
+    var posts = cfPosts.filter(function(p){
+      if(p.temporal && p.expiresAt){
+        var ms = p.expiresAt.toMillis ? p.expiresAt.toMillis() : (p.expiresAt.seconds ? p.expiresAt.seconds*1000 : 0);
+        if(ms && ms < now) return false;
+      }
+      if(cfFilter==='all') return true;
+      if(cfFilter==='temporal') return p.temporal;
+      return p.cat===cfFilter;
+    }).sort(function(a,b){
+      if(a.id===featId) return -1;
+      if(b.id===featId) return  1;
+      var ta=a.time&&a.time.toMillis?a.time.toMillis():0;
+      var tb=b.time&&b.time.toMillis?b.time.toMillis():0;
+      return tb-ta;
+    });
+
+    var feed = document.getElementById('cfFeed');
+    if(!feed) return;
+    if(!posts.length){
+      feed.innerHTML='<div class="cf-empty"><span class="cf-empty-icon">&#x1F56F;</span><p>No hay confesiones en esta categoría.</p></div>';
+      return;
+    }
+    feed.innerHTML = posts.map(function(p,i){ return cfCard(p, p.id===featId, i); }).join('');
+  }
+
+  function cfCard(p, isFeat, idx){
+    var catCls  = CF_CAT_CLS[p.cat]||'cfp-sec';
+    var tLeft   = p.temporal ? cfTimeLeft(p.expiresAt) : null;
+    var isAdmin = cfIsAdmin();
+    var rxnHtml = CF_RXNS.map(function(r){
+      var cnt = (p.reactions||{})[r.id]||0;
+      var reacted = (cfReacted[p.id]||'')===r.id;
+      return '<button class="cf-rxn'+(reacted?' cf-reacted':'')+'" onclick="cfReact(\''+p.id+'\',\''+r.id+'\',this)" title="'+cfEsc(r.l)+'">'
+        + r.e + '<span class="cf-rxn-cnt" style="font-size:.7rem;margin-left:2px;">'+(cnt>0?cnt:'')+'</span></button>';
+    }).join('');
+
+    var adminHtml = isAdmin
+      ? '<span class="cf-admin-eye">&#x1F441; <span class="cf-admin-tip">&#x1F6E1;&#xFE0F; '+cfEsc(p.authorNick)+' · '+cfEsc(p.authorId||'')+'</span></span>'
+      : '';
+
+    return '<div class="cf-card'+(isFeat?' cf-featured':'')+'" id="cfc_'+p.id+'" style="animation-delay:'+idx*.05+'s">'
+      + (tLeft ? '<div class="cf-temp-badge">&#x23F3; '+tLeft+'</div>' : '')
+      + (isFeat ? '<div class="cf-feat-lbl">&#x2728; Destacada del día</div>' : '')
+      + '<div class="cf-card-hdr"><div class="cf-card-av">&#x1F3AD;</div>'
+      + '<div class="cf-card-meta"><div class="cf-card-nick">Anónimo '+adminHtml+'</div>'
+      + '<div class="cf-card-time">'+cfFmt(p.time)+'</div></div>'
+      + '<span class="cf-pill '+catCls+'">'+cfEsc(p.cat)+'</span></div>'
+      + '<div class="cf-body"><div class="cf-text">"'+cfEsc(p.text)+'"</div></div>'
+      + '<div class="cf-rxns">'+rxnHtml+'</div>'
+      + '<button class="cf-cmt-toggle-btn" onclick="cfTogCmts(\''+p.id+'\')">&#x1F4AC; '+(p.cmtCount||0)+' comentario'+(+(p.cmtCount||0)===1?'':'s')+'</button>'
+      + '<div class="cf-cmts" id="cfcmts_'+p.id+'">'
+      + '<div class="cf-cmts-list" id="cfcmtlist_'+p.id+'"><div style="font-size:.75rem;color:var(--muted);padding:6px 0;">Cargando...</div></div>'
+      + '<div class="cf-cmt-inp-row"><textarea class="cf-cmt-inp" id="cfcmtinp_'+p.id+'" placeholder="Comentá anónimamente..." rows="1" onkeydown="cfCmtKey(event,\''+p.id+'\')"></textarea>'
+      + '<button class="cf-cmt-send" onclick="cfSendCmt(\''+p.id+'\')">Enviar</button></div></div>'
+      + '</div>';
+  }
+
+  /* ── reactions ── */
+  window.cfReact = async function(pid, rid, btn){
+    if(!window.CU){ cfToast('Iniciá sesión para reaccionar'); return; }
+    var prev = cfReacted[pid];
+    if(prev===rid) return;
+    cfReacted[pid]=rid;
+    try{ localStorage.setItem('cf_reacted', JSON.stringify(cfReacted)); }catch(e){}
+    var post = cfPosts.find(function(p){return p.id===pid;});
+    if(post){
+      if(!post.reactions) post.reactions={};
+      if(prev) post.reactions[prev]=Math.max(0,(post.reactions[prev]||0)-1);
+      post.reactions[rid]=(post.reactions[rid]||0)+1;
+      cfRender();
+    }
+    if(window.updateDoc && window.doc && window.db && window.increment){
+      var upd = {}; upd['reactions.'+rid]=window.increment(1);
+      if(prev) upd['reactions.'+prev]=window.increment(-1);
+      await window.updateDoc(window.doc(window.db,CF_COL,pid), upd).catch(function(){});
+    }
+  };
+
+  /* ── comments ── */
+  window.cfTogCmts = function(pid){
+    var el = document.getElementById('cfcmts_'+pid);
+    if(!el) return;
+    var opening = !el.classList.contains('cf-open');
+    el.classList.toggle('cf-open');
+    if(opening) cfLoadCmts(pid);
+  };
+
+  async function cfLoadCmts(pid){
+    var listEl = document.getElementById('cfcmtlist_'+pid);
+    if(!listEl) return;
+    if(window.getDocs && window.collection && window.db && window.query && window.orderBy){
+      try{
+        var snap = await window.getDocs(window.query(
+          window.collection(window.db,CF_COL,pid,CF_CMTS_COL),
+          window.orderBy('time','asc')
+        ));
+        cfRenderCmts(pid, snap.docs.map(function(d){return Object.assign({id:d.id},d.data());}));
+      }catch(e){ listEl.innerHTML='<div style="font-size:.75rem;color:var(--muted);">Error al cargar.</div>'; }
+    } else {
+      cfRenderCmts(pid, []);
+    }
+  }
+
+  function cfRenderCmts(pid, cmts){
+    var listEl = document.getElementById('cfcmtlist_'+pid);
+    if(!listEl) return;
+    if(!cmts.length){ listEl.innerHTML='<div style="font-size:.75rem;color:var(--muted);padding:4px 0;">Sé el primero en comentar.</div>'; return; }
+    listEl.innerHTML = cmts.map(function(c){
+      return '<div class="cf-cmt-item"><div class="cf-cmt-av">&#x1F3AD;</div>'
+        +'<div class="cf-cmt-bubble"><div class="cf-cmt-nick">Anónimo</div>'
+        +'<div class="cf-cmt-txt">'+cfEsc(c.text)+'</div>'
+        +'<div class="cf-cmt-ts">'+cfFmt(c.time)+'</div></div></div>';
+    }).join('');
+  }
+
+  window.cfCmtKey = function(e, pid){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();cfSendCmt(pid);} };
+
+  window.cfSendCmt = async function(pid){
+    if(!window.CU){ cfToast('Iniciá sesión para comentar'); return; }
+    var inp = document.getElementById('cfcmtinp_'+pid);
+    var text = inp ? inp.value.trim() : '';
+    if(!text) return;
+    var cmt = {
+      text:       text,
+      time:       window.serverTimestamp ? window.serverTimestamp() : new Date(),
+      authorId:   window.CU.id,
+      authorNick: window.CU.nick,
+    };
+    if(window.addDoc && window.collection && window.db){
+      await window.addDoc(window.collection(window.db,CF_COL,pid,CF_CMTS_COL), cmt).catch(function(){});
+      if(window.updateDoc && window.doc && window.increment)
+        await window.updateDoc(window.doc(window.db,CF_COL,pid),{cmtCount:window.increment(1)}).catch(function(){});
+    } else {
+      // demo
+      var listEl = document.getElementById('cfcmtlist_'+pid);
+      if(listEl){
+        var item = document.createElement('div'); item.className='cf-cmt-item';
+        item.innerHTML='<div class="cf-cmt-av">&#x1F3AD;</div><div class="cf-cmt-bubble"><div class="cf-cmt-nick">Anónimo</div><div class="cf-cmt-txt">'+cfEsc(text)+'</div><div class="cf-cmt-ts">ahora</div></div>';
+        if(listEl.querySelector('[style]')) listEl.innerHTML='';
+        listEl.appendChild(item);
+      }
+      var post = cfPosts.find(function(p){return p.id===pid;});
+      if(post) post.cmtCount=(post.cmtCount||0)+1;
+      var tb=document.querySelector('#cfc_'+pid+' .cf-cmt-toggle-btn');
+      if(tb && post) tb.innerHTML='&#x1F4AC; '+(post.cmtCount||1)+' comentario'+(+(post.cmtCount||1)===1?'':'s');
+    }
+    if(inp) inp.value='';
+    cfToast('Comentario publicado');
+    cfLoadCmts(pid);
+  };
+
+  /* ── listen / demo ── */
+  window.cfListen = function(){
+    if(!window.db || !window.collection || !window.onSnapshot || !window.query || !window.orderBy || !window.limit){
+      cfLoadDemo(); return;
+    }
+    if(cfUnsub) cfUnsub();
+    var q = window.query(window.collection(window.db,CF_COL), window.orderBy('time','desc'), window.limit(50));
+    cfUnsub = window.onSnapshot(q, function(snap){
+      cfPosts = snap.docs.map(function(d){return Object.assign({id:d.id},d.data());});
+      cfRender();
+    }, function(){ cfLoadDemo(); });
+  };
+
+  function cfLoadDemo(){
+    var now = Date.now();
+    cfPosts = [
+      {id:'d1',text:'Una vez besé a la novia de mi mejor amigo en su cumpleaños. Él nunca lo supo. Siguen juntos y yo sigo siendo el padrino de su boda.',cat:'+18',temporal:false,time:{toMillis:function(){return now-3600000}},reactions:{shock:14,fire:8,skull:3,heart:2},cmtCount:5,authorId:'uid1',authorNick:'Usuario1'},
+      {id:'d2',text:'Llevo tres años en una relación y nunca he estado enamorada. Solo tengo miedo de estar sola. A veces me pregunto si eso me hace mala persona.',cat:'Amor',temporal:false,time:{toMillis:function(){return now-7200000}},reactions:{shock:4,fire:2,skull:1,heart:19},cmtCount:12,authorId:'uid2',authorNick:'Usuario2'},
+      {id:'d3',text:'Mi jefe me despidió diciéndome que era poco profesional. Ese mismo día descubrí que él tiene una cuenta falsa usando fotos de la empresa.',cat:'Secretos',temporal:true,expiresAt:{toMillis:function(){return now+3600000*8}},time:{toMillis:function(){return now-1800000}},reactions:{shock:22,fire:0,skull:15,heart:0},cmtCount:3,authorId:'uid3',authorNick:'Usuario3'},
+      {id:'d4',text:'Le fui infiel a mi ex con su hermana. Ahora los dos me hablan seguido y ninguno sabe lo del otro.',cat:'Infidelidad',temporal:false,time:{toMillis:function(){return now-10800000}},reactions:{shock:31,fire:5,skull:18,heart:0},cmtCount:24,authorId:'uid4',authorNick:'Usuario4'},
+      {id:'d5',text:'Me orine encima en un colectivo lleno de gente porque me dio vergüenza pedir que me dejaran pasar. Me bajé en la siguiente parada sin decir nada.',cat:'Vergüenza',temporal:false,time:{toMillis:function(){return now-18000000}},reactions:{shock:6,fire:11,skull:27,heart:9},cmtCount:8,authorId:'uid5',authorNick:'Usuario5'},
+    ];
+    cfRender();
+  }
+
+  /* ── expiry cleanup ── */
+  setInterval(function(){
+    var now=Date.now();
+    cfPosts=cfPosts.filter(function(p){
+      if(!p.temporal||!p.expiresAt) return true;
+      var ms=p.expiresAt.toMillis?p.expiresAt.toMillis():(p.expiresAt.seconds?p.expiresAt.seconds*1000:0);
+      return !ms||ms>now;
+    });
+    cfRender();
+  }, 60000);
+
+  /* ── expose to _expose / window ── */
+  window.cfListen  = window.cfListen;
+  window.cfSubmit  = window.cfSubmit;
+  window.cfSelCat  = window.cfSelCat;
+  window.cfSetF    = window.cfSetF;
+  window.cfReact   = window.cfReact;
+  window.cfTogCmts = window.cfTogCmts;
+  window.cfSendCmt = window.cfSendCmt;
+  window.cfCmtKey  = window.cfCmtKey;
+
+})();
+</script>
 </html>
 
 
