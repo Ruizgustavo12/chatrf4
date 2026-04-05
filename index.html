@@ -14684,34 +14684,32 @@ async function submitReport(){
   const reportedUid = document.getElementById('reportUserUid').value;
   if(!reason){ document.getElementById('reportErr').textContent='Seleccioná un motivo'; return; }
 
-  // Guardar el reporte
   await addDoc(collection(db, 'reports'), {
     postId: pid,
     reportedUser,
     reportedUid: reportedUid || '',
     reportedBy: window.CU.nick,
     reportedById: window.CU.id,
+    reportedByAv: window.CU.av || '',
     reason,
     desc,
     time: serverTimestamp(),
     status: 'pendiente'
   });
 
-  // Auto-ban si el usuario tiene UID y acumula 3 reportes
+  // Auto-ban si acumula 3 reportes pendientes
   if(reportedUid){
     try {
-      const { query: fsQuery, collection: fsCol, where, getDocs, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js');
-      const q = fsQuery(fsCol(db, 'reports'), where('reportedUid','==', reportedUid), where('status','==','pendiente'));
-      const snap = await getDocs(q);
-      if(snap.size >= 3){
-        await updateDoc(doc(db, 'users', reportedUid), {
+      const q3 = query(collection(db,'reports'), where('reportedUid','==',reportedUid), where('status','==','pendiente'));
+      const snap3 = await getDocs(q3);
+      if(snap3.size >= 3){
+        await updateDoc(doc(db,'users', reportedUid), {
           banned: true,
           bannedReason: 'Auto-ban: 3 reportes acumulados',
           bannedAt: new Date()
         });
-        console.log('Usuario auto-baneado por 3 reportes:', reportedUid);
       }
-    } catch(e){ console.warn('Error al verificar reportes para auto-ban:', e); }
+    } catch(e){ console.warn('Auto-ban error:', e); }
   }
 
   cm('mReport');
@@ -17645,7 +17643,9 @@ async function _loadUserProfilePage(uid, nick){
     const followBtn = (myId && myId !== uid && !isViewingAdmin)
       ? `<button id="btnFollow_${uid}" onclick="toggleFollow('${uid}','${uNick.replace(/'/g,"\\'")}',this)" style="display:flex;align-items:center;gap:7px;padding:9px 18px;background:${isFollowing?'rgba(46,196,182,.15)':'var(--accent)'};border:1px solid ${isFollowing?'var(--accent)':'transparent'};color:${isFollowing?'var(--accent)':'#000'};border-radius:8px;font-size:.85rem;font-weight:800;font-family:'Exo 2',sans-serif;cursor:pointer;transition:all .2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">${isFollowing?'✓ Siguiendo':'⭐ Seguir'}</button>`
       : '';
-    const reportProfileBtn = (window.CU?.id && window.CU.id !== uid) ? `<button onclick="reportPost('perfil_${uid}','${uNick.replace(/'/g,"\\'")}',' ${uid}')" style="display:flex;align-items:center;gap:7px;padding:9px 14px;background:rgba(207,34,46,.08);border:1px solid rgba(207,34,46,.25);color:var(--red);border-radius:8px;font-size:.85rem;font-weight:700;font-family:'Exo 2',sans-serif;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='rgba(207,34,46,.16)'" onmouseout="this.style.background='rgba(207,34,46,.08)'">⚠️ Reportar</button>` : '';
+    const reportProfileBtn = (myId && myId !== uid)
+      ? `<button onclick="reportPost('perfil_${uid}','${uNick.replace(/'/g,"\\'")}','${uid}')" style="display:flex;align-items:center;gap:7px;padding:9px 14px;background:rgba(207,34,46,.08);border:1px solid rgba(207,34,46,.25);color:var(--red);border-radius:8px;font-size:.85rem;font-weight:700;font-family:'Exo 2',sans-serif;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='rgba(207,34,46,.16)'" onmouseout="this.style.background='rgba(207,34,46,.08)'">⚠️ Reportar</button>`
+      : '';
     document.getElementById('upActions').innerHTML = msgBtn + followBtn + pescaBtn + friendBtn + reportProfileBtn;
 
     if(window._followersUnsub) window._followersUnsub();
@@ -22725,12 +22725,12 @@ async function saLoadReports(status = 'todos'){
   if(!list) return;
   list.innerHTML = '<div style="text-align:center;padding:20px;color:#ff6666;">Cargando...</div>';
   try {
-    let q = query(collection(window.db,'reports'), orderBy('time','desc'), limit(80));
-    if(status !== 'todos') q = query(collection(window.db,'reports'), where('status','==',status), orderBy('time','desc'), limit(80));
+    let q = query(collection(window.db,'reports'), orderBy('time','desc'), limit(100));
+    if(status !== 'todos') q = query(collection(window.db,'reports'), where('status','==',status), orderBy('time','desc'), limit(100));
     const snap = await getDocs(q);
     if(snap.empty){ list.innerHTML = '<div style="text-align:center;padding:30px;color:#ff6666;">Sin reportes.</div>'; return; }
 
-    // Agrupar reportes por usuario reportado (uid)
+    // Agrupar por usuario reportado
     const byUser = {};
     snap.docs.forEach(d => {
       const r = { id: d.id, ...d.data() };
@@ -22739,49 +22739,59 @@ async function saLoadReports(status = 'todos'){
       byUser[key].reports.push(r);
     });
 
-    // Para cada usuario agrupado, buscar si está baneado
-    const userChecks = Object.keys(byUser).map(async key => {
+    // Verificar estado de ban por usuario
+    await Promise.all(Object.keys(byUser).map(async key => {
       const u = byUser[key];
       if(u.uid){
         try {
           const uSnap = await getDoc(doc(window.db,'users', u.uid));
           u.banned = uSnap.exists() ? (uSnap.data().banned === true) : false;
-        } catch(e){ u.banned = false; }
-      } else { u.banned = false; }
-    });
-    await Promise.all(userChecks);
+          u.av = uSnap.exists() ? (uSnap.data().av || '') : '';
+        } catch(e){ u.banned = false; u.av = ''; }
+      }
+    }));
 
     list.innerHTML = Object.keys(byUser).map(key => {
       const u = byUser[key];
       const count = u.reports.length;
       const pendingCount = u.reports.filter(r => r.status === 'pendiente').length;
+      const avatarHtml = u.av
+        ? `<img src="${u.av}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid rgba(220,0,0,.4);flex-shrink:0;">`
+        : `<div style="width:38px;height:38px;border-radius:50%;background:rgba(220,0,0,.2);border:2px solid rgba(220,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">👤</div>`;
       const banBtnHtml = u.uid ? (
         u.banned
-          ? `<button onclick="saUnbanUserFromReport('${u.uid}','${key}')" style="background:rgba(0,200,0,.12);border:1px solid rgba(0,200,0,.4);color:#44ff66;padding:6px 12px;border-radius:6px;font-size:.75rem;cursor:pointer;font-weight:700;white-space:nowrap;">✅ Levantar ban</button>`
-          : `<button onclick="saBanUserFromReport('${u.uid}','${key}')" style="background:rgba(200,0,0,.15);border:1px solid rgba(220,0,0,.4);color:#ff4444;padding:6px 12px;border-radius:6px;font-size:.75rem;cursor:pointer;font-weight:700;white-space:nowrap;">🚫 Banear</button>`
+          ? `<button onclick="saUnbanUserFromReport('${u.uid}')" style="background:rgba(0,200,0,.12);border:1px solid rgba(0,200,0,.4);color:#44ff66;padding:6px 12px;border-radius:6px;font-size:.75rem;cursor:pointer;font-weight:700;white-space:nowrap;">✅ Levantar ban</button>`
+          : `<button onclick="saBanUserFromReport('${u.uid}')" style="background:rgba(200,0,0,.15);border:1px solid rgba(220,0,0,.4);color:#ff4444;padding:6px 12px;border-radius:6px;font-size:.75rem;cursor:pointer;font-weight:700;white-space:nowrap;">🚫 Banear</button>`
       ) : '';
 
       const reportsHtml = u.reports.map(r => {
         const statusColor = r.status === 'resuelto' ? '#44ff66' : '#ffaa00';
-        return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);">
-          <div style="flex:1;font-size:.72rem;color:var(--muted);">
-            <span style="color:var(--text);font-weight:700;">${r.reason||'Sin motivo'}</span>
-            ${r.desc ? `<span style="margin-left:4px;color:var(--muted);">— ${r.desc}</span>` : ''}
-            <span style="margin-left:8px;color:#888;">por ${r.reportedBy||'?'}</span>
+        const reporterAv = r.reportedByAv
+          ? `<img src="${r.reportedByAv}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
+          : `<div style="width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:.65rem;flex-shrink:0;">👤</div>`;
+        const ts = r.time?.toDate ? r.time.toDate().toLocaleString('es-UY') : '—';
+        return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);">
+          ${reporterAv}
+          <div style="flex:1;min-width:0;">
+            <span style="font-size:.78rem;font-weight:700;color:var(--text);">${r.reason||'Sin motivo'}</span>
+            ${r.desc ? `<span style="font-size:.72rem;color:var(--muted);margin-left:4px;">— ${r.desc}</span>` : ''}
+            <div style="font-size:.65rem;color:#888;margin-top:1px;">Reportado por <strong style="color:var(--muted);">${r.reportedBy||'?'}</strong> · ${ts}</div>
           </div>
           <span style="font-size:.62rem;font-weight:800;color:${statusColor};padding:2px 7px;border-radius:100px;background:rgba(0,0,0,.2);border:1px solid ${statusColor};white-space:nowrap;">${r.status||'pendiente'}</span>
-          <button onclick="saResolveReport('${r.id}')" title="Marcar resuelto" style="background:rgba(0,180,0,.1);border:1px solid rgba(0,200,0,.3);color:#44ff66;padding:3px 8px;border-radius:5px;font-size:.65rem;cursor:pointer;">✓</button>
-          <button onclick="saDeleteReport('${r.id}')" title="Eliminar reporte" style="background:rgba(180,0,0,.1);border:1px solid rgba(220,0,0,.3);color:#ff4444;padding:3px 8px;border-radius:5px;font-size:.65rem;cursor:pointer;">🗑️</button>
+          <button onclick="saResolveReport('${r.id}')" title="Marcar resuelto" style="background:rgba(0,180,0,.1);border:1px solid rgba(0,200,0,.3);color:#44ff66;padding:4px 9px;border-radius:5px;font-size:.7rem;cursor:pointer;font-weight:700;">✓</button>
+          <button onclick="saDeleteReport('${r.id}')" title="Eliminar" style="background:rgba(180,0,0,.1);border:1px solid rgba(220,0,0,.3);color:#ff4444;padding:4px 9px;border-radius:5px;font-size:.7rem;cursor:pointer;font-weight:700;">🗑️</button>
         </div>`;
       }).join('');
 
       return `<div style="background:rgba(220,0,0,.04);border:1px solid rgba(220,0,0,.18);border-radius:10px;padding:12px 14px;margin-bottom:10px;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          ${avatarHtml}
           <div style="flex:1;">
-            <span style="font-size:.88rem;font-weight:800;color:var(--text);">👤 ${u.nick}</span>
-            ${u.banned ? '<span style="margin-left:8px;font-size:.68rem;font-weight:800;color:#ff4444;background:rgba(220,0,0,.15);border:1px solid rgba(220,0,0,.3);border-radius:100px;padding:2px 8px;">🚫 BANEADO</span>' : ''}
+            <div style="font-size:.9rem;font-weight:800;color:var(--text);">${u.nick}
+              ${u.banned ? '<span style="margin-left:6px;font-size:.65rem;font-weight:800;color:#ff4444;background:rgba(220,0,0,.15);border:1px solid rgba(220,0,0,.3);border-radius:100px;padding:2px 8px;">🚫 BANEADO</span>' : ''}
+            </div>
+            <div style="font-size:.72rem;color:#ffaa00;margin-top:2px;">${count} reporte${count!==1?'s':''} · ${pendingCount} pendiente${pendingCount!==1?'s':''}</div>
           </div>
-          <span style="font-size:.72rem;font-weight:700;color:#ffaa00;">${count} reporte${count!==1?'s':''} · ${pendingCount} pendiente${pendingCount!==1?'s':''}</span>
           ${banBtnHtml}
         </div>
         ${reportsHtml}
@@ -22790,27 +22800,39 @@ async function saLoadReports(status = 'todos'){
   } catch(e){ list.innerHTML = `<div style="padding:20px;color:#ff6666;">Error: ${e.message}</div>`; }
 }
 
-async function saResolveReport(id){ try { await updateDoc(doc(window.db,'reports',id),{status:'resuelto'}); saLoadReports('todos'); } catch(e){} }
-async function saDeleteReport(id){ if(!confirm('¿Eliminar reporte?')) return; try { await deleteDoc(doc(window.db,'reports',id)); saLoadReports('todos'); } catch(e){} }
+async function saResolveReport(id){
+  try {
+    await updateDoc(doc(window.db,'reports',id), {status:'resuelto'});
+    toast('Marcado como resuelto ✅','ok');
+    saLoadReports('todos');
+  } catch(e){ toast('Error: '+e.message,'err'); }
+}
 
-async function saBanUserFromReport(uid, key){
+async function saDeleteReport(id){
+  if(!confirm('¿Eliminar este reporte?')) return;
+  try {
+    await deleteDoc(doc(window.db,'reports',id));
+    toast('Reporte eliminado','ok');
+    saLoadReports('todos');
+  } catch(e){ toast('Error: '+e.message,'err'); }
+}
+
+async function saBanUserFromReport(uid){
   if(!confirm('¿Banear a este usuario?')) return;
   try {
     await updateDoc(doc(window.db,'users', uid), { banned: true, bannedReason: 'Ban manual desde panel de reportes', bannedAt: new Date() });
-    window._saReportBanState = window._saReportBanState || {};
-    window._saReportBanState[key] = true;
+    toast('Usuario baneado 🚫','ok');
     saLoadReports('todos');
-    toast('Usuario baneado ✅','ok');
-  } catch(e){ toast('Error al banear','err'); }
+  } catch(e){ toast('Error: '+e.message,'err'); }
 }
 
-async function saUnbanUserFromReport(uid, key){
+async function saUnbanUserFromReport(uid){
   if(!confirm('¿Levantar el ban de este usuario?')) return;
   try {
     await updateDoc(doc(window.db,'users', uid), { banned: false, bannedReason: '', bannedAt: null });
-    saLoadReports('todos');
     toast('Ban levantado ✅','ok');
-  } catch(e){ toast('Error al levantar ban','err'); }
+    saLoadReports('todos');
+  } catch(e){ toast('Error: '+e.message,'err'); }
 }
 
 async function saDeleteContent(){
