@@ -6299,6 +6299,10 @@ async function uploadVideo(file, folder) {
   formData.append('upload_preset', CLOUDINARY_VIDEO_PRESET);
   formData.append('folder', 'rf4/' + (folder || 'videos'));
   formData.append('resource_type', 'video');
+  // Pedir conversión a mp4 para máxima compatibilidad
+  if(file.type && file.type.includes('webm')){
+    formData.append('format', 'mp4');
+  }
   const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/video/upload`, {
     method: 'POST',
     body: formData
@@ -9278,9 +9282,20 @@ async function submitStory(){
   toast('Publicando historia...','inf');
   let imgUrl = '';
   let videoUrl = '';
-  if(_storyImgData) imgUrl = await uploadImage(_storyImgData, 'stories');
+  try {
+    if(_storyImgData) imgUrl = await uploadImage(_storyImgData, 'stories');
+  } catch(e){ toast('Error al subir la imagen. Intentá de nuevo.','err'); return; }
   const _videoDataToUpload = _storyVideoData || window._storyVideoData || null;
-  if(_videoDataToUpload) videoUrl = await uploadVideo(_videoDataToUpload, 'stories');
+  if(_videoDataToUpload){
+    try {
+      toast('Subiendo video... puede tardar unos segundos ⏳','inf');
+      videoUrl = await uploadVideo(_videoDataToUpload, 'stories');
+    } catch(e){
+      console.error('uploadVideo error:', e);
+      toast('Error al subir el video: ' + (e.message || 'intentá de nuevo'), 'err');
+      return;
+    }
+  }
   if(hasYtVideo) videoUrl = window._storyYtUrl;
   if(!text && !imgUrl && !videoUrl && !window._storyGif){ toast('Agregá algo a la historia','err'); return; }
   const _storyTTL = (window.CU?.verified) ? 172800000 : 86400000; // 48h verificados, 24h resto
@@ -9351,18 +9366,24 @@ async function submitStory(){
     } catch(e){ console.warn('lyrics fetch error:', e); }
   }
 
-  await addDoc(collection(db, 'stories'), {
-    userId:window.CU.id, userNick:window.CU.nick, userAv:window.CU.av||'',
-    text, emoji:_storyEmojiPick||'🎣', img:imgUrl, video:videoUrl, yt:'', time:serverTimestamp(),
-    expiresAt: _storyExpiresAt, // ← usado para borrado automático y reglas
-    userVerified:window.CU?.verified||false,
-    music: window._storyMusic || _storyMusic || null,
-    lyrics: _lyricsData || null,
-    bg: window._storyBg || null,
-    gif: window._storyGif || null,
-    textColor: window._storyTextColor || '#ffffff',
-    textStyle: window._storyTextStyle || 'normal'
-  });
+  try {
+    await addDoc(collection(db, 'stories'), {
+      userId:window.CU.id, userNick:window.CU.nick, userAv:window.CU.av||'',
+      text, emoji:_storyEmojiPick||'🎣', img:imgUrl, video:videoUrl, yt:'', time:serverTimestamp(),
+      expiresAt: _storyExpiresAt,
+      userVerified:window.CU?.verified||false,
+      music: window._storyMusic || _storyMusic || null,
+      lyrics: _lyricsData || null,
+      bg: window._storyBg || null,
+      gif: window._storyGif || null,
+      textColor: window._storyTextColor || '#ffffff',
+      textStyle: window._storyTextStyle || 'normal'
+    });
+  } catch(e){
+    console.error('addDoc story error:', e);
+    toast('Error al guardar la historia. Verificá tu conexión.','err');
+    return;
+  }
   _storyImgData = null; _storyVideoData = null; window._storyVideoData = null; _storyEmojiPick = ''; _storyMusic = null; window._storyMusic = null;
   window._storyBg = null; window._storyGif = null; window._scMode = 'chooser';
   window._storyTextColor = '#ffffff'; window._storyTextStyle = 'normal';
@@ -26865,10 +26886,12 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(updatePremiumBt
     if(!_camChunks.length){ _storyCamSetStatus('❌ No se grabó nada'); return; }
     var mimeType = _camChunks[0].type || 'video/webm';
     var blob = new Blob(_camChunks, { type: mimeType });
-    var ext  = mimeType.includes('mp4') ? 'mp4' : 'webm';
-    var file = new File([blob], 'historia-'+Date.now()+'.'+ext, { type: mimeType });
+    // Cloudinary acepta webm pero necesita el resource_type correcto.
+    // Usamos siempre extensión .webm si no es mp4 nativo.
+    var ext  = (mimeType.includes('mp4') || mimeType.includes('x-m4v')) ? 'mp4' : 'webm';
+    var uploadMime = ext === 'mp4' ? 'video/mp4' : 'video/webm';
+    var file = new File([blob], 'historia-'+Date.now()+'.'+ext, { type: uploadMime });
     storyCamCancelar(true);
-    // Guardar en _storyVideoData para que submitStory lo suba a Cloudinary
     window._storyVideoData = file;
     var prevEl = document.getElementById('storyVideoPrev');
     var localUrl = URL.createObjectURL(blob);
