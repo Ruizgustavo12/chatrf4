@@ -9273,12 +9273,14 @@ async function submitStory(){
   const textEl = mode==='text' ? document.getElementById('storyTextText') : document.getElementById('storyText');
   const text = textEl?.value.trim() || '';
   const hasYtVideo = !!(window._storyYtUrl);
-  if(!text && !_storyImgData && !window._storyGif && !hasYtVideo){ toast('Escribe algo o sube una imagen/video','err'); return; }
+  const _hasVideoData = !!(_storyVideoData || window._storyVideoData);
+  if(!text && !_storyImgData && !_hasVideoData && !window._storyGif && !hasYtVideo){ toast('Escribe algo o sube una imagen/video','err'); return; }
   toast('Publicando historia...','inf');
   let imgUrl = '';
   let videoUrl = '';
   if(_storyImgData) imgUrl = await uploadImage(_storyImgData, 'stories');
-  if(_storyVideoData) videoUrl = await uploadVideo(_storyVideoData, 'stories');
+  const _videoDataToUpload = _storyVideoData || window._storyVideoData || null;
+  if(_videoDataToUpload) videoUrl = await uploadVideo(_videoDataToUpload, 'stories');
   if(hasYtVideo) videoUrl = window._storyYtUrl;
   if(!text && !imgUrl && !videoUrl && !window._storyGif){ toast('Agregá algo a la historia','err'); return; }
   const _storyTTL = (window.CU?.verified) ? 172800000 : 86400000; // 48h verificados, 24h resto
@@ -9361,7 +9363,7 @@ async function submitStory(){
     textColor: window._storyTextColor || '#ffffff',
     textStyle: window._storyTextStyle || 'normal'
   });
-  _storyImgData = null; _storyVideoData = null; _storyEmojiPick = ''; _storyMusic = null; window._storyMusic = null;
+  _storyImgData = null; _storyVideoData = null; window._storyVideoData = null; _storyEmojiPick = ''; _storyMusic = null; window._storyMusic = null;
   window._storyBg = null; window._storyGif = null; window._scMode = 'chooser';
   window._storyTextColor = '#ffffff'; window._storyTextStyle = 'normal';
   window._storyYtUrl = null; window._storyYtId = null;
