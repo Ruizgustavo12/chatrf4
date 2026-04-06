@@ -1781,7 +1781,7 @@ button:not(.tb-nav-btn):not(.bottom-nav-btn):not(.ml-rxn-btn):not([disabled]) {
     <div style="position:relative;z-index:2;padding:32px 40px 36px;max-width:600px;">
       <div style="display:flex;align-items:center;gap:12px;font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:#e50914;letter-spacing:2px;margin-bottom:8px;">
         🎬 CINELATIDO
-        <span id="clMovieCounter" style="display:none;font-family:'Exo 2',sans-serif;font-size:.72rem;font-weight:700;color:#fff;background:rgba(229,9,20,.85);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:3px 10px;letter-spacing:.5px;white-space:nowrap;backdrop-filter:blur(4px);">
+        <span id="clMovieCounter" style="display:inline-flex;align-items:center;gap:4px;font-family:'Exo 2',sans-serif;font-size:.72rem;font-weight:700;color:#fff;background:rgba(229,9,20,.85);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:3px 10px;letter-spacing:.5px;white-space:nowrap;backdrop-filter:blur(4px);">
           📽️ <span id="clMovieCount">0</span> películas disponibles
         </span>
       </div>
@@ -33946,7 +33946,18 @@ window.clRateMovie = async function(val){
   const uid = window.CU.id;
   const ref = window.doc(window.db, 'cinelatido', docId);
   try {
-    await window.setDoc(ref, { [`ratings.${uid}`]: val, videoId: window._cl.currentVideoId }, { merge: true });
+    // Primero intentar updateDoc (funciona si el doc ya existe)
+    const updateData = {};
+    updateData[`ratings.${uid}`] = val;
+    updateData['videoId'] = window._cl.currentVideoId;
+    try {
+      await window.updateDoc(ref, updateData);
+    } catch(updateErr) {
+      // Si el doc no existe, crearlo con setDoc
+      const initData = { videoId: window._cl.currentVideoId, ratings: {} };
+      initData.ratings[uid] = val;
+      await window.setDoc(ref, initData, { merge: true });
+    }
     const fb = document.getElementById('clStarsFeedback');
     if(fb) fb.textContent = '✅ ¡Gracias! Tu valoración: ' + CL_STAR_LABELS[val];
   } catch(e){
@@ -33972,6 +33983,7 @@ function clListenComments(docId){
       el.innerHTML = '<div style="text-align:center;color:#444;font-size:.8rem;padding:16px;">Sé el primero en comentar 🎬</div>';
       return;
     }
+    const isAdmin = !!(window.CU && (window.CU.role === 'admin' || window.CU.email === 'synxyes@gmail.com'));
     snap.forEach(d => {
       const c  = d.data();
       const av = c.av
@@ -33979,10 +33991,16 @@ function clListenComments(docId){
         : `<div style="width:100%;height:100%;background:#e50914;display:flex;align-items:center;justify-content:center;">${(c.nick||'?')[0].toUpperCase()}</div>`;
       const div = document.createElement('div');
       div.className = 'cl-comment';
+      const deleteBtn = isAdmin
+        ? `<button onclick="clDeleteComment('${docId}','${d.id}')" title="Borrar comentario" style="background:rgba(229,9,20,.15);border:1px solid rgba(229,9,20,.4);color:#e50914;border-radius:6px;padding:2px 8px;font-size:.7rem;cursor:pointer;font-family:'Exo 2',sans-serif;font-weight:700;transition:background .15s;flex-shrink:0;" onmouseover="this.style.background='rgba(229,9,20,.35)'" onmouseout="this.style.background='rgba(229,9,20,.15)'">🗑️ Borrar</button>`
+        : '';
       div.innerHTML = `
         <div class="cl-comment-av">${av}</div>
-        <div class="cl-comment-body">
-          <div class="cl-comment-nick">${escHtml(c.nick||'Usuario')}</div>
+        <div class="cl-comment-body" style="flex:1;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+            <div class="cl-comment-nick">${escHtml(c.nick||'Usuario')}</div>
+            ${deleteBtn}
+          </div>
           <div class="cl-comment-text">${escHtml(c.text||'')}</div>
           <div class="cl-comment-time">${clTimeAgo(c.time||0)}</div>
         </div>`;
@@ -34016,6 +34034,21 @@ window.clSendComment = async function(){
   } catch(e){
     console.warn('[CineLatido] Error comentando:', e);
     toast('Error al enviar comentario','err');
+  }
+};
+
+/* ══ BORRAR COMENTARIO (solo admins) ══ */
+window.clDeleteComment = async function(docId, commentId){
+  const isAdmin = !!(window.CU && (window.CU.role === 'admin' || window.CU.email === 'synxyes@gmail.com'));
+  if(!isAdmin){ toast('No tenés permisos para borrar comentarios','err'); return; }
+  if(!window.db || !window.doc || !window.deleteDoc) return;
+  if(!confirm('¿Borrar este comentario?')) return;
+  try {
+    await window.deleteDoc(window.doc(window.db, 'cinelatido', docId, 'comments', commentId));
+    toast('Comentario borrado','ok');
+  } catch(e){
+    console.warn('[CineLatido] Error al borrar comentario:', e);
+    toast('Error al borrar comentario','err');
   }
 };
 
