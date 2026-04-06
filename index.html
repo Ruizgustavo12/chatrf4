@@ -315,6 +315,899 @@ input::placeholder,textarea::placeholder{color:#5e4a7a !important}
 #rf4JugadoresList>div{border-bottom:1px solid #1e1430 !important;color:#e2d9f3 !important}
 #jugadoresSearch{color:#e2d9f3 !important}
 </style>
+
+<style id="milatido-2-css">
+/* ═══════════════════════════════════════════════════════════════
+   MiLatido 2.0 — REDISEÑO COMPLETO (no toca Videos Musicales/CineLatido)
+   Injected CSS Block
+═══════════════════════════════════════════════════════════════ */
+
+/* ── VARIABLES DE DISEÑO PROPIO ── */
+:root {
+  --ml-pink: #ff2d78;
+  --ml-pink2: #ff6b9d;
+  --ml-purple: #a855f7;
+  --ml-purple2: #7c3aed;
+  --ml-fire: #ff4500;
+  --ml-gold: #f59e0b;
+  --ml-teal: #0ea5e9;
+  --ml-dark: #0d0a14;
+  --ml-card: #120d1e;
+  --ml-border: #2e1f4a;
+  --ml-glow-pink: rgba(255,45,120,.35);
+  --ml-glow-purple: rgba(168,85,247,.35);
+}
+
+/* ── TOPBAR NUEVO ── */
+.topbar {
+  background: linear-gradient(90deg,#0d0a14,#120d1e) !important;
+  border-bottom: 1px solid var(--ml-border) !important;
+  box-shadow: 0 2px 20px rgba(168,85,247,.2) !important;
+  height: 54px !important;
+}
+.tb-logo {
+  font-family: 'Orbitron', monospace !important;
+  font-size: 1.15rem !important;
+  font-weight: 900 !important;
+  background: linear-gradient(90deg, #ff2d78, #a855f7, #ff2d78) !important;
+  background-size: 200% !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  animation: mlLogoShimmer 3s ease infinite !important;
+  letter-spacing: .06em !important;
+}
+@keyframes mlLogoShimmer {
+  0%{background-position:0%}50%{background-position:100%}100%{background-position:0%}
+}
+.tb-logo span { -webkit-text-fill-color: var(--ml-gold) !important; }
+
+.tb-nav-btn {
+  color: #9d7ec7 !important;
+  border-radius: 12px !important;
+  transition: all .2s !important;
+  font-size: .95rem !important;
+}
+.tb-nav-btn:hover, .tb-nav-btn.on {
+  color: #ff2d78 !important;
+  background: rgba(255,45,120,.12) !important;
+  border-bottom-color: #ff2d78 !important;
+  transform: translateY(-1px) !important;
+}
+.tb-icon-btn {
+  background: rgba(168,85,247,.15) !important;
+  border: 1px solid rgba(168,85,247,.3) !important;
+  transition: all .2s !important;
+}
+.tb-icon-btn:hover {
+  background: rgba(255,45,120,.2) !important;
+  border-color: rgba(255,45,120,.5) !important;
+  transform: scale(1.1) !important;
+}
+.tb-icon-btn svg { fill: #c084fc !important; }
+
+/* ── LAYOUT / FONDO ── */
+html, body {
+  background: #0d0a14 !important;
+  color: #e2d9f3 !important;
+}
+.layout { background: #0d0a14 !important; }
+
+/* ── SIDEBAR IZQUIERDO ── */
+.sidebar-left {
+  background: linear-gradient(180deg,#120d1e,#0d0a14) !important;
+  border-right: 1px solid var(--ml-border) !important;
+}
+.sl-profile { border-radius: 14px !important; transition: all .2s !important; }
+.sl-profile:hover { background: rgba(255,45,120,.1) !important; }
+.sl-av {
+  background: linear-gradient(135deg,#a855f7,#ff2d78) !important;
+  color: #fff !important;
+  border: 2px solid rgba(168,85,247,.5) !important;
+}
+.sl-name { color: #e2d9f3 !important; font-weight: 700 !important; }
+.sl-item {
+  color: #9d7ec7 !important;
+  border-radius: 12px !important;
+  font-size: .86rem !important;
+  transition: all .2s !important;
+  margin-bottom: 2px !important;
+}
+.sl-item:hover {
+  background: rgba(255,45,120,.1) !important;
+  color: #ff2d78 !important;
+  transform: translateX(4px) !important;
+}
+.sl-item-icon { font-size: 1rem !important; }
+
+/* ── FEED ── */
+.feed { background: transparent !important; }
+
+/* ── POST CARDS ── */
+.post, .post-box {
+  background: linear-gradient(160deg,#120d1e,#0f0b18) !important;
+  border: 1px solid var(--ml-border) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,.4), 0 0 0 0 transparent !important;
+  transition: box-shadow .3s, border-color .3s !important;
+  overflow: visible !important;
+}
+.post:hover {
+  border-color: rgba(168,85,247,.4) !important;
+  box-shadow: 0 6px 32px rgba(0,0,0,.5), 0 0 20px rgba(168,85,247,.08) !important;
+}
+.post-av {
+  background: linear-gradient(135deg,#a855f7,#ff2d78) !important;
+  color: #fff !important;
+  border: 2px solid rgba(168,85,247,.4) !important;
+}
+.post-author { color: #e2d9f3 !important; }
+.post-author:hover { color: #ff2d78 !important; }
+.post-time { color: #5e4a7a !important; }
+.post-text { color: #d4c8ec !important; line-height: 1.7 !important; }
+.post-stats { border-top: 1px solid rgba(255,255,255,.06) !important; }
+.post-actions, .fb-actions {
+  border-top: 1px solid rgba(255,255,255,.06) !important;
+  background: transparent !important;
+  border-radius: 0 0 18px 18px !important;
+}
+
+/* ── POST BOX (nuevo post) ── */
+.post-box {
+  background: linear-gradient(135deg,rgba(168,85,247,.08),rgba(255,45,120,.05)) !important;
+  border: 1px solid rgba(168,85,247,.3) !important;
+}
+.post-input {
+  background: rgba(255,255,255,.05) !important;
+  border: 1px solid rgba(255,255,255,.1) !important;
+  border-radius: 100px !important;
+  color: #9d7ec7 !important;
+}
+.post-input:hover {
+  background: rgba(255,45,120,.08) !important;
+  color: #e2d9f3 !important;
+  border-color: rgba(255,45,120,.3) !important;
+}
+.post-box-actions { border-top: 1px solid rgba(255,255,255,.06) !important; }
+.pba { color: #7c6a9a !important; border-radius: 10px !important; }
+.pba:hover { background: rgba(255,45,120,.1) !important; color: #ff2d78 !important; }
+
+/* ── REACCIONES PERSONALIZADAS MiLatido ── */
+.ml-rxn-popup {
+  display: none;
+  position: fixed;
+  z-index: 99500;
+  background: linear-gradient(135deg,#1e1430,#120d1e);
+  border: 1px solid rgba(168,85,247,.5);
+  border-radius: 50px;
+  padding: 8px 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.7), 0 0 20px rgba(168,85,247,.2);
+  transform: translateY(-100%);
+  animation: rxnPop .18s ease;
+  gap: 4px;
+  align-items: flex-end;
+}
+.ml-rxn-popup.show { display: flex; }
+.ml-rxn-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: transform .13s;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 58px;
+}
+.ml-rxn-btn:hover { transform: scale(1.55) translateY(-8px); }
+.ml-rxn-label {
+  font-size: .55rem;
+  font-weight: 700;
+  color: #9d7ec7;
+  font-family: 'Exo 2', sans-serif;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity .12s;
+  pointer-events: none;
+}
+.ml-rxn-btn:hover .ml-rxn-label { opacity: 1; }
+
+/* Botones de acción reemplazados */
+.fb-act-btn {
+  color: #7c6a9a !important;
+  font-size: .8rem !important;
+  border-radius: 10px !important;
+  padding: 8px 10px !important;
+  transition: all .2s !important;
+}
+.fb-act-btn:hover { background: rgba(255,45,120,.1) !important; color: #ff2d78 !important; }
+.fb-reacted { color: #ff2d78 !important; }
+.rxn-total-count { color: #7c6a9a !important; }
+
+/* ── MODAL ── */
+.mo { background: rgba(0,0,0,.8) !important; backdrop-filter: blur(8px) !important; }
+.modal, .modal-box {
+  background: linear-gradient(160deg,#1e1430,#120d1e) !important;
+  border: 1px solid var(--ml-border) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 16px 64px rgba(0,0,0,.8), 0 0 40px rgba(168,85,247,.1) !important;
+  color: #e2d9f3 !important;
+}
+.mt {
+  color: #c084fc !important;
+  border-bottom: 1px solid var(--ml-border) !important;
+}
+.mcx {
+  background: rgba(255,255,255,.08) !important;
+  border: 1px solid var(--ml-border) !important;
+  color: #7c6a9a !important;
+}
+.mcx:hover { background: rgba(255,45,120,.2) !important; color: #ff2d78 !important; border-color: #ff2d78 !important; }
+.fi, select.fi {
+  background: rgba(255,255,255,.05) !important;
+  border: 1px solid var(--ml-border) !important;
+  color: #e2d9f3 !important;
+  border-radius: 12px !important;
+}
+.fi:focus { border-color: #a855f7 !important; box-shadow: 0 0 0 3px rgba(168,85,247,.2) !important; }
+.fi::placeholder { color: #5e4a7a !important; }
+.fg label { color: #9d7ec7 !important; }
+.btn-p {
+  background: linear-gradient(135deg, #ff2d78, #a855f7) !important;
+  color: #fff !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+  letter-spacing: .04em !important;
+  box-shadow: 0 4px 16px rgba(255,45,120,.3) !important;
+  transition: all .2s !important;
+}
+.btn-p:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(255,45,120,.4) !important;
+}
+
+/* ── STORIES ── */
+.story-card {
+  background: linear-gradient(135deg,#1e1430,#0d0a14) !important;
+  border: 1px solid rgba(168,85,247,.3) !important;
+  transition: all .2s !important;
+}
+.story-card:hover {
+  transform: scale(1.04) translateY(-3px) !important;
+  border-color: rgba(255,45,120,.5) !important;
+  box-shadow: 0 8px 24px rgba(255,45,120,.2) !important;
+}
+
+/* ── SIDEBAR DERECHO ── */
+.sidebar-right {
+  background: transparent !important;
+}
+
+/* ── COMENTARIOS ── */
+.comment-bubble { background: rgba(255,255,255,.06) !important; border-radius: 16px !important; }
+.comment-author { color: #c084fc !important; }
+.comment-text { color: #d4c8ec !important; }
+.comment-input {
+  background: rgba(255,255,255,.05) !important;
+  border: 1px solid var(--ml-border) !important;
+  border-radius: 20px !important;
+  color: #e2d9f3 !important;
+}
+.comment-input::placeholder { color: #5e4a7a !important; }
+.cmt-like-btn { color: #5e4a7a !important; }
+.cmt-like-btn:hover, .cmt-like-btn.active { color: #ff2d78 !important; }
+.cmt-reply-btn { color: #5e4a7a !important; }
+.cmt-reply-btn:hover { color: #a855f7 !important; }
+.cmt-meta-time { color: #5e4a7a !important; }
+.cmt-menu-dropdown {
+  background: #1e1430 !important;
+  border: 1px solid var(--ml-border) !important;
+}
+
+/* ── MESSENGER/CHAT ── */
+#mMessenger {
+  background: #120d1e !important;
+  border: 1px solid var(--ml-border) !important;
+  border-radius: 16px 16px 0 0 !important;
+  box-shadow: 0 -4px 32px rgba(0,0,0,.6) !important;
+}
+#chatDragHandle { background: #1e1430 !important; border-bottom: 1px solid var(--ml-border) !important; }
+.rf4-tab { color: #7c6a9a !important; }
+.rf4-tab.on { color: #ff2d78 !important; border-bottom-color: #ff2d78 !important; }
+.rf4-tab:hover { background: rgba(255,45,120,.08) !important; color: #ff2d78 !important; }
+#rf4PanelJugadores,#rf4PanelMensajes,#rf4PanelChat { background: #120d1e !important; }
+#messengerList { background: #120d1e !important; }
+#chatWindow { background: #120d1e !important; }
+#chatMessages { background: #0d0a14 !important; }
+#chatInputRow { background: #1e1430 !important; border-top: 1px solid var(--ml-border) !important; }
+#chatInput { color: #e2d9f3 !important; }
+#chatInput::placeholder { color: #5e4a7a !important; }
+#chatSendBtn { background: linear-gradient(135deg,#ff2d78,#a855f7) !important; border: none !important; }
+#chatSendBtn:hover { opacity: .88 !important; transform: scale(1.08) !important; }
+.cm-row.mine .cm-bubble-wrap > div {
+  background: linear-gradient(135deg,#ff2d78,#a855f7) !important;
+  border-radius: 18px 18px 4px 18px !important;
+}
+.cm-row.theirs .cm-bubble-wrap > div {
+  background: rgba(255,255,255,.08) !important;
+  color: #e2d9f3 !important;
+  border-radius: 18px 18px 18px 4px !important;
+}
+.cm-time { color: #5e4a7a !important; }
+.cm-av { background: rgba(168,85,247,.2) !important; color: #c084fc !important; }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  background: linear-gradient(180deg,rgba(13,10,20,.95),#0d0a14) !important;
+  border-top: 1px solid var(--ml-border) !important;
+  backdrop-filter: blur(12px) !important;
+}
+.bottom-nav-btn { color: #5e4a7a !important; }
+.bottom-nav-btn.on, .bottom-nav-btn:hover { color: #ff2d78 !important; }
+
+/* ── AMIGOS SIDEBAR ── */
+#amigos-sidebar {
+  background: linear-gradient(180deg,#120d1e,#0d0a14) !important;
+  border-right: 1px solid var(--ml-border) !important;
+}
+.asb-title { color: #e2d9f3 !important; }
+.asb-gear { background: rgba(168,85,247,.15) !important; color: #c084fc !important; }
+.asb-item { color: #9d7ec7 !important; border-radius: 12px !important; }
+.asb-item:hover { background: rgba(255,45,120,.1) !important; }
+.asb-item.active { background: rgba(255,45,120,.15) !important; }
+.asb-item.active .asb-label, .asb-item.active { color: #ff2d78 !important; }
+.asb-icon { background: rgba(168,85,247,.1) !important; }
+.asb-item.active .asb-icon { background: rgba(255,45,120,.2) !important; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent !important; }
+::-webkit-scrollbar-thumb { background: rgba(168,85,247,.3) !important; border-radius: 3px !important; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,45,120,.5) !important; }
+
+/* ── NOTIFICACIONES / DROPDOWNS ── */
+#notifDropdown, #menuDropdown, #searchDrop {
+  background: #1e1430 !important;
+  border: 1px solid var(--ml-border) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,.7), 0 0 20px rgba(168,85,247,.1) !important;
+  border-radius: 16px !important;
+  color: #e2d9f3 !important;
+}
+#notifDropdown *, #menuDropdown *, #searchDrop * { color: #e2d9f3 !important; }
+
+/* ── RANKING TOP 10 WIDGET (sidebar derecho) ── */
+#mlRankingWidget {
+  background: linear-gradient(135deg,rgba(245,158,11,.08),rgba(168,85,247,.05));
+  border: 1px solid rgba(245,158,11,.3);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.ml-rank-title {
+  font-size: .7rem;
+  font-weight: 900;
+  color: var(--ml-gold);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ml-rank-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 6px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background .15s;
+  margin-bottom: 3px;
+}
+.ml-rank-item:hover { background: rgba(255,45,120,.1); }
+.ml-rank-pos {
+  font-size: .72rem;
+  font-weight: 900;
+  width: 22px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.ml-rank-av {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: linear-gradient(135deg,#a855f7,#ff2d78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .85rem;
+  font-weight: 700;
+  color: #fff;
+}
+.ml-rank-av img { width: 100%; height: 100%; object-fit: cover; }
+.ml-rank-info { flex: 1; min-width: 0; }
+.ml-rank-nick {
+  font-size: .78rem;
+  font-weight: 700;
+  color: #e2d9f3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ml-rank-score { font-size: .65rem; color: #7c6a9a; }
+.ml-rank-badge { font-size: .9rem; flex-shrink: 0; }
+
+/* ── MATCH SECRETO / LIKES SECRETOS ── */
+#mlSecretLikesWidget {
+  background: linear-gradient(135deg,rgba(255,45,120,.09),rgba(255,45,120,.03));
+  border: 1px solid rgba(255,45,120,.25);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.ml-match-notification {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%) scale(0);
+  background: linear-gradient(135deg,#ff2d78,#a855f7);
+  color: #fff;
+  border-radius: 20px;
+  padding: 16px 28px;
+  font-size: 1rem;
+  font-weight: 800;
+  z-index: 99999;
+  box-shadow: 0 8px 32px rgba(255,45,120,.5);
+  animation: mlMatchPop .5s cubic-bezier(.34,1.56,.64,1) forwards;
+  text-align: center;
+  font-family: 'Orbitron', monospace;
+  letter-spacing: .04em;
+}
+@keyframes mlMatchPop {
+  0% { transform: translateX(-50%) scale(0); opacity: 0; }
+  60% { transform: translateX(-50%) scale(1.08); opacity: 1; }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+.ml-match-notification.hide {
+  animation: mlMatchOut .3s ease forwards;
+}
+@keyframes mlMatchOut {
+  to { transform: translateX(-50%) scale(.8); opacity: 0; }
+}
+
+/* ── SECRET LIKE BUTTON en perfiles ── */
+.ml-secret-like-btn {
+  background: linear-gradient(135deg,rgba(255,45,120,.15),rgba(168,85,247,.1));
+  border: 1px solid rgba(255,45,120,.4);
+  border-radius: 50px;
+  color: #ff2d78;
+  font-size: .78rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-family: 'Exo 2', sans-serif;
+  transition: all .2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.ml-secret-like-btn:hover {
+  background: rgba(255,45,120,.25);
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(255,45,120,.3);
+}
+.ml-secret-like-btn.liked {
+  background: linear-gradient(135deg,#ff2d78,#a855f7);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 16px rgba(255,45,120,.4);
+}
+
+/* ── DESCUBRIR PERSONAS (swipe original) ── */
+.ml-discover-card {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  height: 480px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: linear-gradient(180deg,#1e1430,#0d0a14);
+  border: 1px solid var(--ml-border);
+  box-shadow: 0 12px 48px rgba(0,0,0,.6);
+  cursor: grab;
+  user-select: none;
+  transition: transform .15s, box-shadow .15s;
+}
+.ml-discover-card:active { cursor: grabbing; }
+.ml-discover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.ml-discover-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top,rgba(0,0,0,.9) 0%,transparent 50%);
+  pointer-events: none;
+}
+.ml-discover-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px;
+}
+.ml-discover-name {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #fff;
+  font-family: 'Orbitron', monospace;
+  letter-spacing: .02em;
+}
+.ml-discover-meta { font-size: .8rem; color: rgba(255,255,255,.7); margin-top: 4px; }
+.ml-discover-actions {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+}
+.ml-discover-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s;
+  box-shadow: 0 4px 16px rgba(0,0,0,.4);
+}
+.ml-discover-btn:hover { transform: scale(1.15); }
+.ml-discover-btn.pass { background: rgba(255,255,255,.12); }
+.ml-discover-btn.fire { background: linear-gradient(135deg,#ff4500,#ff8c00); }
+.ml-discover-btn.heart { background: linear-gradient(135deg,#ff2d78,#a855f7); }
+.ml-discover-card.swipe-right {
+  animation: mlSwipeRight .4s ease forwards;
+}
+.ml-discover-card.swipe-left {
+  animation: mlSwipeLeft .4s ease forwards;
+}
+@keyframes mlSwipeRight {
+  to { transform: translateX(150%) rotate(20deg); opacity: 0; }
+}
+@keyframes mlSwipeLeft {
+  to { transform: translateX(-150%) rotate(-20deg); opacity: 0; }
+}
+.ml-discover-label {
+  position: absolute;
+  top: 24px;
+  font-size: 1.2rem;
+  font-weight: 900;
+  font-family: 'Orbitron', monospace;
+  letter-spacing: .08em;
+  padding: 6px 16px;
+  border-radius: 8px;
+  border: 3px solid;
+  opacity: 0;
+  transform: rotate(-15deg);
+  pointer-events: none;
+}
+.ml-discover-label.yes { left: 20px; color: #22c55e; border-color: #22c55e; }
+.ml-discover-label.no { right: 20px; color: #f43f5e; border-color: #f43f5e; transform: rotate(15deg); }
+
+/* ── STALKEO / VISITANTES ── */
+.ml-stalker-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.07);
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+  position: relative;
+}
+.ml-stalker-card:hover {
+  background: rgba(255,45,120,.08);
+  border-color: rgba(255,45,120,.2);
+}
+.ml-stalker-av {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid rgba(168,85,247,.4);
+  background: linear-gradient(135deg,#a855f7,#ff2d78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+}
+.ml-stalker-av img { width: 100%; height: 100%; object-fit: cover; }
+.ml-stalker-info { flex: 1; }
+.ml-stalker-nick { font-size: .85rem; font-weight: 700; color: #e2d9f3; }
+.ml-stalker-time { font-size: .7rem; color: #7c6a9a; margin-top: 2px; }
+.ml-stalker-eye { font-size: .85rem; margin-left: auto; }
+
+/* ── ESTADO EMOCIONAL EN PERFILES ── */
+.ml-mood-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: .73rem;
+  font-weight: 700;
+  background: rgba(168,85,247,.15);
+  border: 1px solid rgba(168,85,247,.3);
+  color: #c084fc;
+}
+.ml-incognito-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: .73rem;
+  font-weight: 700;
+  background: rgba(0,0,0,.4);
+  border: 1px solid rgba(255,255,255,.15);
+  color: rgba(255,255,255,.6);
+}
+.ml-attract-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: .75rem;
+  color: #9d7ec7;
+}
+.ml-attract-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.ml-attract-fill {
+  height: 100%;
+  background: linear-gradient(90deg,#ff2d78,#a855f7);
+  border-radius: 3px;
+  transition: width .6s cubic-bezier(.34,1.56,.64,1);
+}
+
+/* ── LOGROS / ACHIEVEMENTS ── */
+.ml-achievement-popup {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  background: linear-gradient(135deg,#1e1430,#120d1e);
+  border: 1px solid rgba(245,158,11,.5);
+  border-radius: 16px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 99999;
+  box-shadow: 0 8px 32px rgba(0,0,0,.6), 0 0 20px rgba(245,158,11,.15);
+  animation: mlAchievIn .4s cubic-bezier(.34,1.56,.64,1) forwards;
+  max-width: 280px;
+}
+@keyframes mlAchievIn {
+  from { transform: translateX(120%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.ml-achievement-popup.hide {
+  animation: mlAchievOut .3s ease forwards;
+}
+@keyframes mlAchievOut {
+  to { transform: translateX(120%); opacity: 0; }
+}
+.ml-achievmt-icon { font-size: 1.8rem; }
+.ml-achievmt-title { font-size: .65rem; color: var(--ml-gold); font-weight: 900; text-transform: uppercase; letter-spacing: .06em; }
+.ml-achievmt-text { font-size: .82rem; font-weight: 700; color: #e2d9f3; }
+
+/* ── BARRA PROGRESO SOCIAL ── */
+.ml-social-bar-widget {
+  background: linear-gradient(135deg,rgba(168,85,247,.08),rgba(255,45,120,.05));
+  border: 1px solid rgba(168,85,247,.25);
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+.ml-social-bar-label {
+  font-size: .68rem;
+  font-weight: 900;
+  color: #9d7ec7;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 8px;
+}
+.ml-social-progress-track {
+  height: 8px;
+  background: rgba(255,255,255,.08);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+.ml-social-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg,#ff2d78,#a855f7,var(--ml-gold));
+  border-radius: 4px;
+  transition: width .8s cubic-bezier(.34,1.56,.64,1);
+}
+.ml-social-level-text {
+  font-size: .7rem;
+  color: #c084fc;
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ── "TE ESTÁN MIRANDO AHORA" ── */
+.ml-watching-now {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,45,120,.12);
+  border: 1px solid rgba(255,45,120,.3);
+  border-radius: 100px;
+  padding: 3px 10px;
+  font-size: .68rem;
+  font-weight: 700;
+  color: #ff2d78;
+  animation: mlWatchPulse 2s ease-in-out infinite;
+}
+@keyframes mlWatchPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(255,45,120,.3); }
+  50% { box-shadow: 0 0 0 6px rgba(255,45,120,.0); }
+}
+.ml-watching-dot {
+  width: 6px;
+  height: 6px;
+  background: #ff2d78;
+  border-radius: 50%;
+  animation: mlDotBlink 1.2s ease-in-out infinite;
+}
+@keyframes mlDotBlink {
+  0%,100% { opacity: 1; }
+  50% { opacity: .3; }
+}
+
+/* ── CONFESIONES A USUARIOS ── */
+.ml-confess-to-btn {
+  background: rgba(168,85,247,.15);
+  border: 1px solid rgba(168,85,247,.3);
+  border-radius: 100px;
+  color: #c084fc;
+  font-size: .73rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-family: 'Exo 2', sans-serif;
+  transition: all .2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.ml-confess-to-btn:hover {
+  background: rgba(168,85,247,.25);
+  transform: scale(1.04);
+}
+
+/* ── FEED ESPECIAL CARDS ── */
+.ml-feed-special {
+  background: linear-gradient(135deg,rgba(255,45,120,.1),rgba(168,85,247,.07));
+  border: 1px solid rgba(255,45,120,.25);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.ml-feed-special:hover {
+  border-color: rgba(255,45,120,.5);
+  background: rgba(255,45,120,.15);
+}
+.ml-feed-special-icon { font-size: 1.5rem; }
+.ml-feed-special-text { flex: 1; font-size: .84rem; font-weight: 600; color: #e2d9f3; }
+.ml-feed-special-sub { font-size: .72rem; color: #9d7ec7; margin-top: 2px; }
+
+/* ── HOVER EFFECTS GLOBALES ── */
+button:not(.tb-nav-btn):not(.bottom-nav-btn):not(.ml-rxn-btn):not([disabled]) {
+  transition: transform .15s, box-shadow .15s, opacity .15s;
+}
+
+/* ── FOW CARDS ── */
+.fow-card:hover { background: rgba(255,45,120,.1) !important; }
+.fow-av { border-color: rgba(168,85,247,.4) !important; }
+
+/* ── MODO INCÓGNITO indicator ── */
+.ml-incognito-active::after {
+  content: '🕶️ Modo Incógnito';
+  position: fixed;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,.8);
+  color: rgba(255,255,255,.6);
+  font-size: .7rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 100px;
+  pointer-events: none;
+  z-index: 9999;
+  font-family: 'Exo 2', sans-serif;
+}
+
+/* ── MATCHES SECTION ── */
+.ml-matches-section {
+  background: linear-gradient(135deg,rgba(255,45,120,.08),rgba(168,85,247,.05));
+  border: 1px solid rgba(255,45,120,.25);
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.ml-matches-title {
+  font-size: .78rem;
+  font-weight: 900;
+  color: #ff2d78;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── REACCIONES CONTADORES ── */
+.ml-rxn-counter-wrap {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  padding: 4px 12px 8px;
+}
+.ml-rxn-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 100px;
+  padding: 2px 8px;
+  font-size: .73rem;
+  cursor: pointer;
+  transition: all .15s;
+  color: #d4c8ec;
+}
+.ml-rxn-counter:hover {
+  background: rgba(255,45,120,.12);
+  border-color: rgba(255,45,120,.3);
+}
+.ml-rxn-counter.my-rxn {
+  background: rgba(255,45,120,.18);
+  border-color: rgba(255,45,120,.5);
+  color: #ff2d78;
+}
+
+</style>
 </head>
 <body>
 
@@ -30088,7 +30981,877 @@ function _triggerGoogleLogin() {
 </script>
 <!-- ══════════════════════════════════════════════════════════════
      MILATIDO — SISTEMA DE LIVES CON AGORA
-     Pegá todo este bloque justo antes de </body> en tu index.html
+     Pegá todo este bloque justo antes de 
+<script id="milatido-2-js">
+/* ═══════════════════════════════════════════════════════════════
+   MiLatido 2.0 — NUEVAS FUNCIONES
+   Inyectado antes de </body>
+═══════════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+// ══════════════════════════════════
+// 1) REACCIONES PERSONALIZADAS
+// Reemplaza el popup de reacciones con emojis propios de MiLatido
+// ══════════════════════════════════
+var ML_REACTIONS = [
+  { emoji: '💘', label: 'Me atrae',        color: '#ff2d78' },
+  { emoji: '🔥', label: 'Me prende',       color: '#ff4500' },
+  { emoji: '👀', label: 'Te estoy mirando', color: '#a855f7' },
+  { emoji: '💬', label: 'Quiero hablarte', color: '#0ea5e9' },
+  { emoji: '😈', label: 'Me interesa en secreto', color: '#7c3aed' }
+];
+
+// Override del renderizador de reacciones existente
+var _mlRxnOrigRender = null;
+
+function mlCreateReactionPopup(postId, triggerEl) {
+  var existing = document.getElementById('ml-rxn-pop-'+postId);
+  if(existing) { existing.remove(); return; }
+
+  var pop = document.createElement('div');
+  pop.className = 'ml-rxn-popup show';
+  pop.id = 'ml-rxn-pop-'+postId;
+
+  var html = '';
+  ML_REACTIONS.forEach(function(r){
+    html += '<button class="ml-rxn-btn" onclick="mlToggleReaction(\''+postId+'\',\''+r.emoji+'\',event)" title="'+r.label+'">'
+      + '<span style="font-size:1.6rem;line-height:1;">'+r.emoji+'</span>'
+      + '<span class="ml-rxn-label" style="color:'+r.color+'">'+r.label+'</span>'
+      + '</button>';
+  });
+  pop.innerHTML = html;
+
+  // Position
+  var rect = triggerEl.getBoundingClientRect();
+  pop.style.cssText = 'position:fixed;bottom:'+(window.innerHeight - rect.top + 8)+'px;left:'+(rect.left-80)+'px;z-index:99500;';
+  document.body.appendChild(pop);
+
+  // Close on outside click
+  setTimeout(function(){
+    var close = function(e){ if(!pop.contains(e.target) && e.target !== triggerEl){ pop.remove(); document.removeEventListener('click',close); } };
+    document.addEventListener('click', close);
+  }, 100);
+}
+
+window.mlToggleReaction = async function(postId, emoji, e) {
+  if(e) e.stopPropagation();
+  if(!window.CU){ if(typeof toast==='function') toast('Iniciá sesión para reaccionar','err'); return; }
+  var pop = document.getElementById('ml-rxn-pop-'+postId);
+  if(pop) pop.remove();
+
+  if(!window.db || !window.doc || !window.getDoc || !window.updateDoc) return;
+
+  try {
+    var ref = window.doc(window.db, 'posts', postId);
+    var snap = await window.getDoc(ref);
+    if(!snap.exists()) return;
+    var data = snap.data();
+    var rxns = data.mlReactions || {};
+    var uid = window.CU.id;
+
+    // Remove previous reaction from this user
+    Object.keys(rxns).forEach(function(em){
+      if(Array.isArray(rxns[em])){
+        rxns[em] = rxns[em].filter(function(u){ return u !== uid; });
+      }
+    });
+    // Toggle new
+    if(!rxns[emoji]) rxns[emoji] = [];
+    if(!rxns[emoji].includes(uid)){
+      rxns[emoji].push(uid);
+      // Show achievement on first reaction
+      mlCheckAchievement('first_reaction');
+    }
+
+    await window.updateDoc(ref, { mlReactions: rxns });
+
+    // Re-render counters
+    mlRenderRxnCounters(postId, rxns);
+
+    // Update action button
+    var likeBtn = document.querySelector('[data-ml-like="'+postId+'"]');
+    if(likeBtn){
+      var myRxn = Object.entries(rxns).find(function(e){ return e[1].includes(uid); });
+      likeBtn.innerHTML = (myRxn ? myRxn[0] : '💘') + ' <span class="fb-act-label">'+(myRxn?myRxn[1].length:'Me atrae')+'</span>';
+      likeBtn.classList.toggle('fb-reacted', !!myRxn);
+    }
+  } catch(err) { console.warn('[ML] rxn error',err); }
+};
+
+function mlRenderRxnCounters(postId, rxns) {
+  var wrap = document.querySelector('[data-ml-rxn-counters="'+postId+'"]');
+  if(!wrap) return;
+  var uid = window.CU ? window.CU.id : '';
+  var html = '';
+  Object.entries(rxns||{}).forEach(function(entry){
+    var em = entry[0], users = entry[1];
+    if(!users || !users.length) return;
+    var mine = users.includes(uid);
+    html += '<span class="ml-rxn-counter'+(mine?' my-rxn':'')+'" onclick="mlShowRxnWho(\''+postId+'\',\''+em+'\')" title="'+em+'">'
+      + em + ' <strong>'+users.length+'</strong></span>';
+  });
+  wrap.innerHTML = html || '';
+}
+
+window.mlShowRxnWho = function(postId, emoji) {
+  // TODO: show modal with users who reacted
+  if(typeof toast==='function') toast('Quien reaccionó con '+emoji+' — próximamente','inf');
+};
+
+// Hook into existing post rendering to add ML reactions
+function mlHookPosts() {
+  var feedEl = document.getElementById('feedPosts');
+  if(!feedEl) { setTimeout(mlHookPosts, 800); return; }
+  var observer = new MutationObserver(function(){
+    mlUpgradePosts();
+  });
+  observer.observe(feedEl, { childList: true, subtree: false });
+  mlUpgradePosts();
+}
+
+function mlUpgradePosts() {
+  // Add ML reaction button to each post's action area
+  document.querySelectorAll('.fb-like-btn:not([data-ml-upgraded])').forEach(function(btn){
+    var postEl = btn.closest('[id^="post_"]') || btn.closest('.post');
+    if(!postEl) return;
+    var postId = postEl.id ? postEl.id.replace('post_','') : '';
+    if(!postId) return;
+    btn.setAttribute('data-ml-upgraded','1');
+    btn.setAttribute('data-ml-like', postId);
+
+    // Replace onclick to show ML reaction popup
+    btn.removeAttribute('onclick');
+    btn.onclick = function(e) {
+      e.stopPropagation();
+      mlCreateReactionPopup(postId, btn);
+    };
+    btn.innerHTML = '💘 <span class="fb-act-label">Me atrae</span>';
+
+    // Insert reaction counters div after post-stats
+    var statsEl = postEl.querySelector('.post-stats, .rxn-bubbles-wrap');
+    if(statsEl && !postEl.querySelector('[data-ml-rxn-counters]')){
+      var countersDiv = document.createElement('div');
+      countersDiv.className = 'ml-rxn-counter-wrap';
+      countersDiv.setAttribute('data-ml-rxn-counters', postId);
+      statsEl.parentNode.insertBefore(countersDiv, statsEl.nextSibling);
+      // Load existing reactions
+      if(window.db && window.doc && window.getDoc){
+        window.getDoc(window.doc(window.db,'posts',postId)).then(function(snap){
+          if(snap.exists()){
+            mlRenderRxnCounters(postId, snap.data().mlReactions||{});
+          }
+        }).catch(function(){});
+      }
+    }
+  });
+}
+
+setTimeout(mlHookPosts, 1500);
+
+// ══════════════════════════════════
+// 2) RANKING TOP 10 en sidebar derecho
+// ══════════════════════════════════
+function mlInitRanking() {
+  var sidebar = document.querySelector('.sidebar-right');
+  if(!sidebar){ setTimeout(mlInitRanking, 1000); return; }
+  if(document.getElementById('mlRankingWidget')){ return; }
+
+  var widget = document.createElement('div');
+  widget.id = 'mlRankingWidget';
+  widget.innerHTML = '<div class="ml-rank-title">🏆 TOP 10 de la semana</div>'
+    + '<div id="mlRankList"><div style="font-size:.72rem;color:#5e4a7a;text-align:center;padding:12px;">Cargando ranking...</div></div>';
+  sidebar.insertBefore(widget, sidebar.firstChild);
+
+  mlLoadRanking();
+}
+
+function mlLoadRanking() {
+  var el = document.getElementById('mlRankList');
+  if(!el) return;
+  if(!window.db || !window.CU){ setTimeout(mlLoadRanking, 800); return; }
+
+  window.getDocs(window.query(
+    window.collection(window.db,'users'),
+    window.limit(100)
+  )).then(function(snap){
+    var users = snap.docs.map(function(d){
+      var data = d.data();
+      return {
+        id: d.id,
+        nick: data.nick||'?',
+        av: data.av||'',
+        posts: data.postCount||data.posts||0,
+        likes: data.likesReceived||data.totalLikes||0,
+        comments: data.commentCount||data.comments||0
+      };
+    });
+    users.forEach(function(u){
+      u.score = (u.posts * 2) + (u.likes * 3) + (u.comments * 1);
+    });
+    users.sort(function(a,b){ return b.score - a.score; });
+    users = users.slice(0,10);
+
+    var medals = ['🥇','🥈','🥉'];
+    var html = '';
+    users.forEach(function(u, i){
+      var ini = (u.nick||'?')[0].toUpperCase();
+      var safeNick = (u.nick||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      html += '<div class="ml-rank-item" onclick="openUserProfile(\''+u.id+'\',\''+safeNick+'\')">'
+        + '<span class="ml-rank-pos" style="color:'+(i===0?'#f59e0b':i===1?'#9d7ec7':i===2?'#cd7f32':'#5e4a7a')+'">'+(medals[i]||('#'+(i+1)))+'</span>'
+        + '<div class="ml-rank-av">'+(u.av?'<img src="'+u.av+'" onerror="this.parentElement.textContent=\''+ini+'\'">':ini)+'</div>'
+        + '<div class="ml-rank-info"><div class="ml-rank-nick">'+escHtml(u.nick||'?')+'</div>'
+        + '<div class="ml-rank-score">⭐ '+u.score+' pts</div></div>'
+        + '</div>';
+    });
+    if(el) el.innerHTML = html || '<div style="font-size:.72rem;color:#5e4a7a;text-align:center;padding:12px;">Sin datos aún</div>';
+  }).catch(function(){ if(el) el.innerHTML = ''; });
+}
+
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+setTimeout(mlInitRanking, 2000);
+// Refresh ranking every 5 minutes
+setInterval(mlLoadRanking, 300000);
+
+// ══════════════════════════════════
+// 3) LIKES SECRETOS + MATCH
+// ══════════════════════════════════
+window.mlSecretLike = async function(targetId, targetNick) {
+  if(!window.CU){ if(typeof toast==='function') toast('Iniciá sesión primero','err'); return; }
+  if(targetId === window.CU.id){ if(typeof toast==='function') toast('No podés darte like a vos mismo 😅','err'); return; }
+  if(!window.db) return;
+
+  var uid = window.CU.id;
+  var pairId = [uid, targetId].sort().join('_');
+  var likeRef = window.doc(window.db,'secretLikes',uid+'_to_'+targetId);
+  var likeSnap = await window.getDoc(likeRef);
+
+  if(likeSnap.exists()){
+    if(typeof toast==='function') toast('💘 Ya le diste like secreto','inf');
+    return;
+  }
+
+  // Save my like
+  await window.setDoc(likeRef, {
+    from: uid,
+    to: targetId,
+    ts: Date.now(),
+    fromNick: window.CU.nick||'?',
+    fromAv: window.CU.av||''
+  });
+
+  // Check if they liked me back
+  var theirLikeRef = window.doc(window.db,'secretLikes',targetId+'_to_'+uid);
+  var theirSnap = await window.getDoc(theirLikeRef);
+
+  if(theirSnap.exists()){
+    // MATCH!
+    var matchRef = window.doc(window.db,'matches', pairId);
+    await window.setDoc(matchRef, {
+      users: [uid, targetId],
+      ts: Date.now(),
+      u1: uid, u1nick: window.CU.nick||'?', u1av: window.CU.av||'',
+      u2: targetId, u2nick: targetNick||'?', u2av: theirSnap.data().fromAv||''
+    }, { merge: true });
+
+    // Notify both
+    mlShowMatchNotif(targetNick||'?');
+    mlCheckAchievement('first_match');
+
+    // Save notification for target
+    if(window.addDoc){
+      await window.addDoc(window.collection(window.db,'notifications'), {
+        to: targetId,
+        from: uid,
+        type: 'match',
+        text: '🔥 ¡Hiciste match con '+escHtml(window.CU.nick||'vos')+'!',
+        ts: Date.now(),
+        read: false
+      });
+    }
+  } else {
+    if(typeof toast==='function') toast('💘 Like secreto enviado — si él/ella también te da like, ¡MATCH!','ok');
+  }
+
+  // Update button state
+  var btn = document.querySelector('[data-ml-secret-like="'+targetId+'"]');
+  if(btn){ btn.classList.add('liked'); btn.innerHTML = '💘 Like enviado'; }
+};
+
+function mlShowMatchNotif(nick) {
+  var div = document.createElement('div');
+  div.className = 'ml-match-notification';
+  div.innerHTML = '🔥 ¡MATCH!<br><span style="font-size:.8rem;font-weight:400;">Vos y '+escHtml(nick)+' se gustaron mutuamente</span>';
+  document.body.appendChild(div);
+  setTimeout(function(){
+    div.classList.add('hide');
+    setTimeout(function(){ div.remove(); }, 400);
+  }, 4000);
+}
+
+// ══════════════════════════════════
+// 4) REGISTRO DE VISITAS / STALKEO
+// ══════════════════════════════════
+var _mlOrigOpenProfile = window.openUserProfile;
+window.openUserProfile = async function(uid, nick, av) {
+  // Register visit
+  if(window.CU && uid && uid !== window.CU.id && window.db && window.addDoc){
+    try {
+      await window.addDoc(window.collection(window.db,'profileViews'), {
+        viewedId: uid,
+        viewerId: window.CU.id,
+        viewerNick: window.CU.nick||'?',
+        viewerAv: window.CU.av||'',
+        ts: Date.now()
+      });
+      // Notify the profile owner
+      if(window.addDoc){
+        await window.addDoc(window.collection(window.db,'notifications'), {
+          to: uid,
+          from: window.CU.id,
+          type: 'profile_view',
+          text: '👀 '+escHtml(window.CU.nick||'Alguien')+' visitó tu perfil',
+          ts: Date.now(),
+          read: false,
+          viewerAv: window.CU.av||''
+        });
+      }
+    } catch(e){ /* silent */ }
+  }
+  if(typeof _mlOrigOpenProfile === 'function') _mlOrigOpenProfile.apply(window, arguments);
+};
+
+// Show visitors in profile
+window.mlLoadMyVisitors = async function(targetEl) {
+  if(!window.CU || !window.db) return;
+  if(!targetEl) targetEl = document.getElementById('mlVisitorsList');
+  if(!targetEl) return;
+
+  try {
+    var snap = await window.getDocs(window.query(
+      window.collection(window.db,'profileViews'),
+      window.where('viewedId','==',window.CU.id),
+      window.orderBy('ts','desc'),
+      window.limit(20)
+    ));
+
+    if(snap.empty){
+      targetEl.innerHTML = '<div style="font-size:.78rem;color:#5e4a7a;text-align:center;padding:16px;">Nadie visitó tu perfil aún 👁️</div>';
+      return;
+    }
+
+    var html = '';
+    var isPremium = window.CU.premium || window.CU.verified;
+    var shown = 0;
+    snap.forEach(function(d){
+      var v = d.data();
+      if(!isPremium && shown >= 3){
+        if(shown === 3) html += '<div style="font-size:.75rem;color:#a855f7;text-align:center;padding:10px;cursor:pointer;" onclick="om(\'mPremium\')">🔒 '++(snap.size-3)+' visitantes más — Hazte Premium</div>';
+        shown++; return;
+      }
+      var ago = mlTimeAgo(v.ts);
+      var safeNick = (v.viewerNick||'?').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      html += '<div class="ml-stalker-card" onclick="openUserProfile(\''+v.viewerId+'\',\''+safeNick+'\')">'
+        + '<div class="ml-stalker-av">'+(v.viewerAv?'<img src="'+v.viewerAv+'">':((v.viewerNick||'?')[0].toUpperCase()))+'</div>'
+        + '<div class="ml-stalker-info"><div class="ml-stalker-nick">'+escHtml(v.viewerNick||'?')+'</div>'
+        + '<div class="ml-stalker-time">'+ago+'</div></div>'
+        + '<span class="ml-stalker-eye">👁️</span>'
+        + '</div>';
+      shown++;
+    });
+    targetEl.innerHTML = html;
+  } catch(e){ targetEl.innerHTML = ''; }
+};
+
+function mlTimeAgo(ts){
+  var diff = Date.now() - ts;
+  var m = Math.floor(diff/60000);
+  if(m < 1) return 'justo ahora';
+  if(m < 60) return 'hace '+m+' min';
+  var h = Math.floor(m/60);
+  if(h < 24) return 'hace '+h+'h';
+  var d = Math.floor(h/24);
+  return 'hace '+d+' días';
+}
+
+// ══════════════════════════════════
+// 5) DESCUBRIR PERSONAS (Swipe original)
+// ══════════════════════════════════
+window.mlInitDiscover = async function() {
+  var page = document.getElementById('page-match');
+  if(!page) return;
+  if(document.getElementById('mlDiscoverSection')) return;
+
+  var section = document.createElement('div');
+  section.id = 'mlDiscoverSection';
+  section.style.cssText = 'max-width:420px;margin:0 auto;padding:16px;';
+  section.innerHTML = '<div style="font-family:Orbitron,monospace;font-size:.8rem;font-weight:900;color:#ff2d78;text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px;text-align:center;">💫 Descubrí personas</div>'
+    + '<div id="mlDiscoverCardWrap" style="display:flex;justify-content:center;min-height:520px;align-items:center;"></div>'
+    + '<div class="ml-discover-actions" id="mlDiscoverActions" style="display:none;"></div>';
+
+  page.insertBefore(section, page.querySelector('.mh-bar') ? page.querySelector('.mh-bar').nextSibling : page.firstChild);
+  mlLoadDiscoverCard();
+};
+
+var _mlDiscoverUsers = [];
+var _mlDiscoverIdx = 0;
+
+async function mlLoadDiscoverCard() {
+  var wrap = document.getElementById('mlDiscoverCardWrap');
+  if(!wrap) return;
+  if(!window.CU || !window.db){ wrap.innerHTML = '<div style="color:#5e4a7a;font-size:.8rem;">Cargando...</div>'; setTimeout(mlLoadDiscoverCard,800); return; }
+
+  if(!_mlDiscoverUsers.length || _mlDiscoverIdx >= _mlDiscoverUsers.length){
+    try {
+      var snap = await window.getDocs(window.query(window.collection(window.db,'users'),window.limit(80)));
+      var myId = window.CU.id;
+      _mlDiscoverUsers = snap.docs.map(function(d){ return Object.assign({id:d.id},d.data()); })
+        .filter(function(u){ return u.id !== myId && u.av; });
+      _mlDiscoverUsers.sort(function(){ return Math.random()-.5; });
+      _mlDiscoverIdx = 0;
+    } catch(e){ wrap.innerHTML = '<div style="color:#5e4a7a;font-size:.8rem;text-align:center;padding:40px;">Sin usuarios por ahora</div>'; return; }
+  }
+
+  if(!_mlDiscoverUsers.length){ wrap.innerHTML = '<div style="color:#5e4a7a;font-size:.8rem;text-align:center;padding:40px;">Sin usuarios por ahora</div>'; return; }
+
+  var u = _mlDiscoverUsers[_mlDiscoverIdx];
+  var safeNick = (u.nick||'?').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+  var actionsHtml = document.getElementById('mlDiscoverActions');
+  if(actionsHtml) actionsHtml.style.display='';
+
+  wrap.innerHTML = '<div class="ml-discover-card" id="mlDiscoverCurrentCard">'
+    + '<img class="ml-discover-img" src="'+(u.av||'')+'\" onerror=\"this.style.display=\'none\'\">'
+    + '<div class="ml-discover-gradient"></div>'
+    + '<span class="ml-discover-label yes">💘 MATCH</span>'
+    + '<span class="ml-discover-label no">❌ PASAR</span>'
+    + '<div class="ml-discover-info">'
+    + '<div class="ml-discover-name">'+escHtml(u.nick||'?')+'</div>'
+    + '<div class="ml-discover-meta">'+(u.age||'')+' '+(u.ciudad||u.city||'')+'</div>'
+    + '</div>'
+    + '</div>'
+    + '<div class="ml-discover-actions" style="display:flex;justify-content:center;gap:20px;padding:20px 0;">'
+    + '<button class="ml-discover-btn pass" onclick="mlDiscoverSwipe(\'left\')" title="Pasar">❌</button>'
+    + '<button class="ml-discover-btn fire" onclick="mlDiscoverSwipe(\'fire\')" title="Me prende">🔥</button>'
+    + '<button class="ml-discover-btn heart" onclick="mlDiscoverSwipe(\'right\',\''+safeNick+'\')" title="Me atrae">💘</button>'
+    + '</div>';
+
+  // Add touch/drag swipe
+  mlAddSwipeGesture(document.getElementById('mlDiscoverCurrentCard'), u, safeNick);
+}
+
+function mlAddSwipeGesture(card, u, safeNick) {
+  if(!card) return;
+  var startX = 0;
+  card.addEventListener('mousedown', function(e){ startX = e.clientX; });
+  card.addEventListener('mouseup', function(e){
+    var dx = e.clientX - startX;
+    if(Math.abs(dx) > 80) mlDiscoverSwipe(dx > 0 ? 'right' : 'left', safeNick);
+  });
+  card.addEventListener('touchstart', function(e){ startX = e.touches[0].clientX; });
+  card.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].clientX - startX;
+    if(Math.abs(dx) > 60) mlDiscoverSwipe(dx > 0 ? 'right' : 'left', safeNick);
+  });
+}
+
+window.mlDiscoverSwipe = function(dir, nick) {
+  var card = document.getElementById('mlDiscoverCurrentCard');
+  var u = _mlDiscoverUsers[_mlDiscoverIdx];
+  if(!u || !card) return;
+
+  if(dir === 'right'){
+    card.classList.add('swipe-right');
+    var yesLbl = card.querySelector('.ml-discover-label.yes');
+    if(yesLbl) yesLbl.style.opacity = '1';
+    window.mlSecretLike(u.id, nick||u.nick||'?');
+    mlCheckAchievement('first_swipe_right');
+  } else {
+    card.classList.add('swipe-left');
+    var noLbl = card.querySelector('.ml-discover-label.no');
+    if(noLbl) noLbl.style.opacity = '1';
+  }
+  if(dir === 'fire'){
+    card.classList.add('swipe-right');
+    window.mlSecretLike(u.id, nick||u.nick||'?');
+  }
+
+  _mlDiscoverIdx++;
+  setTimeout(mlLoadDiscoverCard, 350);
+};
+
+// ══════════════════════════════════
+// 6) PERFIL MEJORADO — nuevos campos
+// ══════════════════════════════════
+function mlEnhanceProfile() {
+  var profPage = document.getElementById('page-userprofile') || document.getElementById('page-profile');
+  if(!profPage) return;
+
+  // Hook to profile open
+  var origOpenProf = window.openUserProfile;
+  window.openUserProfile = function(uid, nick, av) {
+    if(typeof origOpenProf === 'function') origOpenProf.apply(window, arguments);
+    // After short delay, inject new fields
+    setTimeout(function(){ mlInjectProfileExtras(uid); }, 400);
+  };
+}
+
+async function mlInjectProfileExtras(uid) {
+  if(!window.db || !uid) return;
+  var actionsEl = document.getElementById('upActions');
+  if(!actionsEl || actionsEl.querySelector('[data-ml-extras]')) return;
+
+  // Add secret like button
+  var extras = document.createElement('div');
+  extras.setAttribute('data-ml-extras','1');
+  extras.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center;';
+
+  var myId = window.CU ? window.CU.id : '';
+  if(myId && uid !== myId){
+    // Check if I already liked
+    var liked = false;
+    if(window.getDoc && window.doc){
+      try {
+        var s = await window.getDoc(window.doc(window.db,'secretLikes',myId+'_to_'+uid));
+        liked = s.exists();
+      } catch(e){}
+    }
+    var safeNick = '';
+    try { var us = await window.getDoc(window.doc(window.db,'users',uid)); safeNick = (us.data()||{}).nick||'?'; } catch(e){}
+    safeNick = safeNick.replace(/'/g,"\\'");
+
+    extras.innerHTML += '<button class="ml-secret-like-btn'+(liked?' liked':'')+'" data-ml-secret-like="'+uid+'" onclick="mlSecretLike(\''+uid+'\',\''+safeNick+'\')">'
+      + (liked?'💘 Like enviado':'💘 Like secreto')+'</button>';
+    extras.innerHTML += '<button class="ml-confess-to-btn" onclick="mlOpenConfessTo(\''+uid+'\',\''+safeNick+'\')">🕯️ Confesar</button>';
+  }
+
+  // Watching now indicator
+  var watchNow = document.createElement('div');
+  watchNow.style.cssText = 'margin-top:8px;';
+  watchNow.innerHTML = '<span class="ml-watching-now"><span class="ml-watching-dot"></span> Te estoy viendo ahora</span>';
+
+  actionsEl.appendChild(extras);
+  actionsEl.appendChild(watchNow);
+
+  // Load profile stats: attract level, stalkeos
+  mlLoadProfileStats(uid);
+}
+
+async function mlLoadProfileStats(uid) {
+  if(!window.db) return;
+  var statsEl = document.getElementById('upMeta');
+  if(!statsEl || statsEl.querySelector('[data-ml-stats]')) return;
+
+  var stats = document.createElement('div');
+  stats.setAttribute('data-ml-stats','1');
+  stats.style.cssText = 'margin-top:10px;';
+
+  // Count profile views
+  try {
+    var viewSnap = await window.getDocs(window.query(
+      window.collection(window.db,'profileViews'),
+      window.where('viewedId','==',uid),
+      window.limit(100)
+    ));
+    var views = viewSnap.size;
+
+    // Count secret likes received
+    var likesSnap = await window.getDocs(window.query(
+      window.collection(window.db,'secretLikes'),
+      window.where('to','==',uid),
+      window.limit(100)
+    ));
+    var secretLikes = likesSnap.size;
+    var attractPct = Math.min(100, Math.round((secretLikes / Math.max(1, views)) * 100 * 3));
+
+    stats.innerHTML = '<div class="ml-attract-bar">'
+      + '<span>💘 Nivel de atractivo</span>'
+      + '<div class="ml-attract-track"><div class="ml-attract-fill" style="width:'+attractPct+'%"></div></div>'
+      + '<span style="color:#ff2d78;font-weight:700;">'+attractPct+'%</span>'
+      + '</div>'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">'
+      + '<span class="ml-mood-badge">👀 '+views+' visitas</span>'
+      + '<span class="ml-mood-badge">💘 '+secretLikes+' likes secretos</span>'
+      + '</div>';
+    statsEl.appendChild(stats);
+  } catch(e){}
+}
+
+window.mlOpenConfessTo = function(uid, nick) {
+  if(!window.CU){ if(typeof toast==='function') toast('Iniciá sesión primero','err'); return; }
+  // Open confesionario with pre-selected target
+  if(typeof gp === 'function') gp('confesionario');
+  setTimeout(function(){
+    var txt = document.getElementById('cfText');
+    if(txt) txt.placeholder = 'Confiesa algo a '+nick+'... Nadie sabrá que fuiste tú.';
+    var dest = document.getElementById('cfDestTarget');
+    if(!dest){
+      var cfComp = document.getElementById('cfCompose');
+      if(cfComp){
+        var d = document.createElement('input');
+        d.type = 'hidden'; d.id = 'cfDestTarget'; d.value = uid;
+        cfComp.appendChild(d);
+      }
+    } else { dest.value = uid; }
+    if(typeof toast==='function') toast('🕯️ Confiésale algo a '+nick+' (anónimo)','inf');
+  }, 400);
+};
+
+// ══════════════════════════════════
+// 7) FEED ESPECIAL — Cards virales
+// ══════════════════════════════════
+function mlInjectFeedSpecials() {
+  var feedPosts = document.getElementById('feedPosts');
+  if(!feedPosts) { setTimeout(mlInjectFeedSpecials, 1500); return; }
+  if(document.getElementById('mlFeedSpecial')) return;
+
+  var specials = document.createElement('div');
+  specials.id = 'mlFeedSpecial';
+
+  var items = [
+    { icon:'🔥', text:'Está siendo muy buscado hoy', sub:'Descubrí quién es el más popular del momento', onclick:'if(typeof gp===\'function\')gp(\'match\')' },
+    { icon:'💘', text:'Podría gustarte', sub:'Usuarios que se conectan con tu perfil', onclick:'mlInitDiscover && mlInitDiscover();if(typeof gp===\'function\')gp(\'match\')' },
+    { icon:'👁️', text:'Te están mirando', sub:'Alguien estuvo en tu perfil recientemente', onclick:'if(typeof gp===\'function\')gp(\'visitantes\');if(typeof initVisitantesPage===\'function\')initVisitantesPage()' }
+  ];
+
+  var html = '';
+  items.forEach(function(it){
+    html += '<div class="ml-feed-special" onclick="'+it.onclick+'">'
+      + '<div class="ml-feed-special-icon">'+it.icon+'</div>'
+      + '<div><div class="ml-feed-special-text">'+it.text+'</div>'
+      + '<div class="ml-feed-special-sub">'+it.sub+'</div></div>'
+      + '<span style="font-size:.8rem;color:#5e4a7a;">→</span>'
+      + '</div>';
+  });
+  specials.innerHTML = html;
+
+  // Insert after post-box
+  var postBox = feedPosts.querySelector('.post-box');
+  if(postBox) postBox.parentNode.insertBefore(specials, postBox.nextSibling);
+  else feedPosts.insertBefore(specials, feedPosts.firstChild);
+}
+
+setTimeout(mlInjectFeedSpecials, 2000);
+
+// ══════════════════════════════════
+// 8) SOCIAL PROGRESS BAR (sidebar)
+// ══════════════════════════════════
+function mlInitSocialBar() {
+  var sidebar = document.querySelector('.sidebar-right');
+  if(!sidebar || document.getElementById('mlSocialBarWidget')) return;
+
+  var widget = document.createElement('div');
+  widget.id = 'mlSocialBarWidget';
+  widget.className = 'ml-social-bar-widget';
+  widget.innerHTML = '<div class="ml-social-bar-label">⚡ Tu nivel social</div>'
+    + '<div class="ml-social-progress-track"><div class="ml-social-progress-fill" id="mlSocialBarFill" style="width:0%"></div></div>'
+    + '<div class="ml-social-level-text"><span id="mlSocialLevelLabel">Iniciando...</span><span id="mlSocialPts">0 pts</span></div>';
+  sidebar.insertBefore(widget, sidebar.firstChild);
+
+  mlUpdateSocialBar();
+}
+
+async function mlUpdateSocialBar(){
+  if(!window.CU || !window.db) { setTimeout(mlUpdateSocialBar, 1000); return; }
+  var uid = window.CU.id;
+  try {
+    var userDoc = await window.getDoc(window.doc(window.db,'users',uid));
+    var data = userDoc.exists() ? userDoc.data() : {};
+    var posts = data.postCount||0;
+    var likes = data.likesReceived||0;
+    var matches = data.matchCount||0;
+    var score = (posts*2)+(likes*3)+(matches*10);
+
+    var levels = [
+      [0,'💤 Desconocido'],[50,'👀 Visible'],[150,'💬 Sociable'],[350,'🔥 Popular'],
+      [700,'💘 Seductor/a'],[1200,'⭐ Estrella'],[2000,'👑 Leyenda']
+    ];
+    var levelLabel = levels[0][1], nextLevel = levels[1][0];
+    for(var i=0;i<levels.length;i++){
+      if(score>=levels[i][0]){ levelLabel=levels[i][1]; nextLevel=(levels[i+1]||levels[levels.length-1])[0]; }
+    }
+    var pct = Math.min(100, Math.round((score/nextLevel)*100));
+    var fill = document.getElementById('mlSocialBarFill');
+    var lbl = document.getElementById('mlSocialLevelLabel');
+    var pts = document.getElementById('mlSocialPts');
+    if(fill) fill.style.width = pct+'%';
+    if(lbl) lbl.textContent = levelLabel;
+    if(pts) pts.textContent = score+' pts';
+  } catch(e){}
+}
+
+setTimeout(mlInitSocialBar, 2500);
+
+// ══════════════════════════════════
+// 9) LOGROS / ACHIEVEMENTS
+// ══════════════════════════════════
+var _mlAchievementsSeen = JSON.parse(localStorage.getItem('ml_achievements_seen')||'[]');
+
+var ML_ACHIEVEMENTS = {
+  first_reaction: { icon:'💘', title:'Primera reacción', text:'¡Le diste tu primer like especial!' },
+  first_match:    { icon:'🔥', title:'¡Primer Match!', text:'¡Alguien te gusta tanto como vos a él/ella!' },
+  first_swipe_right: { icon:'💘', title:'Primer swipe', text:'¡Empezaste a descubrir personas!' }
+};
+
+function mlCheckAchievement(id) {
+  if(_mlAchievementsSeen.includes(id)) return;
+  var ach = ML_ACHIEVEMENTS[id];
+  if(!ach) return;
+  _mlAchievementsSeen.push(id);
+  localStorage.setItem('ml_achievements_seen', JSON.stringify(_mlAchievementsSeen));
+  mlShowAchievement(ach);
+}
+
+function mlShowAchievement(ach) {
+  var div = document.createElement('div');
+  div.className = 'ml-achievement-popup';
+  div.innerHTML = '<div class="ml-achievmt-icon">'+ach.icon+'</div>'
+    + '<div><div class="ml-achievmt-title">🏆 Logro desbloqueado: '+ach.title+'</div>'
+    + '<div class="ml-achievmt-text">'+ach.text+'</div></div>';
+  document.body.appendChild(div);
+  setTimeout(function(){
+    div.classList.add('hide');
+    setTimeout(function(){ div.remove(); }, 400);
+  }, 4500);
+}
+
+// ══════════════════════════════════
+// 10) NOTIFICACIONES PUSH / TOAST
+//     "Te están mirando", "Alguien te quiere hablar"
+// ══════════════════════════════════
+function mlListenNotifications() {
+  if(!window.CU || !window.db) { setTimeout(mlListenNotifications, 1200); return; }
+  var uid = window.CU.id;
+
+  if(window.onSnapshot && window.query && window.collection && window.where && window.orderBy && window.limit){
+    var q = window.query(
+      window.collection(window.db,'notifications'),
+      window.where('to','==',uid),
+      window.where('read','==',false),
+      window.orderBy('ts','desc'),
+      window.limit(5)
+    );
+    window.onSnapshot(q, function(snap){
+      snap.docChanges().forEach(function(change){
+        if(change.type === 'added'){
+          var n = change.doc.data();
+          var since = Date.now() - (n.ts||0);
+          if(since < 30000){ // only show if recent (< 30s)
+            if(typeof toast === 'function') toast(n.text || '🔔 Nueva notificación','inf');
+          }
+          // Mark as read after showing
+          setTimeout(function(){
+            if(window.updateDoc) window.updateDoc(change.doc.ref, { read: true }).catch(function(){});
+          }, 2000);
+        }
+      });
+    });
+  }
+}
+
+setTimeout(mlListenNotifications, 3000);
+
+// ══════════════════════════════════
+// 11) MATCHES SECCIÓN
+// ══════════════════════════════════
+window.mlLoadMatches = async function(containerEl) {
+  if(!window.CU || !window.db) return;
+  if(!containerEl) containerEl = document.getElementById('mlMatchesList');
+  if(!containerEl) return;
+
+  try {
+    var uid = window.CU.id;
+    var snap = await window.getDocs(window.query(
+      window.collection(window.db,'matches'),
+      window.where('users','array-contains',uid),
+      window.orderBy('ts','desc'),
+      window.limit(30)
+    ));
+
+    if(snap.empty){
+      containerEl.innerHTML = '<div style="font-size:.78rem;color:#5e4a7a;text-align:center;padding:20px;">Aún no tenés matches. Usá los likes secretos 💘</div>';
+      return;
+    }
+
+    var html = '';
+    snap.forEach(function(d){
+      var m = d.data();
+      var otherId = m.u1===uid ? m.u2 : m.u1;
+      var otherNick = m.u1===uid ? m.u2nick : m.u1nick;
+      var otherAv = m.u1===uid ? m.u2av : m.u1av;
+      var safeNick = (otherNick||'?').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      var ini = (otherNick||'?')[0].toUpperCase();
+      html += '<div class="ml-stalker-card" onclick="openChatWith && openChatWith(\''+otherId+'\',\''+safeNick+'\')" style="border-color:rgba(255,45,120,.2);">'
+        + '<div class="ml-stalker-av" style="border-color:#ff2d78;">'+(otherAv?'<img src="'+otherAv+'">':ini)+'</div>'
+        + '<div class="ml-stalker-info"><div class="ml-stalker-nick">'+escHtml(otherNick||'?')+'</div>'
+        + '<div class="ml-stalker-time">🔥 Match · '+mlTimeAgo(m.ts)+'</div></div>'
+        + '<button onclick="event.stopPropagation();openChatWith && openChatWith(\''+otherId+'\',\''+safeNick+'\')" style="background:linear-gradient(135deg,#ff2d78,#a855f7);border:none;border-radius:100px;color:#fff;padding:5px 10px;font-size:.68rem;font-weight:700;cursor:pointer;white-space:nowrap;">💬 Chat</button>'
+        + '</div>';
+    });
+    containerEl.innerHTML = html;
+  } catch(e){ containerEl.innerHTML = ''; }
+};
+
+// ══════════════════════════════════
+// 12) SIDEBAR IZQUIERDO — nuevos ítems
+// ══════════════════════════════════
+function mlAddSidebarItems() {
+  var sidebar = document.querySelector('.sidebar-left');
+  if(!sidebar || sidebar.querySelector('[data-ml-sidebar]')) return;
+
+  var extras = document.createElement('div');
+  extras.setAttribute('data-ml-sidebar','1');
+  extras.innerHTML = '<div class="sl-item" onclick="mlOpenMatchesPage()"><span class="sl-item-icon">🔥</span> Mis Matches <span id="mlMatchCountBadge" style="margin-left:auto;background:#ff2d78;color:#fff;border-radius:100px;font-size:.6rem;font-weight:800;padding:1px 6px;display:none;">0</span></div>'
+    + '<div class="sl-item" onclick="gp(\'visitantes\');initVisitantesPage && initVisitantesPage()"><span class="sl-item-icon">👁️</span> Quién me stalkea</div>'
+    + '<div class="sl-item" onclick="mlOpenDiscover()"><span class="sl-item-icon">💫</span> Descubrir</div>';
+
+  var divider = sidebar.querySelector('.divider');
+  if(divider) divider.parentNode.insertBefore(extras, divider.nextSibling);
+  else sidebar.appendChild(extras);
+}
+
+window.mlOpenMatchesPage = function() {
+  if(typeof gp === 'function') gp('match');
+  setTimeout(function(){
+    var matchPage = document.getElementById('page-match');
+    if(!matchPage) return;
+    if(document.getElementById('mlMatchesSection')) return;
+    var section = document.createElement('div');
+    section.id = 'mlMatchesSection';
+    section.className = 'ml-matches-section';
+    section.style.cssText = 'max-width:500px;margin:16px auto;';
+    section.innerHTML = '<div class="ml-matches-title">🔥 Tus Matches</div>'
+      + '<div id="mlMatchesList"><div style="font-size:.72rem;color:#5e4a7a;text-align:center;padding:12px;">Cargando...</div></div>';
+    matchPage.insertBefore(section, matchPage.firstChild.nextSibling||matchPage.firstChild);
+    window.mlLoadMatches(document.getElementById('mlMatchesList'));
+  }, 400);
+};
+
+window.mlOpenDiscover = function() {
+  if(typeof gp === 'function') gp('match');
+  setTimeout(mlInitDiscover, 300);
+};
+
+setTimeout(mlAddSidebarItems, 1800);
+
+// ══════════════════════════════════
+// INIT
+// ══════════════════════════════════
+function mlMain() {
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', mlMain);
+    return;
+  }
+  mlEnhanceProfile();
+}
+mlMain();
+
+console.log('[MiLatido 2.0] ✅ Cargado correctamente');
+
+})();
+
+</script>
+</body> en tu index.html
      ══════════════════════════════════════════════════════════════ -->
 
 <!-- SDK de Agora -->
