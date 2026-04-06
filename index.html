@@ -12838,7 +12838,7 @@ function _renderCompatChips(u, containerId){
   ];
   const chips = fields.filter(f=>u[f.key]).map(f=>{
     const val = u[f.key];
-    return `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:3px 10px;font-size:.72rem;font-weight:600;color:var(--text);white-space:nowrap;">${f.label||''}${val}</span>`;
+    return `<div class="profile-stat-pill" style="font-size:.75rem;">${f.label||''}${val}</div>`;
   });
   el.innerHTML = chips.length ? chips.join('') : '';
   el.style.display = chips.length ? 'flex' : 'none';
@@ -12960,7 +12960,7 @@ function renderProfile(){
   if(!_profCompatEl){
     _profCompatEl = document.createElement('div');
     _profCompatEl.id = '_profCompatChips';
-    _profCompatEl.style.cssText = 'display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;';
+    _profCompatEl.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center;';
     const _bioEl = document.getElementById('profBioEl');
     if(_bioEl) _bioEl.insertAdjacentElement('afterend', _profCompatEl);
   }
@@ -18825,7 +18825,7 @@ async function _loadUserProfilePage(uid, nick){
     if(!_upCompatEl){
       _upCompatEl = document.createElement('div');
       _upCompatEl.id = '_upCompatChips';
-      _upCompatEl.style.cssText = 'display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;';
+      _upCompatEl.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center;';
       const _upBioEl = document.getElementById('upBio');
       if(_upBioEl) _upBioEl.insertAdjacentElement('afterend', _upCompatEl);
     }
@@ -20392,19 +20392,6 @@ function openChatWith(uid, nick){
   const inputRow = document.getElementById('chatInputRow');
   if(inputRow) inputRow.style.display='flex';
 
-  // Asegurar que el botón de micrófono esté visible al abrir el chat
-  setTimeout(function(){
-    const micBtn = document.getElementById('voiceMsgBtn');
-    const sendBtn = document.getElementById('chatSendBtn');
-    const inp = document.getElementById('chatInput');
-    if(micBtn && sendBtn && inp){
-      if(inp.value.trim().length === 0){
-        micBtn.style.display = 'block';
-        sendBtn.style.display = 'none';
-      }
-    }
-  }, 50);
-
   if(_unsubChat){ _unsubChat(); _unsubChat=null; }
   window._chatRxnCache = {};
   if(_presenceUnsub){ _presenceUnsub(); _presenceUnsub=null; }
@@ -21179,8 +21166,8 @@ function toggleVoiceBtn(){
 }
 
 async function toggleVoiceRecord(){
-  if(!window.CU){
-    toast('Iniciá sesión para enviar audios','err');
+  if(!window.CU?.verified){
+    toast('🎤 Mensajes de voz solo para usuarios ✅ Verificados','err');
     return;
   }
   if(_mediaRecorder && _mediaRecorder.state === 'recording'){
