@@ -1836,7 +1836,6 @@ button:not(.tb-nav-btn):not(.bottom-nav-btn):not(.ml-rxn-btn):not([disabled]) {
     <!-- PANEL PLUTO TV -->
     <div id="clPanelPluto" style="display:none;">
       <div id="clPlutoCats" style="display:flex;gap:8px;flex-wrap:wrap;padding-bottom:16px;border-bottom:1px solid #1a1a1a;">
-        <button onclick="clPlutoShowCats()" class="cl-cat" style="background:#1a1a2e;border-color:#444;color:#aaa;font-size:.7rem;" title="Ver categorías disponibles en consola">🔍 Debug</button>
         <button onclick="clPlutoLoadCat(this,'Movies')" class="cl-cat active-pluto-cat" data-pcat="Movies">🎬 Todas</button>
         <button onclick="clPlutoLoadCat(this,'Action')" class="cl-cat" data-pcat="Action">🔥 Acción</button>
         <button onclick="clPlutoLoadCat(this,'Comedy')" class="cl-cat" data-pcat="Comedy">😂 Comedia</button>
@@ -34141,83 +34140,44 @@ window.clSwitchSource = function(src){
 // Fetch canales de Pluto TV
 async function clPlutoFetchChannels(){
   const loading = document.getElementById('clPlutoLoading');
-  const grid    = document.getElementById('clPlutoGrid');
   if(loading) loading.style.display = 'block';
-  if(grid) grid.innerHTML = '';
 
-  // Intentar múltiples endpoints conocidos de Pluto TV
   const endpoints = [
-    'https://api.pluto.tv/v2/channels?offset=0&limit=1000&appName=web&appVersion=na&clientID=na&clientModelNumber=na&serverSideAds=false',
-    'https://api.pluto.tv/v2/channels',
-    'https://i.mjh.nz/PlutoTV/all.json',   // mirror público agregado por la comunidad
+    'https://i.mjh.nz/PlutoTV/all.json',
+    'https://api.pluto.tv/v2/channels?offset=0&limit=1000&appName=web&appVersion=7&deviceDNT=0&deviceId=unknown&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&sid=unknown',
+    'https://api.pluto.tv/v2/channels?offset=0&limit=500'
   ];
 
   for(const url of endpoints){
     try {
-      const r = await fetch(url, { headers: { 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0' } });
+      const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
       if(!r.ok) continue;
       const data = await r.json();
-
-      // Detectar estructura automáticamente
       let channels = [];
-      if(Array.isArray(data)){
-        channels = data;
-      } else if(data.channels && Array.isArray(data.channels)){
-        channels = data.channels;
-      } else if(data.data && Array.isArray(data.data)){
-        channels = data.data;
+      if(data.channels && !Array.isArray(data.channels)){
+        channels = Object.values(data.channels).map(ch => ({
+          name: ch.name,
+          category: ch.group || ch.category || '',
+          genre: ch.group || '',
+          images: { logo: ch.logo, tile: ch.logo },
+          stitched: { urls: ch.url ? [{ url: ch.url }] : (ch.streams ? ch.streams.map(u => ({url: u})) : []) }
+        })).filter(ch => ch.stitched.urls.length > 0);
       } else {
-        // mjh.nz format: { channels: { slug: { name, url, group, logo } } }
-        const raw = data.channels || data;
-        if(typeof raw === 'object' && !Array.isArray(raw)){
-          channels = Object.entries(raw).map(([slug, ch]) => ({
-            _id: slug,
-            name: ch.name || slug,
-            slug: slug,
-            category: ch.group || ch.genre || '',
-            images: { logo: ch.logo || ch.icon || '' },
-            stitched: { urls: [{ url: ch.url || ch.stream || '' }] },
-            _mjh: true
-          })).filter(c => c.stitched.urls[0].url);
-        }
+        channels = Array.isArray(data) ? data : (data.data || data.channels || []);
       }
-
-      if(!channels.length) continue;
-
-      // Normalizar campos para que el render funcione igual
-      channels = channels.map(c => {
-        // Si ya tiene stitched.urls, está bien
-        if(c.stitched && c.stitched.urls && c.stitched.urls.length) return c;
-        // Buscar stream en diferentes ubicaciones
-        const streamUrl = c.streamUrl || c.stream || c.url ||
-          (c.stitchedUrl) || (c.liveUrl) || '';
-        return {
-          ...c,
-          stitched: { urls: streamUrl ? [{ url: streamUrl }] : [] }
-        };
-      }).filter(c => c.stitched.urls.length > 0);
-
-      console.log('[Pluto] Cargados', channels.length, 'canales desde', url);
-      console.log('[Pluto] Ejemplo primer canal:', JSON.stringify(channels[0]).slice(0, 300));
-
-      // Mostrar todas las categorías únicas en consola para debug
-      const cats = [...new Set(channels.map(c =>
-        c.category || c.genre || c.type || c.subGenre || '(sin categoría)'
-      ))].sort();
-      console.log('[Pluto] Categorías encontradas:', cats);
-
-      window._plutoChannels = channels;
-      window._plutoCats = cats;
-      if(loading) loading.style.display = 'none';
-      return channels;
-    } catch(e){
-      console.warn('[Pluto] Error con', url, e.message);
+      if(channels.length > 0){
+        window._plutoChannels = channels;
+        if(loading) loading.style.display = 'none';
+        return channels;
+      }
+    } catch(e) {
+      console.warn('[Pluto] Error con ' + url + ':', e);
     }
   }
 
-  // Todos fallaron
   if(loading) loading.style.display = 'none';
-  if(grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:#555;font-size:.9rem;">⚠️ No se pudo conectar con Pluto TV.<br><br><button onclick="clPlutoFetchChannels().then(()=>clPlutoRenderCat('Movies'))" style="background:#e50914;border:none;border-radius:8px;padding:8px 20px;color:#fff;font-weight:700;font-family:'Exo 2',sans-serif;cursor:pointer;">🔄 Reintentar</button></div>';
+  const grid = document.getElementById('clPlutoGrid');
+  if(grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#555;font-size:.9rem;">\u26a0\ufe0f No se pudo conectar con Pluto TV. Intent\u00e1 de nuevo m\u00e1s tarde.</div>';
   return [];
 }
 
@@ -34237,48 +34197,32 @@ function clPlutoRenderCat(cat){
   if(!grid) return;
   const channels = window._plutoChannels || [];
 
-  // Filtrar por categoría — muy flexible para cualquier estructura
+  // Filtrar por categoría
   let filtered = channels.filter(c => {
     if(!c.stitched || !c.stitched.urls || !c.stitched.urls.length) return false;
-    if(cat === 'Movies' || cat === '__ALL__') return true; // Todas → mostrar todo
-
-    const searchFields = [
-      c.name, c.category, c.genre, c.type,
-      c.subGenre, c.subCategory, c.group,
-      c.featuredImage && c.featuredImage.title
-    ].map(v => (v || '').toLowerCase()).join(' ');
-
+    const name = (c.name || '').toLowerCase();
+    const catField = (c.category || c.genre || c.type || '').toLowerCase();
+    const subcats = (c.subGenre || c.subCategory || '').toLowerCase();
+    if(cat === 'Movies') {
+      return catField.includes('movie') || catField.includes('film') || catField.includes('cine') ||
+             catField.includes('pel') || catField.includes('movies') || catField.includes('cinema') ||
+             name.includes('movie') || name.includes('film') || name.includes('cine') ||
+             name.includes('pel') || name.includes('cinema') ||
+             subcats.includes('movie') || subcats.includes('pel') || subcats.includes('film');
+    }
     const catLow = cat.toLowerCase();
-    // Mapeos especiales para términos en inglés vs nombre real
-    const catMap = {
-      'action':           ['action','accion','acción'],
-      'comedy':           ['comedy','comedia'],
-      'drama':            ['drama'],
-      'horror':           ['horror','terror','miedo','scary'],
-      'thriller':         ['thriller','suspense'],
-      'science fiction':  ['sci','fiction','ciencia','ficcion'],
-      'romance':          ['romance','romantic','amor'],
-      'animation':        ['animat','cartoon','anime','dibujo'],
-      'documentary':      ['doc','document'],
-      'spanish':          ['spanish','español','espanol','latin','hispanic'],
-      'kids':             ['kid','child','infant','niño','familia','family'],
-    };
-    const terms = catMap[catLow] || [catLow];
-    return terms.some(t => searchFields.includes(t) || searchFields.indexOf(t) >= 0);
+    return catField.includes(catLow) || subcats.includes(catLow) ||
+           name.includes(catLow);
   });
 
-  // Si filtro específico no da resultados, mostrar todos los que tienen stream
-  if(filtered.length === 0){
+  // Si no hay resultados con filtro estricto, mostrar todos con streams
+  if(filtered.length === 0 && cat === 'Movies'){
     filtered = channels.filter(c => c.stitched && c.stitched.urls && c.stitched.urls.length > 0);
-    if(filtered.length > 0){
-      console.log('[Pluto] Sin coincidencias para "'+cat+'", mostrando todos los canales ('+filtered.length+')');
-      console.log('[Pluto] Categorías disponibles:', (window._plutoCats||[]).join(', '));
-    }
   }
 
   grid.innerHTML = '';
   if(!filtered.length){
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#555;font-size:.9rem;">Sin canales disponibles 📺</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#555;font-size:.9rem;">Sin canales en esta categoría 📺</div>';
     return;
   }
 
@@ -34312,26 +34256,6 @@ function clPlutoRenderCat(cat){
     grid.appendChild(card);
   });
 }
-
-// Mostrar en pantalla las categorías reales devueltas por la API (debug)
-window.clPlutoShowCats = function(){
-  const channels = window._plutoChannels;
-  if(!channels){ alert('Primero cambiá a la pestaña Pluto TV para cargar los canales.'); return; }
-  const cats = [...new Set(channels.map(c =>
-    c.category || c.genre || c.type || c.group || '(sin cat)'
-  ))].sort();
-  const total = channels.length;
-  const conStream = channels.filter(c => c.stitched && c.stitched.urls && c.stitched.urls.length).length;
-  const msg = `Pluto TV — ${total} canales cargados (${conStream} con stream)
-
-Categorías únicas encontradas:
-${cats.map(c => '• ' + c).join('\n')}
-
-Ejemplo estructura primer canal:
-${JSON.stringify(channels[0], null, 2).slice(0, 600)}`;
-  console.log(msg);
-  alert(msg);
-};
 
 // Abrir canal Pluto TV en el modal con HLS
 window.clPlutoOpenChannel = function(streamUrl, name){
