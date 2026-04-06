@@ -1331,6 +1331,7 @@ button:not(.tb-nav-btn):not(.bottom-nav-btn):not(.ml-rxn-btn):not([disabled]) {
       <div class="sl-item" onclick="gp('musica')"><span class="sl-item-icon">🎵</span> Videos Musicales</div>
       <div class="sl-item" onclick="gp('musica2');initMusica2?.()"><span class="sl-item-icon">🎵</span> Música</div>
       <div class="sl-item" onclick="gp('cinelatido');initCineLatido()"><span class="sl-item-icon">🎬</span> CineLatido</div>
+      <div class="sl-item" onclick="gp('flashlatido');initFlashLatido()"><span class="sl-item-icon">⚡</span> FlashLatido</div>
       <div class="sl-item" onclick="gp('profile')"><span class="sl-item-icon">👤</span> Mi Perfil</div>
       <div class="sl-item" onclick="gp('amigos');renderAmigosPage()"><span class="sl-item-icon">👥</span> Amigos</div>
       <div class="sl-item" onclick="gp('match')"><span class="sl-item-icon">💘</span> Match</div>
@@ -1975,6 +1976,917 @@ window.initMusica2 = function(){
   window._musica2Loaded = true;
   scLoad('reggaeton');
 };
+
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════
+     FLASHLATIDO ⚡ — Historias de fotos + música estilo TikTok
+     ══════════════════════════════════════════════ -->
+<style>
+/* ── FlashLatido base ── */
+#page-flashlatido { background:#000; min-height:100vh; padding:0; max-width:100%; }
+
+/* Viewer layout */
+.fl-viewer {
+  display:flex;
+  height:calc(100vh - 48px);
+  overflow:hidden;
+  position:relative;
+}
+/* Left: story list */
+.fl-stories-col {
+  width:92px;
+  background:#111;
+  border-right:1px solid #222;
+  overflow-y:auto;
+  flex-shrink:0;
+  padding:10px 6px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.fl-stories-col::-webkit-scrollbar{width:2px;}
+.fl-stories-col::-webkit-scrollbar-thumb{background:#333;border-radius:2px;}
+
+.fl-story-thumb {
+  width:72px;
+  height:100px;
+  border-radius:10px;
+  overflow:hidden;
+  cursor:pointer;
+  position:relative;
+  border:2px solid transparent;
+  transition:border-color .2s, transform .2s;
+  flex-shrink:0;
+}
+.fl-story-thumb.active { border-color:#e91e8c; transform:scale(1.05); }
+.fl-story-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+.fl-story-thumb-grad { position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7) 0%,transparent 50%); }
+.fl-story-thumb-nick { position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:.52rem;font-weight:700;color:#fff;padding:0 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.fl-story-thumb-av { position:absolute;top:4px;left:50%;transform:translateX(-50%);width:22px;height:22px;border-radius:50%;border:2px solid #e91e8c;overflow:hidden;background:#222; }
+.fl-story-thumb-av img { width:100%;height:100%;object-fit:cover; }
+.fl-new-story-btn {
+  width:72px;height:72px;border-radius:10px;background:rgba(233,30,140,.15);border:2px dashed rgba(233,30,140,.5);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  cursor:pointer;color:#e91e8c;font-size:.6rem;font-weight:700;transition:all .2s;flex-shrink:0;
+}
+.fl-new-story-btn:hover { background:rgba(233,30,140,.25); border-color:#e91e8c; }
+.fl-new-story-btn .fl-plus { font-size:1.4rem;line-height:1; }
+
+/* Center: photo viewer */
+.fl-center {
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  background:#000;
+  overflow:hidden;
+}
+.fl-photo-wrap {
+  position:relative;
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.fl-photo {
+  max-width:100%;
+  max-height:100%;
+  object-fit:contain;
+  border-radius:0;
+  display:block;
+  user-select:none;
+  transition:opacity .35s;
+}
+/* Progress bars */
+.fl-progress {
+  position:absolute;
+  top:8px;left:10px;right:10px;
+  display:flex;gap:4px;
+  z-index:10;
+}
+.fl-prog-seg {
+  flex:1;height:3px;background:rgba(255,255,255,.3);border-radius:3px;overflow:hidden;
+}
+.fl-prog-fill {
+  height:100%;background:#fff;width:0;transition:width linear;
+}
+/* Header overlay */
+.fl-header {
+  position:absolute;top:18px;left:10px;right:10px;
+  display:flex;align-items:center;gap:8px;z-index:11;
+}
+.fl-header-av {
+  width:34px;height:34px;border-radius:50%;border:2px solid #e91e8c;overflow:hidden;background:#333;flex-shrink:0;
+}
+.fl-header-av img { width:100%;height:100%;object-fit:cover; }
+.fl-header-nick { font-size:.85rem;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8); }
+.fl-header-time { font-size:.68rem;color:rgba(255,255,255,.65); }
+.fl-header-close {
+  margin-left:auto;background:rgba(0,0,0,.5);border:none;color:#fff;
+  width:30px;height:30px;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+/* Music bar */
+.fl-music-bar {
+  position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(to top,rgba(0,0,0,.9) 0%,rgba(0,0,0,.4) 60%,transparent 100%);
+  padding:30px 14px 14px;
+  z-index:10;
+  display:flex;align-items:center;gap:10px;
+}
+.fl-music-disc {
+  width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,255,255,.3);
+  overflow:hidden;background:#333;flex-shrink:0;animation:flDiscSpin 3s linear infinite;
+  animation-play-state:paused;
+}
+.fl-music-disc.playing { animation-play-state:running; }
+.fl-music-disc img { width:100%;height:100%;object-fit:cover; }
+@keyframes flDiscSpin { to{transform:rotate(360deg)} }
+.fl-music-info { flex:1;min-width:0; }
+.fl-music-name { font-size:.78rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.fl-music-artist { font-size:.65rem;color:rgba(255,255,255,.6); }
+.fl-music-audio-bar {
+  width:80px;height:3px;background:rgba(255,255,255,.25);border-radius:3px;margin-top:4px;
+  overflow:hidden;
+}
+.fl-music-audio-fill { height:100%;background:linear-gradient(90deg,#e91e8c,#ff6b9d);width:0; }
+
+/* Navigation arrows */
+.fl-nav-btn {
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(0,0,0,.5);border:none;color:#fff;font-size:1.2rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:background .2s;z-index:10;
+}
+.fl-nav-btn:hover { background:rgba(0,0,0,.8); }
+.fl-nav-prev { left:10px; }
+.fl-nav-next { right:10px; }
+
+/* Empty state */
+.fl-empty {
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;gap:14px;color:rgba(255,255,255,.4);text-align:center;padding:20px;
+}
+.fl-empty-icon { font-size:4rem;opacity:.5; }
+
+/* Right: actions panel */
+.fl-actions-col {
+  width:64px;
+  background:#111;
+  border-left:1px solid #222;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:26px;
+  padding:20px 0;
+  flex-shrink:0;
+}
+.fl-act-btn {
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  background:none;border:none;cursor:pointer;color:#fff;font-size:.58rem;font-weight:700;
+  transition:transform .15s;padding:0;
+}
+.fl-act-btn:hover { transform:scale(1.15); }
+.fl-act-icon {
+  width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.12);
+  display:flex;align-items:center;justify-content:center;font-size:1.3rem;
+  transition:background .15s;
+}
+.fl-act-btn:hover .fl-act-icon { background:rgba(255,255,255,.22); }
+.fl-act-btn.liked .fl-act-icon { background:rgba(233,30,140,.25); }
+.fl-act-btn.liked { color:#e91e8c; }
+.fl-act-count { font-size:.6rem;color:rgba(255,255,255,.7); }
+
+/* Upload modal */
+#flUploadModal .modal { max-width:520px; padding:24px; background:#111; border:1px solid #333; }
+#flUploadModal .mt { color:#e91e8c; font-family:'Orbitron',monospace; }
+.fl-drop-zone {
+  border:2px dashed rgba(233,30,140,.4);border-radius:12px;padding:28px;text-align:center;
+  cursor:pointer;transition:all .2s;color:rgba(255,255,255,.5);background:rgba(233,30,140,.04);
+}
+.fl-drop-zone:hover,.fl-drop-zone.drag { border-color:#e91e8c;background:rgba(233,30,140,.1);color:#fff; }
+.fl-drop-zone .fl-dz-icon { font-size:2.5rem;margin-bottom:8px; }
+.fl-preview-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:12px; }
+.fl-prev-item { position:relative;aspect-ratio:3/4;border-radius:8px;overflow:hidden;background:#222; }
+.fl-prev-item img { width:100%;height:100%;object-fit:cover; }
+.fl-prev-rm { position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.7);border:none;color:#fff;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center; }
+.fl-music-search { display:flex;gap:8px;margin-top:10px; }
+.fl-music-search input { flex:1;background:#1a1a1a;border:1px solid #333;color:#fff;border-radius:8px;padding:8px 12px;font-family:'Exo 2',sans-serif;font-size:.85rem;outline:none; }
+.fl-music-search input:focus { border-color:#e91e8c; }
+.fl-music-results { max-height:140px;overflow-y:auto;margin-top:6px;display:flex;flex-direction:column;gap:4px; }
+.fl-music-result-item {
+  display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;
+  background:rgba(255,255,255,.04);transition:background .15s;border:1px solid transparent;
+}
+.fl-music-result-item:hover,.fl-music-result-item.selected { background:rgba(233,30,140,.15);border-color:rgba(233,30,140,.4); }
+.fl-music-result-item img { width:36px;height:36px;border-radius:6px;object-fit:cover; }
+.fl-music-result-info { flex:1;min-width:0; }
+.fl-music-result-name { font-size:.78rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.fl-music-result-artist { font-size:.65rem;color:rgba(255,255,255,.5); }
+
+/* Feed share card */
+.post-flashlatido {
+  background:#111 !important;
+  border:1px solid rgba(233,30,140,.3) !important;
+  border-radius:14px !important;
+  overflow:hidden;
+}
+.post-flashlatido .fl-share-photos {
+  display:grid;grid-template-columns:1fr 1fr;gap:2px;
+}
+.post-flashlatido .fl-share-photos.single { grid-template-columns:1fr; }
+.post-flashlatido .fl-share-photos img { width:100%;height:160px;object-fit:cover; }
+.post-flashlatido .fl-share-label {
+  display:flex;align-items:center;gap:6px;padding:8px 12px;
+  background:rgba(233,30,140,.1);font-size:.75rem;color:#e91e8c;font-weight:700;
+  border-bottom:1px solid rgba(233,30,140,.2);
+}
+/* Bottom nav icon */
+.fl-bottom-btn { }
+
+/* Responsive */
+@media(max-width:768px){
+  .fl-stories-col { width:72px; padding:8px 4px; gap:8px; }
+  .fl-story-thumb { width:58px;height:84px; }
+  .fl-new-story-btn { width:58px;height:58px; }
+  .fl-actions-col { width:52px; gap:18px; }
+  .fl-act-icon { width:38px;height:38px;font-size:1.1rem; }
+}
+</style>
+
+<div class="page" id="page-flashlatido" style="min-height:100vh;background:#000;padding:0;max-width:100%;">
+  <div class="fl-viewer">
+
+    <!-- Left col: story list -->
+    <div class="fl-stories-col" id="flStoriesCol">
+      <div class="fl-new-story-btn" onclick="flOpenUpload()" title="Crear FlashLatido">
+        <span class="fl-plus">➕</span>
+        <span>Subir</span>
+      </div>
+      <!-- injected dynamically -->
+    </div>
+
+    <!-- Center: photo viewer -->
+    <div class="fl-center" id="flCenter">
+      <div class="fl-empty" id="flEmpty">
+        <div class="fl-empty-icon">⚡</div>
+        <div style="font-size:1rem;font-weight:700;color:rgba(255,255,255,.6);">Seleccioná un FlashLatido</div>
+        <div style="font-size:.8rem;color:rgba(255,255,255,.35);">O creá el tuyo con fotos y música</div>
+        <button onclick="flOpenUpload()" style="margin-top:10px;background:linear-gradient(135deg,#e91e8c,#c2185b);border:none;color:#fff;padding:10px 22px;border-radius:100px;font-weight:700;font-size:.85rem;cursor:pointer;font-family:'Exo 2',sans-serif;">⚡ Crear FlashLatido</button>
+      </div>
+
+      <!-- Viewer (hidden until a story selected) -->
+      <div id="flPhotoViewer" style="display:none;width:100%;height:100%;position:relative;">
+        <!-- Progress bars -->
+        <div class="fl-progress" id="flProgressBars"></div>
+
+        <!-- Header -->
+        <div class="fl-header" id="flViewerHeader">
+          <div class="fl-header-av"><img id="flHeaderAv" src="" alt=""></div>
+          <div>
+            <div class="fl-header-nick" id="flHeaderNick"></div>
+            <div class="fl-header-time" id="flHeaderTime"></div>
+          </div>
+          <button class="fl-header-close" onclick="flCloseViewer()">✕</button>
+        </div>
+
+        <!-- Photo -->
+        <div class="fl-photo-wrap" onclick="flNextPhoto()">
+          <img class="fl-photo" id="flMainPhoto" src="" alt="" draggable="false">
+        </div>
+
+        <!-- Nav prev -->
+        <button class="fl-nav-btn fl-nav-prev" onclick="event.stopPropagation();flPrevPhoto()" id="flBtnPrev">‹</button>
+        <button class="fl-nav-btn fl-nav-next" onclick="event.stopPropagation();flNextPhoto()" id="flBtnNext">›</button>
+
+        <!-- Music bar -->
+        <div class="fl-music-bar" id="flMusicBar" style="display:none;">
+          <div class="fl-music-disc" id="flDisc">
+            <img id="flDiscImg" src="" alt="" style="width:100%;height:100%;object-fit:cover;">
+          </div>
+          <div class="fl-music-info">
+            <div class="fl-music-name" id="flMusicName">♪ Sin música</div>
+            <div class="fl-music-artist" id="flMusicArtist"></div>
+            <div class="fl-music-audio-bar"><div class="fl-music-audio-fill" id="flAudioFill"></div></div>
+          </div>
+          <audio id="flAudioEl" style="display:none;" loop></audio>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right col: actions -->
+    <div class="fl-actions-col" id="flActionsCol">
+      <button class="fl-act-btn" id="flLikeBtn" onclick="flToggleLike()">
+        <div class="fl-act-icon">❤️</div>
+        <span class="fl-act-count" id="flLikeCount">0</span>
+        <span>Me gusta</span>
+      </button>
+      <button class="fl-act-btn" onclick="flOpenComments()">
+        <div class="fl-act-icon">💬</div>
+        <span class="fl-act-count" id="flCommentCount">0</span>
+        <span>Comentar</span>
+      </button>
+      <button class="fl-act-btn" onclick="flShareToFeed()">
+        <div class="fl-act-icon">↗️</div>
+        <span class="fl-act-count" id="flShareCount">0</span>
+        <span>Compartir</span>
+      </button>
+      <button class="fl-act-btn" onclick="flSaveStory()">
+        <div class="fl-act-icon">🔖</div>
+        <span>Guardar</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Comments panel (slide-in) -->
+  <div id="flCommentsPanel" style="display:none;position:fixed;right:64px;bottom:0;width:320px;max-height:60vh;background:#111;border:1px solid #333;border-radius:14px 14px 0 0;z-index:500;flex-direction:column;overflow:hidden;">
+    <div style="padding:10px 14px;border-bottom:1px solid #222;display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-weight:700;color:#fff;font-size:.88rem;">💬 Comentarios</span>
+      <button onclick="document.getElementById('flCommentsPanel').style.display='none';" style="background:none;border:none;color:#888;cursor:pointer;font-size:1rem;">✕</button>
+    </div>
+    <div id="flCommentsList" style="flex:1;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:6px;max-height:42vh;"></div>
+    <div style="padding:8px 12px;border-top:1px solid #222;display:flex;gap:8px;">
+      <input id="flCommentInput" placeholder="Escribí un comentario..." style="flex:1;background:#1a1a1a;border:1px solid #333;color:#fff;border-radius:20px;padding:8px 14px;font-family:'Exo 2',sans-serif;font-size:.82rem;outline:none;" onkeydown="if(event.key==='Enter')flSendComment();">
+      <button onclick="flSendComment()" style="background:#e91e8c;border:none;color:#fff;border-radius:50%;width:34px;height:34px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- FlashLatido Upload Modal -->
+<div class="mo" id="flUploadModal">
+  <div class="modal modal-md" style="background:#0d0d0d;border:1px solid #333;">
+    <button class="mcx" onclick="document.getElementById('flUploadModal').classList.remove('open')">✕</button>
+    <div class="mt" style="color:#e91e8c;">⚡ Crear FlashLatido</div>
+
+    <!-- Step 1: Photos -->
+    <div style="margin-bottom:14px;">
+      <label class="fl" style="color:rgba(255,255,255,.6);">FOTOS (máx 10)</label>
+      <div class="fl-drop-zone" id="flDropZone" onclick="document.getElementById('flFileInput').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="flHandleDrop(event)">
+        <div class="fl-dz-icon">📸</div>
+        <div style="font-size:.85rem;font-weight:600;">Arrastrá fotos o hacé click</div>
+        <div style="font-size:.72rem;margin-top:4px;">JPG, PNG, WEBP · máx 5MB c/u</div>
+      </div>
+      <input type="file" id="flFileInput" multiple accept="image/*" style="display:none" onchange="flHandleFiles(this.files)">
+      <div class="fl-preview-grid" id="flPreviewGrid"></div>
+    </div>
+
+    <!-- Step 2: Music -->
+    <div style="margin-bottom:14px;">
+      <label class="fl" style="color:rgba(255,255,255,.6);">MÚSICA (opcional)</label>
+      <div class="fl-music-search">
+        <input id="flMusicSearchInput" placeholder="🔍 Buscá artista o canción..." oninput="flSearchMusic(this.value)">
+      </div>
+      <div class="fl-music-results" id="flMusicResults"></div>
+      <div id="flSelectedMusicDisplay" style="display:none;margin-top:8px;padding:8px;background:rgba(233,30,140,.1);border:1px solid rgba(233,30,140,.3);border-radius:8px;display:flex;align-items:center;gap:8px;">
+        <img id="flSelMusicImg" src="" style="width:32px;height:32px;border-radius:4px;object-fit:cover;">
+        <div><div id="flSelMusicName" style="font-size:.78rem;font-weight:700;color:#fff;"></div><div id="flSelMusicArtist" style="font-size:.65rem;color:rgba(255,255,255,.5);"></div></div>
+        <button onclick="flClearMusic()" style="margin-left:auto;background:none;border:none;color:#e91e8c;cursor:pointer;font-size:.85rem;">✕</button>
+      </div>
+    </div>
+
+    <!-- Caption -->
+    <div style="margin-bottom:16px;">
+      <label class="fl" style="color:rgba(255,255,255,.6);">DESCRIPCIÓN</label>
+      <textarea id="flCaption" class="fi" placeholder="Contá algo sobre estas fotos..." style="background:#1a1a1a;border-color:#333;color:#fff;min-height:60px;resize:none;" maxlength="200"></textarea>
+    </div>
+
+    <button onclick="flPublish()" style="width:100%;background:linear-gradient(135deg,#e91e8c,#c2185b);border:none;color:#fff;padding:12px;border-radius:10px;font-weight:800;font-size:.9rem;cursor:pointer;font-family:'Exo 2',sans-serif;letter-spacing:.5px;" id="flPublishBtn">
+      ⚡ Publicar FlashLatido
+    </button>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════
+   FLASHLATIDO — Sistema completo
+   ════════════════════════════════════ */
+(function(){
+'use strict';
+
+// ── State ──
+var _fl = {
+  stories: [],          // list of story objects
+  currentIdx: -1,       // which story is open
+  photoIdx: 0,          // which photo within story
+  timer: null,
+  duration: 5000,       // ms per photo
+  startedAt: 0,
+  pausedAt: 0,
+  rxnUnsub: null,
+  cmtUnsub: null,
+  selectedFiles: [],
+  selectedMusic: null,
+  // For upload
+  imgDataURLs: [],
+};
+
+// ── Init ──
+window.initFlashLatido = async function(){
+  if(!window.db || !window.collection || !window.query || !window.orderBy || !window.onSnapshot) return;
+  _loadStories();
+};
+
+function _loadStories(){
+  if(window._fl_unsub) window._fl_unsub();
+  var ref = window.collection(window.db, 'flashlatido');
+  var q   = window.query(ref, window.orderBy('time','desc'), window.limit(50));
+  window._fl_unsub = window.onSnapshot(q, function(snap){
+    _fl.stories = [];
+    snap.forEach(function(d){
+      var s = d.data();
+      s.id = d.id;
+      // Only show if < 24h old (story-like)
+      if(Date.now() - (s.time||0) < 86400000){
+        _fl.stories.push(s);
+      }
+    });
+    _renderStoryList();
+  });
+}
+
+function _renderStoryList(){
+  var col = document.getElementById('flStoriesCol');
+  if(!col) return;
+  // Keep upload button
+  col.innerHTML = '<div class="fl-new-story-btn" onclick="flOpenUpload()" title="Crear FlashLatido"><span class="fl-plus">➕</span><span>Subir</span></div>';
+
+  if(!_fl.stories.length){
+    var msg = document.createElement('div');
+    msg.style.cssText='color:rgba(255,255,255,.3);font-size:.6rem;text-align:center;padding:8px 4px;';
+    msg.textContent='Sé el primero ⚡';
+    col.appendChild(msg);
+    return;
+  }
+
+  _fl.stories.forEach(function(s, i){
+    var thumb = document.createElement('div');
+    thumb.className = 'fl-story-thumb' + (i === _fl.currentIdx ? ' active' : '');
+    thumb.dataset.idx = i;
+    thumb.onclick = function(){ flOpenStory(i); };
+    var firstPhoto = (s.photos && s.photos[0]) || '';
+    thumb.innerHTML = [
+      '<img src="'+escHtml(firstPhoto)+'" alt="" loading="lazy">',
+      '<div class="fl-story-thumb-grad"></div>',
+      '<div class="fl-story-thumb-av"><img src="'+escHtml(s.av||'')+'" alt=""></div>',
+      '<div class="fl-story-thumb-nick">'+escHtml((s.nick||'').substring(0,10))+'</div>',
+    ].join('');
+    col.appendChild(thumb);
+  });
+}
+
+// ── Open story ──
+window.flOpenStory = function(idx){
+  if(idx < 0 || idx >= _fl.stories.length) return;
+  _fl.currentIdx = idx;
+  _fl.photoIdx = 0;
+  _stopTimer();
+  _renderActiveStory();
+  _listenRxns();
+  _listenComments();
+  _updateThumbActive();
+};
+
+function _renderActiveStory(){
+  var s = _fl.stories[_fl.currentIdx];
+  if(!s) return;
+
+  document.getElementById('flEmpty').style.display = 'none';
+  document.getElementById('flPhotoViewer').style.display = 'block';
+
+  // Header
+  document.getElementById('flHeaderAv').src = s.av || '';
+  document.getElementById('flHeaderNick').textContent = s.nick || 'Usuario';
+  document.getElementById('flHeaderTime').textContent = _timeAgo(s.time||0);
+
+  // Build progress bars
+  var photos = s.photos || [];
+  var pbars = document.getElementById('flProgressBars');
+  pbars.innerHTML = photos.map(function(_,i){
+    return '<div class="fl-prog-seg"><div class="fl-prog-fill" id="flPF'+i+'"></div></div>';
+  }).join('');
+
+  // Show first photo
+  _showPhoto();
+
+  // Music
+  if(s.musicPreview){
+    _playMusic(s);
+  } else {
+    document.getElementById('flMusicBar').style.display='none';
+    var audio = document.getElementById('flAudioEl');
+    audio.pause(); audio.src='';
+    document.getElementById('flDisc').classList.remove('playing');
+  }
+}
+
+function _showPhoto(){
+  var s = _fl.stories[_fl.currentIdx];
+  if(!s) return;
+  var photos = s.photos || [];
+  var img = document.getElementById('flMainPhoto');
+  img.style.opacity = '0';
+  img.src = photos[_fl.photoIdx] || '';
+  setTimeout(function(){ img.style.opacity='1'; }, 50);
+
+  // Progress: fill previous
+  for(var i=0;i<photos.length;i++){
+    var pf = document.getElementById('flPF'+i);
+    if(!pf) continue;
+    if(i < _fl.photoIdx){ pf.style.width='100%'; pf.style.transition='none'; }
+    else if(i === _fl.photoIdx){ pf.style.width='0'; pf.style.transition='none'; setTimeout(function(ii){ return function(){ var pfEl=document.getElementById('flPF'+ii); if(pfEl){ pfEl.style.transition='width '+(_fl.duration/1000)+'s linear'; pfEl.style.width='100%'; } }; }(i), 30); }
+    else { pf.style.width='0'; pf.style.transition='none'; }
+  }
+
+  // Nav buttons
+  document.getElementById('flBtnPrev').style.display = _fl.photoIdx > 0 ? 'flex' : 'none';
+  document.getElementById('flBtnNext').style.display = _fl.photoIdx < photos.length-1 ? 'flex' : 'none';
+
+  _stopTimer();
+  _fl.timer = setTimeout(function(){ flNextPhoto(); }, _fl.duration);
+}
+
+window.flNextPhoto = function(){
+  var s = _fl.stories[_fl.currentIdx];
+  if(!s) return;
+  var photos = s.photos||[];
+  if(_fl.photoIdx < photos.length-1){
+    _fl.photoIdx++;
+    _showPhoto();
+  } else {
+    // go to next story
+    if(_fl.currentIdx < _fl.stories.length-1){
+      flOpenStory(_fl.currentIdx+1);
+    } else {
+      _stopTimer(); // end of all stories
+    }
+  }
+};
+
+window.flPrevPhoto = function(){
+  if(_fl.photoIdx > 0){
+    _fl.photoIdx--;
+    _showPhoto();
+  } else if(_fl.currentIdx > 0){
+    flOpenStory(_fl.currentIdx-1);
+  }
+};
+
+window.flCloseViewer = function(){
+  _stopTimer();
+  _fl.currentIdx = -1;
+  document.getElementById('flEmpty').style.display='flex';
+  document.getElementById('flPhotoViewer').style.display='none';
+  document.getElementById('flMusicBar').style.display='none';
+  var audio = document.getElementById('flAudioEl');
+  audio.pause(); audio.src='';
+  if(window._fl_rxnUnsub){ window._fl_rxnUnsub(); window._fl_rxnUnsub=null; }
+  if(window._fl_cmtUnsub){ window._fl_cmtUnsub(); window._fl_cmtUnsub=null; }
+  document.getElementById('flCommentsPanel').style.display='none';
+  _updateThumbActive();
+};
+
+function _stopTimer(){
+  if(_fl.timer){ clearTimeout(_fl.timer); _fl.timer=null; }
+}
+function _updateThumbActive(){
+  document.querySelectorAll('.fl-story-thumb').forEach(function(t){
+    t.classList.toggle('active', parseInt(t.dataset.idx)===_fl.currentIdx);
+  });
+}
+
+// ── Music ──
+function _playMusic(s){
+  var bar = document.getElementById('flMusicBar');
+  bar.style.display='flex';
+  document.getElementById('flMusicName').textContent = s.musicName || '♪ Música';
+  document.getElementById('flMusicArtist').textContent = s.musicArtist || '';
+  document.getElementById('flDiscImg').src = s.musicImage || '';
+
+  var audio = document.getElementById('flAudioEl');
+  if(audio.src !== s.musicPreview){
+    audio.src = s.musicPreview;
+    audio.volume = 0.7;
+    audio.play().catch(function(){});
+    document.getElementById('flDisc').classList.add('playing');
+
+    // fake progress bar animation
+    var fill = document.getElementById('flAudioFill');
+    fill.style.transition='none'; fill.style.width='0';
+    setTimeout(function(){ fill.style.transition='width 30s linear'; fill.style.width='100%'; },100);
+  }
+}
+
+// ── Reactions (Firebase realtime) ──
+function _listenRxns(){
+  if(window._fl_rxnUnsub){ window._fl_rxnUnsub(); window._fl_rxnUnsub=null; }
+  var s = _fl.stories[_fl.currentIdx];
+  if(!s || !window.doc || !window.onSnapshot) return;
+
+  var ref = window.doc(window.db,'flashlatido',s.id);
+  window._fl_rxnUnsub = window.onSnapshot(ref, function(snap){
+    if(!snap.exists()) return;
+    var data = snap.data();
+    var likes = (data.likes||[]).length;
+    var shares = data.shares||0;
+    document.getElementById('flLikeCount').textContent = likes;
+    document.getElementById('flShareCount').textContent = shares;
+    // Mark liked
+    var myUid = window.CU?.id;
+    var liked = myUid && (data.likes||[]).includes(myUid);
+    var lb = document.getElementById('flLikeBtn');
+    if(liked){ lb.classList.add('liked'); }
+    else { lb.classList.remove('liked'); }
+  });
+}
+
+// ── Like toggle ──
+window.flToggleLike = async function(){
+  if(!window.CU){ toast('Iniciá sesión para reaccionar','err'); return; }
+  var s = _fl.stories[_fl.currentIdx];
+  if(!s) return;
+  var ref = window.doc(window.db,'flashlatido',s.id);
+  var snap = await window.getDoc(ref);
+  var data = snap.exists() ? snap.data() : {};
+  var likes = data.likes||[];
+  var uid = window.CU.id;
+  if(likes.includes(uid)){ likes = likes.filter(function(x){ return x!==uid; }); }
+  else { likes.push(uid); }
+  await window.setDoc(ref,{likes:likes},{merge:true});
+};
+
+// ── Comments (Firebase realtime) ──
+function _listenComments(){
+  if(window._fl_cmtUnsub){ window._fl_cmtUnsub(); window._fl_cmtUnsub=null; }
+  var s = _fl.stories[_fl.currentIdx];
+  if(!s||!window.collection||!window.query||!window.orderBy||!window.limit||!window.onSnapshot) return;
+
+  var ref = window.collection(window.db,'flashlatido',s.id,'comments');
+  var q   = window.query(ref, window.orderBy('time','asc'), window.limit(50));
+  window._fl_cmtUnsub = window.onSnapshot(q, function(snap){
+    var el = document.getElementById('flCommentsList');
+    if(!el) return;
+    el.innerHTML='';
+    var cnt = 0;
+    snap.forEach(function(d){
+      cnt++;
+      var c = d.data();
+      var div = document.createElement('div');
+      div.style.cssText='display:flex;gap:7px;align-items:flex-start;';
+      var avEl = c.av
+        ? '<img src="'+escHtml(c.av)+'" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0;">'
+        : '<div style="width:26px;height:26px;border-radius:50%;background:#e91e8c;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:#fff;flex-shrink:0;">'+escHtml((c.nick||'?')[0].toUpperCase())+'</div>';
+      div.innerHTML=avEl+'<div style="background:#1a1a1a;border-radius:10px;padding:5px 10px;flex:1;min-width:0;"><div style="font-size:.7rem;font-weight:700;color:#e91e8c;">'+escHtml(c.nick||'Usuario')+'</div><div style="font-size:.78rem;color:#fff;line-height:1.4;word-break:break-word;">'+escHtml(c.text||'')+'</div></div>';
+      el.appendChild(div);
+    });
+    document.getElementById('flCommentCount').textContent = cnt;
+    el.scrollTop = el.scrollHeight;
+  });
+}
+
+window.flOpenComments = function(){
+  var panel = document.getElementById('flCommentsPanel');
+  panel.style.display = panel.style.display==='flex' ? 'none' : 'flex';
+  panel.style.flexDirection='column';
+};
+
+window.flSendComment = async function(){
+  if(!window.CU){ toast('Iniciá sesión para comentar','err'); return; }
+  var s = _fl.stories[_fl.currentIdx];
+  if(!s) return;
+  var inp = document.getElementById('flCommentInput');
+  var text = (inp?.value||'').trim();
+  if(!text) return;
+  inp.value='';
+  try {
+    await window.addDoc(
+      window.collection(window.db,'flashlatido',s.id,'comments'),
+      { text:text, uid:window.CU.id, nick:window.CU.nick||'Usuario', av:window.CU.av||'', time:Date.now() }
+    );
+  } catch(e){ toast('Error al comentar','err'); }
+};
+
+// ── Share to feed ──
+window.flShareToFeed = async function(){
+  if(!window.CU){ toast('Iniciá sesión para compartir','err'); return; }
+  var s = _fl.stories[_fl.currentIdx];
+  if(!s) return;
+
+  // Increment share count
+  try {
+    var ref = window.doc(window.db,'flashlatido',s.id);
+    await window.updateDoc(ref,{ shares: (window.increment||function(n){ return n; })(1) });
+  } catch(e){}
+
+  // Post to feed
+  try {
+    var photos2 = (s.photos||[]).slice(0,4);
+    await window.addDoc(window.collection(window.db,'posts'),{
+      uid:  window.CU.id,
+      nick: window.CU.nick||'Usuario',
+      av:   window.CU.av||'',
+      text: '⚡ Compartió un FlashLatido' + (s.caption ? ': '+s.caption : ''),
+      imgs: photos2,
+      flashlatidoRef: s.id,
+      flashlatidoOwner: s.nick||'',
+      time: Date.now(),
+      type: 'flashlatido',
+    });
+    toast('¡Compartido en el feed! ⚡','ok');
+  } catch(e){ toast('Error al compartir','err'); }
+};
+
+window.flSaveStory = function(){
+  toast('Guardado 🔖','ok');
+};
+
+// ── Upload ──
+window.flOpenUpload = function(){
+  if(!window.CU){ toast('Iniciá sesión para subir','err'); return; }
+  _fl.selectedFiles=[];
+  _fl.imgDataURLs=[];
+  _fl.selectedMusic=null;
+  document.getElementById('flPreviewGrid').innerHTML='';
+  document.getElementById('flFileInput').value='';
+  document.getElementById('flMusicSearchInput').value='';
+  document.getElementById('flMusicResults').innerHTML='';
+  document.getElementById('flCaption').value='';
+  document.getElementById('flSelectedMusicDisplay').style.display='none';
+  document.getElementById('flUploadModal').classList.add('open');
+};
+
+window.flHandleDrop = function(e){
+  e.preventDefault();
+  document.getElementById('flDropZone').classList.remove('drag');
+  flHandleFiles(e.dataTransfer.files);
+};
+
+window.flHandleFiles = function(files){
+  Array.from(files).slice(0, 10 - _fl.selectedFiles.length).forEach(function(f){
+    if(!f.type.startsWith('image/')) return;
+    if(f.size > 5*1024*1024){ toast('Foto muy pesada (máx 5MB)','err'); return; }
+    _fl.selectedFiles.push(f);
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      _fl.imgDataURLs.push(ev.target.result);
+      _addPreview(ev.target.result, _fl.imgDataURLs.length-1);
+    };
+    reader.readAsDataURL(f);
+  });
+};
+
+function _addPreview(dataURL, idx){
+  var grid = document.getElementById('flPreviewGrid');
+  var item = document.createElement('div');
+  item.className='fl-prev-item';
+  item.dataset.idx=idx;
+  item.innerHTML='<img src="'+dataURL+'" alt=""><button class="fl-prev-rm" onclick="flRemovePreview('+idx+')">✕</button>';
+  grid.appendChild(item);
+}
+window.flRemovePreview = function(idx){
+  _fl.imgDataURLs.splice(idx,1);
+  _fl.selectedFiles.splice(idx,1);
+  // Re-render
+  var grid=document.getElementById('flPreviewGrid');
+  grid.innerHTML='';
+  _fl.imgDataURLs.forEach(function(u,i){ _addPreview(u,i); });
+};
+
+// ── Music search (usando Deezer CORS proxy o iTunes) ──
+var _flMusicTimer=null;
+window.flSearchMusic = function(q){
+  clearTimeout(_flMusicTimer);
+  if(!q || q.length<2){ document.getElementById('flMusicResults').innerHTML=''; return; }
+  _flMusicTimer = setTimeout(function(){ _doMusicSearch(q); }, 500);
+};
+
+function _doMusicSearch(q){
+  var res = document.getElementById('flMusicResults');
+  res.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.75rem;padding:4px 8px;">Buscando...</div>';
+  // Use iTunes Search API (free, no auth)
+  fetch('https://itunes.apple.com/search?term='+encodeURIComponent(q)+'&media=music&limit=8&entity=song')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      res.innerHTML='';
+      if(!data.results||!data.results.length){
+        res.innerHTML='<div style="color:rgba(255,255,255,.3);font-size:.75rem;padding:4px 8px;">Sin resultados</div>';
+        return;
+      }
+      data.results.slice(0,6).forEach(function(t){
+        var item = document.createElement('div');
+        item.className='fl-music-result-item';
+        item.innerHTML='<img src="'+escHtml(t.artworkUrl60)+'" alt=""><div class="fl-music-result-info"><div class="fl-music-result-name">'+escHtml(t.trackName)+'</div><div class="fl-music-result-artist">'+escHtml(t.artistName)+'</div></div><span style="font-size:.65rem;color:rgba(255,255,255,.3);">30s</span>';
+        item.onclick = function(){ flSelectMusic(t); };
+        res.appendChild(item);
+      });
+    }).catch(function(){
+      res.innerHTML='<div style="color:rgba(255,255,255,.3);font-size:.75rem;padding:4px 8px;">Error al buscar</div>';
+    });
+}
+
+window.flSelectMusic = function(track){
+  _fl.selectedMusic = {
+    name: track.trackName,
+    artist: track.artistName,
+    preview: track.previewUrl,
+    image: track.artworkUrl60,
+  };
+  // Show selected
+  var disp = document.getElementById('flSelectedMusicDisplay');
+  disp.style.display='flex';
+  document.getElementById('flSelMusicImg').src = track.artworkUrl60;
+  document.getElementById('flSelMusicName').textContent = track.trackName;
+  document.getElementById('flSelMusicArtist').textContent = track.artistName;
+  document.getElementById('flMusicResults').innerHTML='';
+  document.getElementById('flMusicSearchInput').value='';
+  // Highlight
+  document.querySelectorAll('.fl-music-result-item').forEach(function(el){ el.classList.remove('selected'); });
+};
+
+window.flClearMusic = function(){
+  _fl.selectedMusic = null;
+  document.getElementById('flSelectedMusicDisplay').style.display='none';
+};
+
+// ── Publish ──
+window.flPublish = async function(){
+  if(!_fl.imgDataURLs.length){ toast('Agregá al menos una foto','err'); return; }
+  if(!window.CU){ toast('Iniciá sesión','err'); return; }
+
+  var btn = document.getElementById('flPublishBtn');
+  btn.textContent='Publicando... ⏳';
+  btn.disabled=true;
+
+  try {
+    // Upload images to Firebase Storage if available, otherwise use dataURLs
+    var photoURLs = [];
+    if(window.storageRef && window.uploadBytes && window.getDownloadURL){
+      for(var i=0;i<_fl.selectedFiles.length;i++){
+        var f = _fl.selectedFiles[i];
+        var sRef = window.storageRef(window.storage,'flashlatido/'+window.CU.id+'_'+Date.now()+'_'+i);
+        await window.uploadBytes(sRef, f);
+        var url = await window.getDownloadURL(sRef);
+        photoURLs.push(url);
+      }
+    } else {
+      // Fallback: store dataURLs (not ideal for large apps but works for demo)
+      photoURLs = _fl.imgDataURLs.map(function(d){ return d; });
+    }
+
+    var doc = {
+      uid:    window.CU.id,
+      nick:   window.CU.nick||'Usuario',
+      av:     window.CU.av||'',
+      photos: photoURLs,
+      caption: document.getElementById('flCaption').value.trim(),
+      time:   Date.now(),
+      likes:  [],
+      shares: 0,
+    };
+    if(_fl.selectedMusic){
+      doc.musicName    = _fl.selectedMusic.name;
+      doc.musicArtist  = _fl.selectedMusic.artist;
+      doc.musicPreview = _fl.selectedMusic.preview;
+      doc.musicImage   = _fl.selectedMusic.image;
+    }
+
+    await window.addDoc(window.collection(window.db,'flashlatido'), doc);
+    toast('¡FlashLatido publicado! ⚡','ok');
+    document.getElementById('flUploadModal').classList.remove('open');
+  } catch(e){
+    console.error('[FlashLatido] Error al publicar:',e);
+    toast('Error al publicar','err');
+  } finally {
+    btn.textContent='⚡ Publicar FlashLatido';
+    btn.disabled=false;
+  }
+};
+
+// ── Helpers ──
+function _timeAgo(ts){
+  var d = Date.now()-ts;
+  if(d<60000) return 'Ahora';
+  if(d<3600000) return Math.floor(d/60000)+'m';
+  if(d<86400000) return Math.floor(d/3600000)+'h';
+  return Math.floor(d/86400000)+'d';
+}
+function escHtml(s){
+  if(!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Patch gp to init FlashLatido
+var _gpOrig = window.gp;
+if(typeof _gpOrig === 'function'){
+  window.gp = function(id, ps){
+    _gpOrig.apply(this, arguments);
+    if(id==='flashlatido') setTimeout(window.initFlashLatido, 60);
+  };
+}
 
 })();
 </script>
@@ -9233,6 +10145,7 @@ window.gp = (id, pushState = true) => {
   if(id==='musica') { /* musica loaded on demand */ }
   if(id==='musica2') { if(typeof window.initMusica2==='function') setTimeout(window.initMusica2, 50); }
   if(id==='cinelatido') { if(typeof window.initCineLatido==='function') setTimeout(window.initCineLatido, 50); }
+  if(id==='flashlatido') { if(typeof window.initFlashLatido==='function') setTimeout(window.initFlashLatido, 50); }
   if(id==='compartir-spot') {
     spLoadData().then(()=>{ spRenderHome(); });
     const isAdmin = window.CU?.nick === 'Administrador' || window.CU?.nick === 'Administrador' || window.CU?.nick === 'Administrador' || window.CU?.email === 'synxyes@gmail.com' || window.CU?.role === 'admin';
@@ -26143,12 +27056,13 @@ window._MM_SECTIONS = [
   { icon:'🎵', label:'Videos Mus.',    action:()=>{ gp('musica');                                closeMobileMenu(); } },
   { icon:'🎵', label:'Música',          action:()=>{ gp('musica2');   initMusica2?.();           closeMobileMenu(); } },
   { icon:'🎬', label:'CineLatido',     action:()=>{ gp('cinelatido'); initCineLatido?.();        closeMobileMenu(); } },
+  { icon:'⚡', label:'FlashLatido',    action:()=>{ gp('flashlatido'); initFlashLatido?.();      closeMobileMenu(); } },
   { icon:'🔒', label:'Privacidad',     action:()=>{ gp('privacidad');                            closeMobileMenu(); } },
 ];
 
 // Auto-detecta secciones del sidebar que no estén ya en la lista
 function _mmAutoDetect(){
-  const known = new Set(['home','profile','amigos','match','fotos','reels','salas','confesionario','cerca','fotospopulares','visitantes','musica','cinelatido','privacidad','superadmin']);
+  const known = new Set(['home','profile','amigos','match','fotos','reels','salas','confesionario','cerca','fotospopulares','visitantes','musica','cinelatido','flashlatido','privacidad','superadmin']);
   document.querySelectorAll('.sl-item[onclick]').forEach(el=>{
     const m = el.getAttribute('onclick').match(/gp\('([^']+)'\)/);
     if(!m) return;
