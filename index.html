@@ -2,71 +2,924 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>App Integrada</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conexión – Encuentra tu match</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
-  <!-- Firebase -->
-  <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  const firebaseConfig = {
-    apiKey: "TU_API_KEY",
-    authDomain: "TU_AUTH_DOMAIN",
-    projectId: "TU_PROJECT_ID",
-    storageBucket: "TU_BUCKET",
-    messagingSenderId: "TU_SENDER_ID",
-    appId: "TU_APP_ID"
-  };
+    :root {
+      --rose:    #FF4D6D;
+      --coral:   #FF8C69;
+      --cream:   #FFF8F0;
+      --sand:    #F5EDE0;
+      --charcoal:#1C1C2E;
+      --slate:   #3D3D5C;
+      --muted:   #8C8CA1;
+      --white:   #FFFFFF;
+      --card-bg: rgba(255,255,255,0.92);
+      --blur:    blur(18px);
+      --radius:  18px;
+      --shadow:  0 8px 32px rgba(60,30,60,0.10);
+      --trans:   all 0.26s cubic-bezier(.4,0,.2,1);
+    }
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth(app);
-  const storage = getStorage(app);
+    html { scroll-behavior: smooth; }
 
-  window.db = db;
-  window.auth = auth;
-  window.storage = storage;
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--charcoal);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
 
-  // Cloudinary
-  const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/TU_CLOUD_NAME/upload";
-  const CLOUDINARY_PRESET = "TU_UPLOAD_PRESET";
+    /* ─── NAV ─── */
+    nav {
+      position: sticky; top: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px;
+      height: 64px;
+      background: rgba(255,248,240,0.85);
+      backdrop-filter: var(--blur);
+      border-bottom: 1px solid rgba(255,77,109,0.12);
+    }
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem; font-weight: 700;
+      color: var(--rose);
+      letter-spacing: -0.5px;
+    }
+    .nav-logo span { color: var(--charcoal); }
+    .nav-actions { display: flex; gap: 10px; align-items: center; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 20px; border-radius: 999px; font-size: .88rem; font-weight: 500; cursor: pointer; border: none; transition: var(--trans); text-decoration: none; }
+    .btn-ghost { background: transparent; color: var(--slate); border: 1.5px solid rgba(60,60,90,0.18); }
+    .btn-ghost:hover { background: var(--sand); }
+    .btn-primary { background: var(--rose); color: #fff; box-shadow: 0 4px 14px rgba(255,77,109,0.30); }
+    .btn-primary:hover { background: #e8375a; transform: translateY(-1px); }
+    .btn-sm { padding: 7px 15px; font-size: .82rem; }
 
-  window.uploadVideo = async function(file) {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", CLOUDINARY_PRESET);
+    /* ─── USER PILL ─── */
+    #user-pill {
+      display: none; align-items: center; gap: 10px;
+      background: var(--sand); border-radius: 999px;
+      padding: 5px 14px 5px 5px; cursor: pointer;
+    }
+    #user-pill img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+    #user-pill span { font-size: .85rem; font-weight: 500; }
 
-    const res = await fetch(CLOUDINARY_URL, {
-      method: "POST",
-      body: formData
-    });
+    /* ─── STORIES ROW ─── */
+    .stories-bar {
+      padding: 18px 24px 10px;
+      display: flex; gap: 14px; overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .stories-bar::-webkit-scrollbar { display: none; }
+    .story-item {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      cursor: pointer; flex-shrink: 0;
+      transition: var(--trans);
+    }
+    .story-item:hover { transform: scale(1.05); }
+    .story-ring {
+      width: 64px; height: 64px; border-radius: 50%;
+      padding: 3px;
+      background: linear-gradient(135deg, var(--rose), var(--coral));
+      box-shadow: 0 4px 12px rgba(255,77,109,0.25);
+    }
+    .story-ring img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2.5px solid var(--cream); }
+    .story-placeholder {
+      width: 100%; height: 100%; border-radius: 50%;
+      background: var(--sand);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      border: 2.5px solid var(--cream);
+    }
+    .story-name { font-size: .72rem; color: var(--slate); max-width: 64px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    const data = await res.json();
-    return data.secure_url;
-  };
+    /* ─── LAYOUT ─── */
+    .app-layout { display: flex; gap: 0; }
 
-  // ImgBB
-  const IMGBB_KEY = "TU_IMGBB_API_KEY";
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      width: 280px; flex-shrink: 0;
+      padding: 20px 16px;
+      border-right: 1px solid rgba(60,60,90,0.08);
+      min-height: calc(100vh - 64px);
+    }
+    .sidebar-section { margin-bottom: 28px; }
+    .sidebar-title { font-size: .72rem; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+    .filter-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: 999px; font-size: .82rem;
+      background: var(--sand); color: var(--slate); cursor: pointer;
+      border: 1.5px solid transparent; margin: 3px;
+      transition: var(--trans);
+    }
+    .filter-chip:hover, .filter-chip.active {
+      background: rgba(255,77,109,0.10); border-color: var(--rose); color: var(--rose);
+    }
+    .range-label { display: flex; justify-content: space-between; font-size: .8rem; color: var(--muted); margin-bottom: 6px; }
+    input[type=range] {
+      width: 100%; accent-color: var(--rose); cursor: pointer;
+    }
 
-  window.uploadImage = async function(file) {
-    const formData = new FormData();
-    formData.append("image", file);
+    /* ─── FEED ─── */
+    .feed { flex: 1; padding: 20px; }
+    .feed-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .feed-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; }
+    .feed-count { font-size: .82rem; color: var(--muted); }
 
-    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
-      method: "POST",
-      body: formData
-    });
+    .profiles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 18px;
+    }
 
-    const data = await res.json();
-    return data.data.url;
-  };
-  </script>
+    /* ─── PROFILE CARD ─── */
+    .profile-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: var(--trans);
+      position: relative;
+    }
+    .profile-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(60,30,60,0.14); }
+
+    .card-photo-wrap { position: relative; width: 100%; padding-top: 120%; overflow: hidden; background: var(--sand); }
+    .card-photo-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
+    .profile-card:hover .card-photo-wrap img { transform: scale(1.04); }
+    .card-photo-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 4rem; background: linear-gradient(135deg, #f5e0e8, #f0e5d8); }
+
+    .card-badge {
+      position: absolute; top: 12px; right: 12px;
+      background: rgba(255,255,255,0.88); backdrop-filter: blur(8px);
+      border-radius: 999px; padding: 4px 10px; font-size: .72rem; font-weight: 500;
+      color: var(--rose);
+    }
+    .card-badge.online::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #22c55e; margin-right: 5px; vertical-align: middle; }
+
+    .card-body { padding: 14px 16px 16px; }
+    .card-name-row { display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px; }
+    .card-name { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; }
+    .card-age { font-size: .9rem; color: var(--muted); }
+    .card-loc { font-size: .78rem; color: var(--muted); margin-bottom: 8px; }
+    .card-loc span { margin-right: 3px; }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px; }
+    .tag { background: var(--sand); padding: 3px 9px; border-radius: 999px; font-size: .72rem; color: var(--slate); }
+
+    .card-actions { display: flex; gap: 8px; }
+    .action-btn {
+      flex: 1; padding: 9px 0; border-radius: 999px; border: none; cursor: pointer;
+      font-size: .82rem; font-weight: 500; transition: var(--trans);
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .action-btn.like { background: rgba(255,77,109,0.10); color: var(--rose); }
+    .action-btn.like:hover { background: var(--rose); color: #fff; }
+    .action-btn.chat { background: var(--charcoal); color: #fff; }
+    .action-btn.chat:hover { background: var(--slate); }
+
+    /* ─── EMPTY STATE ─── */
+    .empty-state {
+      grid-column: 1/-1; text-align: center; padding: 60px 20px;
+      color: var(--muted);
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+    .empty-state p { font-size: 1rem; }
+
+    /* ─── SKELETON ─── */
+    .skeleton { background: linear-gradient(90deg, var(--sand) 25%, #ecdfd0 50%, var(--sand) 75%); background-size: 200%; animation: shimmer 1.4s infinite; border-radius: 8px; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    .skel-card { border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); background: var(--card-bg); }
+    .skel-photo { height: 220px; }
+    .skel-body { padding: 14px 16px; }
+    .skel-line { height: 12px; margin-bottom: 8px; border-radius: 6px; }
+
+    /* ─── AUTH OVERLAY ─── */
+    #auth-overlay {
+      display: none; position: fixed; inset: 0; z-index: 1000;
+      background: rgba(28,28,46,0.72); backdrop-filter: blur(8px);
+      align-items: center; justify-content: center;
+    }
+    #auth-overlay.show { display: flex; animation: fadeIn .25s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:scale(.96)} to{opacity:1;transform:scale(1)} }
+
+    .auth-card {
+      background: var(--white); border-radius: 24px;
+      width: min(420px, calc(100vw - 32px));
+      padding: 36px 32px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.18);
+      position: relative;
+    }
+    .auth-close {
+      position: absolute; top: 16px; right: 18px;
+      background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--muted);
+      line-height: 1; padding: 4px;
+    }
+    .auth-close:hover { color: var(--charcoal); }
+    .auth-logo { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--rose); font-weight: 700; margin-bottom: 4px; }
+    .auth-subtitle { font-size: .85rem; color: var(--muted); margin-bottom: 24px; }
+    .auth-tabs { display: flex; gap: 0; background: var(--sand); border-radius: 999px; padding: 4px; margin-bottom: 24px; }
+    .auth-tab {
+      flex: 1; padding: 8px 0; border-radius: 999px; border: none; background: none;
+      font-size: .9rem; font-weight: 500; cursor: pointer; color: var(--muted); transition: var(--trans);
+    }
+    .auth-tab.active { background: var(--white); color: var(--charcoal); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+    .auth-form { display: flex; flex-direction: column; gap: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: .8rem; font-weight: 500; color: var(--slate); }
+    .form-group input {
+      padding: 11px 14px; border-radius: 10px;
+      border: 1.5px solid rgba(60,60,90,0.15);
+      font-size: .92rem; font-family: inherit;
+      transition: var(--trans); outline: none;
+    }
+    .form-group input:focus { border-color: var(--rose); box-shadow: 0 0 0 3px rgba(255,77,109,0.12); }
+    .auth-submit { padding: 12px; border-radius: 999px; background: var(--rose); color: #fff; border: none; font-size: .95rem; font-weight: 600; cursor: pointer; transition: var(--trans); margin-top: 4px; }
+    .auth-submit:hover { background: #e8375a; }
+    .auth-submit:disabled { opacity: .6; cursor: not-allowed; }
+
+    .divider { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: .78rem; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(60,60,90,0.12); }
+
+    .google-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      padding: 11px 0; border-radius: 999px; border: 1.5px solid rgba(60,60,90,0.18);
+      background: var(--white); cursor: pointer; font-size: .9rem; font-weight: 500;
+      transition: var(--trans); font-family: inherit; color: var(--charcoal);
+    }
+    .google-btn:hover { background: var(--sand); }
+
+    .auth-error { font-size: .82rem; color: #e63946; background: rgba(230,57,70,0.08); padding: 8px 12px; border-radius: 8px; display: none; }
+    .auth-error.show { display: block; }
+
+    /* ─── TOAST ─── */
+    #toast {
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: var(--charcoal); color: #fff;
+      padding: 12px 22px; border-radius: 999px; font-size: .88rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      transition: transform .3s ease, opacity .3s ease;
+      opacity: 0; z-index: 2000; white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    /* ─── CHAT MODAL ─── */
+    #chat-modal {
+      display: none; position: fixed; inset: 0; z-index: 900;
+      background: rgba(28,28,46,0.65); backdrop-filter: blur(6px);
+      align-items: flex-end; justify-content: center; padding: 0 0 0 0;
+    }
+    #chat-modal.show { display: flex; animation: fadeIn .2s ease; }
+    .chat-panel {
+      background: var(--white); border-radius: 24px 24px 0 0;
+      width: min(520px, 100vw); height: 70vh;
+      display: flex; flex-direction: column;
+      box-shadow: 0 -8px 40px rgba(0,0,0,0.14);
+      padding: 0;
+      overflow: hidden;
+    }
+    .chat-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 18px 20px; border-bottom: 1px solid rgba(60,60,90,0.08);
+    }
+    .chat-avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: var(--sand); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; overflow: hidden; }
+    .chat-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .chat-header-info { flex: 1; }
+    .chat-header-name { font-weight: 600; font-size: .98rem; }
+    .chat-header-status { font-size: .75rem; color: #22c55e; }
+    .chat-close { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--muted); padding: 4px; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .chat-msg { max-width: 72%; padding: 10px 14px; border-radius: 16px; font-size: .88rem; line-height: 1.4; }
+    .chat-msg.me { align-self: flex-end; background: var(--rose); color: #fff; border-radius: 16px 16px 4px 16px; }
+    .chat-msg.them { align-self: flex-start; background: var(--sand); color: var(--charcoal); border-radius: 16px 16px 16px 4px; }
+    .chat-input-row {
+      display: flex; gap: 10px; padding: 14px 16px;
+      border-top: 1px solid rgba(60,60,90,0.08);
+    }
+    .chat-input {
+      flex: 1; padding: 10px 14px; border-radius: 999px;
+      border: 1.5px solid rgba(60,60,90,0.15); font-family: inherit; font-size: .9rem;
+      outline: none; transition: var(--trans);
+    }
+    .chat-input:focus { border-color: var(--rose); }
+    .chat-send { background: var(--rose); color: #fff; border: none; border-radius: 999px; padding: 10px 18px; cursor: pointer; font-size: .9rem; transition: var(--trans); }
+    .chat-send:hover { background: #e8375a; }
+
+    /* ─── REACTION PICKER ─── */
+    .reaction-strip {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;
+    }
+    .reaction-btn {
+      background: var(--sand); border: none; border-radius: 999px;
+      padding: 5px 11px; font-size: .85rem; cursor: pointer; transition: var(--trans);
+    }
+    .reaction-btn:hover { background: rgba(255,77,109,0.15); transform: scale(1.15); }
+    .reaction-count { font-size: .7rem; color: var(--muted); margin-left: 2px; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+    }
+    @media (max-width: 600px) {
+      .auth-card { padding: 28px 20px; }
+      .feed { padding: 12px; }
+      .profiles-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+    }
+  </style>
 </head>
-
 <body>
-  <h1>App lista 🚀</h1>
-  <p>Firebase + Cloudinary + ImgBB integrados</p>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">cone<span>xión</span></div>
+  <div class="nav-actions">
+    <div id="user-pill" onclick="showUserMenu()">
+      <img id="nav-avatar" src="" alt="">
+      <span id="nav-name"></span>
+    </div>
+    <button class="btn btn-ghost btn-sm" id="btn-login" onclick="openAuth('login')">Entrar</button>
+    <button class="btn btn-primary btn-sm" id="btn-register" onclick="openAuth('register')">Unirme</button>
+    <button class="btn btn-ghost btn-sm" id="btn-logout" style="display:none" onclick="logOut()">Salir</button>
+  </div>
+</nav>
+
+<!-- STORIES BAR -->
+<div class="stories-bar" id="stories-bar">
+  <div style="width:64px; opacity:.4; text-align:center; font-size:.7rem; color:var(--muted); padding-top:8px;">Cargando…</div>
+</div>
+
+<!-- LAYOUT -->
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">Buscar por</div>
+      <div>
+        <span class="filter-chip active" onclick="toggleChip(this,'Hombre')">👨 Hombres</span>
+        <span class="filter-chip" onclick="toggleChip(this,'Mujer')">👩 Mujeres</span>
+        <span class="filter-chip" onclick="toggleChip(this,'Todos')">🌈 Todos</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">Edad</div>
+      <div class="range-label"><span>18</span><span id="age-val">50</span></div>
+      <input type="range" min="18" max="80" value="50" oninput="document.getElementById('age-val').textContent=this.value; filterFeed()">
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">Intereses</div>
+      <div>
+        <span class="filter-chip" onclick="toggleChip(this,'Música')">🎵 Música</span>
+        <span class="filter-chip" onclick="toggleChip(this,'Viajes')">✈️ Viajes</span>
+        <span class="filter-chip" onclick="toggleChip(this,'Fitness')">🏋️ Fitness</span>
+        <span class="filter-chip" onclick="toggleChip(this,'Arte')">🎨 Arte</span>
+        <span class="filter-chip" onclick="toggleChip(this,'Cocina')">👨‍🍳 Cocina</span>
+        <span class="filter-chip" onclick="toggleChip(this,'Gaming')">🎮 Gaming</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- FEED -->
+  <main class="feed">
+    <div class="feed-header">
+      <div>
+        <div class="feed-title">Perfiles cercanos</div>
+        <div class="feed-count" id="feed-count">Cargando perfiles…</div>
+      </div>
+    </div>
+    <div class="profiles-grid" id="profiles-grid">
+      <!-- Skeletons -->
+      <div class="skel-card"><div class="skel-photo skeleton"></div><div class="skel-body"><div class="skel-line skeleton" style="width:60%"></div><div class="skel-line skeleton" style="width:80%"></div></div></div>
+      <div class="skel-card"><div class="skel-photo skeleton"></div><div class="skel-body"><div class="skel-line skeleton" style="width:50%"></div><div class="skel-line skeleton" style="width:70%"></div></div></div>
+      <div class="skel-card"><div class="skel-photo skeleton"></div><div class="skel-body"><div class="skel-line skeleton" style="width:65%"></div><div class="skel-line skeleton" style="width:85%"></div></div></div>
+    </div>
+  </main>
+</div>
+
+<!-- AUTH OVERLAY -->
+<div id="auth-overlay" onclick="overlayClick(event)">
+  <div class="auth-card">
+    <button class="auth-close" onclick="closeAuth()">✕</button>
+    <div class="auth-logo">conexión</div>
+    <div class="auth-subtitle" id="auth-subtitle">Crea tu cuenta o inicia sesión para interactuar</div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Ingresar</button>
+      <button class="auth-tab" id="tab-register" onclick="switchTab('register')">Registrarme</button>
+    </div>
+
+    <div id="auth-error" class="auth-error"></div>
+
+    <!-- LOGIN FORM -->
+    <div id="form-login" class="auth-form">
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="login-email" placeholder="tu@correo.com">
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="login-pass" placeholder="••••••••">
+      </div>
+      <button class="auth-submit" id="login-btn" onclick="doLogin()">Iniciar sesión</button>
+      <div class="divider">o continúa con</div>
+      <button class="google-btn" onclick="doGoogle()">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#4285F4" d="M45.5 24.6c0-1.6-.1-3.1-.4-4.6H24v8.7h12.1c-.5 2.7-2.1 5-4.4 6.5v5.4h7.1c4.1-3.8 6.7-9.4 6.7-16z"/><path fill="#34A853" d="M24 46c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.4c-2.1 1.4-4.8 2.2-8.8 2.2-6.7 0-12.4-4.5-14.4-10.6H2.2v5.6C6.1 41.3 14.4 46 24 46z"/><path fill="#FBBC05" d="M9.6 26.4c-.5-1.4-.8-3-.8-4.4s.3-3 .8-4.4v-5.6H2.2C.8 14.9 0 19.3 0 24s.8 9.1 2.2 12.1l7.4-5.7z"/><path fill="#EA4335" d="M24 9.5c3.8 0 7.1 1.3 9.8 3.8l7.3-7.3C37.9 2.1 32.5 0 24 0 14.4 0 6.1 4.7 2.2 11.9l7.4 5.6C11.6 14 17.3 9.5 24 9.5z"/></svg>
+        Continuar con Google
+      </button>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="form-register" class="auth-form" style="display:none">
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" id="reg-name" placeholder="Tu nombre">
+      </div>
+      <div class="form-group">
+        <label>Edad</label>
+        <input type="number" id="reg-age" placeholder="Ej: 25" min="18" max="100">
+      </div>
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="reg-email" placeholder="tu@correo.com">
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres">
+      </div>
+      <button class="auth-submit" id="register-btn" onclick="doRegister()">Crear cuenta</button>
+      <div class="divider">o continúa con</div>
+      <button class="google-btn" onclick="doGoogle()">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#4285F4" d="M45.5 24.6c0-1.6-.1-3.1-.4-4.6H24v8.7h12.1c-.5 2.7-2.1 5-4.4 6.5v5.4h7.1c4.1-3.8 6.7-9.4 6.7-16z"/><path fill="#34A853" d="M24 46c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.4c-2.1 1.4-4.8 2.2-8.8 2.2-6.7 0-12.4-4.5-14.4-10.6H2.2v5.6C6.1 41.3 14.4 46 24 46z"/><path fill="#FBBC05" d="M9.6 26.4c-.5-1.4-.8-3-.8-4.4s.3-3 .8-4.4v-5.6H2.2C.8 14.9 0 19.3 0 24s.8 9.1 2.2 12.1l7.4-5.7z"/><path fill="#EA4335" d="M24 9.5c3.8 0 7.1 1.3 9.8 3.8l7.3-7.3C37.9 2.1 32.5 0 24 0 14.4 0 6.1 4.7 2.2 11.9l7.4 5.6C11.6 14 17.3 9.5 24 9.5z"/></svg>
+        Continuar con Google
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT MODAL -->
+<div id="chat-modal" onclick="chatOverlayClick(event)">
+  <div class="chat-panel">
+    <div class="chat-header">
+      <div class="chat-avatar" id="chat-avatar-wrap">
+        <img id="chat-avatar-img" src="" alt="" style="display:none">
+        <span id="chat-avatar-emoji">💬</span>
+      </div>
+      <div class="chat-header-info">
+        <div class="chat-header-name" id="chat-with-name">Chat</div>
+        <div class="chat-header-status">En línea</div>
+      </div>
+      <button class="chat-close" onclick="closeChat()">✕</button>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-row">
+      <input type="text" class="chat-input" id="chat-input" placeholder="Escribe algo…" onkeydown="if(event.key==='Enter')sendMsg()">
+      <button class="chat-send" onclick="sendMsg()">Enviar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- FIREBASE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore, collection, onSnapshot, doc, setDoc, updateDoc,
+    arrayUnion, arrayRemove, getDoc, addDoc, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+    getAuth, onAuthStateChanged, signInWithEmailAndPassword,
+    createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider,
+    signOut, updateProfile
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  // ── CONFIG ── Reemplaza con tus credenciales de Firebase ──────────────────
+  const firebaseConfig = {
+    apiKey:            "TU_API_KEY",
+    authDomain:        "TU_AUTH_DOMAIN",
+    projectId:         "TU_PROJECT_ID",
+    storageBucket:     "TU_BUCKET",
+    messagingSenderId: "TU_SENDER_ID",
+    appId:             "TU_APP_ID"
+  };
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const app  = initializeApp(firebaseConfig);
+  const db   = getFirestore(app);
+  const auth = getAuth(app);
+  const gp   = new GoogleAuthProvider();
+
+  // ── State ────────────────────────────────────────────────────────────────
+  let currentUser  = null;
+  let allProfiles  = [];
+  let chatTargetId = null;
+  let chatUnsub    = null;
+  let activeFilters = { gender: [], interests: [], maxAge: 80 };
+
+  // ── Auth state watcher ───────────────────────────────────────────────────
+  onAuthStateChanged(auth, async user => {
+    currentUser = user;
+    updateNavUI(user);
+    if (user) {
+      await upsertUserProfile(user);
+    }
+  });
+
+  async function upsertUserProfile(user) {
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      await setDoc(ref, {
+        uid:       user.uid,
+        name:      user.displayName || 'Nuevo usuario',
+        age:       null,
+        photo:     user.photoURL || '',
+        interests: [],
+        gender:    '',
+        city:      '',
+        likes:     [],
+        reactions: {},
+        online:    true,
+        createdAt: serverTimestamp()
+      });
+    } else {
+      await updateDoc(ref, { online: true });
+    }
+  }
+
+  function updateNavUI(user) {
+    const pill   = document.getElementById('user-pill');
+    const btnL   = document.getElementById('btn-login');
+    const btnR   = document.getElementById('btn-register');
+    const btnOut = document.getElementById('btn-logout');
+    const avatar = document.getElementById('nav-avatar');
+    const name   = document.getElementById('nav-name');
+
+    if (user) {
+      pill.style.display = 'flex';
+      btnL.style.display = 'none';
+      btnR.style.display = 'none';
+      btnOut.style.display = 'inline-flex';
+      avatar.src = user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.displayName || 'U') + '&background=FF4D6D&color=fff';
+      name.textContent = (user.displayName || user.email || '').split(' ')[0];
+      closeAuth();
+    } else {
+      pill.style.display = 'none';
+      btnL.style.display = 'inline-flex';
+      btnR.style.display = 'inline-flex';
+      btnOut.style.display = 'none';
+    }
+    renderFeed();
+  }
+
+  // ── Real-time Firestore listener ─────────────────────────────────────────
+  onSnapshot(collection(db, 'users'), snapshot => {
+    allProfiles = snapshot.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(p => p.name && p.name !== 'Nuevo usuario');
+    renderFeed();
+    renderStories();
+  });
+
+  // ── Render Stories ───────────────────────────────────────────────────────
+  window.renderStories = function() {
+    const bar = document.getElementById('stories-bar');
+    const show = allProfiles.slice(0, 12);
+    if (!show.length) {
+      bar.innerHTML = '<div style="color:var(--muted);font-size:.8rem;padding-top:12px">Sin historias aún</div>';
+      return;
+    }
+    bar.innerHTML = show.map(p => `
+      <div class="story-item" onclick="requireAuth(null,'historia')">
+        <div class="story-ring">
+          ${p.photo
+            ? `<img src="${p.photo}" alt="${p.name}" onerror="this.style.display='none'">`
+            : `<div class="story-placeholder">${randomEmoji(p.name)}</div>`
+          }
+        </div>
+        <div class="story-name">${p.name.split(' ')[0]}</div>
+      </div>
+    `).join('');
+  };
+
+  // ── Render Feed ──────────────────────────────────────────────────────────
+  window.renderFeed = function() {
+    const grid = document.getElementById('profiles-grid');
+    const count = document.getElementById('feed-count');
+
+    let list = allProfiles.filter(p => {
+      if (currentUser && p.id === currentUser.uid) return false;
+      return true;
+    });
+
+    if (!list.length) {
+      count.textContent = 'Sin perfiles aún';
+      grid.innerHTML = `<div class="empty-state"><div class="icon">🌸</div><p>Sé el primero en registrarte</p></div>`;
+      return;
+    }
+
+    count.textContent = `${list.length} perfil${list.length !== 1 ? 'es' : ''} disponible${list.length !== 1 ? 's' : ''}`;
+
+    grid.innerHTML = list.map(p => buildCard(p)).join('');
+  };
+
+  function buildCard(p) {
+    const isLiked = currentUser && p.likes && p.likes.includes(currentUser.uid);
+    const tags = (p.interests || []).slice(0, 3).map(t => `<span class="tag">${t}</span>`).join('');
+    const photo = p.photo
+      ? `<img src="${p.photo}" alt="${p.name}" onerror="this.style.display='none'">`
+      : `<div class="card-photo-placeholder">${randomEmoji(p.name)}</div>`;
+    const badgeOnline = p.online ? '<span class="card-badge online">En línea</span>' : '';
+
+    const reactions = p.reactions || {};
+    const reactionEmojis = ['❤️','😍','🔥','👋'];
+    const reactionBtns = reactionEmojis.map(e => {
+      const cnt = Object.values(reactions).filter(r => r === e).length;
+      return `<button class="reaction-btn" onclick="handleReaction('${p.id}','${e}',event)">${e}${cnt ? `<span class="reaction-count">${cnt}</span>` : ''}</button>`;
+    }).join('');
+
+    return `
+      <div class="profile-card" data-id="${p.id}">
+        <div class="card-photo-wrap">
+          ${photo}
+          ${badgeOnline}
+        </div>
+        <div class="card-body">
+          <div class="card-name-row">
+            <span class="card-name">${p.name}</span>
+            ${p.age ? `<span class="card-age">${p.age}</span>` : ''}
+          </div>
+          ${p.city ? `<div class="card-loc"><span>📍</span>${p.city}</div>` : ''}
+          <div class="card-tags">${tags}</div>
+          <div class="reaction-strip">${reactionBtns}</div>
+          <div class="card-actions" style="margin-top:10px">
+            <button class="action-btn like ${isLiked ? 'liked' : ''}" onclick="handleLike('${p.id}',event)" style="${isLiked ? 'background:var(--rose);color:#fff' : ''}">
+              ${isLiked ? '❤️' : '🤍'} Me interesa
+            </button>
+            <button class="action-btn chat" onclick="handleChat('${p.id}','${escapeStr(p.name)}','${p.photo || ''}',event)">
+              💬 Chatear
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // ── Like ─────────────────────────────────────────────────────────────────
+  window.handleLike = async function(targetId, e) {
+    e.stopPropagation();
+    if (!requireAuth(e)) return;
+    const ref  = doc(db, 'users', targetId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return;
+    const likes = snap.data().likes || [];
+    if (likes.includes(currentUser.uid)) {
+      await updateDoc(ref, { likes: arrayRemove(currentUser.uid) });
+      showToast('Quitaste tu "me interesa"');
+    } else {
+      await updateDoc(ref, { likes: arrayUnion(currentUser.uid) });
+      showToast('❤️ ¡Le diste me interesa!');
+    }
+  };
+
+  // ── Reaction ──────────────────────────────────────────────────────────────
+  window.handleReaction = async function(targetId, emoji, e) {
+    e.stopPropagation();
+    if (!requireAuth(e)) return;
+    const ref  = doc(db, 'users', targetId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return;
+    const reactions = snap.data().reactions || {};
+    const myPrev = reactions[currentUser.uid];
+    if (myPrev === emoji) {
+      delete reactions[currentUser.uid];
+    } else {
+      reactions[currentUser.uid] = emoji;
+    }
+    await updateDoc(ref, { reactions });
+    showToast(`Reaccionaste con ${emoji}`);
+  };
+
+  // ── Chat ──────────────────────────────────────────────────────────────────
+  window.handleChat = function(targetId, targetName, targetPhoto, e) {
+    e && e.stopPropagation();
+    if (!requireAuth(e)) return;
+    openChat(targetId, targetName, targetPhoto);
+  };
+
+  function openChat(targetId, targetName, targetPhoto) {
+    chatTargetId = targetId;
+    document.getElementById('chat-with-name').textContent = targetName;
+    const img   = document.getElementById('chat-avatar-img');
+    const emoji = document.getElementById('chat-avatar-emoji');
+    if (targetPhoto) {
+      img.src = targetPhoto; img.style.display = 'block'; emoji.style.display = 'none';
+    } else {
+      img.style.display = 'none'; emoji.style.display = 'block';
+    }
+    document.getElementById('chat-messages').innerHTML = '';
+    document.getElementById('chat-modal').classList.add('show');
+
+    // Listen to messages in real-time
+    const chatId = [currentUser.uid, targetId].sort().join('_');
+    if (chatUnsub) chatUnsub();
+    chatUnsub = onSnapshot(collection(db, 'chats', chatId, 'messages'), snap => {
+      const msgs = snap.docs.map(d => d.data()).sort((a,b) => (a.ts?.seconds || 0) - (b.ts?.seconds || 0));
+      const box = document.getElementById('chat-messages');
+      box.innerHTML = msgs.map(m => `
+        <div class="chat-msg ${m.from === currentUser.uid ? 'me' : 'them'}">${escapeHtml(m.text)}</div>
+      `).join('');
+      box.scrollTop = box.scrollHeight;
+    });
+  }
+
+  window.closeChat = function() {
+    document.getElementById('chat-modal').classList.remove('show');
+    if (chatUnsub) { chatUnsub(); chatUnsub = null; }
+    chatTargetId = null;
+  };
+
+  window.chatOverlayClick = function(e) {
+    if (e.target === document.getElementById('chat-modal')) closeChat();
+  };
+
+  window.sendMsg = async function() {
+    const input = document.getElementById('chat-input');
+    const text  = input.value.trim();
+    if (!text || !chatTargetId || !currentUser) return;
+    input.value = '';
+    const chatId = [currentUser.uid, chatTargetId].sort().join('_');
+    await addDoc(collection(db, 'chats', chatId, 'messages'), {
+      from: currentUser.uid,
+      text,
+      ts: serverTimestamp()
+    });
+  };
+
+  // ── Auth helpers ──────────────────────────────────────────────────────────
+  window.requireAuth = function(e, action = 'interactuar') {
+    if (currentUser) return true;
+    e && e.stopPropagation && e.stopPropagation();
+    document.getElementById('auth-subtitle').textContent = `Inicia sesión para poder ${action}`;
+    openAuth('login');
+    return false;
+  };
+
+  window.openAuth = function(tab = 'login') {
+    document.getElementById('auth-overlay').classList.add('show');
+    switchTab(tab);
+  };
+
+  window.closeAuth = function() {
+    document.getElementById('auth-overlay').classList.remove('show');
+    clearAuthError();
+  };
+
+  window.overlayClick = function(e) {
+    if (e.target === document.getElementById('auth-overlay')) closeAuth();
+  };
+
+  window.switchTab = function(tab) {
+    document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+    document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+    document.getElementById('form-login').style.display    = tab === 'login'    ? 'flex' : 'none';
+    document.getElementById('form-register').style.display = tab === 'register' ? 'flex' : 'none';
+    clearAuthError();
+  };
+
+  function showAuthError(msg) {
+    const el = document.getElementById('auth-error');
+    el.textContent = msg; el.classList.add('show');
+  }
+  function clearAuthError() {
+    document.getElementById('auth-error').classList.remove('show');
+  }
+
+  window.doLogin = async function() {
+    const email = document.getElementById('login-email').value.trim();
+    const pass  = document.getElementById('login-pass').value;
+    if (!email || !pass) return showAuthError('Completa todos los campos');
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true; btn.textContent = 'Ingresando…';
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+      showToast('¡Bienvenido/a de vuelta! 👋');
+    } catch(err) {
+      showAuthError(friendlyError(err.code));
+    } finally {
+      btn.disabled = false; btn.textContent = 'Iniciar sesión';
+    }
+  };
+
+  window.doRegister = async function() {
+    const name  = document.getElementById('reg-name').value.trim();
+    const age   = parseInt(document.getElementById('reg-age').value);
+    const email = document.getElementById('reg-email').value.trim();
+    const pass  = document.getElementById('reg-pass').value;
+    if (!name || !email || !pass) return showAuthError('Completa todos los campos');
+    if (pass.length < 6) return showAuthError('La contraseña debe tener mínimo 6 caracteres');
+    if (age && (age < 18 || age > 100)) return showAuthError('Edad inválida');
+    const btn = document.getElementById('register-btn');
+    btn.disabled = true; btn.textContent = 'Creando cuenta…';
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, pass);
+      await updateProfile(cred.user, { displayName: name });
+      // Save to Firestore
+      await setDoc(doc(db, 'users', cred.user.uid), {
+        uid:       cred.user.uid,
+        name,
+        age:       age || null,
+        photo:     '',
+        interests: [],
+        gender:    '',
+        city:      '',
+        likes:     [],
+        reactions: {},
+        online:    true,
+        createdAt: serverTimestamp()
+      });
+      showToast('¡Cuenta creada! Bienvenido/a 🎉');
+    } catch(err) {
+      showAuthError(friendlyError(err.code));
+    } finally {
+      btn.disabled = false; btn.textContent = 'Crear cuenta';
+    }
+  };
+
+  window.doGoogle = async function() {
+    try {
+      await signInWithPopup(auth, gp);
+      showToast('¡Conectado con Google! 🎉');
+    } catch(err) {
+      showAuthError(friendlyError(err.code));
+    }
+  };
+
+  window.logOut = async function() {
+    if (currentUser) {
+      await updateDoc(doc(db, 'users', currentUser.uid), { online: false });
+    }
+    await signOut(auth);
+    showToast('Sesión cerrada. ¡Hasta pronto!');
+  };
+
+  function friendlyError(code) {
+    const map = {
+      'auth/user-not-found':      'No existe una cuenta con ese correo',
+      'auth/wrong-password':      'Contraseña incorrecta',
+      'auth/email-already-in-use':'Ya existe una cuenta con ese correo',
+      'auth/invalid-email':       'Correo no válido',
+      'auth/weak-password':       'La contraseña es muy débil',
+      'auth/popup-closed-by-user':'Cerraste la ventana de Google',
+      'auth/network-request-failed':'Sin conexión. Verifica tu red',
+    };
+    return map[code] || 'Ocurrió un error. Intenta de nuevo';
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────────────────
+  window.showToast = function(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), 3200);
+  };
+
+  // ── Utils ─────────────────────────────────────────────────────────────────
+  const emojiMap = {};
+  const emojis = ['🌺','🦋','🌙','⭐','🌸','🦄','🍀','🌻','🔮','🎭'];
+  function randomEmoji(name) {
+    if (!emojiMap[name]) emojiMap[name] = emojis[Math.abs(hashStr(name)) % emojis.length];
+    return emojiMap[name];
+  }
+  function hashStr(s) {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+    return h;
+  }
+  function escapeStr(s) { return (s || '').replace(/'/g, "\\'"); }
+  function escapeHtml(s) {
+    return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Filters ───────────────────────────────────────────────────────────────
+  window.toggleChip = function(el, val) {
+    el.classList.toggle('active');
+    renderFeed();
+  };
+
+  window.filterFeed = function() { renderFeed(); };
+
+  // ── User menu placeholder ─────────────────────────────────────────────────
+  window.showUserMenu = function() {
+    showToast('Perfil de usuario — próximamente ✨');
+  };
+</script>
 </body>
 </html>
