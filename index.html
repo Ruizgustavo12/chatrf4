@@ -9043,6 +9043,14 @@ function closeSV(){
   document.getElementById('storyViewer').classList.remove('open');
   if(_svAutoTimer){clearTimeout(_svAutoTimer);_svAutoTimer=null;}
   if(window._svViewsUnsub){ window._svViewsUnsub(); window._svViewsUnsub=null; }
+  // Stop any video playing in the story background
+  const svBg = document.getElementById('svBg');
+  if(svBg){
+    const videoEl = svBg.querySelector('video');
+    if(videoEl){ videoEl.pause(); videoEl.src=''; }
+    const iframeEl = svBg.querySelector('iframe');
+    if(iframeEl){ iframeEl.src=''; }
+  }
   const audioEl = document.getElementById('svAudioEl');
   if(audioEl){
     audioEl.pause();
@@ -9154,7 +9162,7 @@ function _renderViewersList(docs){
   }).join('');
 }
 document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'){ const sv=document.getElementById('storyViewer'); if(sv&&sv.classList.contains('open')) closeSV(); }
+  if(e.key==='Escape'){ const sv=document.getElementById('storyViewer'); if(sv&&sv.classList.contains('open')){ closeSV(); if(typeof gp==='function') gp('inicio'); return; } }
 });
 function svNav(dir){
   _svNavInGroup(dir);
