@@ -11976,8 +11976,7 @@ async function doReact(pid, emoji){
   } else {
     updates[`reactions.${uid}`] = emoji;
     updates[`reactionCounts.${emoji}`] = increment(1);
-    if(!prev)
-    if(p.userId && p.userId !== uid && !prev){
+    if(!prev && p.userId && p.userId !== uid){
       const preview = (p.text||'').slice(0,80) + ((p.text||'').length>80?'...':'');
       const postImg = (p.images&&p.images[0]) || p.imgUrl || null;
       sendNotifToUserWithPost(p.userId, `${emoji} ${window.CU.nick} reaccionó a tu publicación`, pid, { postImg, postPreviewText: preview||null });
@@ -18881,6 +18880,28 @@ async function _loadUserProfilePage(uid, nick){
     const _upList = document.getElementById('upPostsList');
     if(_upList) _upList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);">Cargando publicaciones...</div>';
 
+
+  function _mergeUserPostIntoCache(p){
+    const idx = (_posts||[]).findIndex(x=>x.id===p.id);
+    if(idx>=0){
+      const local = _posts[idx];
+      const merged = Object.assign({}, p);
+      if(local.reactions && window.CU){
+        const myUid = window.CU.id;
+        const serverHasMyRxn = p.reactions && p.reactions[myUid];
+        const localHasMyRxn  = local.reactions[myUid];
+        if(localHasMyRxn && !serverHasMyRxn){
+          merged.reactions = Object.assign({}, p.reactions||{}, {[myUid]: localHasMyRxn});
+        }
+      }
+      _posts[idx] = merged;
+      return merged;
+    } else {
+      (_posts||[]).unshift(p);
+      return p;
+    }
+  }
+
     function _renderUpPostsList(posts){
       const listEl = document.getElementById('upPostsList');
       if(!listEl) return;
@@ -18967,7 +18988,7 @@ async function _loadUserProfilePage(uid, nick){
       try {
         const snap = await getDocs(query(collection(db,'posts'), where('userId','==',uid)));
         userPosts = snap.docs.map(d=>({id:d.id,...d.data()}));
-        userPosts.forEach(p=>{ const idx=(_posts||[]).findIndex(x=>x.id===p.id); if(idx>=0) _posts[idx]=p; else (_posts||[]).unshift(p); });
+        userPosts = userPosts.map(p => _mergeUserPostIntoCache(p));
         _renderUpPostsList(userPosts);
         _updateUpFotos(userPosts);
       } catch(e){
@@ -18981,7 +19002,7 @@ async function _loadUserProfilePage(uid, nick){
       try {
         const snap = await getDocs(query(collection(db,'posts'), where('userId','==',retryUid)));
         userPosts = snap.docs.map(d=>({id:d.id,...d.data()}));
-        userPosts.forEach(p=>{ const idx=(_posts||[]).findIndex(x=>x.id===p.id); if(idx>=0) _posts[idx]=p; else (_posts||[]).unshift(p); });
+        userPosts = userPosts.map(p => _mergeUserPostIntoCache(p));
         _renderUpPostsList(userPosts);
         _updateUpFotos(userPosts);
       } catch(e){
@@ -18997,10 +19018,7 @@ async function _loadUserProfilePage(uid, nick){
           clearTimeout(window._upPostsTimeoutId);
           const isFirst = userPosts.length === 0;
           userPosts = snap.docs.map(d=>({id:d.id,...d.data()}));
-          userPosts.forEach(p=>{
-            const idx = (_posts||[]).findIndex(x=>x.id===p.id);
-            if(idx>=0) _posts[idx]=p; else (_posts||[]).unshift(p);
-          });
+          userPosts = userPosts.map(p => _mergeUserPostIntoCache(p));
           _renderUpPostsList(userPosts);
           if(isFirst) _updateUpFotos(userPosts);
         },
@@ -19009,7 +19027,7 @@ async function _loadUserProfilePage(uid, nick){
           console.warn('onSnapshot posts perfil error:', err);
           getDocs(query(collection(db,'posts'), where('userId','==',uid))).then(snap=>{
             userPosts = snap.docs.map(d=>({id:d.id,...d.data()}));
-            userPosts.forEach(p=>{ const idx=(_posts||[]).findIndex(x=>x.id===p.id); if(idx>=0) _posts[idx]=p; else (_posts||[]).unshift(p); });
+            userPosts = userPosts.map(p => _mergeUserPostIntoCache(p));
             _renderUpPostsList(userPosts);
             _updateUpFotos(userPosts);
           }).catch(()=>{
@@ -19022,7 +19040,7 @@ async function _loadUserProfilePage(uid, nick){
       console.warn('onSnapshot posts perfil setup error:', e);
       getDocs(query(collection(db,'posts'), where('userId','==',uid))).then(snap=>{
         userPosts = snap.docs.map(d=>({id:d.id,...d.data()}));
-        userPosts.forEach(p=>{ const idx=(_posts||[]).findIndex(x=>x.id===p.id); if(idx>=0) _posts[idx]=p; else (_posts||[]).unshift(p); });
+        userPosts = userPosts.map(p => _mergeUserPostIntoCache(p));
         _renderUpPostsList(userPosts);
         _updateUpFotos(userPosts);
       }).catch(()=>{
