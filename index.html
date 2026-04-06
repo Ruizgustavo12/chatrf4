@@ -20392,6 +20392,19 @@ function openChatWith(uid, nick){
   const inputRow = document.getElementById('chatInputRow');
   if(inputRow) inputRow.style.display='flex';
 
+  // Asegurar que el botón de micrófono esté visible al abrir el chat
+  setTimeout(function(){
+    const micBtn = document.getElementById('voiceMsgBtn');
+    const sendBtn = document.getElementById('chatSendBtn');
+    const inp = document.getElementById('chatInput');
+    if(micBtn && sendBtn && inp){
+      if(inp.value.trim().length === 0){
+        micBtn.style.display = 'block';
+        sendBtn.style.display = 'none';
+      }
+    }
+  }, 50);
+
   if(_unsubChat){ _unsubChat(); _unsubChat=null; }
   window._chatRxnCache = {};
   if(_presenceUnsub){ _presenceUnsub(); _presenceUnsub=null; }
@@ -21166,8 +21179,8 @@ function toggleVoiceBtn(){
 }
 
 async function toggleVoiceRecord(){
-  if(!window.CU?.verified){
-    toast('🎤 Mensajes de voz solo para usuarios ✅ Verificados','err');
+  if(!window.CU){
+    toast('Iniciá sesión para enviar audios','err');
     return;
   }
   if(_mediaRecorder && _mediaRecorder.state === 'recording'){
