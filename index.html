@@ -31366,13 +31366,7 @@ function mlHookPosts() {
 }
 
 function mlUpgradePosts() {
-  // Add ML reaction button to each post's action area
-// fb-like upgrade eliminado
-          }
-        }).catch(function(){});
-      }
-    }
-  });
+  // fb-like upgrade eliminado
 }
 
 setTimeout(mlHookPosts, 1500);
@@ -31575,7 +31569,7 @@ window.mlLoadMyVisitors = async function(targetEl) {
     snap.forEach(function(d){
       var v = d.data();
       if(!isPremium && shown >= 3){
-        if(shown === 3) html += '<div style="font-size:.75rem;color:#a855f7;text-align:center;padding:10px;cursor:pointer;" onclick="om(\'mPremium\')">🔒 '++(snap.size-3)+' visitantes más — Hazte Premium</div>';
+        if(shown === 3) html += '<div style="font-size:.75rem;color:#a855f7;text-align:center;padding:10px;cursor:pointer;" onclick="om(\'mPremium\')">🔒 '+(snap.size-3)+' visitantes más — Hazte Premium</div>';
         shown++; return;
       }
       var ago = mlTimeAgo(v.ts);
@@ -34059,7 +34053,7 @@ async function clPlutoFetchMovies(cat, offset, reset){
   // Si hay categoría específica, agregarla
   if(cat && cat !== 'all') params.set('genre', cat);
 
-  const url = `https://api.pluto.tv/v3/vod/categories?${params}`;
+  const url = `https://cinelatido2.synxyes.workers.dev/v3/vod/categories?${params}`;
 
   try {
     const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
@@ -34095,7 +34089,7 @@ async function clPlutoFetchMovies(cat, offset, reset){
   // Fallback: endpoint /v3/vod/slugs con categorías conocidas
   try {
     const catSlug = (cat === 'all') ? '' : cat;
-    const fallbackUrl = `https://api.pluto.tv/v3/vod/categories?appName=web&appVersion=9&clientID=web&deviceType=web&offset=${offset}&limit=${PLUTO_PAGE_SIZE}${catSlug ? '&genre='+encodeURIComponent(catSlug) : ''}`;
+    const fallbackUrl = `https://cinelatido2.synxyes.workers.dev/v3/vod/categories?appName=web&appVersion=9&clientID=web&deviceType=web&offset=${offset}&limit=${PLUTO_PAGE_SIZE}${catSlug ? '&genre='+encodeURIComponent(catSlug) : ''}`;
     const r2 = await fetch(fallbackUrl, { headers: { 'Accept': 'application/json' } });
     if(r2.ok){
       const d2 = await r2.json();
