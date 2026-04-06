@@ -9041,8 +9041,6 @@ function openSV(idx){
 }
 function closeSV(){
   document.getElementById('storyViewer').classList.remove('open');
-  const _svBgEl = document.getElementById('svBg');
-  if(_svBgEl) _svBgEl.innerHTML = '';
   if(_svAutoTimer){clearTimeout(_svAutoTimer);_svAutoTimer=null;}
   if(window._svViewsUnsub){ window._svViewsUnsub(); window._svViewsUnsub=null; }
   const audioEl = document.getElementById('svAudioEl');
@@ -9156,14 +9154,7 @@ function _renderViewersList(docs){
   }).join('');
 }
 document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'){
-    const sv=document.getElementById('storyViewer');
-    if(sv&&sv.classList.contains('open')){
-      closeSV();
-      if(typeof window.gp==='function') window.gp('home');
-      return;
-    }
-  }
+  if(e.key==='Escape'){ const sv=document.getElementById('storyViewer'); if(sv&&sv.classList.contains('open')) closeSV(); }
 });
 function svNav(dir){
   _svNavInGroup(dir);
@@ -21223,7 +21214,7 @@ async function startVoiceRecord(){
   _voiceTimerInterval = setInterval(()=>{
     _voiceSeconds++;
     updateVoiceTimer();
-    if(_voiceSeconds >= 60){ stopAndSendVoice(); } // max 60s
+    if(_voiceSeconds >= 30){ stopAndSendVoice(); } // max 30s
   }, 1000);
 
   animateVoiceWave();
@@ -21306,22 +21297,23 @@ async function stopAndSendVoice(){
     const ext = mimeType.includes('ogg') ? 'ogg' : mimeType.includes('mp4') ? 'mp4' : 'webm';
     const formData = new FormData();
     formData.append('file', blob, 'voice_' + Date.now() + '.' + ext);
-    formData.append('upload_preset', 'charlasrf4_audio');
+    formData.append('UPLOADCARE_PUB_KEY', '430bd102b7a088f165d1');
+    formData.append('UPLOADCARE_STORE', '1');
 
-    const res = await fetch('https://api.cloudinary.com/v1_1/da0n5tg3g/video/upload', {
+    const res = await fetch('https://upload.uploadcare.com/base/', {
       method: 'POST',
       body: formData
     });
     const data = await res.json();
-    console.log('[Voice] Cloudinary:', data);
+    console.log('[Voice] Uploadcare:', data);
 
-    if(!data.secure_url) throw new Error(data.error?.message || 'Upload falló');
+    if(!data.file) throw new Error('Upload falló');
 
     const chatId = [window.CU.id, _chatUserId].sort().join('_');
     await addDoc(collection(db,'chats',chatId,'messages'),{
       uid: window.CU.id,
       nick: window.CU.nick,
-      audioUrl: data.secure_url,
+      audioUrl: 'https://ucarecdn.com/' + data.file + '/',
       audioDuration: duration,
       text: '',
       time: serverTimestamp()
