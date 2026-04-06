@@ -7490,6 +7490,7 @@ async function uploadVideo(file, folder) {
   if(!data.secure_url) throw new Error(JSON.stringify(data.error) || 'Error subiendo video');
   return data.secure_url;
 }
+window.uploadVideo = uploadVideo;
 
 window._verifUsers = {};
 window._usersShop = {}; // cache shopEquipped
