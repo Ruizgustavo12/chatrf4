@@ -2267,7 +2267,13 @@ button:not(.tb-nav-btn):not(.bottom-nav-btn):not(.ml-rxn-btn):not([disabled]) {
         <div class="fl-act-av-plus">+</div>
       </div>
       <!-- Like -->
-      <button class="fl-act" id="flLikeBtn" onclick="flToggleLike()">
+      <button class="fl-act" id="flLikeBtn"
+        ontouchstart="window._flHoldT=setTimeout(function(){window._flHoldT=null;flShowRxnPopup(document.getElementById('flLikeBtn'))},400)"
+        ontouchend="if(window._flHoldT){clearTimeout(window._flHoldT);window._flHoldT=null;flToggleLike()}"
+        ontouchmove="if(window._flHoldT){clearTimeout(window._flHoldT);window._flHoldT=null}"
+        onmousedown="window._flHoldT=setTimeout(function(){window._flHoldT=null;flShowRxnPopup(document.getElementById('flLikeBtn'))},400)"
+        onmouseup="if(window._flHoldT){clearTimeout(window._flHoldT);window._flHoldT=null;flToggleLike()}"
+        onmouseleave="if(window._flHoldT){clearTimeout(window._flHoldT);window._flHoldT=null}">
         <div class="fl-act-circle">❤️</div>
         <span class="fl-act-n" id="flLikeCount">0</span>
       </button>
@@ -2771,17 +2777,19 @@ function _listenComments(){
       var av = c.av
         ? '<img class="fl-cmt-av" src="'+escHtml(c.av)+'" alt="" onerror="this.style.background=\'#555\'">'
         : '<div class="fl-cmt-av" style="background:linear-gradient(135deg,#e91e8c,#c2185b);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;color:#fff;">'+escHtml((c.nick||'?')[0].toUpperCase())+'</div>';
+      var safeNick = escHtml(c.nick||'Usuario');
       div.innerHTML = av +
         '<div class="fl-cmt-body">'+
-          '<span class="fl-cmt-nick">'+escHtml(c.nick||'Usuario')+'</span>'+
+          '<span class="fl-cmt-nick">'+safeNick+'</span>'+
+          (c.replyTo ? '<span class="fl-cmt-reply-to" style="color:rgba(255,255,255,.5);font-size:.78rem;"> ↩ @'+escHtml(c.replyTo)+'</span>' : '')+
           '<span class="fl-cmt-text">'+escHtml(c.text||'')+'</span>'+
           '<div class="fl-cmt-meta">'+
             '<span class="fl-cmt-time">'+timeStr+'</span>'+
-            '<button class="fl-cmt-reply">Responder</button>'+
+            '<button class="fl-cmt-reply" onclick="flSetReply(\''+safeNick+'\')">Responder</button>'+
           '</div>'+
         '</div>'+
-        '<button class="fl-cmt-like-btn" onclick="flLikeComment(\''+escHtml(s.id)+'\',\''+escHtml(docId)+'\',this)" data-likes="'+(c.likeCount||0)+'">'+
-          '<span>🤍</span>'+
+        '<button class="fl-cmt-like-btn" onclick="flShowCmtRxn(event,\''+escHtml(s.id)+'\',\''+escHtml(docId)+'\',this)" data-likes="'+(c.likeCount||0)+'" data-liked="'+(c.likedBy&&window.CU&&c.likedBy.includes(window.CU.id)?'1':'0')+'">'+
+          '<span>'+(c.likedBy&&window.CU&&c.likedBy.includes(window.CU.id)?'❤️':'🤍')+'</span>'+
           '<span>'+(c.likeCount||0)+'</span>'+
         '</button>';
       el.appendChild(div);
@@ -35850,8 +35858,312 @@ if(document.getElementById('clCuradoCats')){
 })();
 </script>
 
+
+<!-- ═══════════════════════════════════════════════════════════
+     PARCHE FlashLatido — Reacciones en fotos + Responder comentarios
+════════════════════════════════════════════════════════════════ -->
+<style>
+/* Popup reacciones foto FlashLatido */
+#flRxnPopup {
+  display:none; position:fixed; z-index:99999;
+  background:rgba(20,20,20,.96); border:1px solid rgba(233,30,140,.5);
+  border-radius:50px; padding:8px 14px;
+  box-shadow:0 8px 32px rgba(0,0,0,.8);
+  flex-direction:row; gap:2px; align-items:flex-end;
+}
+#flRxnPopup.show { display:flex; animation:flRxnPop .18s ease; }
+@keyframes flRxnPop {
+  from{opacity:0;transform:scale(.6) translateY(10px)}
+  to{opacity:1;transform:scale(1) translateY(0)}
+}
+.fl-rxn-opt {
+  background:none; border:none; cursor:pointer;
+  font-size:1.9rem; padding:4px; border-radius:50%;
+  transition:transform .13s; line-height:1;
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+}
+.fl-rxn-opt:hover,.fl-rxn-opt:active { transform:scale(1.5) translateY(-8px); }
+.fl-rxn-opt .fl-rxn-lbl {
+  font-size:.52rem; color:#fff; white-space:nowrap;
+  opacity:0; transition:opacity .15s; font-family:'Exo 2',sans-serif; pointer-events:none;
+}
+.fl-rxn-opt:hover .fl-rxn-lbl,.fl-rxn-opt:active .fl-rxn-lbl { opacity:1; }
+
+/* Popup reacciones comentario FlashLatido */
+#flCmtRxnPopup {
+  display:none; position:fixed; z-index:99999;
+  background:rgba(20,20,20,.96); border:1px solid rgba(233,30,140,.35);
+  border-radius:50px; padding:6px 10px;
+  box-shadow:0 6px 24px rgba(0,0,0,.7);
+  flex-direction:row; gap:3px; align-items:center;
+}
+#flCmtRxnPopup.show { display:flex; }
+.fl-crxn-opt {
+  background:none; border:none; cursor:pointer;
+  font-size:1.45rem; padding:3px; border-radius:50%;
+  transition:transform .12s; line-height:1;
+}
+.fl-crxn-opt:hover,.fl-crxn-opt:active { transform:scale(1.5) translateY(-5px); }
+
+/* Barra de respuesta activa */
+#flReplyBar {
+  display:none; background:rgba(233,30,140,.12);
+  border-top:1px solid rgba(233,30,140,.3);
+  padding:6px 14px; font-size:.82rem; color:rgba(255,255,255,.8);
+  align-items:center; justify-content:space-between; gap:8px;
+}
+#flReplyBar.show { display:flex; }
+#flReplyBar strong { color:#e91e8c; }
+#flReplyBarClose {
+  background:none; border:none; color:rgba(255,255,255,.5);
+  font-size:1rem; cursor:pointer; padding:0 4px; line-height:1; flex-shrink:0;
+}
+</style>
+
+<!-- Popup reacciones foto -->
+<div id="flRxnPopup">
+  <button class="fl-rxn-opt" onclick="flDoRxn('❤️')">❤️<span class="fl-rxn-lbl">Corazón</span></button>
+  <button class="fl-rxn-opt" onclick="flDoRxn('🔥')">🔥<span class="fl-rxn-lbl">Fuego</span></button>
+  <button class="fl-rxn-opt" onclick="flDoRxn('😍')">😍<span class="fl-rxn-lbl">Enamorado</span></button>
+  <button class="fl-rxn-opt" onclick="flDoRxn('💘')">💘<span class="fl-rxn-lbl">Me atrae</span></button>
+  <button class="fl-rxn-opt" onclick="flDoRxn('👀')">👀<span class="fl-rxn-lbl">Te miro</span></button>
+  <button class="fl-rxn-opt" onclick="flDoRxn('😂')">😂<span class="fl-rxn-lbl">Jaja</span></button>
+</div>
+
+<!-- Popup reacciones comentario -->
+<div id="flCmtRxnPopup">
+  <button class="fl-crxn-opt" onclick="flDoCmtRxn('❤️')">❤️</button>
+  <button class="fl-crxn-opt" onclick="flDoCmtRxn('🔥')">🔥</button>
+  <button class="fl-crxn-opt" onclick="flDoCmtRxn('😂')">😂</button>
+  <button class="fl-crxn-opt" onclick="flDoCmtRxn('😮')">😮</button>
+  <button class="fl-crxn-opt" onclick="flDoCmtRxn('💘')">💘</button>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ── Estado interno ── */
+var _flRxnHoldTimer  = null;
+var _flCmtRxnTarget  = null; // { storyId, commentId, btn }
+
+/* ════════════════════════════════════════
+   1. REACCIONES EN FOTO (botón ❤️)
+   Tap rápido = like toggle
+   Mantener 400 ms = popup de emojis
+════════════════════════════════════════ */
+function flInitLikeBtn(){
+  var btn = document.getElementById('flLikeBtn');
+  if(!btn || btn._flPatch) return;
+  btn._flPatch = true;
+  btn.removeAttribute('onclick');
+
+  function onStart(e){
+    _flRxnHoldTimer = setTimeout(function(){
+      _flRxnHoldTimer = null;
+      flShowRxnPopup(btn);
+    }, 400);
+  }
+  function onEnd(e){
+    if(_flRxnHoldTimer !== null){
+      clearTimeout(_flRxnHoldTimer); _flRxnHoldTimer = null;
+      if(typeof window.flToggleLike==='function') window.flToggleLike();
+    }
+  }
+  function onMove(){ if(_flRxnHoldTimer){ clearTimeout(_flRxnHoldTimer); _flRxnHoldTimer=null; } }
+
+  btn.addEventListener('touchstart', onStart, {passive:true});
+  btn.addEventListener('touchend',   onEnd);
+  btn.addEventListener('touchmove',  onMove, {passive:true});
+  btn.addEventListener('mousedown',  onStart);
+  btn.addEventListener('mouseup',    onEnd);
+  btn.addEventListener('mouseleave', onMove);
+}
+
+function flShowRxnPopup(triggerEl){
+  var pop = document.getElementById('flRxnPopup');
+  if(!pop) return;
+  var rect = triggerEl.getBoundingClientRect();
+  pop.style.bottom = (window.innerHeight - rect.top + 10) + 'px';
+  pop.style.left   = Math.max(4, rect.left - 140) + 'px';
+  pop.classList.add('show');
+  setTimeout(function(){
+    function away(e){
+      if(!pop.contains(e.target)){ pop.classList.remove('show'); document.removeEventListener('click',away); document.removeEventListener('touchend',away); }
+    }
+    document.addEventListener('click', away);
+    document.addEventListener('touchend', away);
+  }, 80);
+}
+
+window.flDoRxn = async function(emoji){
+  var pop = document.getElementById('flRxnPopup');
+  if(pop) pop.classList.remove('show');
+  if(!window.CU){ if(typeof toast==='function') toast('Iniciá sesión para reaccionar','err'); return; }
+  var fl = window._fl;
+  if(!fl || !fl.stories) return;
+  var s = fl.stories[fl.currentIdx]; if(!s) return;
+  try{
+    var ref  = window.doc(window.db,'flashlatido',s.id);
+    var snap = await window.getDoc(ref);
+    var data = snap.exists() ? snap.data() : {};
+    var rxns = JSON.parse(JSON.stringify(data.reactions||{}));
+    var uid  = window.CU.id;
+    /* Quitar reacción anterior */
+    var prevEmoji = null;
+    Object.keys(rxns).forEach(function(em){
+      if(Array.isArray(rxns[em]) && rxns[em].includes(uid)){ prevEmoji=em; rxns[em]=rxns[em].filter(function(u){return u!==uid;}); }
+    });
+    /* Toggle: si mismo emoji → quitar, si diferente → agregar */
+    if(prevEmoji !== emoji){
+      if(!rxns[emoji]) rxns[emoji]=[];
+      rxns[emoji].push(uid);
+    }
+    /* likes legacy */
+    var likes = data.likes||[];
+    if(!likes.includes(uid) && prevEmoji!==emoji) likes=[...likes,uid];
+    if(prevEmoji===emoji) likes=likes.filter(function(u){return u!==uid;});
+    await window.updateDoc(ref,{reactions:rxns, likes:likes});
+    /* Actualizar botón visualmente */
+    var btn=document.getElementById('flLikeBtn');
+    var circle=btn?btn.querySelector('.fl-act-circle'):null;
+    if(circle) circle.textContent = (prevEmoji!==emoji) ? emoji : '❤️';
+    if(btn) btn.classList.toggle('fl-act-liked', prevEmoji!==emoji);
+    /* Notificación */
+    if(prevEmoji!==emoji && s.uid && s.uid!==uid && window.arrayUnion){
+      window.updateDoc(window.doc(window.db,'users',s.uid),{notifs:window.arrayUnion({
+        text:emoji+' '+(window.CU.nick||'Alguien')+' reaccionó a tu FlashLatido'+(s.caption?': "'+s.caption.slice(0,40)+'"':''),
+        time:Date.now(),read:false,fromUid:uid,fromAv:window.CU.av||'',fromNick:window.CU.nick||'',type:'flashlatido_like',refId:s.id
+      })}).catch(function(){});
+    }
+  } catch(e){ if(typeof toast==='function') toast('Error al reaccionar','err'); console.error('[FL]flDoRxn',e); }
+};
+
+/* ════════════════════════════════════════
+   2. RESPONDER COMENTARIOS
+════════════════════════════════════════ */
+function flInjectReplyBar(){
+  if(document.getElementById('flReplyBar')) return;
+  var panel = document.getElementById('flCommentsPanel');
+  if(!panel) return;
+  var bar = document.createElement('div');
+  bar.id  = 'flReplyBar';
+  bar.innerHTML = '<span>Respondiendo a <strong id="flReplyBarNick">@alguien</strong></span><button id="flReplyBarClose" onclick="flCancelReply()">✕</button>';
+  var inputRow = panel.querySelector('.fl-cmt-input-row');
+  if(inputRow) panel.insertBefore(bar, inputRow);
+  else panel.appendChild(bar);
+}
+
+window.flSetReply = function(nick){
+  flInjectReplyBar();
+  var bar  = document.getElementById('flReplyBar');
+  var lbl  = document.getElementById('flReplyBarNick');
+  var inp  = document.getElementById('flCommentInput');
+  if(!bar) return;
+  if(lbl) lbl.textContent = '@'+nick;
+  bar._replyNick = nick;
+  bar.classList.add('show');
+  if(inp){ inp.placeholder='Respondiendo a @'+nick+'...'; inp.focus(); inp.value=''; }
+};
+
+window.flCancelReply = function(){
+  var bar = document.getElementById('flReplyBar');
+  var inp = document.getElementById('flCommentInput');
+  if(bar){ bar.classList.remove('show'); bar._replyNick=null; }
+  if(inp) inp.placeholder='Agregá un comentario...';
+};
+
+/* Override flSendComment para enviar replyTo */
+var _origFlSend = window.flSendComment;
+window.flSendComment = async function(){
+  if(!window.CU){ if(typeof toast==='function') toast('Iniciá sesión para comentar','err'); return; }
+  var fl=window._fl; if(!fl||!fl.stories) return;
+  var s=fl.stories[fl.currentIdx]; if(!s) return;
+  var inp=document.getElementById('flCommentInput');
+  var text=(inp?inp.value:'').trim(); if(!text) return;
+  var bar=document.getElementById('flReplyBar');
+  var replyTo=bar&&bar._replyNick?bar._replyNick:null;
+  inp.value='';
+  window.flCancelReply();
+  try{
+    var d={text:text,uid:window.CU.id,nick:window.CU.nick||'Usuario',av:window.CU.av||'',time:Date.now(),likeCount:0,likedBy:[]};
+    if(replyTo) d.replyTo=replyTo;
+    await window.addDoc(window.collection(window.db,'flashlatido',s.id,'comments'),d);
+    if(s.uid&&s.uid!==window.CU.id&&window.arrayUnion){
+      window.updateDoc(window.doc(window.db,'users',s.uid),{notifs:window.arrayUnion({
+        text:'💬 '+(window.CU.nick||'Alguien')+' comentó en tu FlashLatido: "'+text.slice(0,60)+'"',
+        time:Date.now(),read:false,fromUid:window.CU.id,fromAv:window.CU.av||'',fromNick:window.CU.nick||'',type:'flashlatido_comment',refId:s.id
+      })}).catch(function(){});
+    }
+  } catch(e){ if(typeof toast==='function') toast('Error al comentar','err'); console.error('[FL]send',e); }
+};
+
+/* ════════════════════════════════════════
+   3. REACCIONES EN COMENTARIOS
+════════════════════════════════════════ */
+window.flShowCmtRxn = function(e, storyId, commentId, btn){
+  e.stopPropagation();
+  var pop=document.getElementById('flCmtRxnPopup'); if(!pop) return;
+  _flCmtRxnTarget={storyId:storyId,commentId:commentId,btn:btn};
+  var rect=btn.getBoundingClientRect();
+  pop.style.bottom=(window.innerHeight-rect.top+6)+'px';
+  pop.style.left=Math.max(4,rect.left-80)+'px';
+  pop.classList.add('show');
+  setTimeout(function(){
+    function away(ev){ if(!pop.contains(ev.target)){ pop.classList.remove('show'); document.removeEventListener('click',away); document.removeEventListener('touchend',away); } }
+    document.addEventListener('click',away);
+    document.addEventListener('touchend',away);
+  },80);
+};
+
+window.flDoCmtRxn = async function(emoji){
+  var pop=document.getElementById('flCmtRxnPopup'); if(pop) pop.classList.remove('show');
+  if(!window.CU){ if(typeof toast==='function') toast('Iniciá sesión','err'); return; }
+  var t=_flCmtRxnTarget; _flCmtRxnTarget=null; if(!t) return;
+  var uid=window.CU.id;
+  var liked=t.btn.dataset.liked==='1';
+  var newLiked=!liked;
+  var prev=parseInt(t.btn.dataset.likes||0);
+  var next=newLiked?prev+1:Math.max(0,prev-1);
+  t.btn.dataset.liked=newLiked?'1':'0';
+  t.btn.dataset.likes=next;
+  t.btn.innerHTML='<span>'+(newLiked?emoji:'🤍')+'</span><span>'+next+'</span>';
+  try{
+    var ref=window.doc(window.db,'flashlatido',t.storyId,'comments',t.commentId);
+    var snap=await window.getDoc(ref);
+    var data=snap.exists()?snap.data():{};
+    var lb=data.likedBy||[];
+    if(newLiked){ if(!lb.includes(uid)) lb.push(uid); } else { lb=lb.filter(function(u){return u!==uid;}); }
+    await window.updateDoc(ref,{likeCount:next,likedBy:lb});
+  } catch(e){ console.warn('[FL]cmtRxn',e); }
+};
+
+/* Compatibilidad con llamadas antiguas a flLikeComment */
+window.flLikeComment = function(storyId, commentId, btn){
+  _flCmtRxnTarget={storyId:storyId,commentId:commentId,btn:btn};
+  window.flDoCmtRxn('❤️');
+};
+
+/* ════════════════════════════════════════
+   4. HOOKS DE INICIALIZACIÓN
+════════════════════════════════════════ */
+var _origInitFL = window.initFlashLatido;
+window.initFlashLatido = async function(){
+  if(typeof _origInitFL==='function') await _origInitFL.apply(this,arguments);
+  flInjectReplyBar();
+  setTimeout(flInitLikeBtn, 400);
+};
+
+var _origOpenCmts = window.flOpenComments;
+window.flOpenComments = function(){
+  flInjectReplyBar();
+  if(typeof _origOpenCmts==='function') _origOpenCmts.apply(this,arguments);
+};
+
+/* Aplicar si ya está en el DOM */
+if(document.getElementById('flLikeBtn'))       setTimeout(flInitLikeBtn,   200);
+if(document.getElementById('flCommentsPanel')) flInjectReplyBar();
+
+})();
+</script>
 </html>
-
-
-
-
