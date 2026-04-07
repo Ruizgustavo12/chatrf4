@@ -3086,34 +3086,18 @@ window.flPublish=async function(){
       bookmarks: 0
     };
 
-    var hasStorage = window.storageRef && window.uploadBytes && window.getDownloadURL && window.storage;
-
     if(isVideo){
-      var videoURL = '';
-      if(hasStorage){
-        toast('Subiendo video...','ok');
-        var vRef = window.storageRef(window.storage,'flashlatido/vid_'+window.CU.id+'_'+Date.now());
-        var vSnap = await window.uploadBytes(vRef, _fl.selectedVideoFile);
-        videoURL  = await window.getDownloadURL(vSnap.ref);
-      } else {
-        // Fallback: base64 (solo para pruebas sin storage)
-        videoURL = URL.createObjectURL(_fl.selectedVideoFile);
-      }
+      toast('Subiendo video... ⏳','ok');
+      var videoURL = await window.uploadVideo(_fl.selectedVideoFile, 'flashlatido');
       docData.videoURL = videoURL;
       docData.type     = 'video';
       docData.photos   = [];
     } else {
+      toast('Subiendo fotos... ⏳','ok');
       var photoURLs = [];
-      if(hasStorage){
-        toast('Subiendo fotos...','ok');
-        for(var i=0; i<_fl.selectedFiles.length; i++){
-          var sRef  = window.storageRef(window.storage,'flashlatido/'+window.CU.id+'_'+Date.now()+'_'+i);
-          var sSnap = await window.uploadBytes(sRef, _fl.selectedFiles[i]);
-          photoURLs.push(await window.getDownloadURL(sSnap.ref));
-        }
-      } else {
-        // Fallback: usar dataURLs directamente
-        photoURLs = _fl.imgDataURLs.slice();
+      for(var i=0; i<_fl.selectedFiles.length; i++){
+        var url = await window.uploadImage(_fl.selectedFiles[i], 'flashlatido');
+        photoURLs.push(url);
       }
       if(!photoURLs.length){ toast('Error al subir las fotos','err'); return; }
       docData.photos = photoURLs;
