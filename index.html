@@ -52,7 +52,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
 #feedWrap{flex:1;overflow-y:scroll;overflow-x:hidden;scroll-snap-type:y mandatory;scrollbar-width:none;background:var(--bg)}
 #feedWrap::-webkit-scrollbar{display:none}
 .pst{width:100%;height:100dvh;scroll-snap-align:start;scroll-snap-stop:always;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--bg);padding:56px 0 70px}
-.pst-card{position:relative;width:calc(100% - 32px);max-width:360px;height:100%;border-radius:22px;overflow:hidden;background:#000;box-shadow:0 12px 48px rgba(0,0,0,.8);display:flex;align-items:flex-end}
+.pst-card{position:relative;width:calc(100% - 32px);max-width:360px;aspect-ratio:4/5;border-radius:22px;overflow:hidden;background:#000;box-shadow:0 12px 48px rgba(0,0,0,.8);display:flex;align-items:flex-end}
 .pst-media{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:22px}
 .pst-veil{position:absolute;inset:0;border-radius:22px;background:linear-gradient(to top,rgba(0,0,0,.88) 0%,rgba(0,0,0,.04) 55%,transparent 100%)}
 .pst-info{position:relative;z-index:2;padding:14px 70px 22px 16px;flex:1}
@@ -159,9 +159,9 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
 .prof-tab svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .prof-content{flex:1;overflow-y:auto}
 
-/* Grid view — TikTok style 9:16 cards */
+/* Grid view — 4:5 cards */
 .prof-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;background:var(--bg)}
-.prof-thumb{aspect-ratio:9/16;background:#000;overflow:hidden;cursor:pointer;position:relative;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.7)}
+.prof-thumb{aspect-ratio:4/5;background:#000;overflow:hidden;cursor:pointer;position:relative;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.7)}
 .prof-thumb img,.prof-thumb video{width:100%;height:100%;object-fit:cover;display:block;border-radius:10px}
 .prof-thumb .vid-badge{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);border-radius:5px;padding:2px 6px;font-size:.58rem;color:#fff;font-weight:700;backdrop-filter:blur(4px)}
 .prof-thumb-veil{position:absolute;inset:0;border-radius:10px;background:linear-gradient(to top,rgba(0,0,0,.75) 0%,transparent 55%)}
@@ -173,7 +173,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
 /* Feed list view inside profile */
 .prof-feed{display:flex;flex-direction:column;gap:0}
 .pfeed-item{padding:10px 12px 16px}
-.pfeed-media{width:100%;border-radius:16px;overflow:hidden;margin:8px 0;background:#000;position:relative;display:flex;align-items:center;justify-content:center;aspect-ratio:9/16;box-shadow:0 4px 20px rgba(0,0,0,.7)}
+.pfeed-media{width:100%;border-radius:16px;overflow:hidden;margin:8px 0;background:#000;position:relative;display:flex;align-items:center;justify-content:center;aspect-ratio:4/5;box-shadow:0 4px 20px rgba(0,0,0,.7)}
 .pfeed-media img,.pfeed-media video{width:100%;height:100%;object-fit:cover;display:block;background:#000}
 .pfeed-user{display:flex;align-items:center;gap:9px;font-family:var(--fh);font-weight:700;font-size:.88rem}
 .pfeed-caption{font-size:.86rem;color:rgba(255,255,255,.78);line-height:1.45;margin:6px 0}
@@ -426,7 +426,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
 .explore-see-all{font-size:.8rem;color:var(--accent);font-weight:500;cursor:pointer;background:none;border:none;padding:0}
 /* Trending grid - 6 cols (fotos más chicas) */
 .explore-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:2px}
-.explore-thumb{aspect-ratio:9/16;border-radius:10px;overflow:hidden;background:var(--s2);cursor:pointer;position:relative;flex-shrink:0}
+.explore-thumb{aspect-ratio:4/5;border-radius:10px;overflow:hidden;background:var(--s2);cursor:pointer;position:relative;flex-shrink:0}
 .explore-thumb img,.explore-thumb video{width:100%;height:100%;object-fit:cover;display:block}
 .explore-thumb-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7) 0%,transparent 60%);border-radius:10px;opacity:0;transition:opacity .2s}
 .explore-thumb:active .explore-thumb-overlay{opacity:1}
@@ -460,7 +460,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
 .explore-split-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:3px}
 .explore-split-loading{grid-column:1/-1;text-align:center;padding:20px 0;color:var(--muted);font-size:.8rem}
 /* each thumb in split grid: portrait 9/16 like TikTok */
-.explore-split-thumb{aspect-ratio:9/16;border-radius:8px;overflow:hidden;background:var(--s2);cursor:pointer;position:relative;flex-shrink:0}
+.explore-split-thumb{aspect-ratio:4/5;border-radius:8px;overflow:hidden;background:var(--s2);cursor:pointer;position:relative;flex-shrink:0}
 .explore-split-thumb img,.explore-split-thumb video{width:100%;height:100%;object-fit:cover;display:block}
 .explore-split-thumb-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.78) 0%,transparent 55%);border-radius:8px}
 .explore-split-thumb-views{position:absolute;bottom:5px;left:5px;display:flex;align-items:center;gap:2px;color:#fff;font-size:.58rem;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.9)}
@@ -1135,7 +1135,7 @@ function fmtViews(n){
   return String(n);
 }
 
-// Split grid: portrait 9/16 thumbs, 2-col each side
+// Split grid: portrait 4/5 thumbs, 2-col each side
 function renderExploreSplitGrid(container, posts){
   if(!container) return;
   if(!posts.length){ container.innerHTML='<div class="explore-split-loading">Sin contenido aún</div>'; return; }
