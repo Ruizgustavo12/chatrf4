@@ -275,6 +275,7 @@
     border-bottom: 1px solid var(--border);
     padding: 12px 16px;
     flex-shrink: 0;
+    max-height: 40vh;
   }
 
   .yt-controls {
@@ -314,7 +315,8 @@
   .yt-frame-wrap {
     position: relative;
     width: 100%;
-    padding-bottom: 30%;
+    padding-bottom: 28%;
+    max-height: 28vh;
     border-radius: var(--radius-sm);
     overflow: hidden;
     background: #000;
@@ -630,7 +632,7 @@
 
   /* RESPONSIVE */
   @media (max-width: 600px) {
-    .yt-frame-wrap { padding-bottom: 45%; }
+    .yt-frame-wrap { padding-bottom: 38%; max-height: 32vh; }
     .auth-card { padding: 28px 20px; }
     .inp-row { grid-template-columns: 1fr; }
     .msg-body { max-width: 80%; }
@@ -809,14 +811,10 @@
     </div>
   </div>
 
-  <!-- YOUTUBE PLAYER (solo visualización para usuarios) -->
+  <!-- YOUTUBE PLAYER (sincronizado para todos) -->
   <div class="yt-section">
     <div class="yt-frame-wrap" id="yt-frame-wrap">
-      <iframe id="yt-iframe"
-        src="https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen>
-      </iframe>
+      <div id="yt-player"></div>
     </div>
   </div>
 
@@ -943,20 +941,72 @@ function updateOnlinePresence(uid) {
   });
 }
 
-// ── Sincronizar video en tiempo real para todos ──
+// ── YouTube IFrame API + sincronización de tiempo ──
+let ytPlayer = null;
+let ytPlayerReady = false;
+let pendingVideoData = null;
+
+// Cargar YouTube IFrame API una sola vez
+if (!window.YT) {
+  const tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(tag);
+}
+
+window.onYouTubeIframeAPIReady = function() {
+  ytPlayer = new YT.Player('yt-player', {
+    width: '100%',
+    height: '100%',
+    videoId: 'jfKfPfyJRdk',
+    playerVars: {
+      autoplay: 0,
+      controls: 1,
+      rel: 0,
+      modestbranding: 1,
+    },
+    events: {
+      onReady: () => {
+        ytPlayerReady = true;
+        if (pendingVideoData) {
+          applySyncedVideo(pendingVideoData);
+          pendingVideoData = null;
+        }
+      }
+    }
+  });
+};
+
+function applySyncedVideo(data) {
+  if (!ytPlayer || !ytPlayerReady) {
+    pendingVideoData = data;
+    return;
+  }
+  const { videoId, startedAt } = data;
+  if (!videoId) return;
+
+  // Calcular cuántos segundos han pasado desde que el admin puso el video
+  const elapsedSeconds = startedAt ? Math.floor((Date.now() - startedAt) / 1000) : 0;
+
+  const currentId = ytPlayer.getVideoData ? ytPlayer.getVideoData().video_id : '';
+  if (currentId !== videoId) {
+    // Video nuevo: cargar y saltar al segundo correcto
+    ytPlayer.loadVideoById({ videoId, startSeconds: elapsedSeconds });
+  } else {
+    // Mismo video: solo sincronizar posición si hay diferencia mayor a 3 segundos
+    const currentTime = ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
+    if (Math.abs(currentTime - elapsedSeconds) > 3) {
+      ytPlayer.seekTo(elapsedSeconds, true);
+    }
+  }
+}
+
 function startVideoSync() {
   if (unsubscribeVideo) unsubscribeVideo();
   const videoRef = doc(db, 'config', 'currentVideo');
   unsubscribeVideo = onSnapshot(videoRef, (snap) => {
     if (snap.exists()) {
       const data = snap.data();
-      const iframe = document.getElementById('yt-iframe');
-      if (iframe && data.videoId) {
-        const newSrc = `https://www.youtube.com/embed/${data.videoId}?autoplay=1`;
-        if (!iframe.src.includes(data.videoId)) {
-          iframe.src = newSrc;
-        }
-      }
+      applySyncedVideo(data);
     }
   });
 }
@@ -1028,9 +1078,9 @@ window._loadUserProfile = async (uid) => {
   return snap.exists() ? snap.data() : null;
 };
 
-// ── ADMIN: Set video global ──
+// ── ADMIN: Set video global (guarda el momento exacto de inicio) ──
 window._adminSetVideoId = async (videoId) => {
-  await setDoc(doc(db, 'config', 'currentVideo'), { videoId, setAt: Date.now() });
+  await setDoc(doc(db, 'config', 'currentVideo'), { videoId, startedAt: Date.now() });
 };
 
 // ── ADMIN: Borrar mensaje ──
