@@ -159,22 +159,22 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
 .prof-tab svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .prof-content{flex:1;overflow-y:auto}
 
-/* Grid view — Instagram/TikTok style */
-.prof-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:2px;background:var(--border)}
-.prof-thumb{aspect-ratio:1/1;background:var(--s2);overflow:hidden;cursor:pointer;position:relative}
-.prof-thumb img,.prof-thumb video{width:100%;height:100%;object-fit:cover;display:block;border-radius:0}
-.prof-thumb .vid-badge{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.65);border-radius:3px;padding:1px 4px;font-size:.6rem;color:#fff}
-.prof-thumb-stats{position:absolute;bottom:0;left:0;right:0;padding:3px 5px;background:linear-gradient(transparent,rgba(0,0,0,.65));display:flex;gap:6px;align-items:center;opacity:0;transition:opacity .15s}
-.prof-thumb:hover .prof-thumb-stats,.prof-thumb:active .prof-thumb-stats{opacity:1}
-.prof-thumb-stat{color:#fff;font-size:.6rem;font-weight:600;display:flex;align-items:center;gap:2px}
+/* Grid view — TikTok style 9:16 cards */
+.prof-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;background:var(--bg)}
+.prof-thumb{aspect-ratio:9/16;background:#000;overflow:hidden;cursor:pointer;position:relative;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.7)}
+.prof-thumb img,.prof-thumb video{width:100%;height:100%;object-fit:cover;display:block;border-radius:10px}
+.prof-thumb .vid-badge{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);border-radius:5px;padding:2px 6px;font-size:.58rem;color:#fff;font-weight:700;backdrop-filter:blur(4px)}
+.prof-thumb-veil{position:absolute;inset:0;border-radius:10px;background:linear-gradient(to top,rgba(0,0,0,.75) 0%,transparent 55%)}
+.prof-thumb-stats{position:absolute;bottom:6px;left:7px;right:6px;display:flex;gap:8px;align-items:center}
+.prof-thumb-stat{color:#fff;font-size:.62rem;font-weight:700;display:flex;align-items:center;gap:3px;text-shadow:0 1px 4px rgba(0,0,0,.9)}
 .prof-empty{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 0;color:var(--muted);gap:10px;background:var(--bg)}
 .prof-empty em{font-style:normal;font-size:2.5rem}
 
 /* Feed list view inside profile */
 .prof-feed{display:flex;flex-direction:column;gap:0}
-.pfeed-item{border-bottom:1px solid var(--border);padding:10px 12px}
-.pfeed-media{width:100%;border-radius:10px;overflow:hidden;margin:8px 0;max-height:200px;background:var(--s2);position:relative;display:flex;align-items:center;justify-content:center}
-.pfeed-media img,.pfeed-media video{width:100%;height:200px;object-fit:cover;display:block;background:#000}
+.pfeed-item{padding:10px 12px 16px}
+.pfeed-media{width:100%;border-radius:16px;overflow:hidden;margin:8px 0;background:#000;position:relative;display:flex;align-items:center;justify-content:center;aspect-ratio:9/16;box-shadow:0 4px 20px rgba(0,0,0,.7)}
+.pfeed-media img,.pfeed-media video{width:100%;height:100%;object-fit:cover;display:block;background:#000}
 .pfeed-user{display:flex;align-items:center;gap:9px;font-family:var(--fh);font-weight:700;font-size:.88rem}
 .pfeed-caption{font-size:.86rem;color:rgba(255,255,255,.78);line-height:1.45;margin:6px 0}
 .pfeed-actions{display:flex;gap:18px;align-items:center;margin-top:8px}
@@ -1771,13 +1771,12 @@ function renderProfilePosts(container, posts, isMine, view){
     const grid=document.createElement('div'); grid.className='prof-grid';
     posts.forEach(p=>{
       const el=document.createElement('div'); el.className='prof-thumb';
-      if(p.type==='video') el.innerHTML=`<video src="${p.url}" muted></video><span class="vid-badge">▶</span>`;
-      else el.innerHTML=`<img src="${p.url}" alt="" loading="lazy">`;
-      el.innerHTML+=`<div class="prof-thumb-stats">
-        <span class="prof-thumb-stat">❤️ ${p.likes||0}</span>
-        <span class="prof-thumb-stat">💬 ${p.comments||0}</span>
+      if(p.type==='video') el.innerHTML=`<video src="${p.url}" muted preload="metadata" style="border-radius:10px"></video><span class="vid-badge">▶ Video</span>`;
+      else el.innerHTML=`<img src="${p.url}" alt="" loading="lazy" style="border-radius:10px">`;
+      el.innerHTML+=`<div class="prof-thumb-veil"></div>
+      <div class="prof-thumb-stats">
+        <span class="prof-thumb-stat">▷ ${fmtViews(p.likes||0)}</span>
       </div>`;
-      // Click opens feed-like view (scroll to or show post detail)
       el.onclick=()=>{ openPostDetail(p, posts, isMine); };
       grid.appendChild(el);
     });
@@ -1794,8 +1793,8 @@ function renderProfilePosts(container, posts, isMine, view){
         ${p.caption?`<div class="pfeed-caption">${escHtml(p.caption)}</div>`:''}
         <div class="pfeed-media">
           ${p.type==='video'
-            ?`<video src="${p.url}" controls playsinline muted style="width:100%;max-height:200px;display:block;border-radius:10px"></video>`
-            :`<img src="${p.url}" alt="" loading="lazy" style="width:100%;max-height:200px;object-fit:cover;display:block;border-radius:10px">`}
+            ?`<video src="${p.url}" controls playsinline muted style="width:100%;height:100%;object-fit:cover;display:block;border-radius:16px"></video>`
+            :`<img src="${p.url}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:16px">`}
         </div>
         <div class="pfeed-actions">
           <button class="pfeed-act${liked?' liked':''}" id="pflike_${p.id}" onclick="toggleLikePfeed('${p.id}',this)">
