@@ -273,9 +273,8 @@
   .yt-section {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
-    padding: 12px 16px;
+    padding: 8px 12px;
     flex-shrink: 0;
-    max-height: 40vh;
   }
 
   .yt-controls {
@@ -315,17 +314,19 @@
   .yt-frame-wrap {
     position: relative;
     width: 100%;
-    padding-bottom: 28%;
-    max-height: 28vh;
+    height: 140px;
     border-radius: var(--radius-sm);
     overflow: hidden;
     background: #000;
     border: 1px solid var(--border);
   }
-  .yt-frame-wrap iframe {
+  .yt-frame-wrap iframe,
+  .yt-frame-wrap > div,
+  #yt-player {
     position: absolute; inset: 0;
-    width: 100%; height: 100%;
+    width: 100% !important; height: 100% !important;
     border: none;
+    pointer-events: none; /* bloquea controles del usuario */
   }
 
   .yt-playlist {
@@ -632,7 +633,7 @@
 
   /* RESPONSIVE */
   @media (max-width: 600px) {
-    .yt-frame-wrap { padding-bottom: 38%; max-height: 32vh; }
+    .yt-frame-wrap { height: 120px; }
     .auth-card { padding: 28px 20px; }
     .inp-row { grid-template-columns: 1fr; }
     .msg-body { max-width: 80%; }
@@ -960,9 +961,12 @@ window.onYouTubeIframeAPIReady = function() {
     videoId: 'jfKfPfyJRdk',
     playerVars: {
       autoplay: 0,
-      controls: 1,
+      controls: 0,       // sin controles visibles
       rel: 0,
       modestbranding: 1,
+      disablekb: 1,      // bloquear teclado
+      fs: 0,             // sin fullscreen
+      iv_load_policy: 3, // sin anotaciones
     },
     events: {
       onReady: () => {
@@ -971,9 +975,22 @@ window.onYouTubeIframeAPIReady = function() {
           applySyncedVideo(pendingVideoData);
           pendingVideoData = null;
         }
+      },
+      onStateChange: (e) => {
+        // Si el usuario pausa o para, forzar reproducción en el segundo correcto
+        if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) {
+          if (pendingVideoData || window._lastVideoData) {
+            setTimeout(() => applySyncedVideo(window._lastVideoData || pendingVideoData), 300);
+          }
+        }
       }
     }
   });
+
+  // Re-sincronizar cada 10 segundos para mantener a todos en el mismo punto
+  setInterval(() => {
+    if (window._lastVideoData) applySyncedVideo(window._lastVideoData);
+  }, 10000);
 };
 
 function applySyncedVideo(data) {
@@ -981,21 +998,22 @@ function applySyncedVideo(data) {
     pendingVideoData = data;
     return;
   }
-  const { videoId, startedAt } = data;
-  if (!videoId) return;
+  if (!data || !data.videoId) return;
+  window._lastVideoData = data; // guardar para re-sync periódico
 
-  // Calcular cuántos segundos han pasado desde que el admin puso el video
+  const { videoId, startedAt } = data;
   const elapsedSeconds = startedAt ? Math.floor((Date.now() - startedAt) / 1000) : 0;
 
   const currentId = ytPlayer.getVideoData ? ytPlayer.getVideoData().video_id : '';
   if (currentId !== videoId) {
-    // Video nuevo: cargar y saltar al segundo correcto
+    // Video nuevo o distinto: cargar y saltar al segundo correcto
     ytPlayer.loadVideoById({ videoId, startSeconds: elapsedSeconds });
   } else {
-    // Mismo video: solo sincronizar posición si hay diferencia mayor a 3 segundos
+    // Mismo video: corregir si hay más de 2 segundos de diferencia
     const currentTime = ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
-    if (Math.abs(currentTime - elapsedSeconds) > 3) {
+    if (Math.abs(currentTime - elapsedSeconds) > 2) {
       ytPlayer.seekTo(elapsedSeconds, true);
+      ytPlayer.playVideo();
     }
   }
 }
