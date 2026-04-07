@@ -2857,6 +2857,8 @@ document.addEventListener('keydown', function(e){
   var flashPage = document.getElementById('page-flashlatido');
   if(!flashPage || !flashPage.classList.contains('active')) return;
   _flStopAll();
+  var nav = document.getElementById('bottomNav');
+  if(nav) nav.classList.remove('fl-hidden');
   // Navigate to home
   if(typeof window.gp === 'function') window.gp('home');
 });
@@ -3188,12 +3190,16 @@ function _flStopAll(){
   fills.forEach(function(f){ f.style.transition='none'; f.style.animationPlayState='paused'; });
 }
 
-// Patch gp router — stop everything when leaving flashlatido
+// Patch gp router — stop everything when leaving flashlatido, hide bottom-nav when in flashlatido
 var _gpOrig=window.gp;
 if(typeof _gpOrig==='function'){
   window.gp=function(id,ps){
+    var nav = document.getElementById('bottomNav');
     if(id !== 'flashlatido'){
       _flStopAll();
+      if(nav) nav.classList.remove('fl-hidden');
+    } else {
+      if(nav) nav.classList.add('fl-hidden');
     }
     _gpOrig.apply(this,arguments);
     if(id==='flashlatido') setTimeout(window.initFlashLatido,60);
@@ -27277,6 +27283,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
   box-shadow:0 -2px 12px rgba(0,0,0,.4);
 }
 @media(max-width:1100px){.bottom-nav{display:flex !important}}
+/* Ocultar bottom-nav en FlashLatido para no tapar el área de comentarios */
+#page-flashlatido.active ~ * #bottomNav,
+body.fl-active .bottom-nav,
+.bottom-nav.fl-hidden{display:none !important}
 
 /* Botones fijos del bottom nav */
 .bottom-nav-btn{
