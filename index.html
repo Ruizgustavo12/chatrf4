@@ -180,17 +180,14 @@
   .btn-google:hover { border-color: var(--accent); background: rgba(124,106,255,.08); }
   .btn-google:active { transform: scale(.98); }
   .btn-google:disabled { opacity: .5; cursor: not-allowed; }
-
   .google-icon { width: 18px; height: 18px; flex-shrink: 0; }
-
   .auth-divider {
     display: flex; align-items: center; gap: 10px;
     margin: 16px 0 8px;
     color: var(--text-muted); font-size: .8rem;
   }
   .auth-divider::before, .auth-divider::after {
-    content: ''; flex: 1;
-    height: 1px; background: var(--border);
+    content: ''; flex: 1; height: 1px; background: var(--border);
   }
 
   /* ── PROFILE MODAL ── */
@@ -596,7 +593,6 @@
           <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
           <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
           <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-          <path fill="none" d="M0 0h48v48H0z"/>
         </svg>
         Continuar con Google
       </button>
@@ -767,15 +763,14 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getDatabase, ref, push, onValue, set, get, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getFirestore, collection, doc, setDoc, getDoc, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // ══════════════════════════════════════════════
-// 🔥 CONFIGURACIÓN FIREBASE — reemplazá con tus credenciales
+// 🔥 CONFIGURACIÓN FIREBASE
 // ══════════════════════════════════════════════
 const firebaseConfig = {
   apiKey: "AIzaSyA9oat9dd0S9vlxkg1osH4dW3XhRDGiOiw",
   authDomain: "charlasrf4.firebaseapp.com",
-  databaseURL: "https://charlasrf4-default-rtdb.firebaseio.com",
   projectId: "charlasrf4",
   storageBucket: "charlasrf4.firebasestorage.app",
   messagingSenderId: "345019626508",
@@ -783,30 +778,25 @@ const firebaseConfig = {
 };
 
 // ──────────────────────────────────────────────
-// ☁️ CLOUDINARY — reemplazá con tus credenciales
+// ☁️ CLOUDINARY
 // ──────────────────────────────────────────────
-const CLOUDINARY_CLOUD_NAME = "TU_CLOUD_NAME";
-const CLOUDINARY_UPLOAD_PRESET = "TU_UPLOAD_PRESET"; // unsigned preset
+const CLOUDINARY_CLOUD_NAME = "da0n5tg3g";
+const CLOUDINARY_UPLOAD_PRESET = "wikipediarf4";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getDatabase(app);
+const db = getFirestore(app);
 
 // ── State ──
 let currentUser = null;
 let currentProfile = null;
 let avatarFileReg = null;
 let avatarFileEdit = null;
-let onlineRef = null;
+let unsubscribeChat = null;
 
 // ── Expose globals ──
 window._auth = auth;
 window._db = db;
-window._set = set;
-window._ref = ref;
-window._push = push;
-window._get = get;
-window._serverTimestamp = serverTimestamp;
 window._signOut = signOut;
 window._signInWithPopup = signInWithPopup;
 window._GoogleAuthProvider = GoogleAuthProvider;
@@ -829,8 +819,8 @@ onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUser = user;
     window._setCurrentUser(user);
-    const snap = await get(ref(db, `users/${user.uid}`));
-    const profile = snap.val();
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    const profile = snap.exists() ? snap.data() : null;
     currentProfile = profile;
     window._setCurrentProfile(profile);
     showMainApp(user, profile);
@@ -839,26 +829,29 @@ onAuthStateChanged(auth, async (user) => {
   } else {
     currentUser = null;
     currentProfile = null;
+    if (unsubscribeChat) { unsubscribeChat(); unsubscribeChat = null; }
     showAuthOverlay();
   }
 });
 
+// ── Online presence con Firestore ──
 function updateOnlinePresence(uid) {
-  const presRef = ref(db, `online/${uid}`);
-  set(presRef, { online: true, ts: Date.now() });
-  // Track online count
-  onValue(ref(db, 'online'), snap => {
-    const count = snap.exists() ? Object.keys(snap.val()).length : 0;
+  const presRef = doc(db, 'online', uid);
+  setDoc(presRef, { online: true, ts: Date.now() });
+
+  // Escuchar cambios en la colección online
+  onSnapshot(collection(db, 'online'), snap => {
     const el = document.getElementById('online-count');
-    if (el) el.textContent = `${count} online`;
+    if (el) el.textContent = `${snap.size} online`;
   });
 }
 
+// ── Chat en tiempo real con Firestore ──
 function startChat() {
-  const messagesRef = ref(db, 'messages');
-  onValue(messagesRef, (snap) => {
-    const msgs = [];
-    snap.forEach(child => msgs.push({ id: child.key, ...child.val() }));
+  if (unsubscribeChat) unsubscribeChat();
+  const q = query(collection(db, 'messages'), orderBy('ts', 'asc'));
+  unsubscribeChat = onSnapshot(q, (snap) => {
+    const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderMessages(msgs);
   });
 }
@@ -873,11 +866,12 @@ function renderMessages(msgs) {
     const div = document.createElement('div');
     div.className = `msg${isOwn ? ' own' : ''}`;
 
-    const time = msg.ts ? new Date(msg.ts).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) : '';
+    const ts = msg.ts?.toDate ? msg.ts.toDate() : (msg.ts ? new Date(msg.ts) : null);
+    const time = ts ? ts.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) : '';
     const locationStr = msg.city ? `${msg.city}, ${msg.country || ''}` : (msg.country || '');
 
     div.innerHTML = `
-      <img class="msg-avatar" src="${msg.avatar || 'https://api.dicebear.com/7.x/thumbs/svg?seed=' + msg.uid}" 
+      <img class="msg-avatar" src="${msg.avatar || 'https://api.dicebear.com/7.x/thumbs/svg?seed=' + msg.uid}"
            alt="" onclick="showUserPopup(event, ${JSON.stringify(msg).replace(/"/g, '&quot;')})"/>
       <div class="msg-body">
         <div class="msg-meta">
@@ -893,17 +887,22 @@ function renderMessages(msgs) {
   container.scrollTop = container.scrollHeight;
 }
 
+// ── Push message a Firestore ──
 window._pushMessage = async (msgData) => {
-  await push(ref(db, 'messages'), msgData);
+  await addDoc(collection(db, 'messages'), {
+    ...msgData,
+    ts: serverTimestamp()
+  });
 };
 
+// ── Guardar/leer perfil en Firestore ──
 window._saveUserProfile = async (uid, data) => {
-  await set(ref(db, `users/${uid}`), data);
+  await setDoc(doc(db, 'users', uid), data, { merge: true });
 };
 
 window._loadUserProfile = async (uid) => {
-  const snap = await get(ref(db, `users/${uid}`));
-  return snap.val();
+  const snap = await getDoc(doc(db, 'users', uid));
+  return snap.exists() ? snap.data() : null;
 };
 </script>
 
@@ -1072,39 +1071,35 @@ async function doRegister() {
 async function doLoginGoogle() {
   const errEl = document.getElementById('login-error');
   const btn = document.getElementById('btn-google-login');
-
   errEl.classList.remove('visible');
   btn.disabled = true;
   btn.innerHTML = `<span class="loader"></span>Conectando con Google...`;
-
   try {
     const provider = new window._GoogleAuthProvider();
     const cred = await window._signInWithPopup(window._auth, provider);
     const user = cred.user;
-
-    // Check if profile exists already; if not, create a base one from Google data
-    const snap = await window._get(window._ref(window._db, `users/${user.uid}`));
-    if (!snap.exists()) {
-      const profile = {
+    // Si es usuario nuevo, crear perfil base con datos de Google
+    const profile = await window._loadUserProfile(user.uid);
+    if (!profile) {
+      await window._saveUserProfile(user.uid, {
         name: user.displayName || 'Usuario',
         email: user.email || '',
         avatar: user.photoURL || '',
         uid: user.uid,
         country: '', city: '', age: '', phone: ''
-      };
-      await window._saveUserProfile(user.uid, profile);
+      });
     }
-    // onAuthStateChanged will handle the rest
+    // onAuthStateChanged maneja el resto
   } catch (err) {
     if (err.code !== 'auth/popup-closed-by-user') {
       showError(errEl, '❌ ' + (err.message || 'Error al ingresar con Google'));
     }
     btn.disabled = false;
-    btn.innerHTML = `<svg class="google-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>Continuar con Google`;
+    btn.innerHTML = `<svg class="google-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Continuar con Google`;
   }
 }
 
-
+// ── LOGIN ──
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const pass = document.getElementById('login-pass').value;
