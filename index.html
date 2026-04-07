@@ -247,6 +247,48 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
 .feed-load{width:100%;height:100dvh;scroll-snap-align:start;background:var(--s1);display:flex;align-items:center;justify-content:center}
 .empty-feed{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100dvh;gap:14px;color:var(--muted)}
 .empty-feed em{font-style:normal;font-size:3rem}
+
+/* ── SIDE AVATAR (publicador) ── */
+.pst-av-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;margin-bottom:4px}
+.pst-av-ring{width:44px;height:44px;border-radius:50%;padding:2px;background:var(--grad);cursor:pointer;flex-shrink:0}
+.pst-av-inner{width:100%;height:100%;border-radius:50%;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:800;color:#fff;overflow:hidden;border:2px solid var(--bg)}
+.pst-av-inner img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+
+/* ── EMOJI REACTIONS ── */
+.react-bar{position:absolute;right:10px;bottom:74px;z-index:4;display:flex;flex-direction:column;align-items:center;gap:0px}
+.react-emojis{display:flex;flex-direction:column;align-items:center;gap:2px;overflow:hidden;max-height:0;transition:max-height .3s ease,opacity .3s ease;opacity:0}
+.react-emojis.open{max-height:220px;opacity:1}
+.react-emoji-btn{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.15);border:none;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);transition:transform .15s,background .15s;color:#fff}
+.react-emoji-btn:active{transform:scale(1.25)}
+.react-emoji-btn.picked{background:rgba(255,150,0,.4)}
+.react-main-btn{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.14);border:none;font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);color:#fff;transition:transform .15s}
+.react-main-btn:active{transform:scale(1.15)}
+.react-count{font-size:.72rem;font-weight:600;color:#fff;margin-top:2px}
+@keyframes reactPop{0%{transform:scale(1)}45%{transform:scale(1.6)}75%{transform:scale(.85)}100%{transform:scale(1)}}
+.react-pop{animation:reactPop .45s ease}
+
+/* ── COMMENTS DRAWER ── */
+.cmts-panel{position:fixed;inset:0;z-index:180;display:none;align-items:flex-end;justify-content:center}
+.cmts-panel.open{display:flex}
+.cmts-bg{position:absolute;inset:0;background:rgba(0,0,0,.55)}
+.cmts-sheet{position:relative;z-index:1;width:100%;max-width:520px;background:var(--s1);border-radius:22px 22px 0 0;padding:0 0 20px;max-height:75vh;display:flex;flex-direction:column;animation:sUp .25s ease}
+.cmts-handle{width:36px;height:4px;border-radius:2px;background:var(--border);margin:10px auto 12px}
+.cmts-title{font-family:var(--fh);font-weight:700;font-size:1rem;text-align:center;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.cmts-list{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:10px}
+.cmts-list::-webkit-scrollbar{display:none}
+.cmt-item{display:flex;gap:9px;align-items:flex-start}
+.cmt-av{width:30px;height:30px;border-radius:50%;background:var(--grad);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#fff;overflow:hidden}
+.cmt-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.cmt-body{flex:1}
+.cmt-nick{font-size:.78rem;font-weight:700;color:var(--text)}
+.cmt-text{font-size:.85rem;color:rgba(255,255,255,.82);line-height:1.4;margin-top:1px}
+.cmt-empty{color:var(--muted);font-size:.85rem;text-align:center;padding:24px 0}
+.cmts-input-row{display:flex;gap:8px;padding:10px 14px 0;border-top:1px solid var(--border)}
+.cmts-inp{flex:1;padding:9px 14px;background:var(--s2);border:1.5px solid var(--border);border-radius:20px;color:var(--text);font-family:var(--fb);font-size:.9rem;outline:none;transition:border-color .2s}
+.cmts-inp:focus{border-color:var(--accent)}
+.cmts-inp::placeholder{color:var(--muted)}
+.cmts-send{width:38px;height:38px;border-radius:50%;background:var(--grad);border:none;color:#fff;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .2s}
+.cmts-send:active{opacity:.7}
 </style>
 </head>
 <body>
@@ -548,6 +590,21 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
   </div>
 </div>
 
+<!-- ═══ COMMENTS PANEL ═══ -->
+<div class="cmts-panel" id="cmtsPanel">
+  <div class="cmts-bg" onclick="closeComments()"></div>
+  <div class="cmts-sheet">
+    <div class="cmts-handle"></div>
+    <div class="cmts-title" id="cmtsTitle">Comentarios</div>
+    <div class="cmts-list" id="cmtsList"><div class="cmt-empty">Sin comentarios aún</div></div>
+    <div class="cmts-input-row">
+      <input class="cmts-inp" id="cmtsInp" type="text" placeholder="Comentar..." maxlength="200"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();sendComment()}">
+      <button class="cmts-send" onclick="sendComment()">➤</button>
+    </div>
+  </div>
+</div>
+
 <div id="toasts"></div>
 
 <!-- ═══ FIREBASE ═══ -->
@@ -721,6 +778,9 @@ function renderFeed(posts){
     el.className='pst'; el.dataset.id=p.id;
     const fires=p.fires||0, fired=p.firedBy&&CU&&p.firedBy[CU.uid];
     const av=avHTML(p.userPhoto,p.nick);
+    const avInner=p.userPhoto?`<img src="${p.userPhoto}" alt="">`:`<span>${(p.nick||'?')[0].toUpperCase()}</span>`;
+    const userReact=p.reactBy&&CU?(p.reactBy[CU.uid]||''):'';
+    const reactEmojis=['❤️','😂','😮','😢','🔥','👏'];
     if(p.type==='video'){
       el.innerHTML=`<video class="pst-media" src="${p.url}" loop playsinline muted></video><div class="pi" id="pi_${p.id}"><em>▶️</em></div>`;
       el.addEventListener('click',e=>{
@@ -745,14 +805,25 @@ function renderFeed(posts){
           <div class="pst-music-artist">${p.music.artist}</div>
         </div>
       </div>`:''}
-      <div class="pst-acts">
-        <button class="act-btn${fired?' fired':''}" id="firebtn_${p.id}" onclick="toggleFire('${p.id}',this)">
+      <div class="pst-acts" style="gap:14px">
+        <div class="pst-av-wrap" onclick="openOtherProfile('${p.uid}')">
+          <div class="pst-av-ring"><div class="pst-av-inner">${avInner}</div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;position:relative">
+          <div class="react-emojis" id="remojis_${p.id}">
+            ${reactEmojis.map(e=>`<button class="react-emoji-btn${userReact===e?' picked':''}" onclick="pickReact(event,'${p.id}','${e}',this)">${e}</button>`).join('')}
+          </div>
+          <button class="react-main-btn" id="rmain_${p.id}" onclick="toggleReactBar('${p.id}')">${userReact||'😊'}</button>
+          <span class="react-count" id="rc_${p.id}">${p.reacts||0}</span>
+        </div>
+        <button class="act-btn${fired?' fired':''}" id="firebtn_${p.id}" onclick="toggleFire('${p.id}',this)" style="gap:4px">
           <div class="act-ico"><span class="fire-ico">🔥</span></div>
           <span class="act-count" id="fc_${p.id}">${fires}</span>
         </button>
-        ${p.uid!==CU?.uid?`<button class="act-btn msg-btn" onclick="openOtherProfile('${p.uid}')">
-          <div class="act-ico">💬</div><span class="act-count">Msg</span>
-        </button>`:''}
+        <button class="act-btn" onclick="openComments('${p.id}')">
+          <div class="act-ico">💬</div>
+          <span class="act-count" id="cc_${p.id}">${p.comments||0}</span>
+        </button>
       </div>`;
     feed.appendChild(el);
   });
@@ -815,7 +886,103 @@ window.toggleFire = async (pid,btn)=>{
   } catch(e){ console.error('toggleFire error:',e); toast('Error al reaccionar'); }
 };
 
-// ── MY PROFILE ──
+// ── Emoji reactions ──
+let openReactBar = null;
+window.toggleReactBar = pid=>{
+  const bar=document.getElementById('remojis_'+pid);
+  if(!bar) return;
+  if(openReactBar&&openReactBar!==pid){
+    const prev=document.getElementById('remojis_'+openReactBar);
+    if(prev) prev.classList.remove('open');
+  }
+  bar.classList.toggle('open');
+  openReactBar=bar.classList.contains('open')?pid:null;
+};
+window.pickReact = async (e,pid,emoji,btn)=>{
+  e.stopPropagation();
+  if(!CU){toast('Iniciá sesión primero');return;}
+  const bar=document.getElementById('remojis_'+pid);
+  if(bar) bar.classList.remove('open');
+  openReactBar=null;
+  const mainBtn=document.getElementById('rmain_'+pid);
+  const countEl=document.getElementById('rc_'+pid);
+  const postRef=doc(db,'posts',pid);
+  try{
+    await runTransaction(db,async tx=>{
+      const snap=await tx.get(postRef);
+      if(!snap.exists()) return;
+      const data=snap.data();
+      const reactBy=data.reactBy||{};
+      const prev=reactBy[CU.uid]||'';
+      let delta=0;
+      if(prev===emoji){
+        // deselect
+        delete reactBy[CU.uid]; delta=-1;
+        if(mainBtn) mainBtn.textContent='😊';
+        btn.classList.remove('picked');
+      } else {
+        if(prev) delta=0; else delta=1;
+        reactBy[CU.uid]=emoji;
+        if(mainBtn){mainBtn.textContent=emoji;mainBtn.classList.add('react-pop');setTimeout(()=>mainBtn.classList.remove('react-pop'),500);}
+        bar?.querySelectorAll('.react-emoji-btn').forEach(b=>b.classList.remove('picked'));
+        btn.classList.add('picked');
+      }
+      const newCount=Math.max(0,(data.reacts||0)+delta);
+      tx.update(postRef,{[`reactBy.${CU.uid}`]:prev===emoji?deleteField():emoji,reacts:newCount});
+      if(countEl) countEl.textContent=newCount;
+    });
+  }catch(err){toast('Error al reaccionar');}
+};
+
+// ── Comments ──
+let cmtPostId=null, unsubCmts=null;
+window.openComments = pid=>{
+  if(!CU){toast('Iniciá sesión primero');return;}
+  cmtPostId=pid;
+  $('cmtsInp').value='';
+  $('cmtsList').innerHTML='<div class="cmt-empty" style="color:var(--muted);font-size:.85rem;text-align:center;padding:24px 0">Cargando...</div>';
+  $('cmtsPanel').classList.add('open');
+  if(unsubCmts) unsubCmts();
+  unsubCmts=onSnapshot(
+    query(collection(db,'posts',pid,'comments'),orderBy('createdAt','asc'),limit(60)),
+    snap=>{
+      const list=$('cmtsList');
+      const cmts=snap.docs.map(d=>d.data());
+      if(!cmts.length){list.innerHTML='<div class="cmt-empty">Sin comentarios aún. ¡Sé el primero!</div>';return;}
+      list.innerHTML='';
+      cmts.forEach(c=>{
+        const div=document.createElement('div'); div.className='cmt-item';
+        const avH=c.userPhoto?`<img src="${c.userPhoto}" alt="">`:`<span>${(c.nick||'?')[0].toUpperCase()}</span>`;
+        div.innerHTML=`<div class="cmt-av">${avH}</div><div class="cmt-body"><div class="cmt-nick">@${c.nick||'usuario'}</div><div class="cmt-text">${c.text}</div></div>`;
+        list.appendChild(div);
+      });
+      list.scrollTop=list.scrollHeight;
+    }
+  );
+};
+window.closeComments=()=>{
+  $('cmtsPanel').classList.remove('open');
+  if(unsubCmts){unsubCmts();unsubCmts=null;}
+  cmtPostId=null;
+};
+window.sendComment=async()=>{
+  if(!CU){toast('Iniciá sesión primero');return;}
+  const inp=$('cmtsInp'), text=inp.value.trim();
+  if(!text) return;
+  inp.value='';
+  const pid=cmtPostId;
+  try{
+    await addDoc(collection(db,'posts',pid,'comments'),{
+      text,nick:CU.nick,uid:CU.uid,userPhoto:CU.photo||'',createdAt:serverTimestamp()
+    });
+    const postRef=doc(db,'posts',pid);
+    const snap2=await getDoc(postRef);
+    const cur=(snap2.data()?.comments||0)+1;
+    await updateDoc(postRef,{comments:cur});
+    const cc=document.getElementById('cc_'+pid);
+    if(cc) cc.textContent=cur;
+  }catch(err){toast('Error al comentar');console.error(err);}
+};
 function loadMyProfile(){
   if(!CU) return;
   const avEl=$('myAvLg');
