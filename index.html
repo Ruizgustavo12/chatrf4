@@ -20,6 +20,10 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
 /* ── AUTH ── */
 #authWrap{position:fixed;inset:0;z-index:1000;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;padding:28px}
 #authWrap.gone{display:none}
+#authWrap.loading .a-form,#authWrap.loading .auth-tabs,#authWrap.loading .auth-tagline{display:none!important}
+#authWrap.loading .auth-brand{margin-bottom:0}
+.auth-loader{display:none;width:38px;height:38px;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:var(--accent);animation:sp .75s linear infinite;margin-top:18px}
+#authWrap.loading .auth-loader{display:block}
 .auth-brand{font-family:var(--fh);font-weight:800;font-size:3rem;letter-spacing:-2px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px}
 .auth-tagline{color:var(--muted);font-size:.9rem;margin-bottom:36px}
 .auth-tabs{display:flex;gap:3px;background:var(--s1);border-radius:14px;padding:4px;margin-bottom:24px;width:100%;max-width:360px}
@@ -47,32 +51,33 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
 /* ── FEED ── */
 #feedWrap{flex:1;overflow-y:scroll;overflow-x:hidden;scroll-snap-type:y mandatory;scrollbar-width:none;background:var(--bg)}
 #feedWrap::-webkit-scrollbar{display:none}
-.pst{width:100%;height:100dvh;scroll-snap-align:start;scroll-snap-stop:always;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--bg);padding:56px 0 72px}
-/* card container */
-.pst-card{position:relative;width:100%;max-width:340px;height:100%;border-radius:20px;overflow:hidden;background:#000;box-shadow:0 8px 40px rgba(0,0,0,.7);display:flex;align-items:flex-end}
-.pst-media{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:20px}
-.pst-veil{position:absolute;inset:0;border-radius:20px;background:linear-gradient(to top,rgba(0,0,0,.88) 0%,rgba(0,0,0,.06) 55%,transparent 100%)}
-.pst-info{position:relative;z-index:2;padding:14px 68px 22px 16px;flex:1}
+.pst{width:100%;height:100dvh;scroll-snap-align:start;scroll-snap-stop:always;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--bg);padding:56px 0 70px}
+.pst-card{position:relative;width:calc(100% - 32px);max-width:360px;height:100%;border-radius:22px;overflow:hidden;background:#000;box-shadow:0 12px 48px rgba(0,0,0,.8);display:flex;align-items:flex-end}
+.pst-media{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:22px}
+.pst-veil{position:absolute;inset:0;border-radius:22px;background:linear-gradient(to top,rgba(0,0,0,.88) 0%,rgba(0,0,0,.04) 55%,transparent 100%)}
+.pst-info{position:relative;z-index:2;padding:14px 70px 22px 16px;flex:1}
 .pst-user{display:flex;align-items:center;gap:8px;font-family:var(--fh);font-weight:700;font-size:.92rem;margin-bottom:5px;cursor:pointer;color:#fff}
 .pst-caption{font-size:.83rem;color:rgba(255,255,255,.82);line-height:1.45;margin-bottom:4px}
 
-/* side actions — docked to right inside card */
+/* side actions */
 .pst-acts{position:absolute;right:10px;bottom:80px;z-index:3;display:flex;flex-direction:column;align-items:center;gap:18px}
 .act-av-ring{width:42px;height:42px;border-radius:50%;padding:2px;background:var(--grad);cursor:pointer;flex-shrink:0}
 .act-av-inner{width:100%;height:100%;border-radius:50%;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:800;color:#fff;overflow:hidden;border:2px solid #000}
 .act-av-inner img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .act-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;color:#fff;user-select:none}
-.act-ico{width:46px;height:46px;border-radius:50%;background:rgba(0,0,0,.38);display:flex;align-items:center;justify-content:center;font-size:1.3rem;backdrop-filter:blur(8px);transition:transform .15s,background .15s;border:1.5px solid rgba(255,255,255,.12)}
+.act-ico{width:46px;height:46px;border-radius:50%;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:1.3rem;backdrop-filter:blur(8px);transition:transform .15s,background .15s;border:1.5px solid rgba(255,255,255,.13)}
 .act-btn:active .act-ico{transform:scale(1.18)}
 .act-count{font-size:.72rem;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8)}
-/* heart like */
-.act-btn.liked .act-ico{background:rgba(255,45,85,.42);border-color:rgba(255,45,85,.6)}
-.act-btn.liked .heart-ico{color:#ff2d55}
-.heart-ico{font-size:1.35rem;transition:transform .2s}
-@keyframes heartPop{0%{transform:scale(1)}40%{transform:scale(1.5)}70%{transform:scale(.85)}100%{transform:scale(1)}}
+.act-btn.liked .act-ico{background:rgba(255,45,85,.5);border-color:rgba(255,45,85,.7)}
+.heart-ico{font-size:1.3rem;display:inline-block;transition:transform .2s}
+@keyframes heartPop{0%{transform:scale(1)}40%{transform:scale(1.6)}70%{transform:scale(.85)}100%{transform:scale(1)}}
 .heart-pop{animation:heartPop .4s ease}
+.act-btn.fired .act-ico{background:rgba(255,85,0,.38)}
+.fire-ico{display:inline-block;transform-origin:center bottom}
+@keyframes flameDance{0%{transform:scale(1) rotate(-5deg)}50%{transform:scale(1.2) rotate(3deg)}100%{transform:scale(1.05) rotate(-2deg)}}
+.act-btn.fired .fire-ico{animation:flameDance .6s ease infinite alternate}
 /* play indicator */
-.pi{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .25s;border-radius:20px}
+.pi{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .25s;border-radius:22px}
 .pi.show{opacity:1}
 .pi em{font-style:normal;font-size:4rem;filter:drop-shadow(0 0 18px rgba(0,0,0,.8));animation:piA .5s ease forwards}
 @keyframes piA{0%{transform:scale(.4);opacity:1}100%{transform:scale(1.3);opacity:0}}
@@ -240,6 +245,9 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
 /* ── MUSIC ── */
 .music-section{margin-bottom:12px}
 .music-label{font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:8px;letter-spacing:.04em}
+.dz-chip{padding:6px 11px;border-radius:20px;background:var(--s2);border:1px solid var(--border);color:var(--text);font-size:.76rem;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.dz-chip:hover,.dz-chip:active{background:rgba(255,45,85,.15);border-color:rgba(255,45,85,.4);color:#fff}
+.dz-chip img{width:18px;height:18px;border-radius:3px;object-fit:cover}
 .dz-track{display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s}
 .dz-track:last-child{border-bottom:none}
 .dz-track:hover{background:var(--s3)}
@@ -310,9 +318,10 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
 <body>
 
 <!-- ═══ AUTH ═══ -->
-<div id="authWrap">
+<div id="authWrap" class="loading">
   <div class="auth-brand">Vibely</div>
-  <p class="auth-tagline">Tu feed. Tu vibra. 🔥</p>
+  <div class="auth-loader"></div>
+  <p class="auth-tagline">Explora. Siente. Vibra. ✨</p>
   <div class="auth-tabs">
     <button class="a-tab on" id="tabL" onclick="swTab('login')">Entrar</button>
     <button class="a-tab" id="tabR" onclick="swTab('reg')">Registrarse</button>
@@ -446,8 +455,14 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
     <div class="music-section">
       <div class="music-label">🎵 Agregar música</div>
       <div style="display:flex;gap:8px;margin-bottom:10px">
-        <input class="a-inp" id="dzSearch" type="text" placeholder="Buscar canción o artista..." style="flex:1;padding:10px 13px;font-size:.9rem">
+        <input class="a-inp" id="dzSearch" type="text" placeholder="Buscar canción o artista..." style="flex:1;padding:10px 13px;font-size:.9rem"
+          onkeydown="if(event.key==='Enter') searchDeezer()">
         <button class="btn-sm" onclick="searchDeezer()" style="padding:10px 14px;white-space:nowrap">Buscar</button>
+      </div>
+      <!-- Trending -->
+      <div id="dzTrending" style="margin-bottom:8px">
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:6px;font-weight:600;letter-spacing:.04em">🔥 MÁS USADAS</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px" id="dzTrendingChips"></div>
       </div>
       <div id="dzResults" style="max-height:160px;overflow-y:auto;border-radius:10px;background:var(--s2)"></div>
       <div id="dzSelected" style="display:none;margin-top:8px;padding:10px 12px;border-radius:10px;background:rgba(255,45,85,.1);border:1px solid rgba(255,45,85,.3);align-items:center;gap:10px">
@@ -760,6 +775,7 @@ window.doGoogle = async () => {
 window.doLogout = async () => { await signOut(auth); };
 
 onAuthStateChanged(auth, async user => {
+  $('authWrap').classList.remove('loading'); // done checking
   if(user){
     const s = await getDoc(doc(db,'users',user.uid));
     const d = s.data()||{};
@@ -802,57 +818,68 @@ function renderFeed(posts){
   feed.innerHTML='';
   if(!posts.length){ feed.innerHTML=`<div class="empty-feed"><em>🎬</em><p>¡Sé el primero en publicar!</p></div>`; return; }
   posts.forEach(p=>{
-    const el=document.createElement('div');
-    el.className='pst'; el.dataset.id=p.id;
     const liked=p.likedBy&&CU&&p.likedBy[CU.uid];
     const avInner=p.userPhoto?`<img src="${p.userPhoto}" alt="">`:`<span>${(p.nick||'?')[0].toUpperCase()}</span>`;
     const av=avHTML(p.userPhoto,p.nick);
 
-    // Build card
+    const wrapper=document.createElement('div');
+    wrapper.className='pst'; wrapper.dataset.id=p.id;
+
     const card=document.createElement('div');
     card.className='pst-card';
 
+    // media
     if(p.type==='video'){
-      card.innerHTML=`<video class="pst-media" src="${p.url}" loop playsinline muted></video><div class="pi" id="pi_${p.id}"><em>▶️</em></div>`;
+      const vid=document.createElement('video');
+      vid.className='pst-media'; vid.src=p.url; vid.loop=true; vid.playsInline=true; vid.muted=true;
+      card.appendChild(vid);
+      const pi=document.createElement('div'); pi.className='pi'; pi.id='pi_'+p.id;
+      pi.innerHTML='<em>▶️</em>'; card.appendChild(pi);
       card.addEventListener('click',e=>{
         if(e.target.closest('.pst-acts')||e.target.closest('.pst-user')) return;
-        const v=card.querySelector('video'), pi=$(`pi_${p.id}`);
-        if(v.paused) v.play(); else v.pause();
-        if(pi){pi.classList.add('show');setTimeout(()=>pi.classList.remove('show'),550);}
+        if(vid.paused) vid.play(); else vid.pause();
+        pi.classList.add('show'); setTimeout(()=>pi.classList.remove('show'),550);
       });
     } else {
-      card.innerHTML=`<img class="pst-media" src="${p.url}" alt="" loading="lazy">`;
+      const img=document.createElement('img');
+      img.className='pst-media'; img.src=p.url; img.loading='lazy'; img.alt='';
+      card.appendChild(img);
     }
 
-    card.innerHTML+=`
-      <div class="pst-veil"></div>
-      <div class="pst-info">
-        <div class="pst-user" onclick="openOtherProfile('${p.uid}')">${av}<span>@${p.nick||'usuario'}</span></div>
-        ${p.caption?`<div class="pst-caption">${p.caption}</div>`:''}
-        ${p.music?`<div class="pst-music" onclick="playPostMusic(event,'${p.id}','${p.music.preview||''}')">
-          <div class="pst-music-disc" id="disc_${p.id}"><img src="${p.music.cover}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>
-          <div class="pst-music-info">
-            <div class="pst-music-name">♪ ${p.music.title}</div>
-            <div class="pst-music-artist">${p.music.artist}</div>
-          </div>
-        </div>`:''}
-      </div>
-      <div class="pst-acts">
-        <div onclick="openOtherProfile('${p.uid}')">
-          <div class="act-av-ring"><div class="act-av-inner">${avInner}</div></div>
-        </div>
-        <button class="act-btn${liked?' liked':''}" id="likebtn_${p.id}" onclick="toggleLike('${p.id}',this)">
-          <div class="act-ico"><span class="heart-ico">❤️</span></div>
-          <span class="act-count" id="lc_${p.id}">${p.likes||0}</span>
-        </button>
-        <button class="act-btn" onclick="openComments('${p.id}')">
-          <div class="act-ico">💬</div>
-          <span class="act-count" id="cc_${p.id}">${p.comments||0}</span>
-        </button>
-      </div>`;
+    // veil
+    const veil=document.createElement('div'); veil.className='pst-veil'; card.appendChild(veil);
 
-    el.appendChild(card);
-    feed.appendChild(el);
+    // info bottom-left
+    const info=document.createElement('div'); info.className='pst-info';
+    info.innerHTML=`<div class="pst-user" onclick="openOtherProfile('${p.uid}')">${av}<span>@${p.nick||'usuario'}</span></div>${p.caption?`<div class="pst-caption">${p.caption}</div>`:''}`;
+    card.appendChild(info);
+
+    // music
+    if(p.music && p.music.title){
+      const mus=document.createElement('div'); mus.className='pst-music';
+      mus.innerHTML=`<div class="pst-music-disc" id="disc_${p.id}"><img src="${p.music.cover}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div><div class="pst-music-info"><div class="pst-music-name">♪ ${p.music.title}</div><div class="pst-music-artist">${p.music.artist}</div></div>`;
+      mus.onclick=e=>playPostMusic(e,p.id,p.music.preview||'');
+      card.appendChild(mus);
+    }
+
+    // side actions — right side
+    const acts=document.createElement('div'); acts.className='pst-acts';
+    acts.innerHTML=`
+      <div onclick="openOtherProfile('${p.uid}')">
+        <div class="act-av-ring"><div class="act-av-inner">${avInner}</div></div>
+      </div>
+      <button class="act-btn${liked?' liked':''}" id="likebtn_${p.id}" onclick="toggleLike('${p.id}',this)">
+        <div class="act-ico"><span class="heart-ico">❤️</span></div>
+        <span class="act-count" id="lc_${p.id}">${p.likes||0}</span>
+      </button>
+      <button class="act-btn" onclick="openComments('${p.id}')">
+        <div class="act-ico">💬</div>
+        <span class="act-count" id="cc_${p.id}">${p.comments||0}</span>
+      </button>`;
+    card.appendChild(acts);
+
+    wrapper.appendChild(card);
+    feed.appendChild(wrapper);
   });
   setupIO();
 }
@@ -907,7 +934,7 @@ window.toggleLike = async (pid, btn)=>{
         tx.update(postRef,{likes:n,[`likedBy.${uid}`]:true});
         btn.classList.add('liked');
         const heart=btn.querySelector('.heart-ico');
-        if(heart){heart.classList.add('heart-pop');setTimeout(()=>heart.classList.remove('heart-pop'),450);}
+        if(heart){heart.classList.remove('heart-pop');void heart.offsetWidth;heart.classList.add('heart-pop');setTimeout(()=>heart.classList.remove('heart-pop'),450);}
         if(countEl) countEl.textContent=n;
       }
     });
@@ -1449,8 +1476,44 @@ window.selectDz=t=>{
 };
 window.clearDzSel=()=>{ dzSelected=null; document.getElementById('dzSelected').style.display='none'; };
 
+// ── Trending music from posts ──
+async function loadTrendingMusic(){
+  const chips=document.getElementById('dzTrendingChips');
+  if(!chips) return;
+  try{
+    const snap=await getDocs(query(collection(db,'posts'),orderBy('createdAt','desc'),limit(80)));
+    const counts={};
+    snap.forEach(d=>{
+      const m=d.data().music;
+      if(m&&m.id&&m.title){
+        if(!counts[m.id]) counts[m.id]={...m,uses:0};
+        counts[m.id].uses++;
+      }
+    });
+    const sorted=Object.values(counts).sort((a,b)=>b.uses-a.uses).slice(0,8);
+    if(!sorted.length){ document.getElementById('dzTrending').style.display='none'; return; }
+    chips.innerHTML='';
+    sorted.forEach(t=>{
+      const c=document.createElement('button'); c.className='dz-chip';
+      c.innerHTML=`<img src="${t.cover}" alt="">${t.title} — ${t.artist}`;
+      c.onclick=()=>selectDzDirect(t);
+      chips.appendChild(c);
+    });
+  }catch(e){ document.getElementById('dzTrending').style.display='none'; }
+}
+function selectDzDirect(t){
+  dzSelected={id:t.id,title:t.title,artist:t.artist,cover:t.cover,preview:t.preview};
+  if(dzAudio){dzAudio.pause();dzAudio=null;}
+  document.getElementById('dzSelCover').src=dzSelected.cover;
+  document.getElementById('dzSelTitle').textContent=dzSelected.title;
+  document.getElementById('dzSelArtist').textContent=dzSelected.artist;
+  document.getElementById('dzSelected').style.display='flex';
+  document.getElementById('dzResults').innerHTML='';
+  document.getElementById('dzSearch').value='';
+}
+
 // ── UPLOAD ──
-window.openUpload=()=>{ if(!CU){toast('Iniciá sesión primero');return;} $('upModal').classList.add('open'); };
+window.openUpload=()=>{ if(!CU){toast('Iniciá sesión primero');return;} $('upModal').classList.add('open'); loadTrendingMusic(); };
 window.setUType=type=>{
   uType=type;
   $('utPhoto').classList.toggle('on',type==='photo');
