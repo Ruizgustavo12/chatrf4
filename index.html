@@ -1146,6 +1146,7 @@ function renderExploreSplitGrid(container, posts){
         : `<img src="${p.url}" loading="lazy" alt="" style="border-radius:8px">`}
       <div class="explore-split-thumb-overlay"></div>
       <div class="explore-split-thumb-views">▷ ${fmtViews(p.likes||0)}</div>
+      ${isAdmin()?`<button onclick="event.stopPropagation();adminDeletePostViewer('${p.id}')" style="position:absolute;top:4px;left:4px;background:rgba(255,45,85,.8);border:none;border-radius:6px;color:#fff;font-size:.65rem;padding:2px 6px;cursor:pointer;z-index:5">🗑️</button>`:''}
     </div>`).join('');
 }
 
@@ -1159,6 +1160,7 @@ function renderExploreGrid(container, posts, withLabel){
         : `<img src="${p.url}" loading="lazy" alt="">`}
       <div class="explore-thumb-overlay"></div>
       <div class="explore-thumb-views">👁 ${fmtViews(p.likes||0)}</div>
+      ${isAdmin()?`<button onclick="event.stopPropagation();adminDeletePostViewer('${p.id}')" style="position:absolute;top:4px;left:4px;background:rgba(255,45,85,.8);border:none;border-radius:6px;color:#fff;font-size:.65rem;padding:2px 6px;cursor:pointer;z-index:5">🗑️</button>`:''}
     </div>`).join('');
 }
 
@@ -1193,14 +1195,29 @@ window.openPostViewer = async (pid) => {
     }
     const media = $('qpvMedia');
     const info = $('qpvInfo');
-    if(p.isVideo){
+    const isVid = p.type==='video'||p.isVideo;
+    if(isVid){
       media.innerHTML=`<video src="${p.url}" controls autoplay playsinline style="max-width:100%;max-height:100%;object-fit:contain"></video>`;
     } else {
       media.innerHTML=`<img src="${p.url}" style="max-width:100%;max-height:100%;object-fit:contain">`;
     }
     const u = allUsers[p.uid]||{};
-    info.innerHTML=`<div style="font-family:var(--fh);font-weight:700;font-size:.95rem;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.8)">@${u.nick||'usuario'}</div><div style="font-size:.82rem;color:rgba(255,255,255,.75);margin-top:3px">${p.caption||''}</div><div style="margin-top:6px;display:flex;gap:12px;font-size:.8rem;color:rgba(255,255,255,.7)"><span>❤️ ${p.likes||0}</span><span>🔥 ${p.fires||0}</span></div>`;
+    const adminDelBtn = isAdmin() ? `<button onclick="adminDeletePostViewer('${pid}')" style="margin-top:10px;padding:8px 16px;border-radius:10px;border:none;background:rgba(255,45,85,.85);color:#fff;font-family:var(--fh);font-weight:700;font-size:.85rem;cursor:pointer;">🗑️ Eliminar publicación</button>` : '';
+    info.innerHTML=`<div style="font-family:var(--fh);font-weight:700;font-size:.95rem;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.8)">@${u.nick||'usuario'}</div><div style="font-size:.82rem;color:rgba(255,255,255,.75);margin-top:3px">${p.caption||''}</div><div style="margin-top:6px;display:flex;gap:12px;font-size:.8rem;color:rgba(255,255,255,.7)"><span>❤️ ${p.likes||0}</span><span>🔥 ${p.fires||0}</span></div>${adminDelBtn}`;
   } catch(e){ console.log(e); }
+};
+
+// ── Admin: eliminar post desde viewer (sin confirmación modal, directo) ──
+window.adminDeletePostViewer = async pid => {
+  if(!isAdmin()) return;
+  if(!confirm('¿Eliminar esta publicación? Esta acción no se puede deshacer.')) return;
+  try {
+    const { deleteDoc, doc: d2 } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await deleteDoc(d2(db,'posts',pid));
+    const viewer = $('quickPostViewer');
+    if(viewer) viewer.remove();
+    toast('Publicación eliminada ✓');
+  } catch(e){ toast('Error: '+e.message); }
 };
 
 // ── Profile view toggle ──
@@ -1396,6 +1413,14 @@ function renderFeed(posts){
         <div class="act-ico">&#x1F4AC;</div>
         <span class="act-count" id="cc_${p.id}">${p.comments||0}</span>
       </button>`;
+    // Admin delete button in feed
+    if(isAdmin()){
+      const delBtn = document.createElement('button');
+      delBtn.className='act-btn';
+      delBtn.innerHTML=`<div class="act-ico" style="background:rgba(255,45,85,.4);border-color:rgba(255,45,85,.6)">🗑️</div>`;
+      delBtn.onclick=()=>{ adminDeletePostViewer(p.id); };
+      acts.appendChild(delBtn);
+    }
     acts.querySelector('#likebtn_'+p.id).addEventListener('click',function(){ toggleLike(p.id,this); });
     acts.querySelector('#firebtn_'+p.id).addEventListener('click',function(){ toggleFire(p.id,this); });
     // Admin menu on post
@@ -1777,6 +1802,13 @@ function renderProfilePosts(container, posts, isMine, view){
       <div class="prof-thumb-stats">
         <span class="prof-thumb-stat">▷ ${fmtViews(p.likes||0)}</span>
       </div>`;
+      if(isAdmin()){
+        const delB=document.createElement('button');
+        delB.innerHTML='🗑️';
+        delB.style.cssText='position:absolute;top:5px;left:5px;background:rgba(255,45,85,.8);border:none;border-radius:6px;color:#fff;font-size:.7rem;padding:2px 6px;cursor:pointer;z-index:5';
+        delB.onclick=e=>{ e.stopPropagation(); adminDeletePostViewer(p.id); };
+        el.appendChild(delB);
+      }
       el.onclick=()=>{ openPostDetail(p, posts, isMine); };
       grid.appendChild(el);
     });
@@ -1809,6 +1841,7 @@ function renderProfilePosts(container, posts, isMine, view){
             <span style="font-size:1rem">🔥</span>
             <span id="pffc_${p.id}">${p.fires||0}</span>
           </button>
+          ${isAdmin()?`<button class="pfeed-act" style="color:#ff2d55;margin-left:auto" onclick="adminDeletePostViewer('${p.id}')"><span style="font-size:1rem">🗑️</span></button>`:''}
         </div>
         <div class="pfeed-cmts" id="pfcmts_${p.id}"></div>`;
       feedDiv.appendChild(item);
