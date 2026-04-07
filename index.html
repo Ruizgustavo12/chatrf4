@@ -1762,11 +1762,27 @@ button:not(.tb-nav-btn):not(.bottom-nav-btn):not(.ml-rxn-btn):not([disabled]) {
 .fl-card {
   position: relative;
   width: 100%;
-  max-width: 480px;
+  max-width: 420px;
   height: 100%;
   background: #111;
   overflow: hidden;
   flex-shrink: 0;
+}
+
+/* Sidebar de acciones — hermano del card, pegado a él */
+.fl-right-acts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+  padding-bottom: 90px;
+  padding-left: 8px;
+  width: 72px;
+  flex-shrink: 0;
+  z-index: 10;
+  align-self: stretch;
+  /* NO position:absolute — es flex item junto al card */
 }
 
 .fl-card-photo {
@@ -1793,14 +1809,14 @@ button:not(.tb-nav-btn):not(.bottom-nav-btn):not(.ml-rxn-btn):not([disabled]) {
 }
 
 .fl-prog-row {
-  position: absolute; top: 10px; left: 10px; right: 78px;
+  position: absolute; top: 10px; left: 10px; right: 12px;
   display: flex; gap: 3px; z-index: 10;
 }
 .fl-prog-seg { flex: 1; height: 2px; background: rgba(255,255,255,.3); border-radius: 2px; overflow: hidden; }
 .fl-prog-fill { height: 100%; background: #fff; width: 0; }
 
 .fl-card-header {
-  position: absolute; top: 20px; left: 14px; right: 78px;
+  position: absolute; top: 20px; left: 14px; right: 14px;
   display: flex; align-items: center; gap: 10px; z-index: 10;
 }
 .fl-hdr-av {
@@ -1812,7 +1828,7 @@ button:not(.tb-nav-btn):not(.bottom-nav-btn):not(.ml-rxn-btn):not([disabled]) {
 .fl-hdr-time { font-size: .62rem; color: rgba(255,255,255,.55); }
 
 .fl-card-bottom {
-  position: absolute; bottom: 0; left: 0; right: 72px;
+  position: absolute; bottom: 0; left: 0; right: 0;
   padding: 12px 14px 22px; z-index: 10;
 }
 .fl-card-caption {
@@ -1877,16 +1893,6 @@ button:not(.tb-nav-btn):not(.bottom-nav-btn):not(.ml-rxn-btn):not([disabled]) {
 .fl-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.35); transition: all .25s; }
 .fl-dot.on { width: 14px; border-radius: 3px; background: #fff; }
 
-/* Right action column — TikTok EXACT style */
-.fl-right-acts {
-  position: absolute;
-  right: 0; bottom: 80px;
-  width: 76px;
-  display: flex; flex-direction: column; align-items: center; gap: 18px;
-  z-index: 10;
-  padding-right: 6px;
-}
-
 /* Avatar con badge + rojo */
 .fl-act-av {
   position: relative;
@@ -1945,13 +1951,15 @@ button:not(.tb-nav-btn):not(.bottom-nav-btn):not(.ml-rxn-btn):not([disabled]) {
 #flCommentsPanel {
   position: fixed; left: 50%; bottom: 0;
   transform: translateX(-50%);
-  width: min(480px,100vw);
+  width: min(492px,100vw);
   height: 75vh;
   background: #1c1c1c;
   border-radius: 16px 16px 0 0;
-  z-index: 600; display: none; flex-direction: column;
+  z-index: 1000;
+  display: none; flex-direction: column;
   box-shadow: 0 -2px 24px rgba(0,0,0,.8);
   overflow: hidden;
+  isolation: isolate;
 }
 #flCommentsPanel.open { display: flex; animation: flPanelUp .3s cubic-bezier(.34,1.2,.64,1) both; }
 @keyframes flPanelUp { from{transform:translateX(-50%) translateY(100%)} to{transform:translateX(-50%) translateY(0)} }
@@ -2118,12 +2126,12 @@ button:not(.tb-nav-btn):not(.bottom-nav-btn):not(.ml-rxn-btn):not([disabled]) {
 .post-flashlatido { background:#0a0a0a!important;border:1px solid rgba(233,30,140,.3)!important;border-radius:14px!important;overflow:hidden; }
 .post-flashlatido .fl-share-label { display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(233,30,140,.08);font-size:.75rem;color:#e91e8c;font-weight:700;border-bottom:1px solid rgba(233,30,140,.15); }
 
-@media(max-width:480px){
-  .fl-card { max-width: 100%; }
-  .fl-right-acts { right: 4px; gap: 16px; }
-  .fl-act-circle { width: 40px; height: 40px; font-size: 1.3rem; }
-  .fl-card-bottom { right: 60px; }
-  .fl-prog-row { right: 60px; }
+@media(max-width:540px){
+  .fl-card { max-width: calc(100vw - 68px); }
+  .fl-right-acts { width: 64px; gap: 14px; padding-left: 4px; }
+  .fl-act-circle { width: 42px; height: 42px; font-size: 1.3rem; }
+  .fl-card-bottom { right: 0; }
+  .fl-prog-row { right: 12px; }
 }</style>
 
 <div class="page" id="page-flashlatido" style="min-height:100vh;background:#000;padding:0;max-width:100%;position:relative;">
@@ -2711,8 +2719,21 @@ function _listenComments(){
 }
 
 window.flOpenComments = function(){
-  var p=document.getElementById('flCommentsPanel');
-  p.classList.toggle('open');
+  // Mover panel al body la primera vez para evitar stacking context
+  var p = document.getElementById('flCommentsPanel');
+  if(p && p.parentElement && p.parentElement.id !== 'body-panels-root'){
+    if(!document.getElementById('body-panels-root')){
+      var root = document.createElement('div');
+      root.id = 'body-panels-root';
+      document.body.appendChild(root);
+    }
+    document.getElementById('body-panels-root').appendChild(p);
+  }
+  if(p) p.classList.toggle('open');
+  // Focus input cuando se abre
+  if(p && p.classList.contains('open')){
+    setTimeout(function(){ var inp=document.getElementById('flCommentInput'); if(inp) inp.focus(); }, 350);
+  }
 };
 
 // ESC → go to home + stop music
