@@ -548,24 +548,43 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
     <textarea class="ucap" id="capInput" rows="2" placeholder="Descripción (opcional)..."></textarea>
     <div class="music-section">
       <div class="music-label">🎵 Agregar música</div>
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <input class="a-inp" id="dzSearch" type="text" placeholder="Buscar canción o artista..." style="flex:1;padding:10px 13px;font-size:.9rem"
+
+      <!-- Géneros rápidos -->
+      <div id="dzGenreRow" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px"></div>
+
+      <!-- Buscador -->
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input class="a-inp" id="dzSearch" type="text" placeholder="Buscar canción o artista..."
+          style="flex:1;padding:10px 13px;font-size:.9rem"
+          oninput="dzDebounce()"
           onkeydown="if(event.key==='Enter') searchDeezer()">
         <button class="btn-sm" onclick="searchDeezer()" style="padding:10px 14px;white-space:nowrap">Buscar</button>
       </div>
+
+      <!-- Spinner -->
+      <div id="dzSpinner" style="display:none;text-align:center;padding:10px;color:var(--muted);font-size:.83rem">🎵 Buscando...</div>
+
       <!-- Trending -->
       <div id="dzTrending" style="margin-bottom:8px">
-        <div style="font-size:.75rem;color:var(--muted);margin-bottom:6px;font-weight:600;letter-spacing:.04em">🔥 MÁS USADAS</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px" id="dzTrendingChips"></div>
+        <div style="font-size:.72rem;color:var(--muted);margin-bottom:5px;font-weight:600;letter-spacing:.04em">🔥 MÁS USADAS</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px" id="dzTrendingChips"></div>
       </div>
-      <div id="dzResults" style="max-height:160px;overflow-y:auto;border-radius:10px;background:var(--s2)"></div>
-      <div id="dzSelected" style="display:none;margin-top:8px;padding:10px 12px;border-radius:10px;background:rgba(255,45,85,.1);border:1px solid rgba(255,45,85,.3);align-items:center;gap:10px">
-        <img id="dzSelCover" src="" style="width:36px;height:36px;border-radius:6px;object-fit:cover">
-        <div style="flex:1;min-width:0">
-          <div id="dzSelTitle" style="font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
-          <div id="dzSelArtist" style="font-size:.75rem;color:var(--muted)"></div>
+
+      <!-- Resultados -->
+      <div id="dzResults" style="max-height:200px;overflow-y:auto;border-radius:12px;background:var(--s2)"></div>
+
+      <!-- Canción seleccionada -->
+      <div id="dzSelected" style="display:none;margin-top:8px;padding:10px 12px;border-radius:12px;background:rgba(255,45,85,.08);border:1px solid rgba(255,45,85,.3)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <img id="dzSelCover" src="" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0">
+          <div style="flex:1;min-width:0">
+            <div id="dzSelTitle" style="font-size:.85rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)"></div>
+            <div id="dzSelArtist" style="font-size:.73rem;color:var(--muted);margin-top:1px"></div>
+          </div>
+          <button onclick="clearDzSel()" style="background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;flex-shrink:0;line-height:1">✕</button>
         </div>
-        <button onclick="clearDzSel()" style="background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;flex-shrink:0">✕</button>
+        <!-- Preview de audio -->
+        <audio id="dzPreviewAudio" controls style="width:100%;height:28px;border-radius:6px;display:none"></audio>
       </div>
     </div>
     <div class="uprog" id="upProg"><div class="uprog-bar" id="upBar"></div></div>
@@ -1843,40 +1862,173 @@ window.searchUsers=q=>{
   });
 };
 
-// ── DEEZER ──
-let dzSelected=null, dzAudio=null;
-window.searchDeezer=async()=>{
-  const q=document.getElementById('dzSearch').value.trim(); if(!q) return;
-  const res=document.getElementById('dzResults');
-  res.innerHTML='<div style="padding:12px;color:var(--muted);font-size:.83rem;text-align:center">Buscando...</div>';
-  try{
-    const r2=await fetch(`https://corsproxy.io/?${encodeURIComponent('https://api.deezer.com/search?q='+encodeURIComponent(q)+'&limit=6')}`);
-    const j=await r2.json(); const tracks=j.data||[];
-    if(!tracks.length){res.innerHTML='<div style="padding:12px;color:var(--muted);font-size:.83rem;text-align:center">Sin resultados</div>';return;}
-    res.innerHTML='';
-    tracks.forEach(t=>{
-      const el=document.createElement('div'); el.className='dz-track';
-      el.innerHTML=`<img src="${t.album?.cover_small||''}" alt=""><div class="dz-track-info"><div class="dz-track-title">${t.title}</div><div class="dz-track-artist">${t.artist?.name||''}</div></div><button class="dz-track-preview" onclick="previewDz(event,'${t.preview}')">▶</button>`;
-      el.addEventListener('click',ev=>{ if(ev.target.closest('.dz-track-preview')) return; selectDz(t); });
-      res.appendChild(el);
-    });
-  }catch(e){res.innerHTML='<div style="padding:12px;color:var(--muted);font-size:.83rem;text-align:center">Error al buscar.</div>';}
+// ══════════════════════════════════════════
+// ── 🎵 MÚSICA (iTunes + fallbacks) ──
+// ══════════════════════════════════════════
+let dzSelected = null, dzAudio = null, _dzDebounceTimer = null;
+
+// Géneros rápidos
+const DZ_GENRES = [
+  {label:'🎸 Rock', q:'rock en español'},
+  {label:'🌟 Pop', q:'pop latino'},
+  {label:'🔥 Reggaetón', q:'reggaeton'},
+  {label:'💃 Cumbia', q:'cumbia'},
+  {label:'⚡ Trap', q:'trap latino'},
+  {label:'🎛️ Electrónica', q:'electronica'},
+  {label:'🎺 Salsa', q:'salsa'},
+  {label:'💔 Romantica', q:'balada romantica'},
+];
+
+function dzInitGenres(){
+  const row = document.getElementById('dzGenreRow');
+  if(!row) return;
+  row.innerHTML = DZ_GENRES.map(g =>
+    `<button class="dz-chip" onclick="dzQuickSearch('${g.q}')">${g.label}</button>`
+  ).join('');
+}
+
+window.dzQuickSearch = q => {
+  document.getElementById('dzSearch').value = q;
+  searchDeezer();
 };
-window.previewDz=(e,url)=>{ e.stopPropagation(); if(dzAudio){dzAudio.pause();dzAudio=null;} if(url){dzAudio=new Audio(url);dzAudio.play().catch(()=>{});} };
-window.selectDz=t=>{
-  dzSelected={id:t.id,title:t.title,artist:t.artist?.name||'',cover:t.album?.cover_small||'',preview:t.preview};
-  if(dzAudio){dzAudio.pause();dzAudio=null;}
-  document.getElementById('dzSelCover').src=dzSelected.cover;
-  document.getElementById('dzSelTitle').textContent=dzSelected.title;
-  document.getElementById('dzSelArtist').textContent=dzSelected.artist;
-  document.getElementById('dzSelected').style.display='flex';
+
+window.dzDebounce = () => {
+  clearTimeout(_dzDebounceTimer);
+  const q = (document.getElementById('dzSearch').value||'').trim();
+  if(!q){ document.getElementById('dzResults').innerHTML=''; return; }
+  if(q.length < 2) return;
+  _dzDebounceTimer = setTimeout(()=>searchDeezer(), 420);
+};
+
+// Fetch con múltiples fuentes: iTunes (sin CORS) + proxies Deezer como fallback
+async function _fetchMusicTracks(q){
+  // 1. iTunes API — libre de CORS
+  try {
+    const ctrl = new AbortController();
+    const tid = setTimeout(()=>ctrl.abort(), 7000);
+    const r = await fetch(
+      `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&entity=song&limit=12`,
+      {signal: ctrl.signal}
+    );
+    clearTimeout(tid);
+    if(r.ok){
+      const data = await r.json();
+      const tracks = (data.results||[]).filter(t=>t.previewUrl).map(t=>({
+        id: String(t.trackId),
+        title: t.trackName||'',
+        artist: t.artistName||'',
+        cover: (t.artworkUrl100||'').replace('100x100bb','300x300bb'),
+        preview: t.previewUrl||''
+      }));
+      if(tracks.length) return tracks;
+    }
+  } catch(e){}
+
+  // 2. Proxy Deezer como fallback
+  const proxies = [
+    q2=>`https://corsproxy.io/?${encodeURIComponent('https://api.deezer.com/search?q='+encodeURIComponent(q2)+'&limit=12')}`,
+    q2=>`https://api.allorigins.win/get?url=${encodeURIComponent('https://api.deezer.com/search?q='+encodeURIComponent(q2)+'&limit=12')}`,
+    q2=>`https://corsproxy.org/?url=${encodeURIComponent('https://api.deezer.com/search?q='+encodeURIComponent(q2)+'&limit=12')}`,
+  ];
+  for(const proxyFn of proxies){
+    try {
+      const ctrl = new AbortController();
+      const tid = setTimeout(()=>ctrl.abort(), 5000);
+      const r = await fetch(proxyFn(q), {signal:ctrl.signal});
+      clearTimeout(tid);
+      if(!r.ok) continue;
+      const text = await r.text();
+      let json; try{ json=JSON.parse(text); }catch(e){ continue; }
+      // allorigins wraps in {contents:'...'}
+      let raw = json.contents ? JSON.parse(json.contents) : json;
+      const tracks = (raw.data||[]).map(t=>({
+        id: String(t.id),
+        title: t.title||'',
+        artist: t.artist?.name||'',
+        cover: t.album?.cover_medium||t.album?.cover_small||'',
+        preview: t.preview||''
+      })).filter(t=>t.preview);
+      if(tracks.length) return tracks;
+    } catch(e){}
+  }
+  return null;
+}
+
+window.searchDeezer = async () => {
+  const q = (document.getElementById('dzSearch').value||'').trim();
+  if(!q) return;
+  const res = document.getElementById('dzResults');
+  const spin = document.getElementById('dzSpinner');
+  const trending = document.getElementById('dzTrending');
+  if(trending) trending.style.display='none';
+  if(spin) spin.style.display='block';
+  res.innerHTML='';
+
+  const tracks = await _fetchMusicTracks(q);
+  if(spin) spin.style.display='none';
+
+  if(!tracks || !tracks.length){
+    res.innerHTML=`<div style="padding:16px;text-align:center;color:var(--muted);font-size:.83rem">
+      <div style="font-size:1.6rem;margin-bottom:6px">🎵</div>
+      Sin resultados para "<strong>${q}</strong>". Probá con otro término.
+    </div>`;
+    return;
+  }
+
+  res.innerHTML='';
+  tracks.forEach(t=>{
+    const el=document.createElement('div'); el.className='dz-track';
+    el.innerHTML=`
+      <img src="${t.cover}" alt="" onerror="this.style.display='none'">
+      <div class="dz-track-info">
+        <div class="dz-track-title">${t.title}</div>
+        <div class="dz-track-artist">${t.artist}</div>
+      </div>
+      ${t.preview?`<button class="dz-track-preview" onclick="previewDz(event,'${t.preview.replace(/'/g,"\\'")}')">▶</button>`:''}
+    `;
+    el.addEventListener('click', ev=>{ if(ev.target.closest('.dz-track-preview')) return; selectDz(t); });
+    res.appendChild(el);
+  });
+};
+
+window.previewDz = (e, url) => {
+  e.stopPropagation();
+  if(dzAudio){ dzAudio.pause(); dzAudio=null; }
+  if(url){ dzAudio=new Audio(url); dzAudio.volume=0.7; dzAudio.play().catch(()=>{}); }
+};
+
+window.selectDz = t => {
+  dzSelected = {id:t.id, title:t.title, artist:t.artist, cover:t.cover, preview:t.preview};
+  if(dzAudio){ dzAudio.pause(); dzAudio=null; }
+  document.getElementById('dzSelCover').src = dzSelected.cover;
+  document.getElementById('dzSelTitle').textContent = dzSelected.title;
+  document.getElementById('dzSelArtist').textContent = dzSelected.artist;
+  // Preview de audio
+  const audio = document.getElementById('dzPreviewAudio');
+  if(audio && dzSelected.preview){
+    audio.src = dzSelected.preview;
+    audio.style.display='block';
+    audio.play().catch(()=>{});
+  }
+  document.getElementById('dzSelected').style.display='block';
   document.getElementById('dzResults').innerHTML='';
   document.getElementById('dzSearch').value='';
+  const trending = document.getElementById('dzTrending');
+  if(trending) trending.style.display='none';
 };
-window.clearDzSel=()=>{ dzSelected=null; document.getElementById('dzSelected').style.display='none'; };
+
+window.clearDzSel = () => {
+  dzSelected = null;
+  document.getElementById('dzSelected').style.display='none';
+  const audio = document.getElementById('dzPreviewAudio');
+  if(audio){ audio.pause(); audio.src=''; audio.style.display='none'; }
+  const trending = document.getElementById('dzTrending');
+  if(trending) trending.style.display='block';
+};
 
 // ── Trending music from posts ──
 async function loadTrendingMusic(){
+  dzInitGenres();
   const chips=document.getElementById('dzTrendingChips');
   if(!chips) return;
   try{
@@ -1889,26 +2041,21 @@ async function loadTrendingMusic(){
         counts[m.id].uses++;
       }
     });
-    const sorted=Object.values(counts).sort((a,b)=>b.uses-a.uses).slice(0,8);
+    const sorted=Object.values(counts).sort((a,b)=>b.uses-a.uses).slice(0,6);
     if(!sorted.length){ document.getElementById('dzTrending').style.display='none'; return; }
     chips.innerHTML='';
     sorted.forEach(t=>{
       const c=document.createElement('button'); c.className='dz-chip';
-      c.innerHTML=`<img src="${t.cover}" alt="">${t.title} — ${t.artist}`;
+      c.innerHTML=`<img src="${t.cover||''}" alt="">${t.title} — ${t.artist}`;
       c.onclick=()=>selectDzDirect(t);
       chips.appendChild(c);
     });
+    document.getElementById('dzTrending').style.display='block';
   }catch(e){ document.getElementById('dzTrending').style.display='none'; }
 }
+
 function selectDzDirect(t){
-  dzSelected={id:t.id,title:t.title,artist:t.artist,cover:t.cover,preview:t.preview};
-  if(dzAudio){dzAudio.pause();dzAudio=null;}
-  document.getElementById('dzSelCover').src=dzSelected.cover;
-  document.getElementById('dzSelTitle').textContent=dzSelected.title;
-  document.getElementById('dzSelArtist').textContent=dzSelected.artist;
-  document.getElementById('dzSelected').style.display='flex';
-  document.getElementById('dzResults').innerHTML='';
-  document.getElementById('dzSearch').value='';
+  selectDz(t);
 }
 
 // ── UPLOAD ──
@@ -1958,8 +2105,14 @@ async function uploadCloudinary(file){
 }
 function resetUpload(){
   selFile=null; dzSelected=null;
+  if(dzAudio){ dzAudio.pause(); dzAudio=null; }
   document.getElementById('dzSelected').style.display='none';
   document.getElementById('dzResults').innerHTML='';
+  document.getElementById('dzSearch').value='';
+  const audio=document.getElementById('dzPreviewAudio');
+  if(audio){ audio.pause(); audio.src=''; audio.style.display='none'; }
+  const trending=document.getElementById('dzTrending');
+  if(trending) trending.style.display='block';
   $('capInput').value=''; $('fInput').value='';
   $('dropHint').textContent='Toca para elegir una imagen (JPG/PNG, max 32MB)';
   setUType('photo');
