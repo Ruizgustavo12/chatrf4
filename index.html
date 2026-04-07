@@ -59,7 +59,16 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
 .act-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;color:#fff;user-select:none}
 .act-ico{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-size:1.3rem;backdrop-filter:blur(6px);transition:transform .15s,background .15s}
 .act-btn:active .act-ico{transform:scale(1.18)}
-.act-btn.fired .act-ico{background:rgba(255,85,0,.38);animation:fpop .35s ease}
+.act-btn.fired .act-ico{background:rgba(255,85,0,.38)}
+.act-btn.fired .fire-ico{animation:flameDance 0.6s ease infinite alternate}
+.fire-ico{display:inline-block;transform-origin:center bottom}
+@keyframes flameDance{
+  0%{transform:scale(1) rotate(-5deg)}
+  25%{transform:scale(1.15) rotate(3deg)}
+  50%{transform:scale(1.08) rotate(-3deg)}
+  75%{transform:scale(1.2) rotate(4deg)}
+  100%{transform:scale(1.05) rotate(-2deg)}
+}
 @keyframes fpop{0%{transform:scale(1)}45%{transform:scale(1.45)}75%{transform:scale(.88)}100%{transform:scale(1)}}
 .act-count{font-size:.75rem;font-weight:600}
 /* msg btn on feed */
@@ -211,6 +220,24 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
 .pst-music-info{display:flex;flex-direction:column;gap:1px}
 .pst-music-name{font-size:.72rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;text-shadow:0 1px 4px rgba(0,0,0,.8)}
 .pst-music-artist{font-size:.65rem;color:rgba(255,255,255,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+
+/* ── PROFILE EDIT PANEL ── */
+.edit-section{padding:14px 16px;border-bottom:1px solid var(--border)}
+.edit-section-title{font-size:.72rem;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+.edit-field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.edit-label{font-size:.78rem;color:var(--muted);font-weight:500;display:flex;align-items:center;gap:4px}
+.edit-inp{width:100%;padding:11px 13px;background:var(--s2);border:1.5px solid var(--border);border-radius:11px;color:var(--text);font-family:var(--fb);font-size:.93rem;outline:none;transition:border-color .2s}
+.edit-inp:focus{border-color:var(--accent)}
+.edit-inp:disabled{opacity:.45;cursor:not-allowed;color:var(--muted)}
+.edit-inp::placeholder{color:var(--muted)}
+.edit-sel{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2366666e' d='M6 8L0 0h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+.once-badge{font-size:.65rem;background:rgba(255,45,85,.18);color:var(--accent);padding:2px 7px;border-radius:20px;font-weight:600}
+.avatar-edit-wrap{position:relative;width:80px;height:80px;cursor:pointer;margin:0 auto 14px}
+.avatar-edit-wrap .av-lg{width:80px;height:80px;font-size:2rem}
+.avatar-edit-overlay{position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
+.avatar-edit-wrap:hover .avatar-edit-overlay,.avatar-edit-wrap:active .avatar-edit-overlay{opacity:1}
+.avatar-edit-overlay svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
 #toasts{position:fixed;bottom:86px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none}
 .tst{padding:9px 20px;border-radius:50px;background:rgba(28,28,35,.95);color:#fff;font-size:.86rem;font-weight:500;backdrop-filter:blur(8px);white-space:nowrap;animation:tIn .25s ease,tOut .25s ease 2.5s forwards}
 @keyframes tIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -272,7 +299,12 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
     <div style="padding-top:58px"></div>
     <div class="prof-hero">
       <div class="prof-row">
-        <div class="av-lg" id="myAvLg">?</div>
+        <div style="position:relative;cursor:pointer" onclick="openEditProfile()">
+          <div class="av-lg" id="myAvLg">?</div>
+          <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;border:2px solid var(--bg)">
+            <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </div>
+        </div>
         <div style="flex:1">
           <div class="prof-nick" id="myNick">—</div>
           <div class="prof-email" id="myEmail" style="color:var(--muted);font-size:.8rem;margin-top:2px">—</div>
@@ -283,7 +315,8 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
         </div>
       </div>
       <div class="prof-btns">
-        <button class="btn-sm" onclick="openUpload()" style="flex:1">+ Publicar</button>
+        <button class="btn-sm" onclick="openEditProfile()" style="flex:1">✏️ Editar perfil</button>
+        <button class="btn-sm" onclick="openUpload()">+ Publicar</button>
         <button class="btn-sm" onclick="doLogout()">Salir</button>
       </div>
     </div>
@@ -360,6 +393,96 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
 
     <div class="uprog" id="upProg"><div class="uprog-bar" id="upBar"></div></div>
     <button class="btn-main" id="upBtn" onclick="submitPost()">Publicar 🔥</button>
+  </div>
+</div>
+
+<!-- ═══ EDIT PROFILE PANEL ═══ -->
+<div class="panel" id="editProfPanel">
+  <div class="ph">
+    <button class="ph-back" onclick="closePanel('editProfPanel')">←</button>
+    <span class="ph-title">Editar perfil</span>
+    <button class="ph-action" onclick="saveProfile()">Guardar</button>
+  </div>
+  <div style="overflow-y:auto;flex:1;padding-bottom:30px">
+
+    <!-- Avatar -->
+    <div class="edit-section" style="display:flex;flex-direction:column;align-items:center;padding-top:20px;padding-bottom:16px">
+      <div class="avatar-edit-wrap" onclick="document.getElementById('avatarInput').click()">
+        <div class="av-lg" id="editAvLg">?</div>
+        <div class="avatar-edit-overlay">
+          <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </div>
+      </div>
+      <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="previewAvatar(this)">
+      <span style="font-size:.78rem;color:var(--muted)">Tocar para cambiar foto</span>
+    </div>
+
+    <!-- Nombre -->
+    <div class="edit-section">
+      <div class="edit-section-title">Información básica</div>
+      <div class="edit-field">
+        <label class="edit-label">Nombre <span class="once-badge" id="nameOnceBadge" style="display:none">Solo 1 vez</span></label>
+        <input class="edit-inp" id="epNombre" type="text" placeholder="Tu nombre">
+      </div>
+      <div class="edit-field">
+        <label class="edit-label">Apellido <span class="once-badge" id="apellidoOnceBadge" style="display:none">Solo 1 vez</span></label>
+        <input class="edit-inp" id="epApellido" type="text" placeholder="Tu apellido">
+      </div>
+      <div class="edit-field">
+        <label class="edit-label">Nombre de usuario</label>
+        <input class="edit-inp" id="epNick" type="text" placeholder="@usuario">
+      </div>
+    </div>
+
+    <!-- Fecha nacimiento -->
+    <div class="edit-section">
+      <div class="edit-section-title">Datos personales</div>
+      <div class="edit-field">
+        <label class="edit-label">Fecha de nacimiento <span class="once-badge" id="fechaOnceBadge" style="display:none">Solo 1 vez</span></label>
+        <input class="edit-inp" id="epFecha" type="date" placeholder="dd/mm/aaaa">
+      </div>
+
+      <!-- País -->
+      <div class="edit-field">
+        <label class="edit-label">País <span class="once-badge" id="paisOnceBadge" style="display:none">Solo 1 vez</span></label>
+        <select class="edit-inp edit-sel" id="epPais" onchange="loadLocalidades(this.value)">
+          <option value="">Seleccioná tu país...</option>
+          <option value="AR">Argentina</option>
+          <option value="UY">Uruguay</option>
+          <option value="BR">Brasil</option>
+          <option value="CL">Chile</option>
+          <option value="PY">Paraguay</option>
+          <option value="BO">Bolivia</option>
+          <option value="PE">Perú</option>
+          <option value="CO">Colombia</option>
+          <option value="VE">Venezuela</option>
+          <option value="EC">Ecuador</option>
+          <option value="MX">México</option>
+          <option value="ES">España</option>
+          <option value="US">Estados Unidos</option>
+          <option value="OTHER">Otro</option>
+        </select>
+      </div>
+
+      <!-- Localidad -->
+      <div class="edit-field">
+        <label class="edit-label">Localidad / Ciudad <span class="once-badge" id="localidadOnceBadge" style="display:none">Solo 1 vez</span></label>
+        <select class="edit-inp edit-sel" id="epLocalidad">
+          <option value="">Primero elegí un país...</option>
+        </select>
+      </div>
+
+      <!-- Teléfono -->
+      <div class="edit-field">
+        <label class="edit-label">
+          Número de celular
+          <span class="once-badge" id="celOnceBadge" style="display:none">Solo 1 vez</span>
+          <span style="font-size:.65rem;color:var(--muted);margin-left:4px">🔒 Privado</span>
+        </label>
+        <input class="edit-inp" id="epCel" type="tel" placeholder="+598 99 123 456">
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -623,8 +746,8 @@ function renderFeed(posts){
         </div>
       </div>`:''}
       <div class="pst-acts">
-        <button class="act-btn${fired?' fired':''}" onclick="toggleFire('${p.id}',this)">
-          <div class="act-ico">🔥</div>
+        <button class="act-btn${fired?' fired':''}" id="firebtn_${p.id}" onclick="toggleFire('${p.id}',this)">
+          <div class="act-ico"><span class="fire-ico">🔥</span></div>
           <span class="act-count" id="fc_${p.id}">${fires}</span>
         </button>
         ${p.uid!==CU?.uid?`<button class="act-btn msg-btn" onclick="openOtherProfile('${p.uid}')">
@@ -670,6 +793,7 @@ window.toggleFire = async (pid,btn)=>{
   if(!CU){toast('Iniciá sesión primero');return;}
   const uid=CU.uid;
   const postRef=doc(db,'posts',pid);
+  const countEl=document.getElementById('fc_'+pid);
   try {
     await runTransaction(db, async tx=>{
       const snap=await tx.get(postRef);
@@ -677,15 +801,18 @@ window.toggleFire = async (pid,btn)=>{
       const data=snap.data();
       const firedBy=data.firedBy||{};
       if(firedBy[uid]){
-        const upd={fires:Math.max(0,(data.fires||1)-1),[`firedBy.${uid}`]:deleteField()};
-        tx.update(postRef,upd);
+        const newFires=Math.max(0,(data.fires||1)-1);
+        tx.update(postRef,{fires:newFires,[`firedBy.${uid}`]:deleteField()});
         btn.classList.remove('fired');
+        if(countEl) countEl.textContent=newFires;
       } else {
-        tx.update(postRef,{fires:(data.fires||0)+1,[`firedBy.${uid}`]:true});
+        const newFires=(data.fires||0)+1;
+        tx.update(postRef,{fires:newFires,[`firedBy.${uid}`]:true});
         btn.classList.add('fired');
+        if(countEl) countEl.textContent=newFires;
       }
     });
-  } catch(e){ console.error(e); }
+  } catch(e){ console.error('toggleFire error:',e); toast('Error al reaccionar'); }
 };
 
 // ── MY PROFILE ──
@@ -704,6 +831,125 @@ function loadMyProfile(){
     renderGrid($('myGrid'),posts,true);
   });
 }
+
+// ── LOCALIDADES por país ──
+const LOCALIDADES={
+  AR:['Buenos Aires','Córdoba','Rosario','Mendoza','La Plata','San Miguel de Tucumán','Mar del Plata','Salta','Santa Fe','San Juan','Resistencia','Santiago del Estero','Corrientes','Posadas','Neuquén','Bahía Blanca','Formosa','San Salvador de Jujuy','San Luis','Río Cuarto','Comodoro Rivadavia','Otra'],
+  UY:['Montevideo','Salto','Ciudad de la Costa','Paysandú','Las Piedras','Rivera','Maldonado','Tacuarembó','Melo','Mercedes','Artigas','Minas','San José de Mayo','Durazno','Florida','Trinidad','Rocha','Treinta y Tres','Fray Bentos','Nueva Helvecia','Otra'],
+  BR:['São Paulo','Rio de Janeiro','Brasília','Salvador','Fortaleza','Belo Horizonte','Manaus','Curitiba','Recife','Porto Alegre','Belém','Goiânia','Outra'],
+  CL:['Santiago','Valparaíso','Concepción','La Serena','Antofagasta','Temuco','Rancagua','Talca','Arica','Chillán','Otra'],
+  PY:['Asunción','Ciudad del Este','San Lorenzo','Luque','Capiatá','Lambaré','Fernando de la Mora','Limpio','Ñemby','Encarnación','Otra'],
+  BO:['Cochabamba','Santa Cruz de la Sierra','La Paz','Oruro','Sucre','Potosí','Tarija','Trinidad','Cobija','Otra'],
+  PE:['Lima','Arequipa','Trujillo','Chiclayo','Piura','Iquitos','Cusco','Chimbote','Huancayo','Otra'],
+  CO:['Bogotá','Medellín','Cali','Barranquilla','Cartagena','Cúcuta','Bucaramanga','Pereira','Santa Marta','Ibagué','Otra'],
+  VE:['Caracas','Maracaibo','Valencia','Barquisimeto','Maracay','Barcelona','Maturín','San Cristóbal','Otra'],
+  EC:['Guayaquil','Quito','Cuenca','Santo Domingo','Machala','Durán','Manta','Portoviejo','Otra'],
+  MX:['Ciudad de México','Guadalajara','Monterrey','Puebla','Tijuana','León','Juárez','Zapopan','Mérida','Cancún','Otra'],
+  ES:['Madrid','Barcelona','Valencia','Sevilla','Zaragoza','Málaga','Murcia','Palma','Las Palmas','Bilbao','Otra'],
+  US:['New York','Los Angeles','Chicago','Houston','Phoenix','Philadelphia','San Antonio','San Diego','Dallas','Miami','Otra'],
+  OTHER:['Otra']
+};
+
+window.loadLocalidades = (pais,selVal='')=>{
+  const sel=$('epLocalidad');
+  if(!pais){ sel.innerHTML='<option value="">Primero elegí un país...</option>'; return; }
+  const opts=LOCALIDADES[pais]||['Otra'];
+  sel.innerHTML='<option value="">Seleccioná tu localidad...</option>'+opts.map(l=>`<option value="${l}" ${l===selVal?'selected':''}>${l}</option>`).join('');
+};
+
+// ── OPEN EDIT PROFILE ──
+window.openEditProfile = async ()=>{
+  if(!CU) return;
+  const snap=await getDoc(doc(db,'users',CU.uid));
+  const d=snap.data()||{};
+
+  // Avatar
+  const avEl=$('editAvLg');
+  if(CU.photo||d.photo) avEl.innerHTML=`<img src="${CU.photo||d.photo}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  else avEl.textContent=(CU.nick||'?')[0].toUpperCase();
+
+  // Campos básicos (siempre editables)
+  $('epNick').value=d.nick||CU.nick||'';
+
+  // Solo-una-vez: nombre
+  const hasNombre=!!d.nombre;
+  $('epNombre').value=d.nombre||''; $('epNombre').disabled=hasNombre;
+  $('nameOnceBadge').style.display=hasNombre?'inline':'none';
+  // apellido
+  const hasApellido=!!d.apellido;
+  $('epApellido').value=d.apellido||''; $('epApellido').disabled=hasApellido;
+  $('apellidoOnceBadge').style.display=hasApellido?'inline':'none';
+  // fecha
+  const hasFecha=!!d.fechaNac;
+  $('epFecha').value=d.fechaNac||''; $('epFecha').disabled=hasFecha;
+  $('fechaOnceBadge').style.display=hasFecha?'inline':'none';
+  // pais
+  const hasPais=!!d.pais;
+  $('epPais').value=d.pais||''; $('epPais').disabled=hasPais;
+  $('paisOnceBadge').style.display=hasPais?'inline':'none';
+  // localidad
+  loadLocalidades(d.pais||'',d.localidad||'');
+  const hasLocalidad=!!d.localidad;
+  $('epLocalidad').disabled=hasLocalidad;
+  $('localidadOnceBadge').style.display=hasLocalidad?'inline':'none';
+  // cel
+  const hasCel=!!d.cel;
+  $('epCel').value=hasCel?'••••••••••':'' ; $('epCel').disabled=hasCel;
+  $('celOnceBadge').style.display=hasCel?'inline':'none';
+
+  openPanel('editProfPanel');
+};
+
+// ── PREVIEW AVATAR ──
+let avatarFile=null;
+window.previewAvatar = inp=>{
+  avatarFile=inp.files[0]||null;
+  if(!avatarFile) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    $('editAvLg').innerHTML=`<img src="${e.target.result}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  };
+  reader.readAsDataURL(avatarFile);
+};
+
+// ── SAVE PROFILE ──
+window.saveProfile = async ()=>{
+  if(!CU) return;
+  const btn=document.querySelector('#editProfPanel .ph-action');
+  btn.textContent='Guardando...'; btn.disabled=true;
+  try {
+    const snap=await getDoc(doc(db,'users',CU.uid));
+    const d=snap.data()||{};
+    const upd={};
+
+    // Subir avatar si hay uno nuevo
+    if(avatarFile){
+      const fd=new FormData(); fd.append('image',avatarFile);
+      const r=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`,{method:'POST',body:fd});
+      const j=await r.json();
+      if(j.success){ upd.photo=j.data.url; CU.photo=j.data.url; }
+      avatarFile=null;
+    }
+
+    // Nick siempre editable
+    const nick=$('epNick').value.trim();
+    if(nick&&nick!==d.nick){ upd.nick=nick; CU.nick=nick; }
+
+    // Solo-una-vez
+    if(!d.nombre&&$('epNombre').value.trim()) upd.nombre=$('epNombre').value.trim();
+    if(!d.apellido&&$('epApellido').value.trim()) upd.apellido=$('epApellido').value.trim();
+    if(!d.fechaNac&&$('epFecha').value) upd.fechaNac=$('epFecha').value;
+    if(!d.pais&&$('epPais').value) upd.pais=$('epPais').value;
+    if(!d.localidad&&$('epLocalidad').value) upd.localidad=$('epLocalidad').value;
+    if(!d.cel&&$('epCel').value.trim()&&!$('epCel').disabled) upd.cel=$('epCel').value.trim();
+
+    if(Object.keys(upd).length) await setDoc(doc(db,'users',CU.uid),upd,{merge:true});
+    toast('¡Perfil actualizado!');
+    closePanel('editProfPanel');
+    loadMyProfile();
+  } catch(e){ toast('Error: '+e.message); console.error(e); }
+  finally{ btn.textContent='Guardar'; btn.disabled=false; }
+};
 
 // ── OTHER USER PROFILE ──
 window.openOtherProfile = async uid=>{
@@ -801,7 +1047,7 @@ function openPrivateChat(user){
   $('chatMsgs').innerHTML='';
   openPanel('privChat');
   // mark as read
-  updateDoc(doc(db,'chats',cid),{[`unread_${CU.uid}`]:0}).catch(()=>{});
+  setDoc(doc(db,'chats',cid),{[`unread_${CU.uid}`]:0},{merge:true}).catch(()=>{});
   // listen messages
   if(unsubMsgs){ unsubMsgs(); unsubMsgs=null; }
   const msgsQ=query(collection(db,'chats',cid,'messages'),orderBy('ts','asc'),limit(100));
