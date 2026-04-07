@@ -2572,33 +2572,52 @@ window.flNextPhoto = function(){ _advancePhoto(1); };
 window.flPrevPhoto = function(){ _advancePhoto(-1); };
 
 // ── Mouse wheel navigation ──
+// ── Pause / Resume centralizados ──
+function _flPause(){
+  _stopTimer();
+  var fills = document.querySelectorAll('.fl-prog-fill');
+  fills.forEach(function(f){ f.style.animationPlayState='paused'; f.style.webkitAnimationPlayState='paused'; });
+  var vid = document.getElementById('flStoryVideo');
+  if(vid) vid.pause();
+  var audio = document.getElementById('flAudioEl');
+  if(audio) audio.pause();
+  _fl._holdPaused = true;
+}
+function _flResume(){
+  if(!_fl._holdPaused) return;
+  _fl._holdPaused = false;
+  var fills = document.querySelectorAll('.fl-prog-fill');
+  fills.forEach(function(f){ f.style.animationPlayState='running'; f.style.webkitAnimationPlayState='running'; });
+  var vid = document.getElementById('flStoryVideo');
+  if(vid) vid.play().catch(function(){});
+  var audio = document.getElementById('flAudioEl');
+  if(audio && audio.src) audio.play().catch(function(){});
+  _fl.timer = setTimeout(function(){ _advancePhoto(1); }, _fl.duration * 0.5);
+}
+
 function _attachHold(){
-  // Hold mouse/touch on card → pause auto-advance
   var card = document.getElementById('flCard');
   if(!card) return;
   function _pause(){
-    _stopTimer();
-    // pause progress bar animation
-    var fills = document.querySelectorAll('.fl-prog-fill');
-    fills.forEach(function(f){ f.style.animationPlayState='paused'; f.style.webkitAnimationPlayState='paused'; });
+    _flPause();
     card.style.transform='scale(.98)';
     card.style.transition='transform .15s';
-    _fl._holdPaused = true;
   }
   function _resume(){
     if(!_fl._holdPaused) return;
-    _fl._holdPaused = false;
     card.style.transform='';
-    // restart timer for remaining time of current photo
-    _fl.timer = setTimeout(function(){ _advancePhoto(1); }, _fl.duration * 0.5);
-    var fills = document.querySelectorAll('.fl-prog-fill');
-    fills.forEach(function(f){ f.style.animationPlayState='running'; f.style.webkitAnimationPlayState='running'; });
+    _flResume();
   }
   card.addEventListener('mousedown', _pause);
   card.addEventListener('mouseup',   _resume);
   card.addEventListener('mouseleave',_resume);
   card.addEventListener('touchstart', _pause, {passive:true});
   card.addEventListener('touchend',   _resume);
+  // Click derecho → toggle pausa
+  card.addEventListener('contextmenu', function(e){
+    e.preventDefault();
+    if(_fl._holdPaused){ card.style.transform=''; _flResume(); } else { _flPause(); }
+  });
 }
 
 function _attachWheel(){
@@ -2822,25 +2841,22 @@ window.flOpenComments = function(){
     document.getElementById('body-panels-root').appendChild(p);
   }
   if(p) p.classList.toggle('open');
-  // Focus input cuando se abre
   if(p && p.classList.contains('open')){
+    // Abrir → pausar reproducción
+    _flPause();
     setTimeout(function(){ var inp=document.getElementById('flCommentInput'); if(inp) inp.focus(); }, 350);
+  } else {
+    // Cerrar → reanudar reproducción
+    _flResume();
   }
 };
 
-// ESC → go to home + stop music
+// ESC → go to home + stop everything
 document.addEventListener('keydown', function(e){
   if(e.key !== 'Escape') return;
   var flashPage = document.getElementById('page-flashlatido');
   if(!flashPage || !flashPage.classList.contains('active')) return;
-  // Stop audio
-  var audio = document.getElementById('flAudioEl');
-  if(audio){ audio.pause(); audio.src=''; }
-  var disc = document.getElementById('flDisc');
-  if(disc) disc.classList.remove('playing');
-  // Close comments panel
-  var panel = document.getElementById('flCommentsPanel');
-  if(panel) panel.classList.remove('open');
+  _flStopAll();
   // Navigate to home
   if(typeof window.gp === 'function') window.gp('home');
 });
@@ -3141,16 +3157,32 @@ function escHtml(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// Patch gp router — stop music when leaving flashlatido
+// ── Detener todo en FlashLatido ──
+function _flStopAll(){
+  _stopTimer();
+  _fl._holdPaused = false;
+  // Detener video
+  var vid = document.getElementById('flStoryVideo');
+  if(vid){ vid.pause(); vid.src=''; }
+  // Detener música
+  var audio = document.getElementById('flAudioEl');
+  if(audio){ audio.pause(); audio.src=''; }
+  var disc = document.getElementById('flDisc');
+  if(disc) disc.classList.remove('playing');
+  // Cerrar panel de comentarios
+  var panel = document.getElementById('flCommentsPanel');
+  if(panel) panel.classList.remove('open');
+  // Resetear barra de progreso
+  var fills = document.querySelectorAll('.fl-prog-fill');
+  fills.forEach(function(f){ f.style.transition='none'; f.style.animationPlayState='paused'; });
+}
+
+// Patch gp router — stop everything when leaving flashlatido
 var _gpOrig=window.gp;
 if(typeof _gpOrig==='function'){
   window.gp=function(id,ps){
-    // Stop FlashLatido music if leaving
     if(id !== 'flashlatido'){
-      var _audio=document.getElementById('flAudioEl');
-      if(_audio){ _audio.pause(); _audio.src=''; }
-      var _disc=document.getElementById('flDisc');
-      if(_disc) _disc.classList.remove('playing');
+      _flStopAll();
     }
     _gpOrig.apply(this,arguments);
     if(id==='flashlatido') setTimeout(window.initFlashLatido,60);
