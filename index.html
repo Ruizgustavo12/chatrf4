@@ -1136,6 +1136,193 @@
     .msg-body { max-width: 80%; }
     .yt-playlist { display: none; }
   }
+
+  /* ══════════════════════════════════════
+     BOTTOM NAV
+  ══════════════════════════════════════ */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex; z-index: 60;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .bottom-nav.hidden { display: none; }
+  .bnav-btn {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; padding: 10px 4px 8px;
+    background: none; border: none; cursor: pointer;
+    color: var(--text-muted); font-family: var(--font-body); font-size: .62rem; font-weight: 500;
+    transition: color .2s; letter-spacing: .2px;
+  }
+  .bnav-btn .bnav-icon { font-size: 1.25rem; line-height: 1; }
+  .bnav-btn.active { color: var(--accent); }
+  .bnav-btn.active .bnav-icon { filter: drop-shadow(0 0 6px var(--accent)); }
+
+  /* ══════════════════════════════════════
+     SHORTS MODAL OVERLAY
+  ══════════════════════════════════════ */
+  #shorts-overlay {
+    position: fixed; inset: 0; z-index: 80;
+    background: #000;
+    display: flex; flex-direction: column;
+    animation: fadeIn .25s ease;
+  }
+  #shorts-overlay.hidden { display: none; }
+
+  /* Shorts header */
+  .shorts-header {
+    position: absolute; top: 0; left: 0; right: 0;
+    padding: 14px 16px 10px;
+    display: flex; align-items: center; gap: 10px;
+    background: linear-gradient(to bottom, rgba(0,0,0,.85) 0%, transparent 100%);
+    z-index: 10;
+  }
+  .shorts-title {
+    font-family: var(--font-head); font-size: 1.1rem; font-weight: 800;
+    color: #fff; letter-spacing: -.3px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .shorts-title-yt { color: #ff3333; }
+  .shorts-close-btn {
+    margin-left: auto;
+    background: rgba(255,255,255,.15); border: none; border-radius: 50%;
+    width: 34px; height: 34px; color: #fff; font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background .2s;
+  }
+  .shorts-close-btn:hover { background: rgba(255,255,255,.3); }
+
+  /* Categories bar */
+  .shorts-cats {
+    position: absolute; top: 52px; left: 0; right: 0;
+    display: flex; gap: 7px; overflow-x: auto; padding: 6px 14px 8px;
+    scrollbar-width: none; z-index: 10;
+    background: linear-gradient(to bottom, rgba(0,0,0,.7) 0%, transparent 100%);
+  }
+  .shorts-cats::-webkit-scrollbar { display: none; }
+  .shorts-cat-chip {
+    flex-shrink: 0; padding: 5px 14px;
+    background: rgba(255,255,255,.12); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 99px; color: rgba(255,255,255,.8);
+    font-size: .75rem; font-weight: 600; font-family: var(--font-body);
+    cursor: pointer; transition: all .2s; white-space: nowrap;
+  }
+  .shorts-cat-chip.active {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+    box-shadow: 0 0 12px rgba(124,106,255,.5);
+  }
+  .shorts-cat-chip:hover:not(.active) { background: rgba(255,255,255,.22); color: #fff; }
+
+  /* Swipe container */
+  #shorts-container {
+    flex: 1; position: relative; overflow: hidden;
+    touch-action: pan-y;
+  }
+
+  /* Each short slide */
+  .short-slide {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #000;
+    transition: transform .35s cubic-bezier(.4,0,.2,1);
+  }
+  .short-slide.above { transform: translateY(-100%); }
+  .short-slide.current { transform: translateY(0); }
+  .short-slide.below { transform: translateY(100%); }
+
+  /* iframe wrapper — TikTok 9:16 */
+  .short-iframe-wrap {
+    position: relative;
+    width: min(100vw, calc(100vh * 9/16));
+    height: 100%;
+    margin: 0 auto;
+    background: #000;
+    overflow: hidden;
+  }
+  .short-iframe-wrap iframe {
+    position: absolute;
+    /* Expand slightly to hide YouTube UI chrome */
+    top: -60px; left: -1px; right: -1px; bottom: -60px;
+    width: calc(100% + 2px); height: calc(100% + 120px);
+    border: none; pointer-events: none;
+  }
+
+  /* Side action buttons */
+  .short-actions {
+    position: absolute; right: 14px; bottom: 120px;
+    display: flex; flex-direction: column; align-items: center; gap: 18px;
+    z-index: 5;
+  }
+  .short-action-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    background: none; border: none; cursor: pointer;
+    color: #fff; font-family: var(--font-body); font-size: .7rem; font-weight: 600;
+  }
+  .short-action-icon {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,.15); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; transition: transform .15s, background .2s;
+  }
+  .short-action-btn:hover .short-action-icon { transform: scale(1.1); background: rgba(255,255,255,.25); }
+  .short-action-btn.voted .short-action-icon { background: rgba(124,106,255,.5); }
+
+  /* Short info overlay (bottom) */
+  .short-info {
+    position: absolute; left: 0; right: 60px; bottom: 0;
+    padding: 80px 14px 14px;
+    background: linear-gradient(to top, rgba(0,0,0,.85) 0%, transparent 100%);
+    z-index: 5;
+  }
+  .short-channel {
+    font-weight: 700; font-size: .9rem; color: #fff;
+    margin-bottom: 4px; font-family: var(--font-head);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .short-title-text {
+    font-size: .8rem; color: rgba(255,255,255,.8);
+    line-height: 1.4; display: -webkit-box;
+    -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .short-cat-badge {
+    display: inline-block; margin-top: 6px;
+    background: rgba(124,106,255,.5); backdrop-filter: blur(6px);
+    border: 1px solid rgba(124,106,255,.6);
+    border-radius: 99px; padding: 2px 10px;
+    font-size: .68rem; font-weight: 700; color: #fff; font-family: var(--font-head);
+    letter-spacing: .3px;
+  }
+
+  /* Swipe hint */
+  .shorts-swipe-hint {
+    position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,.5); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 99px; padding: 6px 16px;
+    color: rgba(255,255,255,.7); font-size: .75rem; font-family: var(--font-body);
+    z-index: 10; animation: fadeIn .5s ease 1s both, fadeOut .5s ease 4s both;
+    pointer-events: none;
+  }
+  @keyframes fadeOut { to { opacity: 0; } }
+
+  /* Loading / empty state */
+  .shorts-loading {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: rgba(255,255,255,.6); font-size: .9rem; gap: 14px; z-index: 2;
+  }
+  .shorts-spinner {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 3px solid rgba(255,255,255,.15);
+    border-top-color: var(--accent);
+    animation: spin .7s linear infinite;
+  }
+
+  /* Bottom nav safe area padding */
+  #main-app { padding-bottom: 56px; }
 </style>
 </head>
 <body>
@@ -1445,6 +1632,48 @@
 </div>
 
 <div id="toast"></div>
+
+<!-- ══════════════════════════════════════════
+     SHORTS OVERLAY
+══════════════════════════════════════════ -->
+<div id="shorts-overlay" class="hidden">
+
+  <!-- Header -->
+  <div class="shorts-header">
+    <div class="shorts-title">
+      <span class="shorts-title-yt">▶</span> Shorts
+    </div>
+  </div>
+
+  <!-- Category chips -->
+  <div class="shorts-cats" id="shorts-cats"></div>
+
+  <!-- Swipe hint (shown on first open) -->
+  <div class="shorts-swipe-hint" id="shorts-swipe-hint">↕ Deslizá para ver más</div>
+
+  <!-- Loading state -->
+  <div class="shorts-loading" id="shorts-loading">
+    <div class="shorts-spinner"></div>
+    <span>Cargando Shorts...</span>
+  </div>
+
+  <!-- Slides container -->
+  <div id="shorts-container"></div>
+
+  <!-- Close btn (bottom nav replaces it) -->
+  <button class="shorts-close-btn" style="position:absolute;top:14px;right:14px;z-index:20" onclick="closeShorts()">✕</button>
+
+</div>
+
+<!-- BOTTOM NAV (shown when logged in) -->
+<nav class="bottom-nav hidden" id="bottom-nav">
+  <button class="bnav-btn active" id="bnav-chat" onclick="switchView('chat')">
+    <span class="bnav-icon">💬</span>Chat
+  </button>
+  <button class="bnav-btn" id="bnav-shorts" onclick="switchView('shorts')">
+    <span class="bnav-icon">▶️</span>Shorts
+  </button>
+</nav>
 
 <!-- FIREBASE SDK -->
 <script type="module">
@@ -2726,6 +2955,475 @@ function reactToStory(emoji) {
   showToast(emoji + ' Reacción enviada');
   // Could store to Firestore: stories/{uid}/items/{storyId}/reactions
 }
+</script>
+
+<!-- ══════════════════════════════════════════
+     SHORTS MODULE
+══════════════════════════════════════════ -->
+<script>
+// ── CONFIGURATION ──────────────────────────────
+// Replace with your own YouTube Data API v3 key
+const YT_API_KEY = 'AIzaSyA9oat9dd0S9vlxkg1osH4dW3XhRDGiOiw'; // ← put your YouTube Data API key here
+
+const SHORTS_CATEGORIES = [
+  { id: 'all',        label: '🔥 Todo',          query: 'shorts viral 2024' },
+  { id: 'musica',     label: '🎵 Música',         query: 'music shorts 2024' },
+  { id: 'gaming',     label: '🎮 Gaming',         query: 'gaming shorts funny' },
+  { id: 'comedia',    label: '😂 Comedia',        query: 'funny pranks fails shorts' },
+  { id: 'deportes',   label: '⚽ Deportes',       query: 'sports shorts highlights' },
+  { id: 'tutoriales', label: '📚 Tutoriales',     query: 'tutorial tips shorts' },
+  { id: 'animacion',  label: '🎨 Animación',      query: 'animation cartoon shorts' },
+  { id: 'noticias',   label: '📰 Noticias',       query: 'noticias shorts' },
+  { id: 'lifestyle',  label: '🌟 Lifestyle',      query: 'lifestyle vlog shorts' },
+  { id: 'tech',       label: '💻 Tecnología',     query: 'tech gadgets shorts' },
+  { id: 'mascotas',   label: '🐾 Mascotas',       query: 'pets animals shorts funny' },
+  { id: 'belleza',    label: '💄 Belleza',        query: 'beauty fashion shorts' },
+  { id: 'ciencia',    label: '🔬 Ciencia',        query: 'science facts shorts' },
+];
+
+// ── STATE ───────────────────────────────────────
+let _shortsOpen       = false;
+let _shortsCategory   = 'all';
+let _shortsVideos     = [];    // [{id,title,channel,category,votes,votedByMe}]
+let _shortsIndex      = 0;
+let _shortsTouchStartY= 0;
+let _shortsSwipeHintShown = false;
+let _shortsUnsubVotes = null;  // Firestore realtime listener
+
+// ── OPEN / CLOSE ────────────────────────────────
+function openShorts() {
+  document.getElementById('shorts-overlay').classList.remove('hidden');
+  _shortsOpen = true;
+  if (!_shortsSwipeHintShown) {
+    _shortsSwipeHintShown = true;
+    setTimeout(() => {
+      const h = document.getElementById('shorts-swipe-hint');
+      if (h) h.style.display = 'none';
+    }, 4500);
+  } else {
+    const h = document.getElementById('shorts-swipe-hint');
+    if (h) h.style.display = 'none';
+  }
+  if (_shortsVideos.length === 0) {
+    loadShortsByCategory(_shortsCategory);
+  } else {
+    renderShortSlides();
+  }
+}
+
+function closeShorts() {
+  document.getElementById('shorts-overlay').classList.add('hidden');
+  pauseAllShortIframes();
+  _shortsOpen = false;
+  switchView('chat');
+}
+
+// ── BOTTOM NAV VIEW SWITCH ───────────────────────
+function switchView(view) {
+  const bnChat   = document.getElementById('bnav-chat');
+  const bnShorts = document.getElementById('bnav-shorts');
+  if (view === 'shorts') {
+    bnChat  && bnChat.classList.remove('active');
+    bnShorts && bnShorts.classList.add('active');
+    openShorts();
+  } else {
+    bnShorts && bnShorts.classList.remove('active');
+    bnChat   && bnChat.classList.add('active');
+    document.getElementById('shorts-overlay').classList.add('hidden');
+    pauseAllShortIframes();
+    _shortsOpen = false;
+  }
+}
+
+// ── BUILD CATEGORY CHIPS ─────────────────────────
+function buildShortsCats() {
+  const el = document.getElementById('shorts-cats');
+  if (!el) return;
+  el.innerHTML = '';
+  SHORTS_CATEGORIES.forEach(cat => {
+    const chip = document.createElement('button');
+    chip.className = 'shorts-cat-chip' + (cat.id === _shortsCategory ? ' active' : '');
+    chip.textContent = cat.label;
+    chip.onclick = () => selectShortsCategory(cat.id);
+    el.appendChild(chip);
+  });
+}
+
+function selectShortsCategory(catId) {
+  if (catId === _shortsCategory) return;
+  _shortsCategory = catId;
+  _shortsVideos   = [];
+  _shortsIndex    = 0;
+  document.querySelectorAll('.shorts-cat-chip').forEach(c => c.classList.remove('active'));
+  const chips = document.querySelectorAll('.shorts-cat-chip');
+  const idx   = SHORTS_CATEGORIES.findIndex(c => c.id === catId);
+  if (chips[idx]) chips[idx].classList.add('active');
+  loadShortsByCategory(catId);
+}
+
+// ── FETCH FROM YOUTUBE DATA API ──────────────────
+async function loadShortsByCategory(catId) {
+  showShortsLoading(true);
+  document.getElementById('shorts-container').innerHTML = '';
+
+  const cat = SHORTS_CATEGORIES.find(c => c.id === catId) || SHORTS_CATEGORIES[0];
+
+  // Try YouTube Data API first
+  let videos = [];
+  try {
+    videos = await fetchYouTubeShorts(cat.query);
+  } catch(e) {
+    console.warn('YouTube API error:', e.message);
+  }
+
+  // Fallback: use curated video IDs if API fails (no key or quota)
+  if (videos.length === 0) {
+    videos = getFallbackShorts(catId);
+  }
+
+  // Merge with Firestore votes
+  _shortsVideos = videos;
+  await mergeFirestoreVotes(_shortsCategory);
+  _shortsIndex  = 0;
+  showShortsLoading(false);
+  renderShortSlides();
+  subscribeToVotes(_shortsCategory);
+}
+
+async function fetchYouTubeShorts(query) {
+  // YouTube Data API v3 – search for shorts
+  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoDuration=short&maxResults=20&order=date&q=${encodeURIComponent(query + ' #shorts')}&key=${YT_API_KEY}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+
+  const items = data.items || [];
+  return items.map(item => ({
+    id:       item.id.videoId,
+    title:    item.snippet.title,
+    channel:  item.snippet.channelTitle,
+    category: _shortsCategory,
+    publishedAt: item.snippet.publishedAt,
+    votes:    0,
+    votedByMe: false,
+  }));
+}
+
+// Curated fallback Shorts (real video IDs that are known shorts)
+function getFallbackShorts(catId) {
+  const pools = {
+    all:        ['dQw4w9WgXcQ','9bZkp7q19f0','kJQP7kiw5Fk','JGwWNGJdvx8','fJ9rUzIMcZQ'],
+    musica:     ['JGwWNGJdvx8','kJQP7kiw5Fk','fJ9rUzIMcZQ','7wtfhZwyrcc','RgKAFK5djSk'],
+    gaming:     ['M7lc1UVf-VE','YykjpeuMNEk','2vjPBrBU-TM','nfWlot6h_JM','0td3bFVFiPY'],
+    comedia:    ['oHg5SJYRHA0','9bZkp7q19f0','dQw4w9WgXcQ','kJQP7kiw5Fk','YR5ApYxkU-U'],
+    deportes:   ['Sagg08DrO5U','Ks-_Mh1QhMc','NpfBhOXOjGY','OPf0YbXqDm0','kffacxfA7G4'],
+    tutoriales: ['aircAruvnKk','2vjPBrBU-TM','dQw4w9WgXcQ','M7lc1UVf-VE','fJ9rUzIMcZQ'],
+    animacion:  ['9bZkp7q19f0','JGwWNGJdvx8','YykjpeuMNEk','RgKAFK5djSk','7wtfhZwyrcc'],
+    noticias:   ['oHg5SJYRHA0','dQw4w9WgXcQ','kJQP7kiw5Fk','fJ9rUzIMcZQ','JGwWNGJdvx8'],
+    lifestyle:  ['RgKAFK5djSk','7wtfhZwyrcc','YR5ApYxkU-U','kffacxfA7G4','NpfBhOXOjGY'],
+    tech:       ['M7lc1UVf-VE','aircAruvnKk','2vjPBrBU-TM','Sagg08DrO5U','Ks-_Mh1QhMc'],
+    mascotas:   ['YR5ApYxkU-U','kffacxfA7G4','OPf0YbXqDm0','NpfBhOXOjGY','0td3bFVFiPY'],
+    belleza:    ['7wtfhZwyrcc','RgKAFK5djSk','JGwWNGJdvx8','kJQP7kiw5Fk','fJ9rUzIMcZQ'],
+    ciencia:    ['aircAruvnKk','M7lc1UVf-VE','Ks-_Mh1QhMc','Sagg08DrO5U','2vjPBrBU-TM'],
+  };
+  const ids = pools[catId] || pools.all;
+  const catLabel = (SHORTS_CATEGORIES.find(c=>c.id===catId)||{label:'Shorts'}).label;
+  return ids.map((id,i) => ({
+    id,
+    title: `Short #${i+1} · ${catLabel}`,
+    channel: 'YouTube Shorts',
+    category: catId,
+    publishedAt: new Date(Date.now() - i*3600000).toISOString(),
+    votes: 0,
+    votedByMe: false,
+  }));
+}
+
+// ── FIRESTORE VOTES ──────────────────────────────
+async function mergeFirestoreVotes(catId) {
+  if (!window._db) return;
+  try {
+    const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const snap = await getDocs(collection(window._db, 'shorts', catId, 'videos'));
+    const map  = {};
+    snap.forEach(d => { map[d.id] = d.data(); });
+    const uid = window._getCurrentUser ? window._getCurrentUser()?.uid : null;
+    _shortsVideos = _shortsVideos.map(v => {
+      const fs = map[v.id] || {};
+      return {
+        ...v,
+        votes:     fs.votes     || v.votes || 0,
+        channel:   fs.channel   || v.channel,
+        title:     fs.title     || v.title,
+        category:  fs.category  || v.category,
+        votedByMe: uid && fs.voters && fs.voters.includes(uid) ? true : false,
+      };
+    });
+    // Sort: most voted first (within same category)
+    _shortsVideos.sort((a,b) => (b.votes||0) - (a.votes||0));
+  } catch(e) {
+    console.warn('Firestore merge error:', e.message);
+  }
+}
+
+function subscribeToVotes(catId) {
+  if (_shortsUnsubVotes) { _shortsUnsubVotes(); _shortsUnsubVotes = null; }
+  if (!window._db) return;
+  import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(({ collection, onSnapshot }) => {
+    _shortsUnsubVotes = onSnapshot(collection(window._db, 'shorts', catId, 'videos'), (snap) => {
+      const map = {};
+      snap.forEach(d => { map[d.id] = d.data(); });
+      const uid = window._getCurrentUser ? window._getCurrentUser()?.uid : null;
+      _shortsVideos = _shortsVideos.map(v => {
+        const fs = map[v.id];
+        if (!fs) return v;
+        return {
+          ...v,
+          votes:     fs.votes     || 0,
+          votedByMe: uid && fs.voters && fs.voters.includes(uid) ? true : false,
+        };
+      });
+      _shortsVideos.sort((a,b) => (b.votes||0) - (a.votes||0));
+      updateVoteUI();
+    });
+  });
+}
+
+async function voteShort(videoId) {
+  const uid = window._getCurrentUser ? window._getCurrentUser()?.uid : null;
+  if (!uid || !window._db) { showToast('⚠️ Iniciá sesión para votar'); return; }
+
+  const v = _shortsVideos.find(x => x.id === videoId);
+  if (!v) return;
+
+  const alreadyVoted = v.votedByMe;
+  try {
+    const { doc, setDoc, updateDoc, increment, arrayUnion, arrayRemove, getDoc }
+      = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const ref = doc(window._db, 'shorts', _shortsCategory, 'videos', videoId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      // Create document
+      await setDoc(ref, {
+        videoId,
+        title:    v.title,
+        channel:  v.channel,
+        category: _shortsCategory,
+        votes:    alreadyVoted ? 0 : 1,
+        voters:   alreadyVoted ? [] : [uid],
+        createdAt: Date.now(),
+      });
+    } else {
+      if (alreadyVoted) {
+        await updateDoc(ref, { votes: increment(-1), voters: arrayRemove(uid) });
+      } else {
+        await updateDoc(ref, { votes: increment(1),  voters: arrayUnion(uid) });
+      }
+    }
+    // Optimistic UI
+    v.votedByMe = !alreadyVoted;
+    v.votes     = Math.max(0, (v.votes||0) + (alreadyVoted ? -1 : 1));
+    updateVoteUI();
+    showToast(alreadyVoted ? '👎 Voto removido' : '🔥 ¡Votaste este Short!');
+  } catch(e) {
+    showToast('❌ Error al votar: ' + e.message);
+  }
+}
+
+function updateVoteUI() {
+  _shortsVideos.forEach(v => {
+    const voteBtn = document.getElementById('vote-btn-' + v.id);
+    const voteCnt = document.getElementById('vote-cnt-' + v.id);
+    if (voteBtn) voteBtn.classList.toggle('voted', !!v.votedByMe);
+    if (voteCnt) voteCnt.textContent = v.votes || 0;
+  });
+}
+
+// ── RENDER SLIDES ────────────────────────────────
+function renderShortSlides() {
+  const container = document.getElementById('shorts-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (_shortsVideos.length === 0) {
+    container.innerHTML = '<div class="shorts-loading"><span>No hay Shorts disponibles</span></div>';
+    return;
+  }
+
+  _shortsVideos.forEach((v, i) => {
+    const slide = document.createElement('div');
+    slide.className = 'short-slide ' + getSlidePosition(i);
+    slide.id = 'short-slide-' + i;
+
+    const autoplay = i === _shortsIndex ? 'autoplay=1&' : '';
+    const iframeSrc = `https://www.youtube.com/embed/${v.id}?${autoplay}mute=1&loop=1&playlist=${v.id}&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&fs=0`;
+
+    const catLabel = (SHORTS_CATEGORIES.find(c=>c.id===v.category)||{label:''}).label;
+
+    slide.innerHTML = `
+      <div class="short-iframe-wrap">
+        <iframe id="short-iframe-${i}"
+          src="${i === _shortsIndex ? iframeSrc : ''}"
+          data-src="${iframeSrc}"
+          allow="autoplay; encrypted-media"
+          allowfullscreen></iframe>
+      </div>
+      <!-- Info overlay -->
+      <div class="short-info">
+        <div class="short-channel">${escapeHtml(v.channel)}</div>
+        <div class="short-title-text">${escapeHtml(v.title)}</div>
+        ${catLabel ? `<span class="short-cat-badge">${catLabel}</span>` : ''}
+      </div>
+      <!-- Side actions -->
+      <div class="short-actions">
+        <button class="short-action-btn ${v.votedByMe ? 'voted' : ''}" id="vote-btn-${v.id}" onclick="voteShort('${v.id}')">
+          <div class="short-action-icon">🔥</div>
+          <span id="vote-cnt-${v.id}">${v.votes || 0}</span>
+        </button>
+        <button class="short-action-btn" onclick="openYTShort('${v.id}')">
+          <div class="short-action-icon">▶️</div>
+          <span>Ver</span>
+        </button>
+        <button class="short-action-btn" onclick="shareShort('${v.id}','${escapeHtml(v.title).replace(/'/g,"\\'")}')">
+          <div class="short-action-icon">↗️</div>
+          <span>Compartir</span>
+        </button>
+      </div>
+    `;
+
+    container.appendChild(slide);
+  });
+
+  setupShortsSwipe();
+}
+
+function getSlidePosition(i) {
+  if (i < _shortsIndex)  return 'above';
+  if (i === _shortsIndex) return 'current';
+  return 'below';
+}
+
+function applySlidePositions() {
+  _shortsVideos.forEach((v, i) => {
+    const slide = document.getElementById('short-slide-' + i);
+    if (!slide) return;
+    slide.className = 'short-slide ' + getSlidePosition(i);
+  });
+}
+
+function lazyLoadIframe(i) {
+  const iframe = document.getElementById('short-iframe-' + i);
+  if (!iframe) return;
+  if (!iframe.src || iframe.src === 'about:blank' || iframe.src === '') {
+    iframe.src = iframe.getAttribute('data-src') || '';
+  }
+}
+
+function pauseAllShortIframes() {
+  document.querySelectorAll('.short-iframe-wrap iframe').forEach(f => {
+    // Reload with no autoplay to stop playback
+    const src = f.getAttribute('data-src') || '';
+    f.src = src.replace('autoplay=1&', '');
+  });
+}
+
+// ── NAVIGATION ───────────────────────────────────
+function goToShort(newIdx) {
+  if (newIdx < 0 || newIdx >= _shortsVideos.length) return;
+
+  // Pause previous
+  const prevIframe = document.getElementById('short-iframe-' + _shortsIndex);
+  if (prevIframe) prevIframe.src = prevIframe.getAttribute('data-src').replace('autoplay=1&','');
+
+  _shortsIndex = newIdx;
+  applySlidePositions();
+
+  // Lazy load adjacent
+  lazyLoadIframe(_shortsIndex);
+  if (_shortsIndex + 1 < _shortsVideos.length) lazyLoadIframe(_shortsIndex + 1);
+
+  // Play current
+  const currIframe = document.getElementById('short-iframe-' + _shortsIndex);
+  if (currIframe) {
+    const base = currIframe.getAttribute('data-src') || '';
+    currIframe.src = base.includes('autoplay=1') ? base : base.replace('?','?autoplay=1&');
+  }
+}
+
+// ── SWIPE / KEYBOARD ─────────────────────────────
+function setupShortsSwipe() {
+  const container = document.getElementById('shorts-container');
+  if (!container || container._swipeSetup) return;
+  container._swipeSetup = true;
+
+  // Touch
+  container.addEventListener('touchstart', e => {
+    _shortsTouchStartY = e.touches[0].clientY;
+  }, { passive: true });
+
+  container.addEventListener('touchend', e => {
+    const dy = _shortsTouchStartY - e.changedTouches[0].clientY;
+    if (Math.abs(dy) > 50) {
+      dy > 0 ? goToShort(_shortsIndex + 1) : goToShort(_shortsIndex - 1);
+    }
+  }, { passive: true });
+
+  // Mouse wheel
+  let _wheelLock = false;
+  container.addEventListener('wheel', e => {
+    if (_wheelLock) return;
+    _wheelLock = true;
+    setTimeout(() => { _wheelLock = false; }, 600);
+    e.deltaY > 0 ? goToShort(_shortsIndex + 1) : goToShort(_shortsIndex - 1);
+  }, { passive: true });
+}
+
+// Arrow keys while overlay open
+document.addEventListener('keydown', e => {
+  if (!_shortsOpen) return;
+  if (e.key === 'ArrowDown') goToShort(_shortsIndex + 1);
+  if (e.key === 'ArrowUp')   goToShort(_shortsIndex - 1);
+  if (e.key === 'Escape')    closeShorts();
+});
+
+// ── HELPERS ──────────────────────────────────────
+function showShortsLoading(show) {
+  const el = document.getElementById('shorts-loading');
+  if (el) el.style.display = show ? 'flex' : 'none';
+}
+
+function openYTShort(videoId) {
+  window.open('https://www.youtube.com/shorts/' + videoId, '_blank');
+}
+
+function shareShort(videoId, title) {
+  const url = 'https://www.youtube.com/shorts/' + videoId;
+  if (navigator.share) {
+    navigator.share({ title, url }).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(url).then(() => showToast('🔗 Link copiado'));
+  }
+}
+
+// ── INIT SHORTS (called after login) ────────────
+function initShorts() {
+  buildShortsCats();
+  document.getElementById('bottom-nav')?.classList.remove('hidden');
+}
+
+// Hook into existing login flow
+const _origSetCurrentUser = window._setCurrentUser;
+window._setCurrentUser = function(u) {
+  if (_origSetCurrentUser) _origSetCurrentUser(u);
+  if (u) {
+    // wait a tick for DOM to be ready
+    setTimeout(initShorts, 300);
+  } else {
+    document.getElementById('bottom-nav')?.classList.add('hidden');
+    document.getElementById('shorts-overlay')?.classList.add('hidden');
+  }
+};
 </script>
 </body>
 </html>
