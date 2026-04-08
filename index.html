@@ -1814,6 +1814,15 @@
       </div>
     </div>
 
+    <div class="input-group" style="margin-top:12px">
+      <label>📎 Foto o video (opcional)</label>
+      <input type="file" id="story-file-input" accept="image/*,video/*" style="display:none" onchange="uploadFileToServer(this.files, 'story')"/>
+      <button class="btn-primary" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--accent)" onclick="document.getElementById('story-file-input').click()">
+        📎 Subir foto o video
+      </button>
+      <div id="story-media-preview"></div>
+    </div>
+
     <div style="display:flex;gap:8px;margin-top:4px">
       <button class="btn-primary" style="flex:1" onclick="submitStory()">Publicar historia</button>
       <button class="btn-primary" style="flex:none;padding:0 16px;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted)" onclick="closeAddStoryModal()">Cancelar</button>
@@ -2194,7 +2203,11 @@ function renderMessages(msgs) {
           <span class="msg-time">${time}</span>
         </div>
         ${replyHtml}
-        <div class="msg-bubble">${escapeHtml(msg.text)}</div>
+        <div class="msg-bubble">
+          ${msg.text ? escapeHtml(msg.text) : ''}
+          ${msg.mediaUrl && msg.mediaType === 'imagen' ? '<br><img src="' + msg.mediaUrl + '" style="max-width:220px;max-height:220px;border-radius:10px;margin-top:6px;cursor:pointer;display:block" onclick="window.open('' + msg.mediaUrl + '','_blank')"/>' : ''}
+          ${msg.mediaUrl && msg.mediaType === 'video' ? '<br><video src="' + msg.mediaUrl + '" controls style="max-width:220px;border-radius:10px;margin-top:6px;display:block"></video>' : ''}
+        </div>
         ${reactionsHtml}
         ${hoverActions}
         ${adminControls}
@@ -3094,6 +3107,9 @@ function openAddStoryModal() {
 
 function closeAddStoryModal() {
   document.getElementById('add-story-modal').classList.add('hidden');
+  window._pendingStoryMedia = null;
+  const preview = document.getElementById('story-media-preview');
+  if (preview) preview.innerHTML = '';
 }
 
 async function searchDeezer() {
@@ -3165,8 +3181,10 @@ async function submitStory() {
   const errEl = document.getElementById('story-error');
   errEl.classList.remove('visible');
 
-  if (!text && !_selectedDeezerTrack) {
-    errEl.textContent = '⚠️ Escribí algo o elegí una canción.';
+  const pendingMedia = window._pendingStoryMedia || null;
+
+  if (!text && !_selectedDeezerTrack && !pendingMedia) {
+    errEl.textContent = '⚠️ Escribí algo, elegí una canción o subí una foto/video.';
     errEl.classList.add('visible');
     return;
   }
@@ -3186,6 +3204,8 @@ async function submitStory() {
     deezerTitle: _selectedDeezerTrack?.title || null,
     deezerArtist: _selectedDeezerTrack?.artist?.name || null,
     deezerCover: _selectedDeezerTrack?.album?.cover_small || null,
+    mediaUrl: pendingMedia?.url || null,
+    mediaType: pendingMedia?.tipo || null,
   };
 
   try {
@@ -3279,6 +3299,23 @@ function openStoryModal(story) {
   const timeStr = ts ? ts.toLocaleDateString('es-AR', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
   document.getElementById('story-modal-time').textContent = timeStr;
   document.getElementById('story-modal-text').textContent = story.text || '';
+
+  // Mostrar foto o video si tiene
+  let storyMediaEl = document.getElementById('story-modal-media');
+  if (!storyMediaEl) {
+    storyMediaEl = document.createElement('div');
+    storyMediaEl.id = 'story-modal-media';
+    storyMediaEl.style.cssText = 'margin:10px 0';
+    const textEl = document.getElementById('story-modal-text');
+    textEl.parentNode.insertBefore(storyMediaEl, textEl.nextSibling);
+  }
+  if (story.mediaUrl && story.mediaType === 'imagen') {
+    storyMediaEl.innerHTML = '<img src="' + story.mediaUrl + '" style="max-width:100%;border-radius:12px;margin-top:8px" onclick="window.open('' + story.mediaUrl + '','_blank')"/>';
+  } else if (story.mediaUrl && story.mediaType === 'video') {
+    storyMediaEl.innerHTML = '<video src="' + story.mediaUrl + '" controls style="max-width:100%;border-radius:12px;margin-top:8px"></video>';
+  } else {
+    storyMediaEl.innerHTML = '';
+  }
 
   const embedEl = document.getElementById('story-deezer-embed');
   const noMusicEl = document.getElementById('story-no-music');
@@ -4015,9 +4052,13 @@ async function sendSCPReply(commentId) {
 // ── SUBIDA DE FOTOS/VIDEOS AL SERVIDOR LOCAL ──────────────
 const UPLOAD_SERVER = "https://davon-employable-rosanna.ngrok-free.dev";
 
-async function uploadFileToServer(files) {
+// Contexto de subida: 'chat' o 'story'
+let _uploadContext = 'chat';
+
+async function uploadFileToServer(files, context) {
   if (!files || files.length === 0) return;
   const archivo = files[0];
+  _uploadContext = context || 'chat';
 
   showToast('📤 Subiendo "' + archivo.name + '"...');
 
@@ -4031,7 +4072,39 @@ async function uploadFileToServer(files) {
     });
     const data = await res.json();
     if (res.ok) {
-      showToast('✅ Archivo guardado: ' + data.archivo + ' (' + data.tamaño + ')');
+      const mediaUrl = UPLOAD_SERVER + '/files/' + data.tipo + '/' + data.fecha + '/' + data.archivo;
+      showToast('✅ Archivo guardado (' + data.tamaño + ')');
+
+      if (_uploadContext === 'chat') {
+        // Enviar como mensaje en el chat
+        const user = window._getCurrentUser ? window._getCurrentUser() : null;
+        const profile = window._getCurrentProfile ? window._getCurrentProfile() : null;
+        if (user && profile) {
+          await window._pushMessage({
+            text: '',
+            mediaUrl: mediaUrl,
+            mediaType: data.tipo,
+            uid: user.uid,
+            name: profile.name || 'Anónimo',
+            avatar: profile.avatar,
+            country: profile.country || '',
+            city: profile.city || '',
+            ts: Date.now()
+          });
+        }
+      } else if (_uploadContext === 'story') {
+        // Guardar URL para usarla en la historia
+        window._pendingStoryMedia = { url: mediaUrl, tipo: data.tipo };
+        const preview = document.getElementById('story-media-preview');
+        if (preview) {
+          if (data.tipo === 'imagen') {
+            preview.innerHTML = '<img src="' + mediaUrl + '" style="max-width:100%;border-radius:10px;margin-top:8px"/>';
+          } else {
+            preview.innerHTML = '<video src="' + mediaUrl + '" controls style="max-width:100%;border-radius:10px;margin-top:8px"></video>';
+          }
+        }
+        showToast('✅ Archivo listo para la historia');
+      }
     } else {
       showToast('❌ Error: ' + (data.error || 'Error desconocido'));
     }
@@ -4039,8 +4112,9 @@ async function uploadFileToServer(files) {
     showToast('❌ No se pudo conectar con el servidor');
   }
 
-  // Limpiar el input para poder subir el mismo archivo de nuevo
   document.getElementById('upload-file-input').value = '';
+  const storyInput = document.getElementById('story-file-input');
+  if (storyInput) storyInput.value = '';
 }
 </script>
 
