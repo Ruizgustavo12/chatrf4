@@ -868,31 +868,33 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
   </div>
 </div>
 
-<!-- Hidden file inputs -->
-<input type="file" id="upload-file-video" accept="video/*" style="display:none" onchange="handleVideoUpload(this)"/>
-<input type="file" id="upload-file-image" accept="image/*" style="display:none" onchange="handleVideoUpload(this)"/>
-<input type="file" id="upload-file-any" accept="image/*,video/*" style="display:none" onchange="handleVideoUpload(this)"/>
-
 <!-- UPLOAD VIDEO MODAL -->
 <div id="upload-modal">
   <div class="upload-sheet">
+    <!-- Hidden file inputs INSIDE the modal so mobile browsers can trigger them -->
+    <input type="file" id="upload-file-video" accept="video/*" style="display:none" onchange="handleVideoUpload(this)"/>
+    <input type="file" id="upload-file-image" accept="image/*" style="display:none" onchange="handleVideoUpload(this)"/>
+    <input type="file" id="upload-file-any" accept="image/*,video/*" style="display:none" onchange="handleVideoUpload(this)"/>
     <div class="upload-sheet-handle"></div>
     <h3>Subir clip</h3>
     <div class="upload-options">
-      <div class="upload-opt" onclick="document.getElementById('upload-file-video').click()">
+      <label class="upload-opt" style="cursor:pointer">
+        <input type="file" accept="video/*" style="display:none" onchange="handleVideoUpload(this)"/>
         <div class="upload-opt-icon">🎬</div>
         <div class="upload-opt-label">Video</div>
         <div class="upload-opt-sub">MP4, MOV, etc.</div>
-      </div>
-      <div class="upload-opt" onclick="document.getElementById('upload-file-image').click()">
+      </label>
+      <label class="upload-opt" style="cursor:pointer">
+        <input type="file" accept="image/*" style="display:none" onchange="handleVideoUpload(this)"/>
         <div class="upload-opt-icon">🖼️</div>
         <div class="upload-opt-label">Imagen</div>
         <div class="upload-opt-sub">JPG, PNG, etc.</div>
-      </div>
+      </label>
     </div>
-    <button class="btn-outline" style="margin-top:8px" onclick="document.getElementById('upload-file-any').click()">
+    <label class="btn-outline" style="margin-top:8px;display:block;text-align:center;cursor:pointer">
       📁 Elegir cualquier archivo
-    </button>
+      <input type="file" accept="image/*,video/*" style="display:none" onchange="handleVideoUpload(this)"/>
+    </label>
     <button class="btn-outline" onclick="closeUpload()" style="margin-top:8px">Cancelar</button>
   </div>
 </div>
