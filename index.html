@@ -1749,6 +1749,7 @@ onAuthStateChanged(auth, async (user) => {
     startChat();
     updateOnlinePresence(user.uid);
     startVideoSync();
+    setTimeout(() => { if (typeof initShorts === 'function') initShorts(); }, 400);
 
     // Mostrar panel admin si corresponde
     if (user.email === ADMIN_EMAIL) {
