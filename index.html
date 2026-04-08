@@ -1244,6 +1244,7 @@ async function createUserProfile(user, name) {
     followers: 0,
     following: 0,
     totalLikes: 0,
+    banned: false,
     createdAt: serverTimestamp()
   });
 }
@@ -1565,7 +1566,7 @@ window.publishClip = async () => {
   showToast('📤 Subiendo clip...');
   document.getElementById('caption-modal').style.display = 'none';
   try {
-    const handle = (myProfile.handle || myProfile.name || 'Clipuy').replace('@','');
+    const handle = (myProfile.handle || myProfile.name || currentUser.displayName || 'Clipuy').replace('@','');
     const mediaUrl = await uploadToServer(_pendingUploadFile, '@' + handle);
     const isVideo = _pendingUploadFile.type.startsWith('video');
     // Extract hashtags and mentions from description
