@@ -7,100 +7,155 @@
       "properties": {
         "uid": { "type": "string" },
         "name": { "type": "string" },
-        "email": { "type": "string", "format": "email" },
-        "avatar": { "type": "string", "format": "uri" },
-        "country": { "type": "string" },
+        "email": { "type": "string" },
+        "avatar": { "type": "string" },
+        "coverPhoto": { "type": "string" },
+        "bio": { "type": "string" },
         "city": { "type": "string" },
-        "age": { "type": "string" },
-        "phone": { "type": "string" }
+        "country": { "type": "string" },
+        "friends": { "type": "array", "items": { "type": "string" } },
+        "friendRequests": { "type": "array", "items": { "type": "string" } }
       },
-      "required": ["uid", "name", "avatar"]
+      "required": ["uid", "name", "email"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "A social media post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "avatar": { "type": "string" },
+        "text": { "type": "string" },
+        "image": { "type": "string" },
+        "video": { "type": "string" },
+        "ts": { "type": "object" },
+        "likes": { "type": "array", "items": { "type": "string" } },
+        "commentCount": { "type": "number" }
+      },
+      "required": ["uid", "name", "ts"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "A comment on a post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "postId": { "type": "string" },
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "avatar": { "type": "string" },
+        "text": { "type": "string" },
+        "ts": { "type": "object" }
+      },
+      "required": ["postId", "uid", "name", "text", "ts"]
+    },
+    "Chat": {
+      "title": "Chat",
+      "description": "A chat conversation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "participants": { "type": "array", "items": { "type": "string" } },
+        "lastMessage": { "type": "string" },
+        "lastTs": { "type": "number" }
+      },
+      "required": ["participants"]
     },
     "Message": {
       "title": "Message",
-      "description": "Chat message",
+      "description": "A message in a chat",
       "type": "object",
       "properties": {
+        "id": { "type": "string" },
+        "chatId": { "type": "string" },
+        "senderUid": { "type": "string" },
         "text": { "type": "string" },
-        "uid": { "type": "string" },
-        "name": { "type": "string" },
-        "avatar": { "type": "string" },
-        "country": { "type": "string" },
-        "city": { "type": "string" },
-        "ts": { "type": "object" },
-        "replyTo": {
-          "type": "object",
-          "properties": {
-            "name": { "type": "string" },
-            "text": { "type": "string" }
-          }
-        },
-        "reactions": { "type": "object" }
+        "image": { "type": "string" },
+        "ts": { "type": "number" }
       },
-      "required": ["text", "uid", "name", "avatar"]
+      "required": ["chatId", "senderUid", "ts"]
     },
-    "WallPost": {
-      "title": "WallPost",
-      "description": "Post on a user's wall",
+    "Notification": {
+      "title": "Notification",
+      "description": "A user notification",
       "type": "object",
       "properties": {
-        "text": { "type": "string" },
-        "uid": { "type": "string" },
-        "name": { "type": "string" },
-        "avatar": { "type": "string" },
-        "ts": { "type": "object" },
-        "likes": { "type": "array" },
-        "commentCount": { "type": "number" },
-        "reactions": { "type": "object" }
+        "id": { "type": "string" },
+        "type": { "type": "string" },
+        "fromUid": { "type": "string" },
+        "fromName": { "type": "string" },
+        "fromAvatar": { "type": "string" },
+        "read": { "type": "boolean" },
+        "ts": { "type": "object" }
       },
-      "required": ["text", "uid", "name", "avatar"]
+      "required": ["type", "fromUid", "ts"]
+    },
+    "Group": {
+      "title": "Group",
+      "description": "A social group",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "cover": { "type": "string" },
+        "adminUid": { "type": "string" },
+        "members": { "type": "array", "items": { "type": "string" } },
+        "pendingRequests": { "type": "array", "items": { "type": "string" } },
+        "privacy": { "type": "string", "enum": ["public", "private"] },
+        "ts": { "type": "number" }
+      },
+      "required": ["name", "adminUid", "privacy"]
+    },
+    "MarketplaceListing": {
+      "title": "MarketplaceListing",
+      "description": "An item for sale",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "price": { "type": "number" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "image": { "type": "string" },
+        "location": { "type": "string" },
+        "sellerUid": { "type": "string" },
+        "sellerName": { "type": "string" },
+        "sellerAvatar": { "type": "string" },
+        "ts": { "type": "number" }
+      },
+      "required": ["title", "price", "sellerUid"]
     },
     "Story": {
       "title": "Story",
-      "description": "User story with optional music",
+      "description": "A user story",
       "type": "object",
       "properties": {
-        "text": { "type": "string" },
+        "id": { "type": "string" },
         "uid": { "type": "string" },
         "name": { "type": "string" },
         "avatar": { "type": "string" },
+        "text": { "type": "string" },
+        "imageUrl": { "type": "string" },
         "ts": { "type": "number" },
-        "expiresAt": { "type": "number" },
-        "imageUrl": { "type": "string", "format": "uri" },
-        "deezerTrackId": { "type": "string" },
-        "deezerTitle": { "type": "string" },
-        "deezerArtist": { "type": "string" },
-        "deezerCover": { "type": "string" }
+        "expiresAt": { "type": "number" }
       },
       "required": ["uid", "name", "ts", "expiresAt"]
     }
   },
   "firestore": {
-    "/users/{userId}": {
-      "schema": "UserProfile",
-      "description": "User profiles"
-    },
-    "/messages/{messageId}": {
-      "schema": "Message",
-      "description": "Global chat messages"
-    },
-    "/walls/{userId}/posts/{postId}": {
-      "schema": "WallPost",
-      "description": "Posts on a user's wall"
-    },
-    "/stories/{userId}/items/{storyId}": {
-      "schema": "Story",
-      "description": "User stories"
-    },
-    "/config/currentVideo": {
-      "schema": {
-        "type": "object",
-        "properties": {
-          "videoId": { "type": "string" },
-          "startedAt": { "type": "number" }
-        }
-      },
-      "description": "Global video synchronization"
-    }
+    "/users/{userId}": { "schema": "UserProfile", "description": "User profiles" },
+    "/posts/{postId}": { "schema": "Post", "description": "Public posts" },
+    "/posts/{postId}/comments/{commentId}": { "schema": "Comment", "description": "Comments on posts" },
+    "/chats/{chatId}": { "schema": "Chat", "description": "Chat conversations" },
+    "/chats/{chatId}/messages/{messageId}": { "schema": "Message", "description": "Messages within a chat" },
+    "/notifications/{userId}/items/{notifId}": { "schema": "Notification", "description": "User notifications" },
+    "/groups/{groupId}": { "schema": "Group", "description": "Social groups" },
+    "/groups/{groupId}/posts/{postId}": { "schema": "Post", "description": "Posts within a group" },
+    "/marketplace/{listingId}": { "schema": "MarketplaceListing", "description": "Marketplace items" },
+    "/stories/{userId}/items/{storyId}": { "schema": "Story", "description": "User stories" },
+    "/online/{userId}": { "schema": { "type": "object", "properties": { "online": { "type": "boolean" }, "ts": { "type": "number" } } }, "description": "Presence status" }
   }
 }
