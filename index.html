@@ -509,10 +509,11 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
 .upload-opt{
   background:var(--surface2);border:1px solid var(--border);
   border-radius:var(--radius-sm);padding:16px;cursor:pointer;
-  text-align:center;transition:border-color .2s;position:relative;overflow:hidden;
+  text-align:center;transition:border-color .2s;
+  -webkit-tap-highlight-color:rgba(0,0,0,0);
 }
 .upload-opt:hover{border-color:var(--accent);}
-.upload-opt input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+
 .upload-opt-icon{font-size:1.8rem;margin-bottom:6px;}
 .upload-opt-label{font-size:.82rem;font-weight:600;}
 .upload-opt-sub{font-size:.72rem;color:var(--text-muted);}
@@ -866,26 +867,32 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
   </div>
 </div>
 
+<!-- Hidden file inputs -->
+<input type="file" id="upload-file-video" accept="video/*" style="display:none" onchange="handleVideoUpload(this)"/>
+<input type="file" id="upload-file-image" accept="image/*" style="display:none" onchange="handleVideoUpload(this)"/>
+<input type="file" id="upload-file-any" accept="image/*,video/*" style="display:none" onchange="handleVideoUpload(this)"/>
+
 <!-- UPLOAD VIDEO MODAL -->
 <div id="upload-modal">
   <div class="upload-sheet">
     <div class="upload-sheet-handle"></div>
     <h3>Subir clip</h3>
     <div class="upload-options">
-      <div class="upload-opt">
-        <input type="file" accept="video/*" onchange="handleVideoUpload(this)"/>
+      <div class="upload-opt" onclick="document.getElementById('upload-file-video').click()">
         <div class="upload-opt-icon">🎬</div>
         <div class="upload-opt-label">Video</div>
         <div class="upload-opt-sub">MP4, MOV, etc.</div>
       </div>
-      <div class="upload-opt">
-        <input type="file" accept="image/*" onchange="handleVideoUpload(this)"/>
+      <div class="upload-opt" onclick="document.getElementById('upload-file-image').click()">
         <div class="upload-opt-icon">🖼️</div>
         <div class="upload-opt-label">Imagen</div>
         <div class="upload-opt-sub">JPG, PNG, etc.</div>
       </div>
     </div>
-    <button class="btn-outline" onclick="closeUpload()">Cancelar</button>
+    <button class="btn-outline" style="margin-top:8px" onclick="document.getElementById('upload-file-any').click()">
+      📁 Elegir cualquier archivo
+    </button>
+    <button class="btn-outline" onclick="closeUpload()" style="margin-top:8px">Cancelar</button>
   </div>
 </div>
 
@@ -1490,18 +1497,21 @@ window.closeUpload = () => { document.getElementById('upload-modal').classList.r
 
 window.handleVideoUpload = (inp) => {
   const file = inp.files[0];
+  inp.value = ''; // reset so same file can be picked again
   if(!file) return;
+  // Validate size (max 500MB)
+  if(file.size > 500 * 1024 * 1024) { showToast('❌ Archivo muy grande (máx 500MB)'); return; }
   _pendingUploadFile = file;
   closeUpload();
-  // Show caption modal
   const cm = document.getElementById('caption-modal');
   const preview = document.getElementById('caption-preview');
   const isVideo = file.type.startsWith('video');
   const url = URL.createObjectURL(file);
   preview.innerHTML = isVideo
-    ? `<video src="${url}" style="max-height:180px;border-radius:12px;max-width:100%" muted controls></video>`
+    ? `<video src="${url}" style="max-height:180px;border-radius:12px;max-width:100%" muted playsinline controls></video>`
     : `<img src="${url}" style="max-height:180px;border-radius:12px;max-width:100%"/>`;
   cm.style.display = 'flex';
+  document.getElementById('caption-text').focus();
 };
 
 window.closeCaptionModal = () => {
