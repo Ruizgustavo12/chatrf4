@@ -1309,7 +1309,9 @@
 
   /* Side action buttons */
   .short-actions {
-    position: absolute; right: 14px; bottom: 120px;
+    position: absolute;
+    right: calc(50% - min(50vw, calc(100vh * 9/32)) - 62px);
+    bottom: 120px;
     display: flex; flex-direction: column; align-items: center; gap: 18px;
     z-index: 5;
   }
@@ -1378,6 +1380,159 @@
     border-top-color: var(--accent);
     animation: spin .7s linear infinite;
   }
+
+  /* ── SHORTS COMMENTS PANEL ── */
+  #shorts-comments-panel {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    z-index: 85;
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    border-top: 1px solid var(--border);
+    max-height: 75vh;
+    display: flex; flex-direction: column;
+    transform: translateY(100%);
+    transition: transform .35s cubic-bezier(.4,0,.2,1);
+    box-shadow: 0 -8px 40px rgba(0,0,0,.6);
+  }
+  #shorts-comments-panel.open { transform: translateY(0); }
+
+  .scp-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px 10px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .scp-title {
+    font-family: var(--font-head); font-weight: 700; font-size: 1rem;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .scp-close {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 50%; width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-muted); font-size: .9rem;
+    transition: all .2s;
+  }
+  .scp-close:hover { color: var(--text); border-color: var(--accent); }
+
+  .scp-list {
+    flex: 1; overflow-y: auto; padding: 12px 16px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  .scp-comment {
+    display: flex; gap: 9px; align-items: flex-start;
+  }
+  .scp-comment-avatar {
+    width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
+    border: 1.5px solid var(--border); flex-shrink: 0;
+  }
+  .scp-comment-body { flex: 1; min-width: 0; }
+  .scp-comment-bubble {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px 12px 12px 4px;
+    padding: 8px 12px; font-size: .85rem; line-height: 1.5; color: var(--text);
+    word-break: break-word; position: relative;
+  }
+  .scp-comment-author {
+    font-weight: 700; font-size: .78rem; color: var(--accent); margin-bottom: 2px;
+    font-family: var(--font-head);
+  }
+  .scp-comment-text { font-size: .85rem; }
+  .scp-comment-actions {
+    display: flex; align-items: center; gap: 10px; margin-top: 5px;
+    padding-left: 2px;
+  }
+  .scp-heart-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 1.1rem; line-height: 1;
+    display: flex; align-items: center; gap: 4px;
+    color: var(--text-muted); font-size: .78rem; font-family: var(--font-body);
+    transition: transform .15s, color .15s;
+    padding: 0;
+  }
+  .scp-heart-btn:hover { transform: scale(1.2); }
+  .scp-heart-btn.liked { color: #ff6ab0; }
+  .scp-heart-btn .heart-icon { font-size: 1rem; }
+  .scp-reply-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: .75rem; color: var(--text-muted); font-family: var(--font-body);
+    padding: 0; transition: color .15s;
+  }
+  .scp-reply-btn:hover { color: var(--accent); }
+
+  /* Replies */
+  .scp-replies { margin-top: 8px; margin-left: 10px; display: flex; flex-direction: column; gap: 9px; }
+  .scp-reply {
+    display: flex; gap: 8px; align-items: flex-start;
+  }
+  .scp-reply-avatar {
+    width: 26px; height: 26px; border-radius: 50%; object-fit: cover;
+    border: 1.5px solid var(--border); flex-shrink: 0;
+  }
+  .scp-reply-bubble {
+    background: var(--surface3); border: 1px solid var(--border);
+    border-radius: 10px 10px 10px 4px;
+    padding: 6px 11px; font-size: .82rem; line-height: 1.5; color: var(--text);
+    flex: 1;
+  }
+  .scp-reply-author {
+    font-weight: 700; font-size: .74rem; color: var(--accent2); margin-bottom: 1px;
+    font-family: var(--font-head);
+  }
+
+  /* Reply input row (inline under comment) */
+  .scp-reply-input-row {
+    display: flex; gap: 7px; align-items: center; margin-top: 7px; margin-left: 10px;
+  }
+  .scp-reply-input {
+    flex: 1; background: var(--surface3); border: 1px solid var(--border);
+    border-radius: 99px; padding: 6px 13px;
+    color: var(--text); font-family: var(--font-body); font-size: .82rem;
+    outline: none; transition: border-color .2s;
+  }
+  .scp-reply-input:focus { border-color: var(--accent2); }
+  .scp-reply-input::placeholder { color: var(--text-muted); }
+  .scp-reply-send {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; border-radius: 50%; width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: opacity .2s; flex-shrink: 0;
+  }
+  .scp-reply-send:hover { opacity: .85; }
+  .scp-reply-send svg { width: 13px; height: 13px; fill: white; }
+
+  .scp-empty {
+    text-align: center; padding: 30px 20px; color: var(--text-muted); font-size: .88rem;
+  }
+
+  .scp-input-bar {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    display: flex; gap: 8px; align-items: center; flex-shrink: 0;
+    background: var(--surface);
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+  .scp-my-avatar {
+    width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
+    border: 1.5px solid var(--accent); flex-shrink: 0;
+  }
+  .scp-input {
+    flex: 1; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 99px; padding: 9px 15px;
+    color: var(--text); font-family: var(--font-body); font-size: .88rem;
+    outline: none; transition: border-color .2s;
+  }
+  .scp-input:focus { border-color: var(--accent); }
+  .scp-input::placeholder { color: var(--text-muted); }
+  .scp-send {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; border-radius: 50%; width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: opacity .2s; flex-shrink: 0;
+  }
+  .scp-send:hover { opacity: .85; }
+  .scp-send svg { width: 15px; height: 15px; fill: white; }
 
   /* Bottom nav safe area padding */
   #main-app { padding-bottom: 56px; }
@@ -3422,7 +3577,7 @@ function renderShortSlides() {
     slide.id = 'short-slide-' + i;
 
     const autoplay = i === _shortsIndex ? 'autoplay=1&' : '';
-    const iframeSrc = `https://www.youtube.com/embed/${v.id}?${autoplay}mute=1&loop=1&playlist=${v.id}&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&fs=0`;
+    const iframeSrc = `https://www.youtube.com/embed/${v.id}?${autoplay}mute=0&loop=1&playlist=${v.id}&controls=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&fs=0`;
 
     const catLabel = (SHORTS_CATEGORIES.find(c=>c.id===v.category)||{label:''}).label;
 
@@ -3446,9 +3601,9 @@ function renderShortSlides() {
           <div class="short-action-icon">🔥</div>
           <span id="vote-cnt-${v.id}">${v.votes || 0}</span>
         </button>
-        <button class="short-action-btn" onclick="openYTShort('${v.id}')">
-          <div class="short-action-icon">▶️</div>
-          <span>Ver</span>
+        <button class="short-action-btn" onclick="openShortsComments('${v.id}','${escapeHtml(v.title).replace(/'/g,"\\'")}')">
+          <div class="short-action-icon">💬</div>
+          <span>Comentar</span>
         </button>
         <button class="short-action-btn" onclick="shareShort('${v.id}','${escapeHtml(v.title).replace(/'/g,"\\'")}')">
           <div class="short-action-icon">↗️</div>
@@ -3589,6 +3744,192 @@ window._setCurrentUser = function(u) {
     document.getElementById('shorts-overlay')?.classList.add('hidden');
   }
 };
+</script>
+<!-- SHORTS COMMENTS PANEL -->
+<div id="shorts-comments-panel">
+  <div class="scp-header">
+    <div class="scp-title">💬 Comentarios <span id="scp-count" style="color:var(--text-muted);font-size:.85rem;font-weight:400"></span></div>
+    <button class="scp-close" onclick="closeShortsComments()">✕</button>
+  </div>
+  <div class="scp-list" id="scp-list">
+    <div class="scp-empty">Sé el primero en comentar 🎉</div>
+  </div>
+  <div class="scp-input-bar">
+    <img class="scp-my-avatar" id="scp-my-avatar" src="" alt=""/>
+    <input class="scp-input" id="scp-input" placeholder="Escribí un comentario…" maxlength="300"/>
+    <button class="scp-send" onclick="sendShortsComment()">
+      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+// ── SHORTS COMMENTS ──────────────────────────────
+let _scpVideoId = null;
+let _scpComments = []; // [{id, uid, name, avatar, text, likes:[], replies:[{id,uid,name,avatar,text}], ts}]
+let _scpUnsub = null;
+
+function openShortsComments(videoId, title) {
+  _scpVideoId = videoId;
+  document.getElementById('shorts-comments-panel').classList.add('open');
+
+  // Set my avatar
+  const me = window._getCurrentUser ? window._getCurrentUser() : null;
+  const myData = window._myUserData || {};
+  const myAvatar = myData.avatar || (me?.photoURL) || 'https://api.dicebear.com/7.x/thumbs/svg?seed=user';
+  document.getElementById('scp-my-avatar').src = myAvatar;
+
+  loadShortsComments(videoId);
+}
+
+function closeShortsComments() {
+  document.getElementById('shorts-comments-panel').classList.remove('open');
+  if (_scpUnsub) { _scpUnsub(); _scpUnsub = null; }
+}
+
+async function loadShortsComments(videoId) {
+  const list = document.getElementById('scp-list');
+  list.innerHTML = '<div class="scp-empty" style="color:var(--text-muted)">Cargando…</div>';
+
+  if (!window._db) { renderSCPComments([]); return; }
+
+  try {
+    const { collection, query, orderBy, onSnapshot }
+      = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    if (_scpUnsub) _scpUnsub();
+    const ref = collection(window._db, 'shorts_comments', videoId, 'comments');
+    const q = query(ref, orderBy('ts', 'asc'));
+    _scpUnsub = onSnapshot(q, snap => {
+      _scpComments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderSCPComments(_scpComments);
+    });
+  } catch(e) {
+    renderSCPComments([]);
+  }
+}
+
+function renderSCPComments(comments) {
+  const list = document.getElementById('scp-list');
+  const cnt = document.getElementById('scp-count');
+  const me = window._getCurrentUser ? window._getCurrentUser() : null;
+  const uid = me?.uid;
+
+  cnt.textContent = comments.length ? `(${comments.length})` : '';
+
+  if (!comments.length) {
+    list.innerHTML = '<div class="scp-empty">Sé el primero en comentar 🎉</div>';
+    return;
+  }
+
+  list.innerHTML = comments.map(c => {
+    const liked = uid && c.likes && c.likes.includes(uid);
+    const likeCount = c.likes ? c.likes.length : 0;
+    const repliesHtml = (c.replies || []).map(r => `
+      <div class="scp-reply" id="scp-reply-${r.id}">
+        <img class="scp-reply-avatar" src="${escapeHtml(r.avatar||'')}" onerror="this.src='https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(r.name||'u')}'"/>
+        <div class="scp-reply-bubble">
+          <div class="scp-reply-author">${escapeHtml(r.name||'Usuario')}</div>
+          <div>${escapeHtml(r.text)}</div>
+        </div>
+      </div>
+    `).join('');
+
+    return `
+      <div class="scp-comment" id="scp-comment-${c.id}">
+        <img class="scp-comment-avatar" src="${escapeHtml(c.avatar||'')}" onerror="this.src='https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(c.name||'u')}'"/>
+        <div class="scp-comment-body">
+          <div class="scp-comment-bubble">
+            <div class="scp-comment-author">${escapeHtml(c.name||'Usuario')}</div>
+            <div class="scp-comment-text">${escapeHtml(c.text)}</div>
+          </div>
+          <div class="scp-comment-actions">
+            <button class="scp-heart-btn ${liked?'liked':''}" onclick="toggleSCPLike('${c.id}')">
+              <span class="heart-icon">${liked?'❤️':'🤍'}</span>
+              <span>${likeCount > 0 ? likeCount : ''}</span>
+            </button>
+            <button class="scp-reply-btn" onclick="toggleSCPReplyInput('${c.id}')">Responder</button>
+          </div>
+          <div class="scp-replies" id="scp-replies-${c.id}">${repliesHtml}</div>
+          <div class="scp-reply-input-row" id="scp-reply-row-${c.id}" style="display:none">
+            <input class="scp-reply-input" id="scp-reply-inp-${c.id}" placeholder="Responder…" maxlength="200"/>
+            <button class="scp-reply-send" onclick="sendSCPReply('${c.id}')">
+              <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleSCPReplyInput(commentId) {
+  const row = document.getElementById('scp-reply-row-' + commentId);
+  if (!row) return;
+  const isOpen = row.style.display !== 'none';
+  row.style.display = isOpen ? 'none' : 'flex';
+  if (!isOpen) document.getElementById('scp-reply-inp-' + commentId)?.focus();
+}
+
+async function toggleSCPLike(commentId) {
+  const me = window._getCurrentUser ? window._getCurrentUser() : null;
+  if (!me) { showToast('⚠️ Iniciá sesión para reaccionar'); return; }
+  const uid = me.uid;
+  if (!window._db || !_scpVideoId) return;
+  try {
+    const { doc, updateDoc, arrayUnion, arrayRemove, getDoc }
+      = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const ref = doc(window._db, 'shorts_comments', _scpVideoId, 'comments', commentId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return;
+    const data = snap.data();
+    const liked = data.likes && data.likes.includes(uid);
+    await updateDoc(ref, { likes: liked ? arrayRemove(uid) : arrayUnion(uid) });
+  } catch(e) { showToast('❌ Error: ' + e.message); }
+}
+
+async function sendShortsComment() {
+  const me = window._getCurrentUser ? window._getCurrentUser() : null;
+  if (!me) { showToast('⚠️ Iniciá sesión para comentar'); return; }
+  const inp = document.getElementById('scp-input');
+  const text = inp.value.trim();
+  if (!text) return;
+  if (!window._db || !_scpVideoId) return;
+  const myData = window._myUserData || {};
+  const name = myData.name || me.displayName || 'Usuario';
+  const avatar = myData.avatar || me.photoURL || 'https://api.dicebear.com/7.x/thumbs/svg?seed=user';
+  try {
+    const { collection, addDoc, serverTimestamp }
+      = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await addDoc(collection(window._db, 'shorts_comments', _scpVideoId, 'comments'), {
+      uid: me.uid, name, avatar, text, likes: [], replies: [], ts: Date.now()
+    });
+    inp.value = '';
+  } catch(e) { showToast('❌ Error al comentar: ' + e.message); }
+}
+
+async function sendSCPReply(commentId) {
+  const me = window._getCurrentUser ? window._getCurrentUser() : null;
+  if (!me) { showToast('⚠️ Iniciá sesión para responder'); return; }
+  const inp = document.getElementById('scp-reply-inp-' + commentId);
+  const text = inp?.value.trim();
+  if (!text) return;
+  if (!window._db || !_scpVideoId) return;
+  const myData = window._myUserData || {};
+  const name = myData.name || me.displayName || 'Usuario';
+  const avatar = myData.avatar || me.photoURL || 'https://api.dicebear.com/7.x/thumbs/svg?seed=user';
+  try {
+    const { doc, updateDoc, arrayUnion }
+      = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const reply = {
+      id: Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      uid: me.uid, name, avatar, text
+    };
+    const ref = doc(window._db, 'shorts_comments', _scpVideoId, 'comments', commentId);
+    await updateDoc(ref, { replies: arrayUnion(reply) });
+    if (inp) inp.value = '';
+    toggleSCPReplyInput(commentId);
+  } catch(e) { showToast('❌ Error al responder: ' + e.message); }
+}
 </script>
 </body>
 </html>
