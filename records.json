@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-08 22:40 UTC",
+  "updated": "2026-04-08 23:39 UTC",
   "records": [
     {
       "pez": "Albino barbel",
@@ -1006,6 +1006,17 @@
       "pez": "Atlantic Salmon",
       "rank": 2,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/a_salmon.png",
+      "peso": "23.411 kg",
+      "ubicacion": "Ladoga archipelago",
+      "señuelo": "Orig Crank 9-003",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/crank_s_1908.png",
+      "jugador": "Atom_Aker..TTV",
+      "fecha": "8.04.26"
+    },
+    {
+      "pez": "Atlantic Salmon",
+      "rank": 3,
+      "img_pez": "https://en.rf4-stat.ru/images/rf4game/a_salmon.png",
       "peso": "20.030 kg",
       "ubicacion": "Ladoga archipelago",
       "señuelo": "Snatcher-S005",
@@ -1015,7 +1026,7 @@
     },
     {
       "pez": "Atlantic Salmon",
-      "rank": 3,
+      "rank": 4,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/a_salmon.png",
       "peso": "19.923 kg",
       "ubicacion": "Ladoga archipelago",
@@ -1026,7 +1037,7 @@
     },
     {
       "pez": "Atlantic Salmon",
-      "rank": 4,
+      "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/a_salmon.png",
       "peso": "19.607 kg",
       "ubicacion": "Ladoga archipelago",
@@ -1034,17 +1045,6 @@
       "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/plug_m_1918.png",
       "jugador": "Ordainedship",
       "fecha": "8.04.26"
-    },
-    {
-      "pez": "Atlantic Salmon",
-      "rank": 5,
-      "img_pez": "https://en.rf4-stat.ru/images/rf4game/a_salmon.png",
-      "peso": "19.000 kg",
-      "ubicacion": "Ladoga archipelago",
-      "señuelo": "Snatcher-S005",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/plug_m_1918.png",
-      "jugador": "Sabata76",
-      "fecha": "7.04.26"
     },
     {
       "pez": "Atlantic saury",
@@ -1138,22 +1138,22 @@
       "pez": "Atlantic wolffish",
       "rank": 4,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/p_zubatka.png",
-      "peso": "15.699 kg",
+      "peso": "15.970 kg",
       "ubicacion": "Norwegian Sea",
       "señuelo": "Stor Fisk M25-600 #8",
       "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/monojig_2453.png",
-      "jugador": "Bueno3",
-      "fecha": "6.04.26"
+      "jugador": "ricvidal",
+      "fecha": "8.04.26"
     },
     {
       "pez": "Atlantic wolffish",
       "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/p_zubatka.png",
-      "peso": "15.638 kg",
+      "peso": "15.699 kg",
       "ubicacion": "Norwegian Sea",
-      "señuelo": "Stor Fisk M25-600 #15",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/monojig_2523.png",
-      "jugador": "zvejis2",
+      "señuelo": "Stor Fisk M25-600 #8",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/monojig_2453.png",
+      "jugador": "Bueno3",
       "fecha": "6.04.26"
     },
     {
@@ -3063,12 +3063,12 @@
       "pez": "Caspian Roach",
       "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/vobla.png",
-      "peso": "283 g",
+      "peso": "289 g",
       "ubicacion": "Akhtuba River",
       "señuelo": "Mayfly larva; Stonefly larva",
       "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/naiad.png",
-      "jugador": "SAKY_cro",
-      "fecha": "6.04.26"
+      "jugador": "Colt45UK - TTV",
+      "fecha": "8.04.26"
     },
     {
       "pez": "Catfish",
@@ -12149,12 +12149,12 @@
       "pez": "Valaam Whitefish",
       "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/sig_valaam.png",
-      "peso": "663 g",
+      "peso": "666 g",
       "ubicacion": "Ladoga archipelago",
-      "señuelo": "Nasty worm 2.5-001",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/wacky_worm_1843.png",
-      "jugador": "Трудолюбивый-Бездельник",
-      "fecha": "6.04.26"
+      "señuelo": "Leech; Stonefly larva",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/black_leech.png",
+      "jugador": "flonka666",
+      "fecha": "8.04.26"
     },
     {
       "pez": "Vendace",
