@@ -1,0 +1,106 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "avatar": { "type": "string", "format": "uri" },
+        "country": { "type": "string" },
+        "city": { "type": "string" },
+        "age": { "type": "string" },
+        "phone": { "type": "string" }
+      },
+      "required": ["uid", "name", "avatar"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "Chat message",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "avatar": { "type": "string" },
+        "country": { "type": "string" },
+        "city": { "type": "string" },
+        "ts": { "type": "object" },
+        "replyTo": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "text": { "type": "string" }
+          }
+        },
+        "reactions": { "type": "object" }
+      },
+      "required": ["text", "uid", "name", "avatar"]
+    },
+    "WallPost": {
+      "title": "WallPost",
+      "description": "Post on a user's wall",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "avatar": { "type": "string" },
+        "ts": { "type": "object" },
+        "likes": { "type": "array" },
+        "commentCount": { "type": "number" },
+        "reactions": { "type": "object" }
+      },
+      "required": ["text", "uid", "name", "avatar"]
+    },
+    "Story": {
+      "title": "Story",
+      "description": "User story with optional music",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "avatar": { "type": "string" },
+        "ts": { "type": "number" },
+        "expiresAt": { "type": "number" },
+        "imageUrl": { "type": "string", "format": "uri" },
+        "deezerTrackId": { "type": "string" },
+        "deezerTitle": { "type": "string" },
+        "deezerArtist": { "type": "string" },
+        "deezerCover": { "type": "string" }
+      },
+      "required": ["uid", "name", "ts", "expiresAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profiles"
+    },
+    "/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Global chat messages"
+    },
+    "/walls/{userId}/posts/{postId}": {
+      "schema": "WallPost",
+      "description": "Posts on a user's wall"
+    },
+    "/stories/{userId}/items/{storyId}": {
+      "schema": "Story",
+      "description": "User stories"
+    },
+    "/config/currentVideo": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "videoId": { "type": "string" },
+          "startedAt": { "type": "number" }
+        }
+      },
+      "description": "Global video synchronization"
+    }
+  }
+}
