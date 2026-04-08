@@ -776,6 +776,7 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
       <div class="profile-actions">
         <button class="btn-outline" onclick="openEditProfile()">Editar perfil</button>
         <button class="btn-outline" style="flex:0;padding:10px 14px" onclick="openSettings()">⚙️</button>
+        <button id="admin-nav-btn" class="btn-outline" style="flex:0;padding:10px 14px;display:none;border-color:var(--accent);color:var(--accent)" onclick="openAdminPanel()">🛡️</button>
       </div>
       <div class="profile-tabs">
         <button class="profile-tab active" onclick="switchProfileTab('clips')">🎬 Clips</button>
@@ -1264,11 +1265,15 @@ onAuthStateChanged(auth, async (user) => {
   document.getElementById('global-loading').classList.add('hidden');
   if (user) {
     currentUser = user;
+    if(user.email === 'synxyes@gmail.com') {
+      document.getElementById('admin-nav-btn').style.display = '';
+    }
     const snap = await getDoc(doc(db,'users',user.uid));
     myProfile = snap.exists() ? snap.data() : { uid: user.uid, name: user.displayName||'Usuario', avatar: avatarFallback(user.uid) };
     showMainApp();
   } else {
     currentUser = null;
+    document.getElementById('admin-nav-btn').style.display = 'none';
     myProfile = {};
     showAuthScreen();
   }
@@ -2283,5 +2288,22 @@ window.clipClearMusic = () => {
 };
 
 </script>
+
+<!-- ══════════════════ ADMIN MODAL ══════════════════ -->
+<div id="admin-modal" style="position:fixed;inset:0;z-index:500;background:#000;display:none;flex-direction:column;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--border);flex-shrink:0">
+    <div style="font-family:'Clash Display',sans-serif;font-size:1.2rem;font-weight:700">🛡️ Panel Admin</div>
+    <button onclick="closeAdminPanel()" style="background:none;border:none;color:var(--text-muted);font-size:1.3rem;cursor:pointer">✕</button>
+  </div>
+  <div style="display:flex;border-bottom:1px solid var(--border);flex-shrink:0">
+    <button class="admin-tab active" data-tab="clips" onclick="adminSwitchTab('clips')">🎬 Clips</button>
+    <button class="admin-tab" data-tab="users" onclick="adminSwitchTab('users')">👥 Usuarios</button>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:16px 16px 80px">
+    <div id="admin-sec-clips" class="admin-section"><div id="admin-clips-list"></div></div>
+    <div id="admin-sec-users" class="admin-section" style="display:none"><div id="admin-users-list"></div></div>
+  </div>
+</div>
+
 </body>
 </html>
