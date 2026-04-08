@@ -868,33 +868,31 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
   </div>
 </div>
 
+<!-- Hidden file inputs -->
+<input type="file" id="upload-file-video" accept="video/*" style="display:none" onchange="handleVideoUpload(this)"/>
+<input type="file" id="upload-file-image" accept="image/*" style="display:none" onchange="handleVideoUpload(this)"/>
+<input type="file" id="upload-file-any" accept="image/*,video/*" style="display:none" onchange="handleVideoUpload(this)"/>
+
 <!-- UPLOAD VIDEO MODAL -->
 <div id="upload-modal">
   <div class="upload-sheet">
-    <!-- Hidden file inputs INSIDE the modal so mobile browsers can trigger them -->
-    <input type="file" id="upload-file-video" accept="video/*" style="display:none" onchange="handleVideoUpload(this)"/>
-    <input type="file" id="upload-file-image" accept="image/*" style="display:none" onchange="handleVideoUpload(this)"/>
-    <input type="file" id="upload-file-any" accept="image/*,video/*" style="display:none" onchange="handleVideoUpload(this)"/>
     <div class="upload-sheet-handle"></div>
     <h3>Subir clip</h3>
     <div class="upload-options">
-      <label class="upload-opt" style="cursor:pointer">
-        <input type="file" accept="video/*" style="display:none" onchange="handleVideoUpload(this)"/>
+      <div class="upload-opt" onclick="document.getElementById('upload-file-video').click()">
         <div class="upload-opt-icon">🎬</div>
         <div class="upload-opt-label">Video</div>
         <div class="upload-opt-sub">MP4, MOV, etc.</div>
-      </label>
-      <label class="upload-opt" style="cursor:pointer">
-        <input type="file" accept="image/*" style="display:none" onchange="handleVideoUpload(this)"/>
+      </div>
+      <div class="upload-opt" onclick="document.getElementById('upload-file-image').click()">
         <div class="upload-opt-icon">🖼️</div>
         <div class="upload-opt-label">Imagen</div>
         <div class="upload-opt-sub">JPG, PNG, etc.</div>
-      </label>
+      </div>
     </div>
-    <label class="btn-outline" style="margin-top:8px;display:block;text-align:center;cursor:pointer">
+    <button class="btn-outline" style="margin-top:8px" onclick="document.getElementById('upload-file-any').click()">
       📁 Elegir cualquier archivo
-      <input type="file" accept="image/*,video/*" style="display:none" onchange="handleVideoUpload(this)"/>
-    </label>
+    </button>
     <button class="btn-outline" onclick="closeUpload()" style="margin-top:8px">Cancelar</button>
   </div>
 </div>
@@ -1088,9 +1086,12 @@ import {
 // ⚠️ Cambiá esta URL cada vez que reiniciás ngrok
 const UPLOAD_SERVER = "https://uploads.wikipediarf4.uy";
 
-async function uploadToServer(file) {
+async function uploadToServer(file, usuario) {
   const formData = new FormData();
   formData.append('archivo', file);
+  if(usuario && file.type && file.type.startsWith('video')) {
+    formData.append('usuario', usuario);
+  }
   let res;
   try {
     res = await fetch(UPLOAD_SERVER + '/upload', {
@@ -1564,7 +1565,8 @@ window.publishClip = async () => {
   showToast('📤 Subiendo clip...');
   document.getElementById('caption-modal').style.display = 'none';
   try {
-    const mediaUrl = await uploadToServer(_pendingUploadFile);
+    const handle = (myProfile.handle || myProfile.name || 'Clipuy').replace('@','');
+    const mediaUrl = await uploadToServer(_pendingUploadFile, '@' + handle);
     const isVideo = _pendingUploadFile.type.startsWith('video');
     // Extract hashtags and mentions from description
     const tagMatches = desc.match(/(#[\w\u00C0-\u017E]+|@[\w\u00C0-\u017E]+)/g) || [];
