@@ -476,22 +476,16 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
   border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;
 }
 .profile-tab.active{color:#fff;border-bottom-color:var(--accent);}
-/* TikTok-style grid: 3 columnas en móvil, más en escritorio */
+/* TikTok-style grid: 3 columnas base, más en pantallas grandes */
 .profile-grid{
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:2px;
   padding:0;
 }
-@media(min-width:480px){
-  .profile-grid{ grid-template-columns:repeat(3,1fr); }
-}
-@media(min-width:768px){
-  .profile-grid{ grid-template-columns:repeat(4,1fr); }
-}
-@media(min-width:1100px){
-  .profile-grid{ grid-template-columns:repeat(5,1fr); }
-}
+@media(min-width:600px){  .profile-grid{ grid-template-columns:repeat(3,1fr); } }
+@media(min-width:900px){  .profile-grid{ grid-template-columns:repeat(4,1fr); } }
+@media(min-width:1200px){ .profile-grid{ grid-template-columns:repeat(5,1fr); } }
 .profile-clip{
   aspect-ratio:9/16;background:var(--surface2);position:relative;overflow:hidden;cursor:pointer;
   border-radius:0;
@@ -502,9 +496,7 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
   display:flex;align-items:center;justify-content:center;
   opacity:0;transition:opacity .2s;
 }
-.profile-clip img,.profile-clip video{width:100%;height:100%;object-fit:cover;display:block;}
-/* Canvas thumbnail para preview de video */
-.profile-clip canvas{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;}
+.profile-clip img,.profile-clip video{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;}
 .profile-clip-views{
   position:absolute;bottom:5px;left:6px;font-size:.72rem;font-weight:700;
   display:flex;align-items:center;gap:3px;
@@ -708,18 +700,43 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
   padding:14px 16px 8px;
 }
 .explore-grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:2px;padding:0 2px 2px;
 }
+@media(min-width:600px){  .explore-grid{ grid-template-columns:repeat(4,1fr); } }
+@media(min-width:900px){  .explore-grid{ grid-template-columns:repeat(5,1fr); } }
+@media(min-width:1200px){ .explore-grid{ grid-template-columns:repeat(6,1fr); } }
 .explore-clip{
   aspect-ratio:9/16;background:var(--surface2);position:relative;
-  overflow:hidden;cursor:pointer;
+  overflow:hidden;cursor:pointer;border-radius:4px;
+  transition:transform .15s;
 }
-.explore-clip video,.explore-clip img{width:100%;height:100%;object-fit:cover;}
+.explore-clip:hover{ transform:scale(1.02); z-index:2; }
+.explore-clip video,.explore-clip img{
+  width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;
+}
+/* skeleton shimmer mientras carga */
+.explore-clip.loading::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,var(--surface2) 25%,var(--surface3) 50%,var(--surface2) 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.4s infinite;
+}
+@keyframes shimmer{ 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 .explore-clip-overlay{
   position:absolute;bottom:0;left:0;right:0;
-  padding:6px;background:linear-gradient(to top,rgba(0,0,0,.75),transparent);
-  font-size:.7rem;color:#fff;font-weight:700;
-  display:flex;align-items:center;gap:4px;
+  padding:20px 8px 8px;
+  background:linear-gradient(to top,rgba(0,0,0,.8) 0%,transparent 100%);
+  font-size:.72rem;color:#fff;font-weight:700;
+  display:flex;align-items:center;gap:4px;pointer-events:none;
+}
+/* username bajo el clip */
+.explore-clip-user{
+  position:absolute;top:0;left:0;right:0;padding:20px 6px 6px;
+  background:linear-gradient(to bottom,rgba(0,0,0,.5) 0%,transparent 100%);
+  font-size:.62rem;color:rgba(255,255,255,.85);font-weight:600;
+  pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .explore-loading{
   text-align:center;padding:40px;color:var(--text-muted);font-size:.9rem;
@@ -1580,7 +1597,7 @@ async function createUserProfile(user, name) {
 }
 
 
-// Captura el primer frame visible de un video y lo muestra como thumbnail en canvas
+// Captura el primer frame visible de un video y lo devuelve como dataURL
 async function captureVideoThumbnail(videoEl, blobUrl) {
   return new Promise((resolve) => {
     const vid = document.createElement('video');
@@ -1590,18 +1607,15 @@ async function captureVideoThumbnail(videoEl, blobUrl) {
     vid.preload = 'metadata';
     vid.crossOrigin = 'anonymous';
     const cleanup = () => { try { vid.src = ''; } catch(e){} };
-    vid.addEventListener('loadeddata', () => {
-      vid.currentTime = 0.5;
-    });
+    vid.addEventListener('loadeddata', () => { vid.currentTime = 0.5; });
     vid.addEventListener('seeked', () => {
       try {
         const canvas = document.createElement('canvas');
         canvas.width = vid.videoWidth || 360;
         canvas.height = vid.videoHeight || 640;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(vid, 0, 0, canvas.width, canvas.height);
+        canvas.getContext('2d').drawImage(vid, 0, 0, canvas.width, canvas.height);
         cleanup();
-        resolve(canvas.toDataURL('image/jpeg', 0.85));
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
       } catch(e) { cleanup(); resolve(null); }
     });
     vid.addEventListener('error', () => { cleanup(); resolve(null); });
@@ -1616,24 +1630,22 @@ async function loadNgrokMedia(root) {
     const url = el.getAttribute('data-src');
     if (!url) return;
     el.removeAttribute('data-src');
+    const parentClip = el.closest('.profile-clip');
     try {
       const res = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
       const blob = await res.blob();
       const blobUrl = URL.createObjectURL(blob);
 
-      // Si es video dentro de .profile-clip → mostrar thumbnail como canvas + imagen
-      if (el.tagName === 'VIDEO' && el.closest('.profile-clip')) {
+      // Capturar thumbnail del primer frame para videos en la grilla del perfil
+      if (el.tagName === 'VIDEO' && parentClip) {
         const thumb = await captureVideoThumbnail(el, blobUrl);
         if (thumb) {
-          // Reemplazar el <video> por <img> con el frame capturado
           const img = document.createElement('img');
           img.src = thumb;
           img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;';
-          // Guardar blobUrl para el viewer al hacer click
-          el.closest('.profile-clip').dataset.videoUrl = blobUrl;
+          parentClip.dataset.videoUrl = blobUrl;
           el.parentNode.replaceChild(img, el);
         } else {
-          // Fallback: usar video con src seteado y currentTime
           el.src = blobUrl;
           el.preload = 'metadata';
           el.addEventListener('loadedmetadata', () => { el.currentTime = 0.5; });
@@ -1701,54 +1713,123 @@ async function loadExplore() {
   try {
     // Trending tags section
     const trendingTags = ['#clipuy','#viral','#trending','#fyp','#humor','#musica','#baile','#arte'];
-    let html = `<div class="explore-section-title">🔥 Tendencias</div>`;
-    html += `<div class="explore-trending-tags">${trendingTags.map(t=>`<div class="explore-tag" onclick="openSearch();setTimeout(()=>{const i=document.getElementById('search-inp');if(i){i.value='${t}';i.dispatchEvent(new Event('input'));}},200)">${t}</div>`).join('')}</div>`;
+    let headerHtml = `<div class="explore-section-title">🔥 Tendencias</div>`;
+    headerHtml += `<div class="explore-trending-tags">${trendingTags.map(t=>`<div class="explore-tag" onclick="openSearch();setTimeout(()=>{const i=document.getElementById('search-inp');if(i){i.value='${t}';i.dispatchEvent(new Event('input'));}},200)">${t}</div>`).join('')}</div>`;
+    headerHtml += `<div class="explore-section-title">🎬 Videos más vistos</div>`;
 
     // Most liked clips
     const q = query(collection(db,'clips'), orderBy('likesCount','desc'), limit(30));
     const snap = await getDocs(q);
 
     if(snap.empty) {
-      html += `<div class="explore-loading">No hay clips todavía. ¡Sé el primero en subir! 🎬</div>`;
-      content.innerHTML = html;
+      content.innerHTML = headerHtml + `<div class="explore-loading">No hay clips todavía. ¡Sé el primero en subir! 🎬</div>`;
       return;
     }
 
-    html += `<div class="explore-section-title">🎬 Videos más vistos</div>`;
-    html += `<div class="explore-grid">`;
     const allClips = snap.docs.map(d => ({id:d.id,...d.data()}));
     window._exploreClips = allClips;
+
+    // Build DOM structure
+    content.innerHTML = headerHtml;
+    const grid = document.createElement('div');
+    grid.className = 'explore-grid';
+
     allClips.forEach((c, ci) => {
       const isVideo = c.mediaType === 'video';
-      html += `<div class="explore-clip" onclick="openClipViewer(window._exploreClips,${ci})">
-        ${isVideo
-          ? `<video src="${escHtml(c.mediaUrl||'')}" preload="none" style="width:100%;height:100%;object-fit:cover"></video>`
-          : `<img src="${escHtml(c.mediaUrl||'')}" style="width:100%;height:100%;object-fit:cover"/>`}
-        <div class="explore-clip-overlay">❤️ ${fmtNum(c.likesCount||0)}</div>
-      </div>`;
+      const clipDiv = document.createElement('div');
+      clipDiv.className = 'explore-clip loading';
+      clipDiv.onclick = () => openClipViewer(window._exploreClips, ci, clipDiv);
+
+      if(isVideo) {
+        const vid = document.createElement('video');
+        vid.setAttribute('data-src', c.mediaUrl || '');
+        vid.preload = 'none';
+        vid.muted = true;
+        vid.playsInline = true;
+        vid.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;';
+        clipDiv.appendChild(vid);
+      } else {
+        const img = document.createElement('img');
+        img.setAttribute('data-src', c.mediaUrl || '');
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;';
+        clipDiv.appendChild(img);
+      }
+
+      // Likes overlay bottom
+      const overlay = document.createElement('div');
+      overlay.className = 'explore-clip-overlay';
+      overlay.innerHTML = `♥ ${fmtNum(c.likesCount||0)}`;
+      clipDiv.appendChild(overlay);
+
+      // Username overlay top
+      if(c.username || c.handle) {
+        const userOverlay = document.createElement('div');
+        userOverlay.className = 'explore-clip-user';
+        userOverlay.textContent = '@' + (c.handle || c.username || '');
+        clipDiv.appendChild(userOverlay);
+      }
+
+      grid.appendChild(clipDiv);
     });
-    html += `</div>`;
+
+    content.appendChild(grid);
+
+    // Load media with thumbnail capture — remove loading skeleton after each
+    const mediaEls = grid.querySelectorAll('[data-src]');
+    mediaEls.forEach(async (el) => {
+      const url = el.getAttribute('data-src');
+      if(!url) return;
+      el.removeAttribute('data-src');
+      const parentClip = el.closest('.explore-clip');
+      try {
+        const res = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+
+        if(el.tagName === 'VIDEO') {
+          const thumb = await captureVideoThumbnail(el, blobUrl);
+          if(thumb) {
+            const img = document.createElement('img');
+            img.src = thumb;
+            img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;';
+            if(parentClip) parentClip.dataset.videoUrl = blobUrl;
+            el.parentNode.replaceChild(img, el);
+          } else {
+            el.src = blobUrl;
+            el.preload = 'metadata';
+            el.addEventListener('loadedmetadata', () => { el.currentTime = 0.5; });
+          }
+        } else {
+          el.src = blobUrl;
+        }
+        if(parentClip) parentClip.classList.remove('loading');
+      } catch(e) {
+        el.src = url;
+        if(parentClip) parentClip.classList.remove('loading');
+      }
+    });
 
     // Top users
     const uSnap = await getDocs(query(collection(db,'users'), orderBy('followers','desc'), limit(6)));
     if(!uSnap.empty) {
-      html += `<div class="explore-section-title">⭐ Usuarios populares</div>`;
-      html += `<div style="display:flex;flex-direction:column;gap:0;padding:0 0 8px">`;
-      uSnap.docs.forEach(d => {
-        const u = d.data();
-        if(!u.uid) return;
-        html += `<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--border)" onclick="openUserProfile('${u.uid}')">
-          <img src="${escHtml(u.avatar||avatarFallback(u.uid))}" style="width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid var(--border)" onerror="this.src='${avatarFallback(u.uid)}'"/>
-          <div style="flex:1;min-width:0">
-            <div style="font-weight:600;font-size:.9rem">${escHtml(u.name||'Usuario')}</div>
-            <div style="font-size:.78rem;color:var(--text-muted)">${escHtml(u.handle||'')} · ${fmtNum(u.followers||0)} seguidores</div>
-          </div>
+      const usersSection = document.createElement('div');
+      usersSection.innerHTML = `<div class="explore-section-title">⭐ Usuarios populares</div>
+        <div style="display:flex;flex-direction:column;gap:0;padding:0 0 8px">
+          ${uSnap.docs.map(d => {
+            const u = d.data();
+            if(!u.uid) return '';
+            return `<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--border)" onclick="openUserProfile('${u.uid}')">
+              <img src="${escHtml(u.avatar||avatarFallback(u.uid))}" style="width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid var(--border)" onerror="this.src='${avatarFallback(u.uid)}'"/>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:600;font-size:.9rem">${escHtml(u.name||'Usuario')}</div>
+                <div style="font-size:.78rem;color:var(--text-muted)">${escHtml(u.handle||'')} · ${fmtNum(u.followers||0)} seguidores</div>
+              </div>
+            </div>`;
+          }).join('')}
         </div>`;
-      });
-      html += `</div>`;
+      content.appendChild(usersSection);
     }
 
-    content.innerHTML = html;
   } catch(e) {
     content.innerHTML = `<div class="explore-loading">❌ Error al cargar: ${e.message}</div>`;
   }
@@ -2349,7 +2430,6 @@ function renderClipViewer() {
 
   if(isVideo) {
     const v = document.createElement('video');
-    // Use pre-loaded blob URL if available (from profile grid thumbnail capture)
     const blobUrl = _clipViewerSourceDiv && _clipViewerSourceDiv.dataset.videoUrl;
     v.src = blobUrl || clip.mediaUrl || '';
     v.style.cssText = 'width:100%;height:100%;object-fit:contain;';
