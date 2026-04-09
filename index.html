@@ -1777,6 +1777,7 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
       <button class="act-filter-btn" id="actf-like" onclick="filterActivity('like')">Me gusta</button>
       <button class="act-filter-btn" id="actf-comment" onclick="filterActivity('comment')">Comentarios</button>
       <button class="act-filter-btn" id="actf-reaction" onclick="filterActivity('reaction')">Reacciones</button>
+      <button class="act-filter-btn" id="actf-message" onclick="filterActivity('message')">Mensajes</button>
       <button class="act-filter-btn" id="actf-mention" onclick="filterActivity('mention')">Menciones</button>
       <button class="act-filter-btn" id="actf-follow" onclick="filterActivity('follow')">Seguidores</button>
     </div>
@@ -2478,7 +2479,14 @@ window.goTo = (screen) => {
     history.pushState({screen}, '', '/');
   }
   if(screen==='stories') loadStories();
-  if(screen==='chat') { loadChatList(); const cb = document.getElementById('chat-badge'); if(cb) cb.style.display='none'; }
+  if(screen==='chat') {
+    loadChatList();
+    const cb = document.getElementById('chat-badge'); if(cb) cb.style.display='none';
+    // Restaurar el chat que estaba abierto
+    if(_lastChatUid && _lastChatId) {
+      setTimeout(() => openPrivateChat(_lastChatUid, _lastChatName, _lastChatAvatar, _lastChatId), 80);
+    }
+  }
   if(screen==='explore') loadExplore();
   if(screen==='friends') loadFriends();
   if(screen==='activity') loadActivity();
@@ -4299,10 +4307,14 @@ window.openUserProfile = async (uid) => {
 // ══════════════════════════════════════════════
 //  CHAT
 // ══════════════════════════════════════════════
+let _lastChatUid = null, _lastChatName = '', _lastChatAvatar = '', _lastChatId = null;
+
 window.openPrivateChat = async (uid, name, avatar, chatId) => {
   if(!currentUser) { showToast('Iniciá sesión'); return; }
   _currentChatUid = uid;
   _currentChatName = name;
+  // Guardar para restaurar al volver
+  _lastChatUid = uid; _lastChatName = name; _lastChatAvatar = avatar; _lastChatId = chatId;
   // Reset currentChatId while loading to prevent stale sends
   window._currentChatId = null;
   document.getElementById('pc-avatar').src = avatar || avatarFallback(uid||'u');
@@ -4331,6 +4343,7 @@ window.openPrivateChat = async (uid, name, avatar, chatId) => {
       chatId = deterministicId;
     }
   }
+  _lastChatId = chatId;
   window._currentChatId = chatId;
   // Subscribe to messages
   if(_chatUnsubscribe) _chatUnsubscribe();
@@ -4343,6 +4356,8 @@ window.openPrivateChat = async (uid, name, avatar, chatId) => {
 window.closePrivateChat = () => {
   if(_chatUnsubscribe) { _chatUnsubscribe(); _chatUnsubscribe = null; }
   window._currentChatId = null;
+  // Limpiar estado persistente (el usuario cerró el chat explícitamente)
+  _lastChatUid = null; _lastChatName = ''; _lastChatAvatar = ''; _lastChatId = null;
   document.getElementById('private-chat').classList.remove('open');
   document.getElementById('chat-empty-state').style.display = 'flex';
   document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active-chat'));
@@ -4515,6 +4530,22 @@ window.sendPcMsg = async () => {
       lastMsg: text, lastTs: serverTimestamp(),
       [`unread.${_currentChatUid}`]: increment(1)
     });
+    // ── Notificación de mensaje privado ──
+    if(_currentChatUid && _currentChatUid !== currentUser.uid) {
+      try {
+        await addDoc(collection(db,'notifications'), {
+          toUid: _currentChatUid,
+          fromUid: currentUser.uid,
+          fromName: myProfile.name || currentUser.displayName || 'Alguien',
+          fromAvatar: myProfile.avatar || currentUser.photoURL || '',
+          type: 'message',
+          text: text.slice(0, 80),
+          chatId: window._currentChatId,
+          read: false,
+          createdAt: serverTimestamp()
+        });
+      } catch(e) {}
+    }
   } catch(e) { showToast('❌ Error al enviar: '+e.message); inp.value = text; }
 };
 
@@ -4953,19 +4984,29 @@ function renderActivityList(notifs) {
         : `<div class="act-avatar" style="display:flex;align-items:center;justify-content:center;font-size:1.2rem;background:var(--surface2)">👤</div>`;
 
       let iconClass = 'like', iconEmoji = '❤️';
-      if(n.type === 'follow') { iconClass = 'follow'; iconEmoji = '👤'; }
-      if(n.type === 'comment') { iconClass = 'comment'; iconEmoji = '💬'; }
-      if(n.type === 'mention') { iconClass = 'mention'; iconEmoji = '@'; }
-      if(n.type === 'reaction') { iconClass = 'comment'; iconEmoji = '😍'; }
-      if(n.type === 'duet') { iconClass = 'follow'; iconEmoji = '🎭'; }
+      if(n.type === 'follow')   { iconClass = 'follow';   iconEmoji = '👤'; }
+      if(n.type === 'comment')  { iconClass = 'comment';  iconEmoji = '💬'; }
+      if(n.type === 'mention')  { iconClass = 'mention';  iconEmoji = '@';  }
+      if(n.type === 'reaction') { iconClass = 'comment';  iconEmoji = '😍'; }
+      if(n.type === 'duet')     { iconClass = 'follow';   iconEmoji = '🎭'; }
+      if(n.type === 'message')  { iconClass = 'comment';  iconEmoji = '✉️'; }
 
       let bodyText = '';
-      if(n.type === 'like') bodyText = `<strong>${escHtml(n.fromName)}</strong> le dio me gusta a tu clip.`;
-      else if(n.type === 'follow') bodyText = `<strong>${escHtml(n.fromName)}</strong> empezó a seguirte.`;
-      else if(n.type === 'comment') bodyText = `<strong>${escHtml(n.fromName)}</strong> comentó: ${escHtml(n.text||'')}`;
-      else if(n.type === 'mention') bodyText = `<strong>${escHtml(n.fromName)}</strong> te mencionó.`;
-      else if(n.type === 'reaction') bodyText = `<strong>${escHtml(n.fromName)}</strong> reaccionó a tu mensaje: ${escHtml(n.text||'')}`;
-      else if(n.type === 'duet') bodyText = `<strong>${escHtml(n.fromName)}</strong> hizo un dueto con tu clip 🎭`;
+      if(n.type === 'like')     bodyText = `<strong>${escHtml(n.fromName)}</strong> le dio me gusta a tu clip.`;
+      else if(n.type === 'follow')   bodyText = `<strong>${escHtml(n.fromName)}</strong> empezó a seguirte.`;
+      else if(n.type === 'comment')  bodyText = `<strong>${escHtml(n.fromName)}</strong> comentó: <em>${escHtml(n.text||'')}</em>`;
+      else if(n.type === 'mention')  bodyText = `<strong>${escHtml(n.fromName)}</strong> te mencionó.`;
+      else if(n.type === 'reaction') bodyText = `<strong>${escHtml(n.fromName)}</strong> reaccionó: <em>${escHtml(n.text||'')}</em>`;
+      else if(n.type === 'duet')     bodyText = `<strong>${escHtml(n.fromName)}</strong> hizo un dueto con tu clip 🎭`;
+      else if(n.type === 'message')  bodyText = `<strong>${escHtml(n.fromName)}</strong> te envió un mensaje: <em>${escHtml(n.text||'')}</em>`;
+
+      // Acción al tocar la notificación
+      let clickAction = '';
+      if(n.type === 'message' && n.fromUid) {
+        clickAction = `goTo('chat');setTimeout(()=>openPrivateChat('${n.fromUid}','${escHtml(n.fromName||'')}','${escHtml(n.fromAvatar||'')}','${n.chatId||''}'),200);`;
+      } else if(n.fromUid) {
+        clickAction = `openUserProfile('${n.fromUid}')`;
+      }
 
       // Thumbnail del clip
       let mediaHtml = '';
@@ -4988,7 +5029,7 @@ function renderActivityList(notifs) {
       }
 
       html += `
-        <div class="act-item ${n.read?'':'unread'}" onclick="markNotifRead('${n.id}',this);${n.fromUid?`openUserProfile('${n.fromUid}')`:''}" data-nid="${n.id}">
+        <div class="act-item ${n.read?'':'unread'}" onclick="markNotifRead('${n.id}',this);${clickAction}" data-nid="${n.id}">
           <div class="act-avatar-wrap">
             ${avatar}
             <div class="act-avatar-icon ${iconClass}">${iconEmoji}</div>
