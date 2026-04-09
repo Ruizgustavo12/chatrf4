@@ -2732,6 +2732,8 @@ async function loadFriends() {
       </div>`;
       return;
     }
+    // Deduplicate uids
+    uids = [...new Set(uids)];
     // Load user data for each uid
     const userDocs = await Promise.all(uids.map(uid => getDoc(doc(db,'users',uid))));
     container.innerHTML = '';
@@ -2785,22 +2787,22 @@ async function loadChatList() {
         container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-muted)">No tenés chats todavía 💬<br><br><button class="btn-outline" style="margin-top:12px;padding:10px 20px" onclick="openSearch('users')">Buscar usuarios</button></div>`;
         return;
       }
-      container.innerHTML = '';
+      // Build all items first, then render at once
+      const items = [];
       for(const d of snap.docs) {
         const data = d.data();
         const otherUid = data.participants.find(u => u !== currentUser.uid);
         if(!otherUid) continue;
         const otherSnap = await getDoc(doc(db,'users',otherUid));
         const other = otherSnap.exists() ? otherSnap.data() : { name:'Usuario', avatar:avatarFallback(otherUid) };
-        // Check if item already exists, update it
-        let item = container.querySelector(`[data-uid="${otherUid}"]`);
-        if(!item) {
-          item = document.createElement('div');
-          item.className = 'chat-item';
-          item.dataset.uid = otherUid;
-          item.onclick = () => openPrivateChat(otherUid, other.name, other.avatar, d.id);
-          container.appendChild(item);
-        }
+        items.push({ data, otherUid, other, chatId: d.id });
+      }
+      container.innerHTML = '';
+      items.forEach(({ data, otherUid, other, chatId }) => {
+        const item = document.createElement('div');
+        item.className = 'chat-item';
+        item.dataset.uid = otherUid;
+        item.onclick = () => openPrivateChat(otherUid, other.name, other.avatar, chatId);
         item.innerHTML = `
           <div style="position:relative">
             <img class="chat-item-avatar" src="${escHtml(other.avatar||avatarFallback(otherUid))}" onerror="this.src='${avatarFallback(otherUid)}'"/>
@@ -2814,7 +2816,8 @@ async function loadChatList() {
             <div class="chat-item-time">${timeAgo(data.lastTs)}</div>
             ${data.unread && data.unread[currentUser.uid] ? `<div class="chat-unread">${data.unread[currentUser.uid]}</div>` : ''}
           </div>`;
-      }
+        container.appendChild(item);
+      });
     });
   } catch(e) { console.error('loadChatList error:',e); }
 }
