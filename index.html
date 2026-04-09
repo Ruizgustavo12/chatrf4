@@ -1785,35 +1785,46 @@ function renderProfile() {
   loadProfileClips();
 }
 
-async function loadProfileClips() {
-  if(!currentUser) return;
+async function loadProfileClips(uid) {
+  const targetUid = uid || (currentUser && currentUser.uid);
+  if(!targetUid) return;
+  const isOwn = currentUser && targetUid === currentUser.uid;
   const grid = document.getElementById('profile-clips-grid');
-  grid.innerHTML = '';
+  if(!grid) return;
+  grid.innerHTML = '<div style="grid-column:span 3;text-align:center;padding:30px;color:var(--text-muted)">Cargando...</div>';
   try {
-    const q = query(collection(db,'clips'), where('uid','==',currentUser.uid), orderBy('ts','desc'));
+    // Query without orderBy to avoid needing composite index
+    const q = query(collection(db,'clips'), where('uid','==',targetUid));
     const snap = await getDocs(q);
     if(snap.empty) {
-      grid.innerHTML = `<div style="grid-column:span 3;text-align:center;padding:30px;color:var(--text-muted)">Subí tu primer clip 🎬</div>`;
+      grid.innerHTML = `<div style="grid-column:span 3;text-align:center;padding:30px;color:var(--text-muted)">${isOwn ? 'Subí tu primer clip 🎬' : 'Este usuario no subió clips todavía'}</div>`;
       return;
     }
-    snap.forEach(d => {
-      const data = d.data();
+    // Sort by ts descending in JS
+    const docs = snap.docs.map(d => ({id:d.id,...d.data()}));
+    docs.sort((a,b) => {
+      const ta = a.ts?.toMillis ? a.ts.toMillis() : (a.ts || 0);
+      const tb = b.ts?.toMillis ? b.ts.toMillis() : (b.ts || 0);
+      return tb - ta;
+    });
+    grid.innerHTML = '';
+    docs.forEach(data => {
       const div = document.createElement('div');
       div.className = 'profile-clip';
-      div.onclick = () => {};
-      const clipDocId = d.id;
       div.innerHTML = `
         ${data.mediaType==='imagen'
-          ? `<img data-src="${escHtml(data.mediaUrl||'')}" loading="lazy"/>`
+          ? `<img data-src="${escHtml(data.mediaUrl||'')}" loading="lazy" style="width:100%;height:100%;object-fit:cover"/>`
           : `<video data-src="${escHtml(data.mediaUrl||'')}" preload="none" style="width:100%;height:100%;object-fit:cover"></video>`
         }
         <div class="profile-clip-views">▶ ${fmtNum(data.likesCount||0)}</div>
-        <button onclick="event.stopPropagation();deleteProfileClip('${d.id}',this)" style="position:absolute;top:4px;right:4px;background:rgba(254,44,85,.8);border:none;border-radius:50%;width:28px;height:28px;font-size:.8rem;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;z-index:5;">🗑️</button>
+        ${isOwn ? `<button onclick="event.stopPropagation();deleteProfileClip('${data.id}',this)" style="position:absolute;top:4px;right:4px;background:rgba(254,44,85,.8);border:none;border-radius:50%;width:28px;height:28px;font-size:.8rem;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;z-index:5;">🗑️</button>` : ''}
       `;
       grid.appendChild(div);
     });
     loadNgrokMedia(grid);
-  } catch(e) {}
+  } catch(e) { 
+    grid.innerHTML = `<div style="grid-column:span 3;text-align:center;padding:30px;color:var(--text-muted)">Error cargando clips: ${e.message}</div>`;
+  }
 }
 
 
@@ -1889,9 +1900,13 @@ window.openUserProfile = async (uid) => {
     const handle = p.handle || '@usuario';
     const avatar = p.avatar || avatarFallback(uid);
 
-    // Load user clips
-    const cSnap = await getDocs(query(collection(db,'clips'), where('uid','==',uid), orderBy('ts','desc')));
-    const clips = cSnap.docs.map(d => ({id:d.id,...d.data()}));
+    // Load user clips (no orderBy to avoid composite index requirement, sort in JS)
+    const cSnap = await getDocs(query(collection(db,'clips'), where('uid','==',uid)));
+    const clips = cSnap.docs.map(d => ({id:d.id,...d.data()})).sort((a,b) => {
+      const ta = a.ts?.toMillis ? a.ts.toMillis() : (a.ts||0);
+      const tb = b.ts?.toMillis ? b.ts.toMillis() : (b.ts||0);
+      return tb - ta;
+    });
 
     const overlay = document.createElement('div');
     overlay.id = 'user-profile-overlay';
