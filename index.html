@@ -2210,13 +2210,35 @@ window.goTo = (screen) => {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('nav-'+screen)?.classList.add('active');
   _currentScreen = screen;
-  if(screen==='profile') renderProfile();
+  if(screen==='profile') {
+    renderProfile();
+    // Actualizar URL con el handle del usuario actual
+    const rawHandle = (myProfile && myProfile.handle) ? myProfile.handle.replace(/^@+/,'').trim().toLowerCase() : '';
+    const isValidHandle = rawHandle && rawHandle !== 'usuario' && /^[a-z0-9_]{2,}$/.test(rawHandle);
+    if(isValidHandle) {
+      history.pushState({screen:'profile', uid: currentUser ? currentUser.uid : ''}, '', '/@' + rawHandle);
+    } else {
+      history.pushState({screen:'profile', uid: currentUser ? currentUser.uid : ''}, '', '/');
+    }
+  } else {
+    history.pushState({screen}, '', '/');
+  }
   if(screen==='stories') loadStories();
   if(screen==='chat') loadChatList();
   if(screen==='explore') loadExplore();
   if(screen==='friends') loadFriends();
   if(screen==='activity') loadActivity();
 };
+
+// Manejar botón atrás del navegador
+window.addEventListener('popstate', (e) => {
+  const overlay = document.getElementById('user-profile-overlay');
+  if(overlay) { overlay.remove(); return; }
+  const state = e.state;
+  if(state && state.screen) {
+    goTo(state.screen);
+  }
+});
 
 // ══════════════════════════════════════════════
 //  EXPLORE
@@ -3418,6 +3440,25 @@ window.openUserProfile = async (uid) => {
       </div>
     `;
     document.body.appendChild(overlay);
+
+    // Actualizar URL con el handle del usuario visitado
+    const rawPHandle = (p.handle || '').replace(/^@+/,'').trim().toLowerCase();
+    const isValidPHandle = rawPHandle && rawPHandle !== 'usuario' && /^[a-z0-9_]{2,}$/.test(rawPHandle);
+    if(isValidPHandle) {
+      history.pushState({screen:'userProfile', uid}, '', '/@' + rawPHandle);
+    } else {
+      history.pushState({screen:'userProfile', uid}, '', '/');
+    }
+
+    // Al cerrar el overlay, volver a la URL anterior
+    const overlayCloseBtn = overlay.querySelector('button');
+    if(overlayCloseBtn) {
+      overlayCloseBtn.setAttribute('onclick', '');
+      overlayCloseBtn.addEventListener('click', () => {
+        overlay.remove();
+        history.back();
+      });
+    }
 
     // Render clips asincrónicamente con blob + thumbnail (igual que perfil propio)
     if(clips.length > 0) {
