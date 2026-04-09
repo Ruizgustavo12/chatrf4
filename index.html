@@ -2030,11 +2030,14 @@ async function uploadToServer(file, usuario, titulo) {
     if(titulo) formData.append("titulo", titulo);
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-    const res = await fetch(UPLOAD_SERVER + "/upload", {
+    const timeout = setTimeout(() => controller.abort(), 120000); // 2 min para videos grandes
+    const res = await fetch(UPLOAD_SERVER + "/subir", {
       method: "POST",
       body: formData,
-      headers: { "ngrok-skip-browser-warning": "true" },
+      headers: {
+        "ngrok-skip-browser-warning": "true",
+        "Authorization": "Bearer APaYczEALjtr_w6GtSM58-qCc0SPDyVvUjmwHiB74pE"
+      },
       signal: controller.signal
     });
     clearTimeout(timeout);
