@@ -3410,27 +3410,94 @@ window.openUserProfile = async (uid) => {
       <div style="border-bottom:1px solid var(--border);margin-bottom:2px;display:flex">
         <div style="flex:1;text-align:center;padding:10px;font-size:.85rem;font-weight:600;border-bottom:2px solid var(--accent);color:#fff">🎬 Clips (${clips.length})</div>
       </div>
-      <div style="padding:2px 0 80px">
+      <div style="padding:2px 0 80px" id="pub-clips-grid-${safeUid}">
         ${clips.length === 0
           ? `<div style="text-align:center;padding:40px;color:var(--text-muted)">Este usuario no ha subido clips todavía</div>`
-          : `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:3px;padding:3px">
-              ${clips.map((c,ci) => {
-                const isVideo = c.mediaType !== 'imagen' && c.mediaType !== 'image';
-                const wSet = JSON.parse(localStorage.getItem('watchedClips')||'{}');
-                const watched = wSet[c.id];
-                return `<div onclick="openClipViewer(window['_pubClips_${uid}'],${ci})" style="aspect-ratio:9/16;background:var(--surface2);border-radius:2px;overflow:hidden;position:relative;cursor:pointer">
-                  ${isVideo
-                    ? `<video src="${escHtml(c.mediaUrl||'')}" style="width:100%;height:100%;object-fit:cover" preload="none"></video>`
-                    : `<img src="${escHtml(c.mediaUrl||'')}" style="width:100%;height:100%;object-fit:cover"/>`}
-                  ${watched ? `<div style="position:absolute;top:5px;left:6px;background:rgba(0,0,0,.55);border-radius:4px;font-size:.6rem;color:rgba(255,255,255,.75);padding:2px 5px;font-weight:600">Visto</div>` : ''}
-                  <div style="position:absolute;bottom:0;left:0;right:0;padding:5px 6px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);font-size:.7rem;color:#fff;font-weight:700">▶ ${fmtNum(c.viewsCount||c.likesCount||0)}</div>
-                </div>`;
-              }).join('')}
-            </div>`
+          : `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:3px;padding:3px" id="pub-clips-inner-${safeUid}"></div>`
         }
       </div>
     `;
     document.body.appendChild(overlay);
+
+    // Render clips asincrónicamente con blob + thumbnail (igual que perfil propio)
+    if(clips.length > 0) {
+      const innerGrid = document.getElementById('pub-clips-inner-' + safeUid);
+      if(innerGrid) {
+        const watchedSet = JSON.parse(localStorage.getItem('watchedClips')||'{}');
+        clips.forEach((c, ci) => {
+          const isVideo = c.mediaType !== 'imagen' && c.mediaType !== 'image';
+          const watched = watchedSet[c.id];
+
+          const card = document.createElement('div');
+          card.style.cssText = 'aspect-ratio:9/16;background:var(--surface2);border-radius:2px;overflow:hidden;position:relative;cursor:pointer;';
+          card.addEventListener('click', () => openClipViewer(window['_pubClips_' + uid], ci));
+
+          // Contador de vistas
+          const viewsEl = document.createElement('div');
+          viewsEl.style.cssText = 'position:absolute;bottom:0;left:0;right:0;padding:5px 6px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);font-size:.7rem;color:#fff;font-weight:700;z-index:2;';
+          viewsEl.textContent = '▶ ' + fmtNum(c.viewsCount||c.likesCount||0);
+          card.appendChild(viewsEl);
+
+          if(watched) {
+            const wb = document.createElement('div');
+            wb.style.cssText = 'position:absolute;top:5px;left:6px;background:rgba(0,0,0,.55);border-radius:4px;font-size:.6rem;color:rgba(255,255,255,.75);padding:2px 5px;font-weight:600;z-index:2;';
+            wb.textContent = 'Visto';
+            card.appendChild(wb);
+          }
+
+          innerGrid.appendChild(card);
+
+          // Carga asincrónica
+          (async () => {
+            if(!isVideo) {
+              const img = document.createElement('img');
+              img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+              card.insertBefore(img, card.firstChild);
+              try {
+                const res = await fetch(c.mediaUrl||'', { headers:{'ngrok-skip-browser-warning':'true'} });
+                img.src = URL.createObjectURL(await res.blob());
+              } catch(e2) { img.src = c.mediaUrl||''; }
+              return;
+            }
+            // Video: fetch blob
+            let blobUrl = c.mediaUrl||'';
+            try {
+              const res = await fetch(c.mediaUrl||'', { headers:{'ngrok-skip-browser-warning':'true'} });
+              blobUrl = URL.createObjectURL(await res.blob());
+            } catch(e2) {}
+            card.dataset.videoUrl = blobUrl;
+
+            // Thumbnail del primer frame
+            const thumb = await captureVideoThumbnail(blobUrl);
+            const thumbImg = document.createElement('img');
+            thumbImg.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;inset:0;transition:opacity .2s;';
+            thumbImg.src = thumb || '';
+            thumbImg.style.background = '#111';
+            card.insertBefore(thumbImg, card.firstChild);
+
+            // Video hover
+            const vid = document.createElement('video');
+            vid.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .2s;';
+            vid.src = blobUrl;
+            vid.muted = true;
+            vid.loop = true;
+            vid.playsInline = true;
+            vid.preload = 'none';
+            card.insertBefore(vid, card.firstChild);
+
+            card.addEventListener('mouseenter', () => {
+              vid.style.opacity = '1'; thumbImg.style.opacity = '0';
+              vid.currentTime = 0; vid.play().catch(()=>{});
+            });
+            card.addEventListener('mouseleave', () => {
+              vid.style.opacity = '0'; thumbImg.style.opacity = '1';
+              vid.pause(); vid.currentTime = 0;
+            });
+          })();
+        });
+      }
+    }
+
   } catch(e) { showToast('❌ Error: '+e.message); }
 };
 
