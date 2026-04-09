@@ -1004,6 +1004,14 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
 .pc-send:hover{opacity:.85;color:#fff;}
 .pc-attach{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;padding:4px 6px;transition:color .15s;}
 .pc-attach:hover{color:#fff;}
+.pc-audio-btn.recording{
+  color:var(--accent) !important;
+  animation:mic-pulse .7s ease-in-out infinite;
+}
+@keyframes mic-pulse{
+  0%,100%{transform:scale(1);opacity:1;}
+  50%{transform:scale(1.25);opacity:.6;}
+}
 
 /* ── UPLOAD VIDEO MODAL ── */
 #upload-modal{
@@ -1428,136 +1436,6 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
   animation:loadBar 1.5s ease-in-out forwards;
 }
 @keyframes loadBar{to{width:100%;}}
-
-/* ── FLOATING CHAT BUBBLE (Facebook style) ── */
-#float-chat-bubble {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 9000;
-  display: none;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
-  pointer-events: none;
-}
-#float-chat-bubble.visible { display: flex; }
-
-.float-bubble-btn {
-  width: 58px; height: 58px;
-  border-radius: 50%;
-  border: 3px solid #000;
-  cursor: pointer;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,.7), 0 0 0 2px var(--accent);
-  transition: transform .2s, box-shadow .2s;
-  pointer-events: all;
-  position: relative;
-  background: var(--surface2);
-  flex-shrink: 0;
-}
-.float-bubble-btn:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(0,0,0,.8), 0 0 0 3px var(--accent); }
-.float-bubble-btn img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-.float-bubble-unread {
-  position: absolute; top: -2px; right: -2px;
-  background: var(--accent); color: #fff;
-  border-radius: 50%; width: 18px; height: 18px;
-  font-size: .65rem; font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-  border: 2px solid #000;
-}
-.float-bubble-name {
-  background: rgba(0,0,0,.85);
-  backdrop-filter: blur(8px);
-  color: #fff; font-size: .78rem; font-weight: 600;
-  padding: 4px 10px; border-radius: 99px;
-  border: 1px solid rgba(255,255,255,.1);
-  white-space: nowrap;
-  pointer-events: none;
-  animation: fadeInBubble .2s ease;
-}
-@keyframes fadeInBubble { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
-
-/* ── FLOATING MINI CHAT WINDOW ── */
-#float-chat-window {
-  position: fixed;
-  bottom: 94px;
-  right: 24px;
-  width: 320px;
-  height: 420px;
-  background: #111;
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 16px;
-  box-shadow: 0 16px 60px rgba(0,0,0,.8);
-  z-index: 8999;
-  display: none;
-  flex-direction: column;
-  overflow: hidden;
-  animation: popUpChat .2s cubic-bezier(.34,1.56,.64,1);
-}
-#float-chat-window.open { display: flex; }
-@keyframes popUpChat {
-  from { opacity:0; transform:scale(.85) translateY(20px); }
-  to   { opacity:1; transform:scale(1) translateY(0); }
-}
-.fcw-header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 14px;
-  background: #000;
-  border-bottom: 1px solid rgba(255,255,255,.08);
-  flex-shrink: 0;
-  cursor: pointer;
-}
-.fcw-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
-.fcw-name { flex: 1; font-weight: 700; font-size: .9rem; }
-.fcw-actions { display: flex; gap: 4px; }
-.fcw-btn {
-  background: none; border: none; color: var(--text-muted);
-  cursor: pointer; font-size: 1rem; padding: 4px 6px;
-  border-radius: 6px; transition: color .15s, background .15s;
-  line-height: 1;
-}
-.fcw-btn:hover { color: #fff; background: rgba(255,255,255,.08); }
-.fcw-messages {
-  flex: 1; overflow-y: auto; padding: 10px 14px;
-  display: flex; flex-direction: column; gap: 6px;
-}
-.fcw-msg { display: flex; gap: 6px; align-items: flex-end; max-width: 80%; }
-.fcw-msg.own { align-self: flex-end; flex-direction: row-reverse; margin-left: auto; }
-.fcw-msg:not(.own) { align-self: flex-start; margin-right: auto; }
-.fcw-bubble {
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 16px 16px 16px 4px;
-  padding: 7px 11px; font-size: .85rem; line-height: 1.45;
-}
-.fcw-msg.own .fcw-bubble {
-  background: linear-gradient(135deg,rgba(254,44,85,.4),rgba(37,244,238,.25));
-  border-color: rgba(254,44,85,.4);
-  border-radius: 16px 16px 4px 16px;
-}
-.fcw-time { font-size: .6rem; color: var(--text-dim); margin-top: 2px; }
-.fcw-input-bar {
-  display: flex; align-items: center; gap: 6px;
-  padding: 8px 12px;
-  border-top: 1px solid rgba(255,255,255,.08);
-  background: #000;
-  flex-shrink: 0;
-}
-.fcw-inp {
-  flex: 1; background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 99px; padding: 8px 14px; color: #fff;
-  font-family: 'Space Grotesk', sans-serif; font-size: .85rem; outline: none;
-}
-.fcw-inp:focus { border-color: rgba(255,255,255,.25); }
-.fcw-inp::placeholder { color: var(--text-dim); }
-.fcw-send {
-  background: var(--accent); border: none; border-radius: 50%;
-  width: 34px; height: 34px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; flex-shrink: 0; transition: opacity .2s;
-}
-.fcw-send:hover { opacity: .85; }
-
 </style>
 </head>
 <body>
@@ -1871,6 +1749,9 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
           <input type="file" id="pc-file-inp" accept="image/*,video/*" style="display:none" onchange="sendPcMedia(this)"/>
           <button class="pc-attach" onclick="document.getElementById('pc-file-inp').click()">
             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </button>
+          <button class="pc-attach pc-audio-btn" id="pc-audio-btn" onclick="toggleAudioRecord()" title="Mantener para grabar audio">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
           </button>
           <input class="pc-inp" id="pc-inp" placeholder="Enviar un mensaje..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPcMsg();}"/>
           <button class="pc-attach" onclick="toggleEmojiPicker()" style="font-size:1.3rem;padding:4px 8px">😊</button>
@@ -2616,16 +2497,6 @@ window.goTo = (screen) => {
     if(_lastChatUid && _lastChatId) {
       setTimeout(() => openPrivateChat(_lastChatUid, _lastChatName, _lastChatAvatar, _lastChatId), 80);
     }
-    // Hide float bubble when on chat screen
-    setTimeout(() => {
-      const bubble = document.getElementById('float-chat-bubble');
-      if(bubble) bubble.classList.remove('visible');
-      const win = document.getElementById('float-chat-window');
-      if(win) win.classList.remove('open');
-    }, 50);
-  } else {
-    // Show float bubble when leaving chat screen (if there's an active chat)
-    setTimeout(() => { if(typeof updateBubbleVisibility !== 'undefined') updateBubbleVisibility(); }, 100);
   }
   if(screen==='explore') loadExplore();
   if(screen==='friends') loadFriends();
@@ -4485,10 +4356,6 @@ window.openPrivateChat = async (uid, name, avatar, chatId) => {
   }
   _lastChatId = chatId;
   window._currentChatId = chatId;
-  // Activate float bubble for this chat
-  if(typeof activateFloatBubble !== 'undefined') {
-    activateFloatBubble(uid, name, avatar || '', chatId);
-  }
   // Subscribe to messages
   if(_chatUnsubscribe) _chatUnsubscribe();
   const msgsRef = collection(db,'chats',chatId,'messages');
@@ -4607,6 +4474,7 @@ function renderPcMessages(msgs) {
           ${replyHtml}
           ${m.text ? escHtml(m.text) : ''}
           ${m.mediaUrl ? `<img class="pc-bubble-img" data-src="${escHtml(m.mediaUrl)}" onclick="window.open('${escHtml(m.mediaUrl)}','_blank')"/>` : ''}
+          ${m.audioUrl ? `<div style="display:flex;align-items:center;gap:8px;min-width:190px;padding:4px 0"><button onclick="playFloatAudio(this,'${escHtml(m.audioUrl)}')" style="background:var(--accent);border:none;border-radius:50%;width:34px;height:34px;color:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.9rem;">▶</button><div style="flex:1;height:3px;background:rgba(255,255,255,.2);border-radius:99px;overflow:hidden;"><div class="audio-prog" style="height:100%;width:0%;background:#fff;border-radius:99px;transition:width .15s linear;"></div></div><span style="font-size:.72rem;color:var(--text-muted);flex-shrink:0;">🎤</span></div>` : ''}
         </div>
         ${rxnHtml ? `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:3px;">${rxnHtml}</div>` : ''}
         <div class="pc-time">${timeAgo(m.ts)}</div>
@@ -4710,6 +4578,97 @@ window.sendPcMedia = async (inp) => {
     });
   } catch(e) { showToast('❌ Error: '+e.message); }
   inp.value = '';
+};
+
+// ══════════════════════════════════════════════
+//  AUDIO IN CHAT
+// ══════════════════════════════════════════════
+let _audioRec = false, _audioRecorder = null, _audioChunks = [], _audioStream = null, _audioTimer = null, _audioSecs = 0;
+
+window.toggleAudioRecord = async () => {
+  if(!currentUser) { showToast('⚠️ Iniciá sesión'); return; }
+  if(!window._currentChatId) { showToast('⏳ Abrí un chat primero'); return; }
+  const btn = document.getElementById('pc-audio-btn');
+  const inp = document.getElementById('pc-inp');
+
+  if(_audioRec) {
+    // — STOP —
+    clearInterval(_audioTimer);
+    _audioRec = false;
+    if(_audioRecorder && _audioRecorder.state !== 'inactive') _audioRecorder.stop();
+  } else {
+    // — START —
+    try {
+      _audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch(e) {
+      showToast('❌ No se pudo acceder al micrófono'); return;
+    }
+    _audioChunks = []; _audioSecs = 0;
+    const mime = ['audio/webm;codecs=opus','audio/webm','audio/ogg'].find(t => MediaRecorder.isTypeSupported(t)) || '';
+    _audioRecorder = new MediaRecorder(_audioStream, mime ? { mimeType: mime } : {});
+    _audioRecorder.ondataavailable = e => { if(e.data.size > 0) _audioChunks.push(e.data); };
+    _audioRecorder.onstop = async () => {
+      if(_audioStream) { _audioStream.getTracks().forEach(t => t.stop()); _audioStream = null; }
+      if(btn) { btn.classList.remove('recording'); btn.title = 'Grabar audio'; }
+      inp.placeholder = 'Enviar un mensaje...';
+      if(_audioChunks.length === 0) return;
+      const blob = new Blob(_audioChunks, { type: _audioRecorder.mimeType || 'audio/webm' });
+      const ext = blob.type.includes('ogg') ? 'ogg' : 'webm';
+      const file = new File([blob], `audio_${Date.now()}.${ext}`, { type: blob.type });
+      showToast('📤 Enviando audio...');
+      try {
+        const audioUrl = await uploadToServer(file);
+        await addDoc(collection(db,'chats',window._currentChatId,'messages'), {
+          uid: currentUser.uid,
+          name: myProfile.name || 'Usuario',
+          avatar: myProfile.avatar || avatarFallback(currentUser.uid),
+          text: '', audioUrl, ts: serverTimestamp(), read: false
+        });
+        await updateDoc(doc(db,'chats',window._currentChatId), {
+          lastMsg: '🎤 Audio', lastTs: serverTimestamp(),
+          [`unread.${_currentChatUid}`]: increment(1)
+        });
+        showToast('✅ Audio enviado');
+      } catch(e) { showToast('❌ Error: ' + e.message); }
+    };
+    _audioRecorder.start(200);
+    _audioRec = true;
+    if(btn) { btn.classList.add('recording'); btn.title = 'Tocar para detener'; }
+    inp.placeholder = '🔴 Grabando... (tocá 🎤 para detener)';
+    _audioTimer = setInterval(() => {
+      _audioSecs++;
+      const m = Math.floor(_audioSecs/60), s = _audioSecs%60;
+      inp.placeholder = `🔴 Grabando ${m}:${String(s).padStart(2,'0')} (tocá 🎤 para detener)`;
+      if(_audioSecs >= 120) window.toggleAudioRecord();
+    }, 1000);
+  }
+};
+
+window.playFloatAudio = (btn, url) => {
+  const bubble = btn.closest('.pc-bubble');
+  let audio = bubble ? bubble.querySelector('audio.chat-audio') : null;
+  if(!audio) {
+    audio = document.createElement('audio');
+    audio.className = 'chat-audio';
+    audio.style.display = 'none';
+    audio.src = url;
+    if(bubble) bubble.appendChild(audio); else { btn.parentElement.appendChild(audio); }
+  }
+  const prog = btn.parentElement.querySelector('.audio-prog');
+  if(audio.paused) {
+    document.querySelectorAll('audio.chat-audio-playing').forEach(a => {
+      a.pause(); a.classList.remove('chat-audio-playing');
+      const b = a.closest('.pc-bubble')?.querySelector('button') || a.parentElement?.querySelector('button');
+      if(b) b.textContent = '▶';
+    });
+    audio.play().catch(()=>{});
+    audio.classList.add('chat-audio-playing');
+    btn.textContent = '⏸';
+    audio.ontimeupdate = () => { if(audio.duration && prog) prog.style.width = (audio.currentTime/audio.duration*100)+'%'; };
+    audio.onended = () => { btn.textContent = '▶'; if(prog) prog.style.width='0%'; audio.classList.remove('chat-audio-playing'); };
+  } else {
+    audio.pause(); btn.textContent = '▶'; audio.classList.remove('chat-audio-playing');
+  }
 };
 
 // ══════════════════════════════════════════════
@@ -5992,176 +5951,6 @@ window.publishDuet = async () => {
 };
 </script>
 
-
-<script>
-// ══════════════════════════════════════════════
-//  FLOATING CHAT BUBBLE — Facebook style
-// ══════════════════════════════════════════════
-let _floatChatUid    = null;
-let _floatChatName   = '';
-let _floatChatAvatar = '';
-let _floatChatId     = null;
-let _floatUnsubscribe = null;
-
-// Called when user opens a private chat — store data and show bubble
-function activateFloatBubble(uid, name, avatar, chatId) {
-  _floatChatUid    = uid;
-  _floatChatName   = name;
-  _floatChatAvatar = avatar;
-  _floatChatId     = chatId;
-
-  const bubble = document.getElementById('float-chat-bubble');
-  const btn    = document.getElementById('float-bubble-btn');
-  const img    = document.getElementById('float-bubble-avatar');
-  const nameEl = document.getElementById('float-bubble-name');
-
-  img.src = avatar || '';
-  img.onerror = () => { img.src = ''; };
-  nameEl.textContent = name || '';
-
-  // Show bubble only when NOT on chat screen
-  updateBubbleVisibility();
-}
-
-function updateBubbleVisibility() {
-  const bubble = document.getElementById('float-chat-bubble');
-  if(!_floatChatUid) { bubble.classList.remove('visible'); return; }
-  // Show if current screen is NOT chat
-  if(typeof _currentScreen !== 'undefined' && _currentScreen === 'chat') {
-    bubble.classList.remove('visible');
-  } else {
-    bubble.classList.add('visible');
-  }
-}
-
-window.toggleFloatChat = () => {
-  const win = document.getElementById('float-chat-window');
-  const nameEl = document.getElementById('float-bubble-name');
-  if(win.classList.contains('open')) {
-    win.classList.remove('open');
-    nameEl.style.display = 'none';
-  } else {
-    openFloatWindow();
-    nameEl.style.display = 'block';
-    setTimeout(() => { nameEl.style.display = 'none'; }, 2500);
-  }
-};
-
-window.minimizeFloatChat = () => {
-  document.getElementById('float-chat-window').classList.remove('open');
-};
-
-window.closeFloatChat = () => {
-  document.getElementById('float-chat-window').classList.remove('open');
-  document.getElementById('float-chat-bubble').classList.remove('visible');
-  if(_floatUnsubscribe) { _floatUnsubscribe(); _floatUnsubscribe = null; }
-  _floatChatUid = null;
-  // Also clear lastChat so the main chat doesn't reopen it
-  if(typeof _lastChatUid !== 'undefined') { _lastChatUid = null; _lastChatId = null; }
-};
-
-window.openFloatChatFull = () => {
-  if(!_floatChatUid) return;
-  document.getElementById('float-chat-window').classList.remove('open');
-  if(typeof goTo !== 'undefined') {
-    goTo('chat');
-    setTimeout(() => {
-      if(typeof openPrivateChat !== 'undefined') {
-        openPrivateChat(_floatChatUid, _floatChatName, _floatChatAvatar, _floatChatId);
-      }
-    }, 150);
-  }
-};
-
-function openFloatWindow() {
-  const win = document.getElementById('float-chat-window');
-  document.getElementById('fcw-avatar').src = _floatChatAvatar || '';
-  document.getElementById('fcw-name').textContent = _floatChatName || '';
-  win.classList.add('open');
-  loadFloatMessages();
-  document.getElementById('fcw-inp').focus();
-  // Clear unread badge
-  const badge = document.getElementById('float-bubble-unread');
-  if(badge) badge.style.display = 'none';
-}
-
-function loadFloatMessages() {
-  if(!_floatChatId) return;
-  if(_floatUnsubscribe) { _floatUnsubscribe(); _floatUnsubscribe = null; }
-  // We need Firebase — access via module scope (already loaded)
-  // Use a polling approach since we're outside the module
-  renderFloatMessages();
-}
-
-function renderFloatMessages() {
-  // Re-use the main chat's message rendering by reading from DOM if available
-  const mainMsgs = document.getElementById('pc-messages');
-  const fcwMsgs  = document.getElementById('fcw-messages');
-  if(!fcwMsgs) return;
-
-  if(mainMsgs && mainMsgs.children.length > 0) {
-    // Clone from main chat messages
-    fcwMsgs.innerHTML = '';
-    Array.from(mainMsgs.children).forEach(child => {
-      const clone = child.cloneNode(true);
-      // Restyle for float window
-      if(clone.classList.contains('pc-msg')) {
-        clone.className = clone.className.replace('pc-msg','fcw-msg');
-        const bubble = clone.querySelector('.pc-bubble');
-        if(bubble) bubble.className = bubble.className.replace('pc-bubble','fcw-bubble');
-        const timeEl = clone.querySelector('.pc-time');
-        if(timeEl) timeEl.className = 'fcw-time';
-      }
-      fcwMsgs.appendChild(clone);
-    });
-    fcwMsgs.scrollTop = fcwMsgs.scrollHeight;
-  }
-}
-
-window.sendFloatMsg = async () => {
-  const inp = document.getElementById('fcw-inp');
-  const text = inp?.value.trim();
-  if(!text) return;
-  inp.value = '';
-  // Forward to main sendPcMsg by temporarily setting the input
-  const mainInp = document.getElementById('pc-inp');
-  if(mainInp && typeof sendPcMsg !== 'undefined') {
-    const prev = mainInp.value;
-    mainInp.value = text;
-    await sendPcMsg();
-    mainInp.value = '';
-    // Refresh float messages after short delay
-    setTimeout(renderFloatMessages, 600);
-  }
-};
-
-// Hook into the main private chat opening to activate the bubble
-// We patch this after the module loads
-document.addEventListener('DOMContentLoaded', () => {
-  // Observe pc-messages for changes to sync to float window
-  const observer = new MutationObserver(() => {
-    const win = document.getElementById('float-chat-window');
-    if(win && win.classList.contains('open')) renderFloatMessages();
-    // Show unread badge if window is closed
-    if(win && !win.classList.contains('open') && _floatChatUid) {
-      const badge = document.getElementById('float-bubble-unread');
-      if(badge) { badge.style.display = 'flex'; badge.textContent = '●'; }
-    }
-  });
-  const pcMsgs = document.getElementById('pc-messages');
-  if(pcMsgs) observer.observe(pcMsgs, { childList: true, subtree: true });
-
-  // Watch screen changes to show/hide bubble
-  const origGoTo = window.goTo;
-  if(typeof origGoTo === 'function') {
-    window.goTo = function(screen) {
-      origGoTo(screen);
-      setTimeout(updateBubbleVisibility, 50);
-    };
-  }
-});
-</script>
-
 <!-- ── PWA Install Banner ── -->
 <div id="pwa-install-banner" style="
   position:fixed;bottom:0;left:72px;right:0;z-index:9999;
@@ -6188,36 +5977,6 @@ document.addEventListener('DOMContentLoaded', () => {
     background:none;border:none;color:#555;font-size:1.2rem;cursor:pointer;
     padding:4px;flex-shrink:0;
   ">✕</button>
-</div>
-
-
-<!-- ── FLOATING CHAT BUBBLE ── -->
-<div id="float-chat-bubble">
-  <div class="float-bubble-name" id="float-bubble-name" style="display:none"></div>
-  <div class="float-bubble-btn" id="float-bubble-btn" onclick="toggleFloatChat()" title="Abrir chat">
-    <img id="float-bubble-avatar" src="" alt=""/>
-    <div class="float-bubble-unread" id="float-bubble-unread" style="display:none">1</div>
-  </div>
-</div>
-
-<!-- ── FLOATING CHAT WINDOW ── -->
-<div id="float-chat-window">
-  <div class="fcw-header" onclick="openFloatChatFull()">
-    <img class="fcw-avatar" id="fcw-avatar" src=""/>
-    <div class="fcw-name" id="fcw-name"></div>
-    <div class="fcw-actions" onclick="event.stopPropagation()">
-      <button class="fcw-btn" onclick="minimizeFloatChat()" title="Minimizar">_</button>
-      <button class="fcw-btn" onclick="openFloatChatFull()" title="Abrir completo">⤢</button>
-      <button class="fcw-btn" onclick="closeFloatChat()" title="Cerrar">✕</button>
-    </div>
-  </div>
-  <div class="fcw-messages" id="fcw-messages"></div>
-  <div class="fcw-input-bar">
-    <input class="fcw-inp" id="fcw-inp" placeholder="Mensaje..." onkeydown="if(event.key==='Enter'){event.preventDefault();sendFloatMsg();}"/>
-    <button class="fcw-send" onclick="sendFloatMsg()">
-      <svg width="14" height="14" fill="white" viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
-    </button>
-  </div>
 </div>
 
 </body>
