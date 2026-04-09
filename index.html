@@ -1906,40 +1906,59 @@ import {
   query, orderBy, limit, onSnapshot, serverTimestamp, where, arrayUnion, arrayRemove,
   increment, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-// ── SERVIDOR LOCAL (ngrok) ──
-// ⚠️ Cambiá esta URL cada vez que reiniciás ngrok
+// ── SERVIDOR LOCAL (Cloudflare Tunnel) ──
 const UPLOAD_SERVER = "https://uploads.wikipediarf4.uy";
 
-async function uploadToServer(file, usuario, titulo) {
+// ── CLOUDINARY FALLBACK ──
+const CLOUDINARY_CLOUD = "da0n5tg3g";
+const CLOUDINARY_PRESET = "wikipediarf4";
+
+async function uploadToCloudinary(file) {
+  showToast("☁️ Servidor local no disponible, subiendo a la nube...");
   const formData = new FormData();
-  formData.append('archivo', file);
-  if(usuario && file.type && file.type.startsWith('video')) {
-    formData.append('usuario', usuario);
+  formData.append("file", file);
+  formData.append("upload_preset", CLOUDINARY_PRESET);
+  const resourceType = file.type.startsWith("video") ? "video" : "image";
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/${resourceType}/upload`, {
+    method: "POST",
+    body: formData
+  });
+  if(!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error("Cloudinary error: " + (err.error?.message || res.status));
   }
-  if(titulo) {
-    formData.append('titulo', titulo);
-  }
-  let res;
+  const data = await res.json();
+  return data.secure_url;
+}
+
+async function uploadToServer(file, usuario, titulo) {
+  // ── Intentar servidor local primero ──
   try {
-    res = await fetch(UPLOAD_SERVER + '/upload', {
-      method: 'POST',
+    const formData = new FormData();
+    formData.append("archivo", file);
+    if(usuario && file.type && file.type.startsWith("video")) formData.append("usuario", usuario);
+    if(titulo) formData.append("titulo", titulo);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch(UPLOAD_SERVER + "/upload", {
+      method: "POST",
       body: formData,
-      headers: { 'ngrok-skip-browser-warning': 'true' }
+      headers: { "ngrok-skip-browser-warning": "true" },
+      signal: controller.signal
     });
-  } catch(netErr) {
-    throw new Error('No se pudo conectar al servidor (' + netErr.message + '). ¿Está corriendo ngrok?');
+    clearTimeout(timeout);
+
+    if(!res.ok) throw new Error("status " + res.status);
+    const data = await res.json();
+    if(!data.archivo) throw new Error("sin archivo en respuesta");
+    return UPLOAD_SERVER + "/files/" + data.tipo + "/" + data.fecha + "/" + data.archivo;
+
+  } catch(localErr) {
+    // ── Fallback automático a Cloudinary ──
+    console.warn("Servidor local no disponible, usando Cloudinary:", localErr.message);
+    return await uploadToCloudinary(file);
   }
-  if (!res.ok) {
-    let body = '';
-    try { body = await res.text(); } catch(_) {}
-    throw new Error('Servidor respondió ' + res.status + ': ' + (body.slice(0,200) || 'sin detalle'));
-  }
-  let data;
-  try { data = await res.json(); } catch(_) {
-    throw new Error('Respuesta del servidor no es JSON válido');
-  }
-  if(!data.archivo) throw new Error('El servidor no devolvió nombre de archivo. Respuesta: ' + JSON.stringify(data).slice(0,200));
-  return UPLOAD_SERVER + '/files/' + data.tipo + '/' + data.fecha + '/' + data.archivo;
 }
 
 async function fetchMedia(url) {
