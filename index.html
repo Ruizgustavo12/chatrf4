@@ -653,12 +653,37 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
   display:flex;align-items:center;gap:3px;z-index:4;
   text-shadow:0 1px 4px rgba(0,0,0,.9);color:#fff;
 }
-/* "Visto" badge */
+/* "Visto" badge — TikTok style */
 .profile-clip-watched{
   position:absolute;top:4px;left:5px;z-index:4;
-  background:rgba(0,0,0,.55);border-radius:4px;
-  font-size:.58rem;color:rgba(255,255,255,.75);
-  padding:2px 5px;font-weight:600;letter-spacing:.3px;
+  background:rgba(0,0,0,.65);border-radius:4px;
+  font-size:.6rem;color:#fff;
+  padding:2px 6px;font-weight:800;letter-spacing:1.5px;
+  font-family:'Clash Display',sans-serif;
+  text-transform:uppercase;
+  border:1px solid rgba(255,255,255,.15);
+}
+/* Clip viewer navigation arrows */
+.cv-nav-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);
+  background:rgba(255,255,255,.15);border:none;border-radius:50%;
+  width:42px;height:42px;color:#fff;font-size:1.4rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  z-index:20;transition:background .15s;backdrop-filter:blur(4px);
+}
+.cv-nav-arrow:hover{background:rgba(255,255,255,.3);}
+.cv-nav-arrow.prev{left:-54px;}
+.cv-nav-arrow.next{right:-54px;}
+@media(max-width:700px){
+  .cv-nav-arrow.prev{left:6px;}
+  .cv-nav-arrow.next{right:6px;}
+}
+.cv-counter{
+  position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.55);border-radius:99px;
+  padding:3px 10px;font-size:.72rem;color:rgba(255,255,255,.85);
+  font-weight:600;z-index:20;backdrop-filter:blur(4px);
+  pointer-events:none;
 }
 
 /* ── DUETO MODAL ── */
@@ -2399,14 +2424,24 @@ async function loadExplore() {
 
     allClips.forEach((c, ci) => {
       const isVideo = c.mediaType === 'video';
+      const watchedSet = JSON.parse(localStorage.getItem('watchedClips')||'{}');
       const clipDiv = document.createElement('div');
       clipDiv.className = 'explore-clip';
+      clipDiv.dataset.clipId = c.id;
 
       // Overlay de likes
       const overlay = document.createElement('div');
       overlay.className = 'explore-clip-overlay';
       overlay.innerHTML = `♥ ${fmtNum(c.likesCount||0)}`;
       clipDiv.appendChild(overlay);
+
+      // Badge VISTO
+      if(watchedSet[c.id]) {
+        const wb = document.createElement('div');
+        wb.className = 'profile-clip-watched';
+        wb.textContent = 'VISTO';
+        clipDiv.appendChild(wb);
+      }
 
       clipDiv.addEventListener('click', () => openClipViewer(window._exploreClips, ci, clipDiv));
       grid.appendChild(clipDiv);
@@ -3456,6 +3491,7 @@ async function loadProfileClips() {
     clipsData.forEach((data, idx) => {
       const div = document.createElement('div');
       div.className = 'profile-clip';
+      div.dataset.clipId = data.id;
       const watched = watchedSet[data.id];
       const isVideo = data.mediaType !== 'imagen' && data.mediaType !== 'image';
 
@@ -3463,7 +3499,7 @@ async function loadProfileClips() {
       if(watched) {
         const wb = document.createElement('div');
         wb.className = 'profile-clip-watched';
-        wb.textContent = 'Visto';
+        wb.textContent = 'VISTO';
         div.appendChild(wb);
       }
       const views = document.createElement('div');
@@ -3559,9 +3595,27 @@ window.closeClipViewer = () => {
   if(_clipViewerVideo) { _clipViewerVideo.pause(); _clipViewerVideo = null; }
   document.getElementById('clip-viewer-modal').classList.remove('open');
   document.getElementById('clip-viewer-media').innerHTML = '';
-  // Refresh grid to update watched badges
-  loadProfileClips();
+  document.onkeydown = null;
+  // Refresh watched badges in all possible grids
+  _refreshWatchedBadges();
 };
+
+function _refreshWatchedBadges() {
+  const watchedSet = JSON.parse(localStorage.getItem('watchedClips')||'{}');
+  // Profile grid
+  document.querySelectorAll('.profile-clip, [style*="aspect-ratio:9/16"]').forEach(card => {
+    const clipId = card.dataset && card.dataset.clipId;
+    if(!clipId) return;
+    if(watchedSet[clipId] && !card.querySelector('.profile-clip-watched')) {
+      const wb = document.createElement('div');
+      wb.className = 'profile-clip-watched';
+      wb.textContent = 'VISTO';
+      card.appendChild(wb);
+    }
+  });
+  // Also reload profile clips if on profile screen
+  if(_currentScreen === 'profile') loadProfileClips();
+}
 
 function renderClipViewer() {
   if(_clipViewerVideo) { _clipViewerVideo.pause(); _clipViewerVideo = null; }
@@ -3569,6 +3623,17 @@ function renderClipViewer() {
   if(!clip) return;
   const mediaEl = document.getElementById('clip-viewer-media');
   const isVideo = clip.mediaType !== 'imagen' && clip.mediaType !== 'image';
+
+  // Update arrows and counter
+  const prevBtn = document.getElementById('cv-arrow-prev');
+  const nextBtn = document.getElementById('cv-arrow-next');
+  const counter = document.getElementById('cv-counter');
+  if(prevBtn) prevBtn.style.opacity = _clipViewerIdx > 0 ? '1' : '0.2';
+  if(nextBtn) nextBtn.style.opacity = _clipViewerIdx < _clipViewerClips.length-1 ? '1' : '0.2';
+  if(counter && _clipViewerClips.length > 1) {
+    counter.textContent = (_clipViewerIdx+1) + ' / ' + _clipViewerClips.length;
+    counter.style.display = 'block';
+  } else if(counter) { counter.style.display = 'none'; }
 
   if(isVideo) {
     const v = document.createElement('video');
@@ -3593,14 +3658,32 @@ function renderClipViewer() {
     };
     v.addEventListener('ended', markWatched);
     v.addEventListener('timeupdate', () => { if(v.currentTime >= 5) markWatched(); });
+    // Auto-advance to next on video end
+    v.addEventListener('ended', () => {
+      if(_clipViewerIdx < _clipViewerClips.length - 1) {
+        setTimeout(() => { _clipViewerIdx++; _clipViewerSourceDiv = null; renderClipViewer(); }, 600);
+      }
+    });
     mediaEl.innerHTML = '';
     mediaEl.appendChild(v);
     _clipViewerVideo = v;
   } else {
+    // Mark images as watched immediately
+    const markWatched = () => {
+      const w = JSON.parse(localStorage.getItem('watchedClips')||'{}');
+      if(!w[clip.id]) {
+        w[clip.id] = true;
+        localStorage.setItem('watchedClips', JSON.stringify(w));
+        const badge = document.getElementById('clip-watched-badge');
+        badge.classList.add('show');
+        setTimeout(() => badge.classList.remove('show'), 2500);
+      }
+    };
+    setTimeout(markWatched, 2000);
     mediaEl.innerHTML = `<img src="${escHtml(clip.mediaUrl||'')}" style="width:100%;height:100%;object-fit:contain"/>`;
   }
 
-  document.getElementById('clip-viewer-desc').textContent = clip.caption || clip.desc || '';
+  document.getElementById('clip-viewer-desc').textContent = clip.caption || clip.description || clip.desc || '';
   document.getElementById('clip-viewer-stats').innerHTML =
     `<span>❤️ ${fmtNum(clip.likesCount||0)}</span><span>▶ ${fmtNum(clip.viewsCount||0)}</span>`;
 
@@ -3608,10 +3691,27 @@ function renderClipViewer() {
   document.onkeydown = (e) => {
     if(!document.getElementById('clip-viewer-modal').classList.contains('open')) return;
     if(e.key==='Escape') closeClipViewer();
-    if(e.key==='ArrowRight'&&_clipViewerIdx<_clipViewerClips.length-1){_clipViewerIdx++;renderClipViewer();}
-    if(e.key==='ArrowLeft'&&_clipViewerIdx>0){_clipViewerIdx--;renderClipViewer();}
+    if(e.key==='ArrowRight') clipViewerNav(1);
+    if(e.key==='ArrowLeft') clipViewerNav(-1);
+  };
+
+  // Touch swipe support
+  const wrap = document.getElementById('clip-viewer-wrap');
+  let _touchStartX = 0;
+  wrap.ontouchstart = (e) => { _touchStartX = e.touches[0].clientX; };
+  wrap.ontouchend = (e) => {
+    const dx = e.changedTouches[0].clientX - _touchStartX;
+    if(Math.abs(dx) > 50) clipViewerNav(dx < 0 ? 1 : -1);
   };
 }
+
+window.clipViewerNav = (dir) => {
+  const newIdx = _clipViewerIdx + dir;
+  if(newIdx < 0 || newIdx >= _clipViewerClips.length) return;
+  _clipViewerIdx = newIdx;
+  _clipViewerSourceDiv = null;
+  renderClipViewer();
+};
 
 
 window.deleteProfileClip = async (clipId, btn) => {
@@ -3656,13 +3756,14 @@ async function loadLikedClips() {
     clipsData.forEach((data, idx) => {
       const div = document.createElement('div');
       div.className = 'profile-clip';
+      div.dataset.clipId = data.id;
       const watched = watchedSet[data.id];
       const isVideo = data.mediaType !== 'imagen' && data.mediaType !== 'image';
 
       if(watched) {
         const wb = document.createElement('div');
         wb.className = 'profile-clip-watched';
-        wb.textContent = 'Visto';
+        wb.textContent = 'VISTO';
         div.appendChild(wb);
       }
       const views = document.createElement('div');
@@ -3880,7 +3981,7 @@ window.openUserProfile = async (uid) => {
           if(watched) {
             const wb = document.createElement('div');
             wb.style.cssText = 'position:absolute;top:5px;left:6px;background:rgba(0,0,0,.55);border-radius:4px;font-size:.6rem;color:rgba(255,255,255,.75);padding:2px 5px;font-weight:600;z-index:2;';
-            wb.textContent = 'Visto';
+            wb.textContent = 'VISTO';
             card.appendChild(wb);
           }
 
@@ -5076,15 +5177,18 @@ function selectClipuyAudio(audio, itemEl) {
 
 <!-- ══════════════════ CLIP VIEWER MODAL ══════════════════ -->
 <div id="clip-viewer-modal">
+  <button class="cv-nav-arrow prev" id="cv-arrow-prev" onclick="clipViewerNav(-1)">&#8249;</button>
   <div class="clip-viewer-wrap" id="clip-viewer-wrap">
     <div id="clip-viewer-media"></div>
+    <div class="cv-counter" id="cv-counter"></div>
     <button class="clip-viewer-close" onclick="closeClipViewer()">✕</button>
-    <div class="clip-watched-badge" id="clip-watched-badge">Visto ✓</div>
+    <div class="clip-watched-badge" id="clip-watched-badge">VISTO ✓</div>
     <div class="clip-viewer-info">
       <div class="clip-viewer-desc" id="clip-viewer-desc"></div>
       <div class="clip-viewer-stats" id="clip-viewer-stats"></div>
     </div>
   </div>
+  <button class="cv-nav-arrow next" id="cv-arrow-next" onclick="clipViewerNav(1)">&#8250;</button>
 </div>
 
 <!-- ══════════════════ ADMIN MODAL ══════════════════ -->
