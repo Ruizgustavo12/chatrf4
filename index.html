@@ -476,56 +476,34 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
   border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;
 }
 .profile-tab.active{color:#fff;border-bottom-color:var(--accent);}
-/* TikTok-style grid: 6 columnas en desktop, más pequeño */
+/* TikTok-style grid: ~5-6 columnas, miniaturas pequeñas */
 .profile-grid{
   display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:2px;
-  padding:0;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:3px;
+  padding:3px;
 }
-@media(min-width:700px){  .profile-grid{ grid-template-columns:repeat(5,1fr); } }
-@media(min-width:1000px){ .profile-grid{ grid-template-columns:repeat(6,1fr); } }
-@media(min-width:1300px){ .profile-grid{ grid-template-columns:repeat(8,1fr); } }
-
 .profile-clip{
   aspect-ratio:9/16;background:var(--surface2);position:relative;overflow:hidden;cursor:pointer;
-  border-radius:0;
+  border-radius:2px;
 }
-/* Thumbnail imagen — visible por defecto */
-.profile-clip .pc-thumb{
-  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-  display:block;z-index:1;transition:opacity .2s;
-}
-/* Video preview — oculto hasta hover */
-.profile-clip .pc-video{
-  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-  display:block;z-index:2;opacity:0;transition:opacity .25s;
-}
-.profile-clip:hover .pc-video{ opacity:1; }
-.profile-clip:hover .pc-thumb{ opacity:0; }
-
-/* Overlay de play (sólo visible sin hover) */
+.profile-clip:hover .profile-clip-overlay{opacity:1;}
 .profile-clip-overlay{
-  position:absolute;inset:0;
+  position:absolute;inset:0;background:rgba(0,0,0,.3);
   display:flex;align-items:center;justify-content:center;
-  opacity:0;transition:opacity .2s;z-index:3;
-  background:rgba(0,0,0,.18);
+  opacity:0;transition:opacity .2s;
 }
-.profile-clip:hover .profile-clip-overlay{ opacity:1; }
-
-.profile-clip img:not(.pc-thumb),.profile-clip video:not(.pc-video){
-  width:100%;height:100%;object-fit:cover;position:absolute;inset:0;
-}
+.profile-clip img,.profile-clip video{width:100%;height:100%;object-fit:cover;}
 .profile-clip-views{
-  position:absolute;bottom:5px;left:5px;font-size:.65rem;font-weight:700;
-  display:flex;align-items:center;gap:3px;z-index:4;
+  position:absolute;bottom:5px;left:6px;font-size:.72rem;font-weight:700;
+  display:flex;align-items:center;gap:3px;
   text-shadow:0 1px 4px rgba(0,0,0,.9);color:#fff;
 }
 /* "Visto" badge */
 .profile-clip-watched{
-  position:absolute;top:4px;left:5px;z-index:4;
+  position:absolute;top:5px;left:6px;
   background:rgba(0,0,0,.55);border-radius:4px;
-  font-size:.58rem;color:rgba(255,255,255,.75);
+  font-size:.6rem;color:rgba(255,255,255,.75);
   padding:2px 5px;font-weight:600;letter-spacing:.3px;
 }
 
@@ -1592,31 +1570,6 @@ async function createUserProfile(user, name) {
 
 
 // Load all data-src elements via fetch with ngrok header
-// Captura el primer frame de un video como dataURL JPEG
-async function captureVideoThumbnail(blobUrl) {
-  return new Promise((resolve) => {
-    const vid = document.createElement('video');
-    vid.src = blobUrl;
-    vid.muted = true;
-    vid.playsInline = true;
-    vid.preload = 'metadata';
-    const done = (result) => { try{ vid.src=''; }catch(e){} resolve(result); };
-    const timer = setTimeout(() => done(null), 7000);
-    vid.addEventListener('loadeddata', () => { vid.currentTime = 0.5; });
-    vid.addEventListener('seeked', () => {
-      clearTimeout(timer);
-      try {
-        const c = document.createElement('canvas');
-        c.width  = vid.videoWidth  || 360;
-        c.height = vid.videoHeight || 640;
-        c.getContext('2d').drawImage(vid, 0, 0, c.width, c.height);
-        done(c.toDataURL('image/jpeg', 0.8));
-      } catch(e) { done(null); }
-    });
-    vid.addEventListener('error', () => { clearTimeout(timer); done(null); });
-  });
-}
-
 async function loadNgrokMedia(root) {
   const els = (root || document).querySelectorAll('[data-src]');
   els.forEach(async (el) => {
@@ -1787,7 +1740,7 @@ function buildVideoSlide(id, data) {
           <span class="video-username">${escHtml(data.name||'Usuario')}</span>
           ${currentUser && data.uid !== currentUser.uid ? `<button class="follow-btn-inline" id="ffb-${data.uid}" onclick="event.stopPropagation();toggleFollow('${data.uid}',this)">Seguir</button>` : ''}
         </div>
-        <div class="video-desc">${escHtml(data.description||'')}</div>
+        <div class="video-desc">${escHtml((data.description||'').replace(/(#[\w\u00C0-\u017E]+|@[\w\u00C0-\u017E]+)/g,'').trim())}</div>
         ${data.tags ? `<div class="video-tags" style="cursor:pointer">${data.tags.split(' ').map(t=>`<span onclick="searchByTag('${t}')" style="margin-right:6px;cursor:pointer">${escHtml(t)}</span>`).join('')}</div>` : ''}
         <div class="video-music" id="vm-${id}">🎵 ${data.musicName ? escHtml(data.musicName)+' — '+escHtml(data.musicArtist||'') : 'Clipuy original'}</div>
       </div>
@@ -2274,107 +2227,44 @@ async function loadProfileClips() {
     const q = query(collection(db,'clips'), where('uid','==',currentUser.uid), orderBy('ts','desc'));
     const snap = await getDocs(q);
     if(snap.empty) {
-      grid.innerHTML = `<div style="grid-column:span 6;text-align:center;padding:40px;color:var(--text-muted)">Subí tu primer clip 🎬</div>`;
+      grid.innerHTML = `<div style="grid-column:span 5;text-align:center;padding:40px;color:var(--text-muted)">Subí tu primer clip 🎬</div>`;
       return;
     }
+    // Load watched set from localStorage
     const watchedSet = JSON.parse(localStorage.getItem('watchedClips')||'{}');
-    const clipsData = snap.docs.map(d => ({id:d.id,...d.data()}));
-
+    const clipsData = [];
+    snap.forEach(d => {
+      clipsData.push({id:d.id,...d.data()});
+    });
     clipsData.forEach((data, idx) => {
       const div = document.createElement('div');
       div.className = 'profile-clip';
+      div.onclick = () => openClipViewer(clipsData, idx);
       const watched = watchedSet[data.id];
-      const isVideo = data.mediaType !== 'imagen' && data.mediaType !== 'image';
-
-      // Skeleton placeholder
       div.innerHTML = `
+        ${data.mediaType==='imagen'||data.mediaType==='image'
+          ? `<img data-src="${escHtml(data.mediaUrl||'')}" loading="lazy" style="width:100%;height:100%;object-fit:cover"/>`
+          : `<video data-src="${escHtml(data.mediaUrl||'')}" preload="none" style="width:100%;height:100%;object-fit:cover"></video>`
+        }
         ${watched ? `<div class="profile-clip-watched">Visto</div>` : ''}
         <div class="profile-clip-views">▶ ${fmtNum(data.viewsCount||data.likesCount||0)}</div>
-        <div class="profile-clip-overlay"><svg width="22" height="22" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-        <button onclick="event.stopPropagation();deleteProfileClip('${data.id}',this)" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.55);border:none;border-radius:50%;width:24px;height:24px;font-size:.65rem;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;z-index:5;">🗑️</button>
+        <div class="profile-clip-overlay"><svg width="28" height="28" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+        <button onclick="event.stopPropagation();deleteProfileClip('${data.id}',this)" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.55);border:none;border-radius:50%;width:26px;height:26px;font-size:.75rem;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;z-index:5;">🗑️</button>
       `;
-
-      // Click abre el viewer
-      div.addEventListener('click', () => openClipViewer(clipsData, idx, div));
-
       grid.appendChild(div);
-
-      // Cargar media asincrónicamente
-      (async () => {
-        if(!isVideo) {
-          // Imagen simple
-          const img = document.createElement('img');
-          img.className = 'pc-thumb';
-          img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;';
-          div.insertBefore(img, div.firstChild);
-          try {
-            const res = await fetch(data.mediaUrl||'', { headers:{'ngrok-skip-browser-warning':'true'} });
-            const blob = await res.blob();
-            img.src = URL.createObjectURL(blob);
-          } catch(e) { img.src = data.mediaUrl||''; }
-          return;
-        }
-
-        // Video: fetch blob → capturar frame → thumb img + video oculto para hover
-        let blobUrl = data.mediaUrl || '';
-        try {
-          const res = await fetch(data.mediaUrl||'', { headers:{'ngrok-skip-browser-warning':'true'} });
-          const blob = await res.blob();
-          blobUrl = URL.createObjectURL(blob);
-        } catch(e) {}
-
-        // Guardar blobUrl en el div para el viewer
-        div.dataset.videoUrl = blobUrl;
-
-        // Capturar thumbnail del primer frame
-        const thumb = await captureVideoThumbnail(blobUrl);
-
-        // Thumbnail image (siempre visible, se oculta en hover)
-        const thumbImg = document.createElement('img');
-        thumbImg.className = 'pc-thumb';
-        if(thumb) {
-          thumbImg.src = thumb;
-        } else {
-          // Fallback: fondo oscuro con ícono de play
-          thumbImg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;background:#1a1a1a;';
-        }
-        div.insertBefore(thumbImg, div.firstChild);
-
-        // Video oculto para reproducir en hover
-        const vid = document.createElement('video');
-        vid.className = 'pc-video';
-        vid.src = blobUrl;
-        vid.muted = true;
-        vid.loop = true;
-        vid.playsInline = true;
-        vid.preload = 'none';
-        div.insertBefore(vid, div.firstChild);
-
-        // Hover events: play/pause
-        div.addEventListener('mouseenter', () => {
-          vid.currentTime = 0;
-          vid.play().catch(()=>{});
-        });
-        div.addEventListener('mouseleave', () => {
-          vid.pause();
-          vid.currentTime = 0;
-        });
-      })();
     });
-
-  } catch(e) { console.error(e); }
+    loadNgrokMedia(grid);
+  } catch(e) {}
 }
 
 // ── Clip Viewer ──
 let _clipViewerClips = [];
 let _clipViewerIdx = 0;
 let _clipViewerVideo = null;
-let _clipViewerSourceDiv = null;
 
-window.openClipViewer = (clips, idx, divEl) => {
+window.openClipViewer = (clips, idx) => {
   _clipViewerClips = clips;
   _clipViewerIdx = idx;
-  _clipViewerSourceDiv = divEl || null;
   document.getElementById('clip-viewer-modal').classList.add('open');
   renderClipViewer();
 };
@@ -2396,8 +2286,7 @@ function renderClipViewer() {
 
   if(isVideo) {
     const v = document.createElement('video');
-    const blobUrl = _clipViewerSourceDiv && _clipViewerSourceDiv.dataset.videoUrl;
-    v.src = blobUrl || clip.mediaUrl || '';
+    v.src = clip.mediaUrl || '';
     v.style.cssText = 'width:100%;height:100%;object-fit:contain;';
     v.autoplay = true;
     v.controls = true;
