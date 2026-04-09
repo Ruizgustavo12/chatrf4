@@ -1004,14 +1004,6 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
 .pc-send:hover{opacity:.85;color:#fff;}
 .pc-attach{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;padding:4px 6px;transition:color .15s;}
 .pc-attach:hover{color:#fff;}
-.pc-audio-btn.recording{
-  color:var(--accent) !important;
-  animation:mic-pulse .7s ease-in-out infinite;
-}
-@keyframes mic-pulse{
-  0%,100%{transform:scale(1);opacity:1;}
-  50%{transform:scale(1.25);opacity:.6;}
-}
 
 /* ── UPLOAD VIDEO MODAL ── */
 #upload-modal{
@@ -1436,6 +1428,63 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
   animation:loadBar 1.5s ease-in-out forwards;
 }
 @keyframes loadBar{to{width:100%;}}
+
+/* ── GIF PICKER ── */
+#gif-picker{
+  display:none;flex-direction:column;
+  background:var(--surface2);border-top:1px solid var(--border);
+  max-height:260px;flex-shrink:0;
+}
+#gif-picker.open{display:flex;}
+.gif-search-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 12px;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.gif-search-inp{
+  flex:1;background:var(--surface3);border:1px solid var(--border);
+  border-radius:99px;padding:7px 14px;color:#fff;
+  font-family:'Space Grotesk',sans-serif;font-size:.85rem;outline:none;
+}
+.gif-search-inp::placeholder{color:var(--text-dim);}
+.gif-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:3px;
+  overflow-y:auto;padding:6px;flex:1;
+}
+.gif-cell{
+  border-radius:8px;overflow:hidden;cursor:pointer;
+  aspect-ratio:16/9;background:var(--surface3);
+  transition:transform .12s,opacity .12s;
+}
+.gif-cell:hover{transform:scale(1.04);opacity:.85;}
+.gif-cell img{width:100%;height:100%;object-fit:cover;display:block;}
+.gif-loading{text-align:center;padding:24px;color:var(--text-muted);font-size:.85rem;}
+
+/* ── REACTION QUICK BAR (hover over bubble) ── */
+.msg-react-bar{
+  position:absolute;
+  bottom:calc(100% + 4px);
+  display:none;
+  gap:2px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:99px;
+  padding:4px 8px;
+  box-shadow:0 4px 20px rgba(0,0,0,.6);
+  z-index:50;
+  white-space:nowrap;
+}
+.pc-msg:hover .msg-react-bar,
+.msg-react-bar:hover{display:flex;}
+.react-btn{
+  font-size:1.3rem;cursor:pointer;
+  padding:2px 4px;border-radius:50%;
+  transition:transform .12s;
+  line-height:1;
+}
+.react-btn:hover{transform:scale(1.3);}
+.pc-msg.own .msg-react-bar{right:0;left:auto;}
+.pc-msg:not(.own) .msg-react-bar{left:0;right:auto;}
+
 </style>
 </head>
 <body>
@@ -1738,6 +1787,16 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
           <span style="font-size:1.5rem;cursor:pointer" onclick="insertEmoji('😴')">😴</span>
           <span style="font-size:1.5rem;cursor:pointer" onclick="insertEmoji('🫶')">🫶</span>
         </div>
+        <!-- GIF Picker -->
+        <div id="gif-picker">
+          <div class="gif-search-bar">
+            <input class="gif-search-inp" id="gif-search-inp" placeholder="🔍 Buscar GIFs..." oninput="searchGifs(this.value)"/>
+            <button onclick="toggleGifPicker()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;line-height:1;">✕</button>
+          </div>
+          <div class="gif-grid" id="gif-grid">
+            <div class="gif-loading">Escribí algo para buscar GIFs 🎬</div>
+          </div>
+        </div>
         <!-- Reply preview -->
         <div id="reply-preview" style="display:none;padding:8px 14px;background:var(--surface2);border-top:1px solid var(--border);border-left:3px solid var(--accent);margin:0 12px 4px;border-radius:8px;font-size:.8rem;color:var(--text-muted)">
           <div style="display:flex;justify-content:space-between;align-items:center">
@@ -1750,10 +1809,8 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
           <button class="pc-attach" onclick="document.getElementById('pc-file-inp').click()">
             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           </button>
-          <button class="pc-attach pc-audio-btn" id="pc-audio-btn" onclick="toggleAudioRecord()" title="Mantener para grabar audio">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
-          </button>
           <input class="pc-inp" id="pc-inp" placeholder="Enviar un mensaje..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPcMsg();}"/>
+          <button class="pc-attach" onclick="toggleGifPicker()" title="GIF" style="font-size:.72rem;font-weight:800;letter-spacing:-.5px;padding:4px 7px;color:var(--accent2)">GIF</button>
           <button class="pc-attach" onclick="toggleEmojiPicker()" style="font-size:1.3rem;padding:4px 8px">😊</button>
           <button class="pc-send" onclick="sendPcMsg()">
             <svg width="16" height="16" fill="white" viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
@@ -4470,11 +4527,16 @@ function renderPcMessages(msgs) {
     div.innerHTML = `
       ${!isOwn ? `<img class="pc-msg-avatar" src="${escHtml(m.avatar||avatarFallback(m.uid||'u'))}" onerror="this.src='${avatarFallback(m.uid||'u')}'"/>` : ''}
       <div style="max-width:75%">
-        <div class="pc-bubble" oncontextmenu="event.preventDefault();showMsgMenu('${m.id}','${escHtml((m.text||'').replace(/'/g,'\''))}',${isOwn})">
+        <div style="position:relative">
+          <div class="msg-react-bar">
+            ${['❤️','😂','😮','😢','👏','🔥'].map(e=>`<span class="react-btn" onclick="addMsgReaction('${m.id}','${e}')">${e}</span>`).join('')}
+          </div>
+          <div class="pc-bubble" oncontextmenu="event.preventDefault();showMsgMenu('${m.id}','${escHtml((m.text||'').replace(/'/g,'\''))}',${isOwn})" ondblclick="showMsgMenu('${m.id}','${escHtml((m.text||'').replace(/'/g,'\''))}',${isOwn})">
           ${replyHtml}
           ${m.text ? escHtml(m.text) : ''}
           ${m.mediaUrl ? `<img class="pc-bubble-img" data-src="${escHtml(m.mediaUrl)}" onclick="window.open('${escHtml(m.mediaUrl)}','_blank')"/>` : ''}
-          ${m.audioUrl ? `<div style="display:flex;align-items:center;gap:8px;min-width:190px;padding:4px 0"><button onclick="playFloatAudio(this,'${escHtml(m.audioUrl)}')" style="background:var(--accent);border:none;border-radius:50%;width:34px;height:34px;color:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.9rem;">▶</button><div style="flex:1;height:3px;background:rgba(255,255,255,.2);border-radius:99px;overflow:hidden;"><div class="audio-prog" style="height:100%;width:0%;background:#fff;border-radius:99px;transition:width .15s linear;"></div></div><span style="font-size:.72rem;color:var(--text-muted);flex-shrink:0;">🎤</span></div>` : ''}
+          ${m.gifUrl ? `<img src="${escHtml(m.gifUrl)}" style="max-width:200px;border-radius:10px;display:block;cursor:pointer;" onclick="window.open('${escHtml(m.gifUrl)}','_blank')" loading="lazy"/>` : ''}
+          </div>
         </div>
         ${rxnHtml ? `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:3px;">${rxnHtml}</div>` : ''}
         <div class="pc-time">${timeAgo(m.ts)}</div>
@@ -4512,6 +4574,102 @@ window.showMsgMenu = (msgId, text, isOwn) => {
   document.body.appendChild(menu);
   menu.addEventListener('click', e => e.stopPropagation());
   setTimeout(() => document.addEventListener('click', () => menu.remove(), {once:true}), 100);
+};
+
+// ══════════════════════════════════════════════
+//  GIF PICKER  (Tenor API — free key)
+// ══════════════════════════════════════════════
+const TENOR_KEY = 'AIzaSyAyimkuYQYF_y1Qdq4x_X4T6UJRsMhXKo8'; // public demo key
+let _gifDebounce = null;
+let _gifOpen = false;
+
+window.toggleGifPicker = () => {
+  const picker = document.getElementById('gif-picker');
+  const emoji  = document.getElementById('emoji-picker');
+  _gifOpen = !_gifOpen;
+  picker.classList.toggle('open', _gifOpen);
+  if(_gifOpen) {
+    if(emoji) emoji.style.display = 'none';
+    // load trending GIFs on open
+    loadTrendingGifs();
+    setTimeout(() => document.getElementById('gif-search-inp')?.focus(), 100);
+  }
+};
+
+async function loadTrendingGifs() {
+  const grid = document.getElementById('gif-grid');
+  grid.innerHTML = '<div class="gif-loading">⏳ Cargando GIFs...</div>';
+  try {
+    const res = await fetch(`https://tenor.googleapis.com/v2/featured?key=${TENOR_KEY}&limit=18&media_filter=gif`);
+    const data = await res.json();
+    renderGifResults(data.results || []);
+  } catch(e) {
+    grid.innerHTML = '<div class="gif-loading">❌ Sin conexión</div>';
+  }
+}
+
+window.searchGifs = (q) => {
+  clearTimeout(_gifDebounce);
+  if(!q.trim()) { loadTrendingGifs(); return; }
+  _gifDebounce = setTimeout(async () => {
+    const grid = document.getElementById('gif-grid');
+    grid.innerHTML = '<div class="gif-loading">🔍 Buscando...</div>';
+    try {
+      const res = await fetch(`https://tenor.googleapis.com/v2/search?key=${TENOR_KEY}&q=${encodeURIComponent(q)}&limit=18&media_filter=gif`);
+      const data = await res.json();
+      renderGifResults(data.results || []);
+    } catch(e) {
+      grid.innerHTML = '<div class="gif-loading">❌ Error al buscar</div>';
+    }
+  }, 400);
+};
+
+function renderGifResults(results) {
+  const grid = document.getElementById('gif-grid');
+  if(!results.length) { grid.innerHTML = '<div class="gif-loading">Sin resultados 😕</div>'; return; }
+  grid.innerHTML = '';
+  results.forEach(gif => {
+    const url = gif.media_formats?.gif?.url || gif.media_formats?.tinygif?.url || '';
+    const preview = gif.media_formats?.tinygif?.url || url;
+    if(!url) return;
+    const cell = document.createElement('div');
+    cell.className = 'gif-cell';
+    const img = document.createElement('img');
+    img.src = preview;
+    img.alt = gif.title || 'gif';
+    img.loading = 'lazy';
+    cell.appendChild(img);
+    cell.onclick = () => sendGif(url);
+    grid.appendChild(cell);
+  });
+}
+
+async function sendGif(gifUrl) {
+  if(!currentUser || !window._currentChatId) return;
+  // Close picker
+  document.getElementById('gif-picker').classList.remove('open');
+  _gifOpen = false;
+  document.getElementById('gif-search-inp').value = '';
+  try {
+    await addDoc(collection(db,'chats',window._currentChatId,'messages'), {
+      uid: currentUser.uid,
+      name: myProfile.name || 'Usuario',
+      avatar: myProfile.avatar || avatarFallback(currentUser.uid),
+      text: '', gifUrl, ts: serverTimestamp(), read: false
+    });
+    await updateDoc(doc(db,'chats',window._currentChatId), {
+      lastMsg: '🎬 GIF', lastTs: serverTimestamp(),
+      [`unread.${_currentChatUid}`]: increment(1)
+    });
+  } catch(e) { showToast('❌ Error al enviar GIF: ' + e.message); }
+}
+
+// Close gif picker when emoji picker opens
+const _origToggleEmoji = window.toggleEmojiPicker;
+window.toggleEmojiPicker = () => {
+  const gifPicker = document.getElementById('gif-picker');
+  if(gifPicker) { gifPicker.classList.remove('open'); _gifOpen = false; }
+  _origToggleEmoji && _origToggleEmoji();
 };
 
 window.deleteMsgConfirm = async (msgId) => {
@@ -4578,97 +4736,6 @@ window.sendPcMedia = async (inp) => {
     });
   } catch(e) { showToast('❌ Error: '+e.message); }
   inp.value = '';
-};
-
-// ══════════════════════════════════════════════
-//  AUDIO IN CHAT
-// ══════════════════════════════════════════════
-let _audioRec = false, _audioRecorder = null, _audioChunks = [], _audioStream = null, _audioTimer = null, _audioSecs = 0;
-
-window.toggleAudioRecord = async () => {
-  if(!currentUser) { showToast('⚠️ Iniciá sesión'); return; }
-  if(!window._currentChatId) { showToast('⏳ Abrí un chat primero'); return; }
-  const btn = document.getElementById('pc-audio-btn');
-  const inp = document.getElementById('pc-inp');
-
-  if(_audioRec) {
-    // — STOP —
-    clearInterval(_audioTimer);
-    _audioRec = false;
-    if(_audioRecorder && _audioRecorder.state !== 'inactive') _audioRecorder.stop();
-  } else {
-    // — START —
-    try {
-      _audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch(e) {
-      showToast('❌ No se pudo acceder al micrófono'); return;
-    }
-    _audioChunks = []; _audioSecs = 0;
-    const mime = ['audio/webm;codecs=opus','audio/webm','audio/ogg'].find(t => MediaRecorder.isTypeSupported(t)) || '';
-    _audioRecorder = new MediaRecorder(_audioStream, mime ? { mimeType: mime } : {});
-    _audioRecorder.ondataavailable = e => { if(e.data.size > 0) _audioChunks.push(e.data); };
-    _audioRecorder.onstop = async () => {
-      if(_audioStream) { _audioStream.getTracks().forEach(t => t.stop()); _audioStream = null; }
-      if(btn) { btn.classList.remove('recording'); btn.title = 'Grabar audio'; }
-      inp.placeholder = 'Enviar un mensaje...';
-      if(_audioChunks.length === 0) return;
-      const blob = new Blob(_audioChunks, { type: _audioRecorder.mimeType || 'audio/webm' });
-      const ext = blob.type.includes('ogg') ? 'ogg' : 'webm';
-      const file = new File([blob], `audio_${Date.now()}.${ext}`, { type: blob.type });
-      showToast('📤 Enviando audio...');
-      try {
-        const audioUrl = await uploadToServer(file);
-        await addDoc(collection(db,'chats',window._currentChatId,'messages'), {
-          uid: currentUser.uid,
-          name: myProfile.name || 'Usuario',
-          avatar: myProfile.avatar || avatarFallback(currentUser.uid),
-          text: '', audioUrl, ts: serverTimestamp(), read: false
-        });
-        await updateDoc(doc(db,'chats',window._currentChatId), {
-          lastMsg: '🎤 Audio', lastTs: serverTimestamp(),
-          [`unread.${_currentChatUid}`]: increment(1)
-        });
-        showToast('✅ Audio enviado');
-      } catch(e) { showToast('❌ Error: ' + e.message); }
-    };
-    _audioRecorder.start(200);
-    _audioRec = true;
-    if(btn) { btn.classList.add('recording'); btn.title = 'Tocar para detener'; }
-    inp.placeholder = '🔴 Grabando... (tocá 🎤 para detener)';
-    _audioTimer = setInterval(() => {
-      _audioSecs++;
-      const m = Math.floor(_audioSecs/60), s = _audioSecs%60;
-      inp.placeholder = `🔴 Grabando ${m}:${String(s).padStart(2,'0')} (tocá 🎤 para detener)`;
-      if(_audioSecs >= 120) window.toggleAudioRecord();
-    }, 1000);
-  }
-};
-
-window.playFloatAudio = (btn, url) => {
-  const bubble = btn.closest('.pc-bubble');
-  let audio = bubble ? bubble.querySelector('audio.chat-audio') : null;
-  if(!audio) {
-    audio = document.createElement('audio');
-    audio.className = 'chat-audio';
-    audio.style.display = 'none';
-    audio.src = url;
-    if(bubble) bubble.appendChild(audio); else { btn.parentElement.appendChild(audio); }
-  }
-  const prog = btn.parentElement.querySelector('.audio-prog');
-  if(audio.paused) {
-    document.querySelectorAll('audio.chat-audio-playing').forEach(a => {
-      a.pause(); a.classList.remove('chat-audio-playing');
-      const b = a.closest('.pc-bubble')?.querySelector('button') || a.parentElement?.querySelector('button');
-      if(b) b.textContent = '▶';
-    });
-    audio.play().catch(()=>{});
-    audio.classList.add('chat-audio-playing');
-    btn.textContent = '⏸';
-    audio.ontimeupdate = () => { if(audio.duration && prog) prog.style.width = (audio.currentTime/audio.duration*100)+'%'; };
-    audio.onended = () => { btn.textContent = '▶'; if(prog) prog.style.width='0%'; audio.classList.remove('chat-audio-playing'); };
-  } else {
-    audio.pause(); btn.textContent = '▶'; audio.classList.remove('chat-audio-playing');
-  }
 };
 
 // ══════════════════════════════════════════════
