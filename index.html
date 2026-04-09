@@ -1821,11 +1821,14 @@ import {
 // ⚠️ Cambiá esta URL cada vez que reiniciás ngrok
 const UPLOAD_SERVER = "https://uploads.wikipediarf4.uy";
 
-async function uploadToServer(file, usuario) {
+async function uploadToServer(file, usuario, titulo) {
   const formData = new FormData();
   formData.append('archivo', file);
   if(usuario && file.type && file.type.startsWith('video')) {
     formData.append('usuario', usuario);
+  }
+  if(titulo) {
+    formData.append('titulo', titulo);
   }
   let res;
   try {
@@ -2604,7 +2607,7 @@ window.publishClip = async () => {
   document.getElementById('caption-modal').style.display = 'none';
   try {
     const handle = (myProfile.handle || myProfile.name || currentUser.displayName || 'Clipuy').replace('@','');
-    const mediaUrl = await uploadToServer(_pendingUploadFile, '@' + handle);
+    const mediaUrl = await uploadToServer(_pendingUploadFile, '@' + handle, desc || 'Sonido original');
     const isVideo = _pendingUploadFile.type.startsWith('video');
     // Extract hashtags and mentions from description
     const tagMatches = desc.match(/(#[\w\u00C0-\u017E]+|@[\w\u00C0-\u017E]+)/g) || [];
