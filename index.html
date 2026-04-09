@@ -476,34 +476,50 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
   border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;
 }
 .profile-tab.active{color:#fff;border-bottom-color:var(--accent);}
-/* TikTok-style grid: ~5-6 columnas, miniaturas pequeñas */
+/* TikTok-style grid: pequeño, 6+ columnas */
 .profile-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-  gap:3px;
-  padding:3px;
+  grid-template-columns:repeat(4,1fr);
+  gap:2px;padding:0;
 }
+@media(min-width:700px){  .profile-grid{ grid-template-columns:repeat(5,1fr); } }
+@media(min-width:1000px){ .profile-grid{ grid-template-columns:repeat(6,1fr); } }
+@media(min-width:1300px){ .profile-grid{ grid-template-columns:repeat(8,1fr); } }
 .profile-clip{
   aspect-ratio:9/16;background:var(--surface2);position:relative;overflow:hidden;cursor:pointer;
-  border-radius:2px;
+  border-radius:0;
 }
-.profile-clip:hover .profile-clip-overlay{opacity:1;}
+/* Thumbnail imagen — visible por defecto */
+.profile-clip .pc-thumb{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  display:block;z-index:1;transition:opacity .2s;
+}
+/* Video — oculto hasta hover, CON sonido */
+.profile-clip .pc-video{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  display:block;z-index:2;opacity:0;transition:opacity .25s;
+}
+.profile-clip:hover .pc-video{ opacity:1; }
+.profile-clip:hover .pc-thumb{ opacity:0; }
 .profile-clip-overlay{
-  position:absolute;inset:0;background:rgba(0,0,0,.3);
+  position:absolute;inset:0;z-index:3;
   display:flex;align-items:center;justify-content:center;
-  opacity:0;transition:opacity .2s;
+  opacity:0;transition:opacity .2s;background:rgba(0,0,0,.18);
 }
-.profile-clip img,.profile-clip video{width:100%;height:100%;object-fit:cover;}
+.profile-clip:hover .profile-clip-overlay{ opacity:1; }
+.profile-clip img:not(.pc-thumb),.profile-clip video:not(.pc-video){
+  width:100%;height:100%;object-fit:cover;position:absolute;inset:0;
+}
 .profile-clip-views{
-  position:absolute;bottom:5px;left:6px;font-size:.72rem;font-weight:700;
-  display:flex;align-items:center;gap:3px;
+  position:absolute;bottom:5px;left:5px;font-size:.65rem;font-weight:700;
+  display:flex;align-items:center;gap:3px;z-index:4;
   text-shadow:0 1px 4px rgba(0,0,0,.9);color:#fff;
 }
 /* "Visto" badge */
 .profile-clip-watched{
-  position:absolute;top:5px;left:6px;
+  position:absolute;top:4px;left:5px;z-index:4;
   background:rgba(0,0,0,.55);border-radius:4px;
-  font-size:.6rem;color:rgba(255,255,255,.75);
+  font-size:.58rem;color:rgba(255,255,255,.75);
   padding:2px 5px;font-weight:600;letter-spacing:.3px;
 }
 
@@ -697,18 +713,35 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
   padding:14px 16px 8px;
 }
 .explore-grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:2px;padding:0;
 }
+@media(min-width:700px){  .explore-grid{ grid-template-columns:repeat(5,1fr); } }
+@media(min-width:1000px){ .explore-grid{ grid-template-columns:repeat(6,1fr); } }
+@media(min-width:1300px){ .explore-grid{ grid-template-columns:repeat(8,1fr); } }
 .explore-clip{
   aspect-ratio:9/16;background:var(--surface2);position:relative;
-  overflow:hidden;cursor:pointer;
+  overflow:hidden;cursor:pointer;border-radius:0;
 }
-.explore-clip video,.explore-clip img{width:100%;height:100%;object-fit:cover;}
+/* Thumbnail — visible por defecto */
+.explore-clip .ec-thumb{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  display:block;z-index:1;transition:opacity .2s;
+}
+/* Video — oculto hasta hover, CON sonido */
+.explore-clip .ec-video{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  display:block;z-index:2;opacity:0;transition:opacity .25s;
+}
+.explore-clip:hover .ec-video{ opacity:1; }
+.explore-clip:hover .ec-thumb{ opacity:0; }
 .explore-clip-overlay{
-  position:absolute;bottom:0;left:0;right:0;
-  padding:6px;background:linear-gradient(to top,rgba(0,0,0,.75),transparent);
-  font-size:.7rem;color:#fff;font-weight:700;
-  display:flex;align-items:center;gap:4px;
+  position:absolute;bottom:0;left:0;right:0;z-index:4;
+  padding:20px 6px 6px;
+  background:linear-gradient(to top,rgba(0,0,0,.8),transparent);
+  font-size:.65rem;color:#fff;font-weight:700;
+  display:flex;align-items:center;gap:4px;pointer-events:none;
 }
 .explore-loading{
   text-align:center;padding:40px;color:var(--text-muted);font-size:.9rem;
@@ -1570,6 +1603,31 @@ async function createUserProfile(user, name) {
 
 
 // Load all data-src elements via fetch with ngrok header
+// Captura el primer frame de un video como JPEG dataURL
+async function captureVideoThumbnail(blobUrl) {
+  return new Promise((resolve) => {
+    const vid = document.createElement('video');
+    vid.src = blobUrl;
+    vid.muted = true;
+    vid.playsInline = true;
+    vid.preload = 'metadata';
+    const done = (r) => { try{ vid.src=''; }catch(e){} resolve(r); };
+    const t = setTimeout(() => done(null), 7000);
+    vid.addEventListener('loadeddata', () => { vid.currentTime = 0.5; });
+    vid.addEventListener('seeked', () => {
+      clearTimeout(t);
+      try {
+        const c = document.createElement('canvas');
+        c.width = vid.videoWidth || 360;
+        c.height = vid.videoHeight || 640;
+        c.getContext('2d').drawImage(vid, 0, 0, c.width, c.height);
+        done(c.toDataURL('image/jpeg', 0.8));
+      } catch(e) { done(null); }
+    });
+    vid.addEventListener('error', () => { clearTimeout(t); done(null); });
+  });
+}
+
 async function loadNgrokMedia(root) {
   const els = (root || document).querySelectorAll('[data-src]');
   els.forEach(async (el) => {
@@ -1638,58 +1696,111 @@ async function loadExplore() {
   const content = document.getElementById('explore-content');
   content.innerHTML = '<div class="explore-loading">⏳ Cargando contenido popular...</div>';
   try {
-    // Trending tags section
     const trendingTags = ['#clipuy','#viral','#trending','#fyp','#humor','#musica','#baile','#arte'];
-    let html = `<div class="explore-section-title">🔥 Tendencias</div>`;
-    html += `<div class="explore-trending-tags">${trendingTags.map(t=>`<div class="explore-tag" onclick="openSearch();setTimeout(()=>{const i=document.getElementById('search-inp');if(i){i.value='${t}';i.dispatchEvent(new Event('input'));}},200)">${t}</div>`).join('')}</div>`;
+    let headerHtml = `<div class="explore-section-title">🔥 Tendencias</div>`;
+    headerHtml += `<div class="explore-trending-tags">${trendingTags.map(t=>`<div class="explore-tag" onclick="openSearch();setTimeout(()=>{const i=document.getElementById('search-inp');if(i){i.value='${t}';i.dispatchEvent(new Event('input'));}},200)">${t}</div>`).join('')}</div>`;
+    headerHtml += `<div class="explore-section-title">🎬 Videos más vistos</div>`;
 
-    // Most liked clips
     const q = query(collection(db,'clips'), orderBy('likesCount','desc'), limit(30));
     const snap = await getDocs(q);
 
     if(snap.empty) {
-      html += `<div class="explore-loading">No hay clips todavía. ¡Sé el primero en subir! 🎬</div>`;
-      content.innerHTML = html;
+      content.innerHTML = headerHtml + `<div class="explore-loading">No hay clips todavía 🎬</div>`;
       return;
     }
 
-    html += `<div class="explore-section-title">🎬 Videos más vistos</div>`;
-    html += `<div class="explore-grid">`;
     const allClips = snap.docs.map(d => ({id:d.id,...d.data()}));
     window._exploreClips = allClips;
+
+    content.innerHTML = headerHtml;
+    const grid = document.createElement('div');
+    grid.className = 'explore-grid';
+
     allClips.forEach((c, ci) => {
       const isVideo = c.mediaType === 'video';
-      html += `<div class="explore-clip" onclick="openClipViewer(window._exploreClips,${ci})">
-        ${isVideo
-          ? `<video src="${escHtml(c.mediaUrl||'')}" preload="none" style="width:100%;height:100%;object-fit:cover"></video>`
-          : `<img src="${escHtml(c.mediaUrl||'')}" style="width:100%;height:100%;object-fit:cover"/>`}
-        <div class="explore-clip-overlay">❤️ ${fmtNum(c.likesCount||0)}</div>
-      </div>`;
-    });
-    html += `</div>`;
+      const clipDiv = document.createElement('div');
+      clipDiv.className = 'explore-clip';
 
-    // Top users
+      // Overlay de likes
+      const overlay = document.createElement('div');
+      overlay.className = 'explore-clip-overlay';
+      overlay.innerHTML = `♥ ${fmtNum(c.likesCount||0)}`;
+      clipDiv.appendChild(overlay);
+
+      clipDiv.addEventListener('click', () => openClipViewer(window._exploreClips, ci, clipDiv));
+      grid.appendChild(clipDiv);
+
+      // Cargar media de forma asincrónica
+      (async () => {
+        if(!isVideo) {
+          const img = document.createElement('img');
+          img.className = 'ec-thumb';
+          clipDiv.insertBefore(img, overlay);
+          try {
+            const res = await fetch(c.mediaUrl||'', { headers:{'ngrok-skip-browser-warning':'true'} });
+            img.src = URL.createObjectURL(await res.blob());
+          } catch(e) { img.src = c.mediaUrl||''; }
+          return;
+        }
+
+        // Fetch blob del video
+        let blobUrl = c.mediaUrl || '';
+        try {
+          const res = await fetch(c.mediaUrl||'', { headers:{'ngrok-skip-browser-warning':'true'} });
+          blobUrl = URL.createObjectURL(await res.blob());
+        } catch(e) {}
+
+        clipDiv.dataset.videoUrl = blobUrl;
+
+        // Thumbnail del primer frame
+        const thumb = await captureVideoThumbnail(blobUrl);
+        const thumbImg = document.createElement('img');
+        thumbImg.className = 'ec-thumb';
+        thumbImg.src = thumb || '';
+        thumbImg.style.background = '#111';
+        clipDiv.insertBefore(thumbImg, overlay);
+
+        // Video con SONIDO para hover
+        const vid = document.createElement('video');
+        vid.className = 'ec-video';
+        vid.src = blobUrl;
+        vid.muted = false;   // ← CON SONIDO
+        vid.loop = true;
+        vid.playsInline = true;
+        vid.preload = 'none';
+        vid.volume = 0.8;
+        clipDiv.insertBefore(vid, overlay);
+
+        clipDiv.addEventListener('mouseenter', () => {
+          vid.currentTime = 0;
+          vid.play().catch(()=>{});
+        });
+        clipDiv.addEventListener('mouseleave', () => {
+          vid.pause();
+          vid.currentTime = 0;
+        });
+      })();
+    });
+
+    content.appendChild(grid);
+
+    // Usuarios populares
     const uSnap = await getDocs(query(collection(db,'users'), orderBy('followers','desc'), limit(6)));
     if(!uSnap.empty) {
-      html += `<div class="explore-section-title">⭐ Usuarios populares</div>`;
-      html += `<div style="display:flex;flex-direction:column;gap:0;padding:0 0 8px">`;
-      uSnap.docs.forEach(d => {
-        const u = d.data();
-        if(!u.uid) return;
-        html += `<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--border)" onclick="openUserProfile('${u.uid}')">
-          <img src="${escHtml(u.avatar||avatarFallback(u.uid))}" style="width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid var(--border)" onerror="this.src='${avatarFallback(u.uid)}'"/>
-          <div style="flex:1;min-width:0">
-            <div style="font-weight:600;font-size:.9rem">${escHtml(u.name||'Usuario')}</div>
-            <div style="font-size:.78rem;color:var(--text-muted)">${escHtml(u.handle||'')} · ${fmtNum(u.followers||0)} seguidores</div>
-          </div>
+      const usersDiv = document.createElement('div');
+      usersDiv.innerHTML = `<div class="explore-section-title">⭐ Usuarios populares</div>
+        <div style="display:flex;flex-direction:column;gap:0;padding:0 0 8px">
+          ${uSnap.docs.map(d=>{const u=d.data();if(!u.uid)return'';return`<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--border)" onclick="openUserProfile('${u.uid}')">
+            <img src="${escHtml(u.avatar||avatarFallback(u.uid))}" style="width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid var(--border)" onerror="this.src='${avatarFallback(u.uid)}'"/>
+            <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:.9rem">${escHtml(u.name||'Usuario')}</div>
+            <div style="font-size:.78rem;color:var(--text-muted)">${escHtml(u.handle||'')} · ${fmtNum(u.followers||0)} seguidores</div></div>
+          </div>`;}).join('')}
         </div>`;
-      });
-      html += `</div>`;
+      content.appendChild(usersDiv);
     }
 
-    content.innerHTML = html;
   } catch(e) {
-    content.innerHTML = `<div class="explore-loading">❌ Error al cargar: ${e.message}</div>`;
+    content.innerHTML = `<div class="explore-loading">❌ Error: ${e.message}</div>`;
   }
 }
 
@@ -2227,44 +2338,102 @@ async function loadProfileClips() {
     const q = query(collection(db,'clips'), where('uid','==',currentUser.uid), orderBy('ts','desc'));
     const snap = await getDocs(q);
     if(snap.empty) {
-      grid.innerHTML = `<div style="grid-column:span 5;text-align:center;padding:40px;color:var(--text-muted)">Subí tu primer clip 🎬</div>`;
+      grid.innerHTML = `<div style="grid-column:span 6;text-align:center;padding:40px;color:var(--text-muted)">Subí tu primer clip 🎬</div>`;
       return;
     }
-    // Load watched set from localStorage
     const watchedSet = JSON.parse(localStorage.getItem('watchedClips')||'{}');
-    const clipsData = [];
-    snap.forEach(d => {
-      clipsData.push({id:d.id,...d.data()});
-    });
+    const clipsData = snap.docs.map(d => ({id:d.id,...d.data()}));
+
     clipsData.forEach((data, idx) => {
       const div = document.createElement('div');
       div.className = 'profile-clip';
-      div.onclick = () => openClipViewer(clipsData, idx);
       const watched = watchedSet[data.id];
-      div.innerHTML = `
-        ${data.mediaType==='imagen'||data.mediaType==='image'
-          ? `<img data-src="${escHtml(data.mediaUrl||'')}" loading="lazy" style="width:100%;height:100%;object-fit:cover"/>`
-          : `<video data-src="${escHtml(data.mediaUrl||'')}" preload="none" style="width:100%;height:100%;object-fit:cover"></video>`
-        }
-        ${watched ? `<div class="profile-clip-watched">Visto</div>` : ''}
-        <div class="profile-clip-views">▶ ${fmtNum(data.viewsCount||data.likesCount||0)}</div>
-        <div class="profile-clip-overlay"><svg width="28" height="28" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-        <button onclick="event.stopPropagation();deleteProfileClip('${data.id}',this)" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.55);border:none;border-radius:50%;width:26px;height:26px;font-size:.75rem;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;z-index:5;">🗑️</button>
-      `;
+      const isVideo = data.mediaType !== 'imagen' && data.mediaType !== 'image';
+
+      // Elementos fijos (badges, overlay botón eliminar)
+      if(watched) {
+        const wb = document.createElement('div');
+        wb.className = 'profile-clip-watched';
+        wb.textContent = 'Visto';
+        div.appendChild(wb);
+      }
+      const views = document.createElement('div');
+      views.className = 'profile-clip-views';
+      views.innerHTML = `▶ ${fmtNum(data.viewsCount||data.likesCount||0)}`;
+      div.appendChild(views);
+
+      const overlay = document.createElement('div');
+      overlay.className = 'profile-clip-overlay';
+      overlay.innerHTML = `<svg width="22" height="22" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
+      div.appendChild(overlay);
+
+      const delBtn = document.createElement('button');
+      delBtn.style.cssText = 'position:absolute;top:4px;right:4px;background:rgba(0,0,0,.55);border:none;border-radius:50%;width:24px;height:24px;font-size:.65rem;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;z-index:5;';
+      delBtn.textContent = '🗑️';
+      delBtn.onclick = (e) => { e.stopPropagation(); deleteProfileClip(data.id, delBtn); };
+      div.appendChild(delBtn);
+
+      div.addEventListener('click', () => openClipViewer(clipsData, idx, div));
       grid.appendChild(div);
+
+      // Carga asincrónica de media
+      (async () => {
+        if(!isVideo) {
+          const img = document.createElement('img');
+          img.className = 'pc-thumb';
+          div.insertBefore(img, div.firstChild);
+          try {
+            const res = await fetch(data.mediaUrl||'', { headers:{'ngrok-skip-browser-warning':'true'} });
+            img.src = URL.createObjectURL(await res.blob());
+          } catch(e) { img.src = data.mediaUrl||''; }
+          return;
+        }
+
+        // Fetch blob
+        let blobUrl = data.mediaUrl||'';
+        try {
+          const res = await fetch(data.mediaUrl||'', { headers:{'ngrok-skip-browser-warning':'true'} });
+          blobUrl = URL.createObjectURL(await res.blob());
+        } catch(e) {}
+        div.dataset.videoUrl = blobUrl;
+
+        // Thumbnail del primer frame
+        const thumb = await captureVideoThumbnail(blobUrl);
+        const thumbImg = document.createElement('img');
+        thumbImg.className = 'pc-thumb';
+        thumbImg.src = thumb || '';
+        thumbImg.style.background = '#111';
+        div.insertBefore(thumbImg, div.firstChild);
+
+        // Video con SONIDO para hover
+        const vid = document.createElement('video');
+        vid.className = 'pc-video';
+        vid.src = blobUrl;
+        vid.muted = false;   // ← CON SONIDO
+        vid.loop = true;
+        vid.playsInline = true;
+        vid.preload = 'none';
+        vid.volume = 0.8;
+        div.insertBefore(vid, div.firstChild);
+
+        div.addEventListener('mouseenter', () => { vid.currentTime=0; vid.play().catch(()=>{}); });
+        div.addEventListener('mouseleave', () => { vid.pause(); vid.currentTime=0; });
+      })();
     });
-    loadNgrokMedia(grid);
-  } catch(e) {}
+
+  } catch(e) { console.error(e); }
 }
 
 // ── Clip Viewer ──
 let _clipViewerClips = [];
 let _clipViewerIdx = 0;
 let _clipViewerVideo = null;
+let _clipViewerSourceDiv = null;
 
-window.openClipViewer = (clips, idx) => {
+window.openClipViewer = (clips, idx, divEl) => {
   _clipViewerClips = clips;
   _clipViewerIdx = idx;
+  _clipViewerSourceDiv = divEl || null;
   document.getElementById('clip-viewer-modal').classList.add('open');
   renderClipViewer();
 };
@@ -2286,7 +2455,8 @@ function renderClipViewer() {
 
   if(isVideo) {
     const v = document.createElement('video');
-    v.src = clip.mediaUrl || '';
+    const blobUrl = _clipViewerSourceDiv && _clipViewerSourceDiv.dataset.videoUrl;
+    v.src = blobUrl || clip.mediaUrl || '';
     v.style.cssText = 'width:100%;height:100%;object-fit:contain;';
     v.autoplay = true;
     v.controls = true;
