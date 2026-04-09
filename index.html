@@ -902,7 +902,7 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
 .clip-watched-badge.show{opacity:1;}
 #chat-screen{background:#000;flex-direction:row!important;}
 .chat-panel-left{
-  width:380px;flex-shrink:0;
+  width:280px;flex-shrink:0;
   border-right:1px solid var(--border);
   display:flex;flex-direction:column;height:100%;
 }
@@ -967,7 +967,8 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
 .pc-status{font-size:.78rem;color:var(--text-muted);}
 .pc-messages{flex:1;overflow-y:auto;padding:12px 20px;display:flex;flex-direction:column;gap:8px;}
 .pc-msg{display:flex;gap:8px;align-items:flex-end;max-width:75%;}
-.pc-msg.own{align-self:flex-end;flex-direction:row-reverse;}
+.pc-msg.own{align-self:flex-end;flex-direction:row-reverse;margin-left:auto;}
+.pc-msg:not(.own){align-self:flex-start;margin-right:auto;}
 .pc-msg-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;}
 .pc-bubble{
   background:var(--surface2);border:1px solid var(--border);
@@ -1004,6 +1005,8 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
 .pc-send:hover{opacity:.85;color:#fff;}
 .pc-attach{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;padding:4px 6px;transition:color .15s;}
 .pc-attach:hover{color:#fff;}
+.pc-audio-btn.recording{color:var(--accent);animation:pulse-audio .8s ease-in-out infinite;}
+@keyframes pulse-audio{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.6;transform:scale(1.15);}}
 
 /* ── UPLOAD VIDEO MODAL ── */
 #upload-modal{
@@ -1741,6 +1744,9 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
           <input type="file" id="pc-file-inp" accept="image/*,video/*" style="display:none" onchange="sendPcMedia(this)"/>
           <button class="pc-attach" onclick="document.getElementById('pc-file-inp').click()">
             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </button>
+          <button class="pc-attach pc-audio-btn" id="pc-audio-btn" onclick="toggleAudioRecord()" title="Grabar audio">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
           </button>
           <input class="pc-inp" id="pc-inp" placeholder="Enviar un mensaje..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPcMsg();}"/>
           <button class="pc-attach" onclick="toggleEmojiPicker()" style="font-size:1.3rem;padding:4px 8px">😊</button>
@@ -4463,6 +4469,7 @@ function renderPcMessages(msgs) {
           ${replyHtml}
           ${m.text ? escHtml(m.text) : ''}
           ${m.mediaUrl ? `<img class="pc-bubble-img" data-src="${escHtml(m.mediaUrl)}" onclick="window.open('${escHtml(m.mediaUrl)}','_blank')"/>` : ''}
+          ${m.audioUrl ? `<div style="display:flex;align-items:center;gap:8px;min-width:180px;padding:2px 0"><button onclick="toggleAudioPlayback(this,'${escHtml(m.audioUrl)}')" style="background:var(--accent);border:none;border-radius:50%;width:32px;height:32px;color:#fff;cursor:pointer;font-size:.9rem;flex-shrink:0;display:flex;align-items:center;justify-content:center;">▶</button><div style="flex:1;height:3px;background:rgba(255,255,255,.2);border-radius:99px;overflow:hidden;"><div class="audio-prog" style="height:100%;width:0%;background:#fff;border-radius:99px;transition:width .2s;"></div></div><span style="font-size:.72rem;color:var(--text-muted);">🎤</span></div>` : ''}
         </div>
         ${rxnHtml ? `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:3px;">${rxnHtml}</div>` : ''}
         <div class="pc-time">${timeAgo(m.ts)}</div>
@@ -4566,6 +4573,118 @@ window.sendPcMedia = async (inp) => {
     });
   } catch(e) { showToast('❌ Error: '+e.message); }
   inp.value = '';
+};
+
+// ══════════════════════════════════════════════
+//  AUDIO PLAYBACK IN CHAT
+// ══════════════════════════════════════════════
+window.toggleAudioPlayback = (btn, url) => {
+  const bubble = btn.closest('.pc-bubble');
+  let audio = bubble ? bubble.querySelector('audio') : null;
+  if(!audio) {
+    audio = document.createElement('audio');
+    audio.style.display = 'none';
+    audio.preload = 'auto';
+    audio.src = url;
+    btn.parentElement.appendChild(audio);
+  }
+  if(!audio.src || audio.src === window.location.href) audio.src = url;
+  const prog = btn.parentElement.querySelector('.audio-prog');
+  if(audio.paused) {
+    document.querySelectorAll('.chat-audio-playing').forEach(a => {
+      a.pause(); a.classList.remove('chat-audio-playing');
+      const b = a.parentElement?.querySelector('button');
+      if(b) b.textContent = '▶';
+    });
+    audio.play().catch(()=>{});
+    audio.classList.add('chat-audio-playing');
+    btn.textContent = '⏸';
+    audio.ontimeupdate = () => {
+      if(audio.duration && prog) prog.style.width = (audio.currentTime/audio.duration*100) + '%';
+    };
+    audio.onended = () => {
+      btn.textContent = '▶';
+      if(prog) prog.style.width = '0%';
+      audio.classList.remove('chat-audio-playing');
+    };
+  } else {
+    audio.pause();
+    btn.textContent = '▶';
+    audio.classList.remove('chat-audio-playing');
+  }
+};
+
+// ══════════════════════════════════════════════
+//  AUDIO RECORDING IN CHAT
+// ══════════════════════════════════════════════
+let _audioRecording = false;
+let _audioRecorder = null;
+let _audioChunks = [];
+let _audioStream = null;
+let _audioTimerInterval = null;
+let _audioSeconds = 0;
+
+window.toggleAudioRecord = async () => {
+  if(!currentUser) { showToast('⚠️ Iniciá sesión'); return; }
+  if(!window._currentChatId) { showToast('⏳ Abrí un chat primero'); return; }
+  if(_audioRecording) {
+    // Stop recording
+    clearInterval(_audioTimerInterval);
+    _audioRecording = false;
+    if(_audioRecorder && _audioRecorder.state !== 'inactive') _audioRecorder.stop();
+  } else {
+    // Start recording
+    try {
+      _audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch(e) {
+      showToast('❌ No se pudo acceder al micrófono');
+      return;
+    }
+    _audioChunks = [];
+    _audioSeconds = 0;
+    const mimeType = ['audio/webm;codecs=opus','audio/webm','audio/ogg'].find(t => MediaRecorder.isTypeSupported(t)) || '';
+    _audioRecorder = new MediaRecorder(_audioStream, mimeType ? { mimeType } : {});
+    _audioRecorder.ondataavailable = e => { if(e.data.size > 0) _audioChunks.push(e.data); };
+    _audioRecorder.onstop = async () => {
+      if(_audioStream) { _audioStream.getTracks().forEach(t => t.stop()); _audioStream = null; }
+      const blob = new Blob(_audioChunks, { type: _audioRecorder.mimeType || 'audio/webm' });
+      const ext = blob.type.includes('ogg') ? 'ogg' : 'webm';
+      const file = new File([blob], `audio_${Date.now()}.${ext}`, { type: blob.type });
+      const btn = document.getElementById('pc-audio-btn');
+      if(btn) { btn.classList.remove('recording'); btn.title = 'Grabar audio'; }
+      document.getElementById('pc-inp').placeholder = 'Enviar un mensaje...';
+      showToast('📤 Enviando audio...');
+      try {
+        const audioUrl = await uploadToServer(file);
+        await addDoc(collection(db,'chats',window._currentChatId,'messages'), {
+          uid: currentUser.uid,
+          name: myProfile.name || 'Usuario',
+          avatar: myProfile.avatar || avatarFallback(currentUser.uid),
+          text: '', audioUrl, ts: serverTimestamp(), read: false
+        });
+        await updateDoc(doc(db,'chats',window._currentChatId), {
+          lastMsg: '🎤 Audio', lastTs: serverTimestamp(),
+          [`unread.${_currentChatUid}`]: increment(1)
+        });
+        showToast('✅ Audio enviado');
+      } catch(e) { showToast('❌ Error al enviar audio: ' + e.message); }
+    };
+    _audioRecorder.start(200);
+    _audioRecording = true;
+    const btn = document.getElementById('pc-audio-btn');
+    if(btn) { btn.classList.add('recording'); btn.title = 'Detener grabación'; }
+    document.getElementById('pc-inp').placeholder = '🔴 Grabando...';
+    _audioTimerInterval = setInterval(() => {
+      _audioSeconds++;
+      if(_audioSeconds >= 120) {
+        window.toggleAudioRecord();
+      } else {
+        const m = Math.floor(_audioSeconds/60);
+        const s = _audioSeconds % 60;
+        document.getElementById('pc-inp').placeholder = `🔴 Grabando ${m}:${String(s).padStart(2,'0')}`;
+      }
+    }, 1000);
+  }
 };
 
 // ══════════════════════════════════════════════
