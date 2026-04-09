@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     
     const fields = data.fields || {};
     const title = fields.description?.stringValue || 'Clipuy 🎬';
-    const image = fields.mediaUrl?.stringValue || 'https://wikipediarf4.github.io/1.png';
+   const image = fields.mediaUrl?.stringValue || 'https://raw.githubusercontent.com/wikipediarf4/wikipediarf4.github.io/main/clip%20uy.png';
     const videoUrl = fields.mediaUrl?.stringValue || '';
     const siteUrl = `https://wikipediarf4.github.io/?clip=${id}`;
 
