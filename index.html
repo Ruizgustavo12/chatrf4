@@ -890,16 +890,33 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
   background:linear-gradient(90deg,var(--surface2) 25%,rgba(255,255,255,.06) 50%,var(--surface2) 75%);
   background-size:200% 100%;
   animation:shimmer 1.4s infinite;
+  transition:opacity .3s;
 }
+.search-clip-cell.loaded::before{ opacity:0; animation:none; }
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .sc-thumb{
   position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-  display:block;z-index:1;transition:opacity .2s;
+  display:block;z-index:1;opacity:0;transition:opacity .3s;
 }
+.sc-thumb.ready{ opacity:1; }
 .sc-video{
   position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
   display:block;z-index:2;opacity:0;transition:opacity .25s;
 }
+/* Meme text overlay on clips */
+.clip-meme-text{
+  position:absolute;left:50%;transform:translateX(-50%);
+  z-index:5;pointer-events:none;
+  font-family:'Space Grotesk',sans-serif;font-weight:900;
+  color:#fff;text-align:center;
+  text-shadow:2px 2px 0 #000,-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,0 3px 6px rgba(0,0,0,.8);
+  font-size:.7rem;letter-spacing:.3px;line-height:1.3;
+  padding:2px 4px;max-width:95%;word-break:break-word;
+  white-space:pre-line;
+}
+.clip-meme-text.pos-top{ top:8%; }
+.clip-meme-text.pos-bottom{ bottom:18%; }
+.clip-meme-text.pos-mid{ top:50%;transform:translateX(-50%) translateY(-50%); }
 .search-clip-overlay{
   position:absolute;bottom:0;left:0;right:0;z-index:4;
   padding:18px 6px 5px;
@@ -1704,6 +1721,26 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
       <option value="followers">👥 Solo seguidores</option>
     </select>
 
+    <!-- MEME TEXT -->
+    <div style="margin-top:14px;margin-bottom:14px;">
+      <div class="ep-label" style="display:flex;align-items:center;gap:6px;">
+        ✍️ Texto tipo meme <span style="font-size:.68rem;color:var(--text-dim);font-weight:400;">(opcional — como TikTok)</span>
+      </div>
+      <textarea class="ep-inp" id="caption-meme-text" rows="2" placeholder="Ej: cuando el lunes llega sin avisar 💀" style="margin-bottom:8px;"></textarea>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <span style="font-size:.75rem;color:var(--text-muted)">Posición:</span>
+        <label style="display:flex;align-items:center;gap:4px;font-size:.8rem;cursor:pointer;">
+          <input type="radio" name="meme-pos" value="top" style="accent-color:var(--accent2)"/> Arriba
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:.8rem;cursor:pointer;">
+          <input type="radio" name="meme-pos" value="mid" style="accent-color:var(--accent2)"/> Centro
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:.8rem;cursor:pointer;">
+          <input type="radio" name="meme-pos" value="bottom" checked style="accent-color:var(--accent2)"/> Abajo
+        </label>
+      </div>
+    </div>
+
     <div style="margin-top:14px;">
       <div class="ep-label" style="display:flex;align-items:center;gap:6px;">
         🎵 Música <span style="font-size:.68rem;color:var(--text-dim);font-weight:400;">(opcional — Deezer / iTunes)</span>
@@ -2213,6 +2250,7 @@ function buildVideoSlide(id, data) {
       </div>
       <button id="mute-${id}" onclick="toggleMute('${id}')" style="position:absolute;top:60px;right:12px;background:rgba(0,0,0,.5);border:none;border-radius:50%;width:38px;height:38px;font-size:1.1rem;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;z-index:10;">🔇</button>
       ${(currentUser && (currentUser.email==='synxyes@gmail.com' || currentUser.uid===data.uid)) ? `<button onclick="deleteMyClip('${id}',this)" style="position:absolute;top:106px;right:12px;background:rgba(254,44,85,.7);border:none;border-radius:50%;width:38px;height:38px;font-size:1rem;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;z-index:10;">🗑️</button>` : ''}
+      ${data.memeText ? `<div class="clip-meme-text pos-${data.memePos||'bottom'}" style="font-size:clamp(.95rem,3vw,1.4rem);">${escHtml(data.memeText)}</div>` : ''}
     </div>
     <div class="video-actions">
       <div class="v-action ${isLiked?'liked':''}" id="like-${id}" onclick="toggleLike('${id}',this)">
@@ -2493,11 +2531,18 @@ window.closeCaptionModal = () => {
   document.getElementById('caption-modal').style.display = 'none';
   _pendingUploadFile = null;
   clipClearMusic();
+  const memeInp = document.getElementById('caption-meme-text');
+  if(memeInp) memeInp.value = '';
+  const memeBottom = document.querySelector('input[name="meme-pos"][value="bottom"]');
+  if(memeBottom) memeBottom.checked = true;
 };
 
 window.publishClip = async () => {
   if(!currentUser || !_pendingUploadFile) return;
   const desc = document.getElementById('caption-text').value.trim();
+  const memeText = document.getElementById('caption-meme-text')?.value.trim() || '';
+  const memePosEl = document.querySelector('input[name="meme-pos"]:checked');
+  const memePos = memePosEl ? memePosEl.value : 'bottom';
   showToast('📤 Subiendo clip...');
   document.getElementById('caption-modal').style.display = 'none';
   try {
@@ -2520,6 +2565,7 @@ window.publishClip = async () => {
       commentsCount: 0,
       ts: serverTimestamp()
     };
+    if(memeText) { clipData.memeText = memeText; clipData.memePos = memePos; }
     if(_clipSelectedMusic) {
       clipData.musicName = _clipSelectedMusic.title;
       clipData.musicArtist = _clipSelectedMusic.artist;
@@ -2808,6 +2854,14 @@ async function loadProfileClips() {
 
         div.addEventListener('mouseenter', () => { vid.currentTime=0; vid.play().catch(()=>{}); });
         div.addEventListener('mouseleave', () => { vid.pause(); vid.currentTime=0; });
+
+        // Meme text
+        if(data.memeText) {
+          const meme = document.createElement('div');
+          meme.className = `clip-meme-text pos-${data.memePos||'bottom'}`;
+          meme.textContent = data.memeText;
+          div.appendChild(meme);
+        }
       })();
     });
 
@@ -3509,13 +3563,18 @@ window.doSearch = async (val) => {
         // Load media
         (async () => {
           const url = c.mediaUrl || '';
+          const markLoaded = (src) => {
+            thumb.src = src;
+            thumb.onload = () => { thumb.classList.add('ready'); cell.classList.add('loaded'); };
+            thumb.onerror = () => { cell.classList.add('loaded'); };
+          };
           if(!isVideo) {
             // Images: load directly, no blob needed
             try {
               const res = await fetch(url, { headers:{'ngrok-skip-browser-warning':'true'} });
               const blob = await res.blob();
-              thumb.src = URL.createObjectURL(blob);
-            } catch(e) { thumb.src = url; }
+              markLoaded(URL.createObjectURL(blob));
+            } catch(e) { markLoaded(url); }
           } else {
             // Videos: fetch blob, set on video, then capture first frame as thumb
             let blobUrl = url;
@@ -3541,16 +3600,31 @@ window.doSearch = async (val) => {
                   canvas.width = tmpVid.videoWidth || 180;
                   canvas.height = tmpVid.videoHeight || 320;
                   canvas.getContext('2d').drawImage(tmpVid, 0, 0, canvas.width, canvas.height);
-                  thumb.src = canvas.toDataURL('image/jpeg', 0.7);
-                } catch(e) { thumb.src = blobUrl; }
+                  markLoaded(canvas.toDataURL('image/jpeg', 0.7));
+                } catch(e) { markLoaded(blobUrl); }
                 tmpVid.src = '';
                 resolve();
               }, { once: true });
-              tmpVid.addEventListener('error', () => { thumb.src = blobUrl; resolve(); }, { once: true });
+              tmpVid.addEventListener('error', () => { markLoaded(blobUrl); resolve(); }, { once: true });
               // Timeout fallback
-              setTimeout(() => { if(!thumb.src) thumb.src = blobUrl; resolve(); }, 4000);
+              setTimeout(() => { if(!thumb.src) markLoaded(blobUrl); resolve(); }, 4000);
               tmpVid.load();
             });
+
+            // Add meme text overlay if clip has memeText
+            if(c.memeText) {
+              const meme = document.createElement('div');
+              meme.className = `clip-meme-text pos-${c.memePos||'bottom'}`;
+              meme.textContent = c.memeText;
+              cell.appendChild(meme);
+            }
+          }
+          // Add meme text for images too
+          if(!isVideo && c.memeText) {
+            const meme = document.createElement('div');
+            meme.className = `clip-meme-text pos-${c.memePos||'bottom'}`;
+            meme.textContent = c.memeText;
+            cell.appendChild(meme);
           }
         })();
       });
