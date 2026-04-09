@@ -1743,12 +1743,53 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
 
     <div style="margin-top:14px;">
       <div class="ep-label" style="display:flex;align-items:center;gap:6px;">
-        🎵 Música <span style="font-size:.68rem;color:var(--text-dim);font-weight:400;">(opcional — Deezer / iTunes)</span>
+        🎵 Música
       </div>
-      <div class="music-search-wrap">
-        <input id="clipMusicSearch" placeholder="🔍 Buscá artista o canción..." oninput="clipMusicDebounce()"/>
+      <!-- Pestañas de fuente de música -->
+      <div style="display:flex;gap:0;margin-bottom:10px;border-bottom:1px solid var(--border);">
+        <button id="music-tab-deezer" onclick="switchMusicTab('deezer')"
+          style="flex:1;padding:8px;background:none;border:none;color:#fff;font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;border-bottom:2px solid var(--accent);margin-bottom:-1px;">
+          🌐 Deezer / iTunes
+        </button>
+        <button id="music-tab-clipuy" onclick="switchMusicTab('clipuy')"
+          style="flex:1;padding:8px;background:none;border:none;color:var(--text-muted);font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;">
+          🎤 Audios Clipuy
+        </button>
       </div>
-      <div class="music-results" id="clipMusicResults"></div>
+
+      <!-- Panel Deezer/iTunes -->
+      <div id="music-panel-deezer">
+        <div class="music-search-wrap">
+          <input id="clipMusicSearch" placeholder="🔍 Buscá artista o canción..." oninput="clipMusicDebounce()"/>
+        </div>
+        <div class="music-results" id="clipMusicResults"></div>
+      </div>
+
+      <!-- Panel Audios Clipuy -->
+      <div id="music-panel-clipuy" style="display:none;">
+        <div class="music-search-wrap">
+          <input id="clipuyAudioSearch" placeholder="🔍 Buscá por título o usuario..." oninput="clipuyAudioDebounce()"/>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          <button onclick="loadClipuyAudios('reciente')" id="clipuy-ord-reciente"
+            style="flex:1;padding:5px;background:var(--accent);border:none;border-radius:6px;color:#fff;font-family:'Space Grotesk',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;">
+            🕒 Reciente
+          </button>
+          <button onclick="loadClipuyAudios('likes')" id="clipuy-ord-likes"
+            style="flex:1;padding:5px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text-muted);font-family:'Space Grotesk',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;">
+            ❤️ Populares
+          </button>
+          <button onclick="loadClipuyAudios('usos')" id="clipuy-ord-usos"
+            style="flex:1;padding:5px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text-muted);font-family:'Space Grotesk',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;">
+            🔥 Más usados
+          </button>
+        </div>
+        <div id="clipuyAudioList" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;">
+          <div style="text-align:center;padding:16px;color:var(--text-muted);font-size:.82rem;">Tocá "Reciente" para cargar audios 🎵</div>
+        </div>
+      </div>
+
+      <!-- Audio seleccionado (Deezer o Clipuy) -->
       <div class="music-selected" id="clipMusicSelected">
         <img id="clipMusicCover" src="" alt=""/>
         <div class="music-selected-info">
@@ -2544,10 +2585,13 @@ window.closeCaptionModal = () => {
   document.getElementById('caption-modal').style.display = 'none';
   _pendingUploadFile = null;
   clipClearMusic();
+  _clipuySelectedAudio = null;
   const memeInp = document.getElementById('caption-meme-text');
   if(memeInp) memeInp.value = '';
   const memeBottom = document.querySelector('input[name="meme-pos"][value="bottom"]');
   if(memeBottom) memeBottom.checked = true;
+  // Reset pestaña de música a Deezer
+  switchMusicTab('deezer');
 };
 
 window.publishClip = async () => {
@@ -2584,6 +2628,13 @@ window.publishClip = async () => {
       clipData.musicArtist = _clipSelectedMusic.artist;
       clipData.musicCover = _clipSelectedMusic.cover;
       clipData.musicPreview = _clipSelectedMusic.preview;
+    }
+    if(_clipuySelectedAudio) {
+      clipData.musicName = _clipuySelectedAudio.titulo;
+      clipData.musicArtist = '@' + _clipuySelectedAudio.usuario;
+      clipData.musicCover = '';
+      clipData.musicPreview = UPLOAD_SERVER + '/audio/stream/' + _clipuySelectedAudio.id;
+      clipData.clipuyAudioId = _clipuySelectedAudio.id;
     }
     await addDoc(collection(db,'clips'), clipData);
     showToast('✅ ¡Clip publicado!');
@@ -4013,12 +4064,141 @@ window.clipSelectMusic = (track) => {
 window.clipClearMusic = () => {
   _stopClipPreview();
   _clipSelectedMusic = null;
+  _clipuySelectedAudio = null;
   document.getElementById('clipMusicSelected').classList.remove('show');
   const audio = document.getElementById('clipMusicPreviewAudio');
   if(audio) { audio.pause(); audio.src = ''; }
-  document.getElementById('clipMusicSearch').value = '';
-  document.getElementById('clipMusicResults').style.display = 'none';
+  const s = document.getElementById('clipMusicSearch');
+  if(s) { s.value = ''; }
+  const r = document.getElementById('clipMusicResults');
+  if(r) r.style.display = 'none';
 };
+
+// ══════════════════════════════════════════════
+//  AUDIOS CLIPUY — pestaña de biblioteca propia
+// ══════════════════════════════════════════════
+let _clipuySelectedAudio = null;
+let _clipuyAudioDebounceTimer = null;
+let _clipuyCurrentOrder = 'reciente';
+let _clipuyPreviewAudio = null;
+
+window.switchMusicTab = (tab) => {
+  const isDeezer = tab === 'deezer';
+  document.getElementById('music-panel-deezer').style.display = isDeezer ? 'block' : 'none';
+  document.getElementById('music-panel-clipuy').style.display = isDeezer ? 'none' : 'block';
+  // Estilos de las pestañas
+  const tabDeezer = document.getElementById('music-tab-deezer');
+  const tabClipuy = document.getElementById('music-tab-clipuy');
+  tabDeezer.style.borderBottomColor = isDeezer ? 'var(--accent)' : 'transparent';
+  tabDeezer.style.color = isDeezer ? '#fff' : 'var(--text-muted)';
+  tabClipuy.style.borderBottomColor = isDeezer ? 'transparent' : 'var(--accent)';
+  tabClipuy.style.color = isDeezer ? 'var(--text-muted)' : '#fff';
+};
+
+window.clipuyAudioDebounce = () => {
+  clearTimeout(_clipuyAudioDebounceTimer);
+  _clipuyAudioDebounceTimer = setTimeout(() => {
+    const q = document.getElementById('clipuyAudioSearch')?.value.trim() || '';
+    loadClipuyAudios(_clipuyCurrentOrder, q);
+  }, 400);
+};
+
+window.loadClipuyAudios = async (orden, q) => {
+  _clipuyCurrentOrder = orden || 'reciente';
+  const list = document.getElementById('clipuyAudioList');
+  if(!list) return;
+
+  // Actualizar botones de orden
+  ['reciente','likes','usos'].forEach(o => {
+    const btn = document.getElementById('clipuy-ord-' + o);
+    if(!btn) return;
+    const active = o === _clipuyCurrentOrder;
+    btn.style.background = active ? 'var(--accent)' : 'var(--surface2)';
+    btn.style.color = active ? '#fff' : 'var(--text-muted)';
+    btn.style.borderColor = active ? 'var(--accent)' : 'var(--border)';
+  });
+
+  list.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-muted);font-size:.82rem;">⏳ Cargando...</div>';
+  try {
+    const searchQ = q || document.getElementById('clipuyAudioSearch')?.value.trim() || '';
+    let url = UPLOAD_SERVER + `/audio/list?orden=${_clipuyCurrentOrder}&limit=30`;
+    if(searchQ) url += '&q=' + encodeURIComponent(searchQ);
+    const res = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    if(!res.ok) throw new Error('Error al cargar audios');
+    const data = await res.json();
+    if(!data.audios || !data.audios.length) {
+      list.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:.82rem;">Sin audios todavía 🎤<br><small>¡Sé el primero en subir uno!</small></div>';
+      return;
+    }
+    list.innerHTML = '';
+    data.audios.forEach(audio => {
+      const item = document.createElement('div');
+      item.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:border-color .15s;';
+      item.innerHTML = `
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">🎵</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:.83rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(audio.titulo)}</div>
+          <div style="font-size:.7rem;color:var(--text-muted);">@${escHtml(audio.usuario)} · ❤️ ${audio.likes} · 🔥 ${audio.usos} usos${audio.duracion ? ' · ' + Math.round(audio.duracion) + 's' : ''}</div>
+        </div>
+        <button data-aid="${escHtml(audio.id)}" style="background:none;border:none;color:var(--accent2);font-size:1.1rem;cursor:pointer;flex-shrink:0;padding:4px;" title="Preview">▶</button>
+      `;
+      // Preview al tocar el botón de play
+      const playBtn = item.querySelector('button');
+      playBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        _stopClipuyPreview();
+        const audioUrl = UPLOAD_SERVER + '/audio/stream/' + audio.id;
+        _clipuyPreviewAudio = new Audio(audioUrl);
+        _clipuyPreviewAudio.volume = 0.6;
+        _clipuyPreviewAudio.play().catch(() => {});
+        playBtn.textContent = '⏹';
+        _clipuyPreviewAudio.onended = () => { playBtn.textContent = '▶'; };
+      });
+      // Seleccionar al tocar el item
+      item.addEventListener('click', () => selectClipuyAudio(audio, item));
+      list.appendChild(item);
+    });
+  } catch(e) {
+    list.innerHTML = `<div style="text-align:center;padding:12px;color:#ff5555;font-size:.82rem;">❌ No se pudo conectar al servidor</div>`;
+  }
+};
+
+function _stopClipuyPreview() {
+  if(_clipuyPreviewAudio) { _clipuyPreviewAudio.pause(); _clipuyPreviewAudio = null; }
+}
+
+function selectClipuyAudio(audio, itemEl) {
+  _stopClipuyPreview();
+  _clipuySelectedAudio = audio;
+  _clipSelectedMusic = null; // limpiar selección de Deezer
+
+  // Highlight item seleccionado
+  document.querySelectorAll('#clipuyAudioList > div').forEach(el => el.style.borderColor = 'var(--border)');
+  if(itemEl) itemEl.style.borderColor = 'var(--accent2)';
+
+  // Mostrar en el bloque "seleccionado"
+  document.getElementById('clipMusicCover').src = '';
+  document.getElementById('clipMusicCover').style.display = 'none';
+  document.getElementById('clipMusicName').textContent = audio.titulo;
+  document.getElementById('clipMusicArtist').textContent = '🎤 @' + audio.usuario + ' — Clipuy';
+  document.getElementById('clipMusicSelected').classList.add('show');
+
+  // Previsualizar
+  const previewEl = document.getElementById('clipMusicPreviewAudio');
+  if(previewEl) {
+    previewEl.src = UPLOAD_SERVER + '/audio/stream/' + audio.id;
+    previewEl.volume = 0.5;
+    previewEl.play().catch(() => {});
+  }
+
+  // Registrar uso
+  fetch(UPLOAD_SERVER + '/audio/use/' + audio.id, {
+    method: 'POST',
+    headers: { 'ngrok-skip-browser-warning': 'true' }
+  }).catch(() => {});
+
+  showToast('🎵 Audio seleccionado: ' + audio.titulo);
+}
 
 </script>
 
