@@ -341,6 +341,56 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
   0%{opacity:1;transform:scale(1) translateY(0);}
   100%{opacity:0;transform:scale(1.8) translateY(-80px);}
 }
+/* ── FEED SCRUB BAR ── */
+.feed-scrub-wrap{
+  position:absolute;bottom:62px;left:14px;right:88px;z-index:15;
+  display:flex;flex-direction:column;gap:3px;pointer-events:auto;
+}
+.feed-time-row{
+  display:flex;justify-content:space-between;
+  font-size:.62rem;color:rgba(255,255,255,.7);font-weight:600;
+  padding:0 2px;pointer-events:none;
+  text-shadow:0 1px 3px rgba(0,0,0,.8);
+}
+.feed-scrub{
+  width:100%;height:3px;background:rgba(255,255,255,.25);
+  border-radius:99px;cursor:pointer;position:relative;
+  transition:height .15s;
+}
+.feed-scrub:hover{ height:6px; }
+.feed-scrub-fill{
+  height:100%;background:#fff;border-radius:99px;
+  pointer-events:none;
+}
+.feed-scrub-thumb{
+  position:absolute;top:50%;transform:translate(-50%,-50%);
+  width:13px;height:13px;background:#fff;border-radius:50%;
+  pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,.6);
+  opacity:0;transition:opacity .15s;
+}
+.feed-scrub:hover .feed-scrub-thumb{ opacity:1; }
+
+/* ── FEED SIDE NAV BUTTONS (▲▼) ── */
+.feed-nav-btns{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:10px;z-index:12;
+}
+@media(min-width:600px){
+  /* On desktop, hide mobile ones — desktop uses actions column */
+  .feed-nav-btns{ display:none; }
+  .feed-nav-desktop{ display:flex!important; }
+}
+.feed-nav-btn{
+  width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;
+  background:rgba(30,30,30,.82);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;transition:background .15s,transform .1s;
+  box-shadow:0 2px 10px rgba(0,0,0,.5);backdrop-filter:blur(6px);
+}
+.feed-nav-btn:hover:not(:disabled){ background:rgba(70,70,70,.95); transform:scale(1.08); }
+.feed-nav-btn:disabled{ opacity:.25; cursor:default; }
+.feed-nav-btn svg{ width:20px;height:20px;fill:#fff; }
+
 /* Play indicator */
 .play-indicator{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
@@ -2587,6 +2637,10 @@ async function loadFeed() {
     loadNgrokMedia(container);
     // Update follow button states
     updateFeedFollowButtons();
+    // Update nav button disabled states
+    updateFeedNavBtns();
+    // Show desktop nav buttons
+    document.querySelectorAll('.feed-nav-desktop').forEach(el => el.style.display = 'flex');
   } catch(e) {
     container.innerHTML = `<div style="height:100vh;display:flex;align-items:center;justify-content:center;color:var(--text-muted)">Error cargando feed</div>`;
   }
@@ -2624,8 +2678,37 @@ function buildVideoSlide(id, data) {
       <button id="mute-${id}" onclick="toggleMute('${id}')" style="position:absolute;top:60px;right:12px;background:rgba(0,0,0,.5);border:none;border-radius:50%;width:38px;height:38px;font-size:1.1rem;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;z-index:10;">🔇</button>
       ${(currentUser && (currentUser.email==='synxyes@gmail.com' || currentUser.uid===data.uid)) ? `<button onclick="deleteMyClip('${id}',this)" style="position:absolute;top:106px;right:12px;background:rgba(254,44,85,.7);border:none;border-radius:50%;width:38px;height:38px;font-size:1rem;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;z-index:10;">🗑️</button>` : ''}
       ${data.memeText ? `<div class="clip-meme-text pos-${data.memePos||'bottom'}" style="font-size:clamp(.95rem,3vw,1.4rem);">${escHtml(data.memeText)}</div>` : ''}
+      ${isVideo ? `
+      <div class="feed-scrub-wrap" id="fsw-${id}">
+        <div class="feed-time-row">
+          <span id="ft-cur-${id}">0:00</span>
+          <span id="ft-dur-${id}">0:00</span>
+        </div>
+        <div class="feed-scrub" id="fs-${id}">
+          <div class="feed-scrub-fill" id="fsf-${id}" style="width:0%"></div>
+          <div class="feed-scrub-thumb" id="fst-${id}" style="left:0%"></div>
+        </div>
+      </div>` : ''}
+      <!-- Mobile-only nav buttons (▲▼) inside video -->
+      <div class="feed-nav-btns">
+        <button class="feed-nav-btn" onclick="feedNavScroll('${id}',-1)" title="Anterior">
+          <svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
+        </button>
+        <button class="feed-nav-btn" onclick="feedNavScroll('${id}',1)" title="Siguiente">
+          <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
+        </button>
+      </div>
     </div>
     <div class="video-actions">
+      <!-- Nav ▲▼ — desktop only (mobile uses the ones inside video-wrap) -->
+      <div class="feed-nav-desktop" style="display:none;flex-direction:column;align-items:center;gap:8px;margin-bottom:4px;">
+        <button class="feed-nav-btn" id="fn-up-${id}" onclick="feedNavScroll('${id}',-1)" title="Anterior">
+          <svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
+        </button>
+        <button class="feed-nav-btn" id="fn-dn-${id}" onclick="feedNavScroll('${id}',1)" title="Siguiente">
+          <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
+        </button>
+      </div>
       <!-- Avatar clickeable al perfil — estilo TikTok -->
       <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:6px;position:relative;cursor:pointer;" onclick="openUserProfile('${data.uid}')">
         <div style="position:relative;width:52px;height:52px;">
@@ -2687,6 +2770,47 @@ function buildVideoSlide(id, data) {
     });
   }
 
+  // ── Scrub bar wiring (videos only) ──
+  if(isVideo) {
+    // Wire up after DOM is in place (next tick)
+    setTimeout(() => {
+      const vid   = div.querySelector('video');
+      const scrub = document.getElementById('fs-'+id);
+      const fill  = document.getElementById('fsf-'+id);
+      const thumb = document.getElementById('fst-'+id);
+      const timeCur = document.getElementById('ft-cur-'+id);
+      const timeDur = document.getElementById('ft-dur-'+id);
+      if(!vid || !scrub) return;
+
+      const fmtT = (s) => { if(isNaN(s)||s<0)s=0; return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'); };
+
+      vid.addEventListener('loadedmetadata', () => { if(timeDur) timeDur.textContent = fmtT(vid.duration); });
+      vid.addEventListener('timeupdate', () => {
+        if(!vid.duration) return;
+        const pct = (vid.currentTime/vid.duration)*100;
+        if(fill)  fill.style.width = pct+'%';
+        if(thumb) thumb.style.left = pct+'%';
+        if(timeCur) timeCur.textContent = fmtT(vid.currentTime);
+      });
+
+      let _drag = false;
+      const seek = (e) => {
+        if(!vid.duration) return;
+        const rect = scrub.getBoundingClientRect();
+        const cx = e.touches ? e.touches[0].clientX : e.clientX;
+        const pct = Math.max(0, Math.min(1,(cx-rect.left)/rect.width));
+        vid.currentTime = pct * vid.duration;
+      };
+      scrub.addEventListener('mousedown',  (e)=>{ _drag=true; seek(e); e.stopPropagation(); });
+      scrub.addEventListener('touchstart', (e)=>{ _drag=true; seek(e); e.stopPropagation(); }, {passive:true});
+      scrub.addEventListener('click', (e)=>{ seek(e); e.stopPropagation(); });
+      window.addEventListener('mousemove', (e)=>{ if(_drag) seek(e); });
+      window.addEventListener('mouseup',   ()=>{ _drag=false; });
+      window.addEventListener('touchmove', (e)=>{ if(_drag) seek(e); }, {passive:true});
+      window.addEventListener('touchend',  ()=>{ _drag=false; });
+    }, 0);
+  }
+
   // Double tap to like
   let lastTap = 0;
   div.addEventListener('click', (e) => {
@@ -2734,6 +2858,27 @@ async function updateFeedFollowButtons() {
 }
 
 let _currentMusicAudio = null;
+
+// ── Feed nav: scroll to prev/next slide by clip id ──
+window.feedNavScroll = (currentId, dir) => {
+  const container = document.getElementById('videos-container');
+  const slides = Array.from(container.querySelectorAll('.video-slide'));
+  const idx = slides.findIndex(s => s.dataset.id === currentId);
+  const target = slides[idx + dir];
+  if(target) target.scrollIntoView({ behavior:'smooth', block:'start' });
+};
+
+// Update nav button disabled states when scrolling
+function updateFeedNavBtns() {
+  const container = document.getElementById('videos-container');
+  const slides = Array.from(container.querySelectorAll('.video-slide'));
+  slides.forEach((slide, idx) => {
+    const upBtn = slide.querySelector('[id^="fn-up-"]');
+    const dnBtn = slide.querySelector('[id^="fn-dn-"]');
+    if(upBtn) upBtn.disabled = idx === 0;
+    if(dnBtn) dnBtn.disabled = idx === slides.length - 1;
+  });
+}
 
 function setupVideoObserver() {
   if(_videoObserver) _videoObserver.disconnect();
