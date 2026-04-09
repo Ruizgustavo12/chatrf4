@@ -1429,61 +1429,117 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
 }
 @keyframes loadBar{to{width:100%;}}
 
-/* ── GIF PICKER ── */
-#gif-picker{
-  display:none;flex-direction:column;
-  background:var(--surface2);border-top:1px solid var(--border);
-  max-height:260px;flex-shrink:0;
+/* ══ FLOAT CHAT BUBBLE ══ */
+#float-chat-bubble{
+  position:fixed;bottom:24px;right:24px;z-index:9000;
+  display:none;flex-direction:column;align-items:flex-end;gap:8px;
+  pointer-events:none;
 }
-#gif-picker.open{display:flex;}
-.gif-search-bar{
-  display:flex;align-items:center;gap:8px;
-  padding:8px 12px;border-bottom:1px solid var(--border);flex-shrink:0;
+#float-chat-bubble.visible{display:flex;}
+.fcb-name-tag{
+  background:rgba(0,0,0,.82);backdrop-filter:blur(8px);
+  color:#fff;font-size:.78rem;font-weight:600;
+  padding:4px 12px;border-radius:99px;
+  border:1px solid rgba(255,255,255,.12);
+  pointer-events:none;white-space:nowrap;
+  animation:fadeUpTag .25s ease;
 }
-.gif-search-inp{
-  flex:1;background:var(--surface3);border:1px solid var(--border);
-  border-radius:99px;padding:7px 14px;color:#fff;
-  font-family:'Space Grotesk',sans-serif;font-size:.85rem;outline:none;
+@keyframes fadeUpTag{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.fcb-btn{
+  width:58px;height:58px;border-radius:50%;
+  cursor:pointer;overflow:hidden;
+  border:3px solid #000;
+  box-shadow:0 4px 20px rgba(0,0,0,.7),0 0 0 2.5px var(--accent);
+  transition:transform .18s,box-shadow .18s;
+  pointer-events:all;background:var(--surface2);position:relative;
 }
-.gif-search-inp::placeholder{color:var(--text-dim);}
-.gif-grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:3px;
-  overflow-y:auto;padding:6px;flex:1;
+.fcb-btn:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(0,0,0,.8),0 0 0 3px var(--accent);}
+.fcb-btn img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.fcb-unread{
+  position:absolute;top:-2px;right:-2px;
+  background:var(--accent);color:#fff;
+  border-radius:50%;min-width:18px;height:18px;
+  font-size:.62rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid #000;padding:0 3px;
 }
-.gif-cell{
-  border-radius:8px;overflow:hidden;cursor:pointer;
-  aspect-ratio:16/9;background:var(--surface3);
-  transition:transform .12s,opacity .12s;
+/* ══ FLOAT CHAT WINDOW ══ */
+#float-chat-window{
+  position:fixed;bottom:94px;right:24px;
+  width:310px;height:400px;
+  background:#111;border:1px solid rgba(255,255,255,.1);
+  border-radius:18px;box-shadow:0 16px 60px rgba(0,0,0,.85);
+  z-index:8999;display:none;flex-direction:column;overflow:hidden;
+  animation:popUpChat .22s cubic-bezier(.34,1.56,.64,1);
 }
-.gif-cell:hover{transform:scale(1.04);opacity:.85;}
-.gif-cell img{width:100%;height:100%;object-fit:cover;display:block;}
-.gif-loading{text-align:center;padding:24px;color:var(--text-muted);font-size:.85rem;}
-
-/* ── REACTION QUICK BAR (hover over bubble) ── */
-.msg-react-bar{
-  position:absolute;
-  bottom:calc(100% + 4px);
-  display:none;
-  gap:2px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:99px;
-  padding:4px 8px;
-  box-shadow:0 4px 20px rgba(0,0,0,.6);
-  z-index:50;
-  white-space:nowrap;
+#float-chat-window.open{display:flex;}
+@keyframes popUpChat{from{opacity:0;transform:scale(.85) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.fcw-header{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;background:#000;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  flex-shrink:0;
 }
-.pc-msg:hover .msg-react-bar,
-.msg-react-bar:hover{display:flex;}
-.react-btn{
-  font-size:1.3rem;cursor:pointer;
-  padding:2px 4px;border-radius:50%;
-  transition:transform .12s;
-  line-height:1;
+.fcw-avatar{width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;}
+.fcw-info{flex:1;min-width:0;}
+.fcw-name{font-weight:700;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fcw-status{font-size:.68rem;color:var(--accent2);}
+.fcw-acts{display:flex;gap:2px;flex-shrink:0;}
+.fcw-act{
+  background:none;border:none;color:var(--text-muted);
+  cursor:pointer;font-size:1rem;padding:4px 6px;
+  border-radius:6px;transition:color .12s,background .12s;line-height:1;
 }
-.react-btn:hover{transform:scale(1.3);}
-.pc-msg.own .msg-react-bar{right:0;left:auto;}
-.pc-msg:not(.own) .msg-react-bar{left:0;right:auto;}
+.fcw-act:hover{color:#fff;background:rgba(255,255,255,.08);}
+.fcw-messages{
+  flex:1;overflow-y:auto;padding:10px 12px;
+  display:flex;flex-direction:column;gap:6px;
+}
+.fcw-msg{display:flex;gap:6px;align-items:flex-end;max-width:82%;}
+.fcw-msg.own{align-self:flex-end;flex-direction:row-reverse;margin-left:auto;}
+.fcw-msg:not(.own){align-self:flex-start;margin-right:auto;}
+.fcw-bubble{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:16px 16px 16px 4px;
+  padding:7px 11px;font-size:.84rem;line-height:1.45;word-break:break-word;
+}
+.fcw-msg.own .fcw-bubble{
+  background:linear-gradient(135deg,rgba(254,44,85,.35),rgba(37,244,238,.2));
+  border-color:rgba(254,44,85,.35);border-radius:16px 16px 4px 16px;
+}
+.fcw-meta{
+  font-size:.6rem;color:var(--text-dim);margin-top:2px;
+  display:flex;align-items:center;gap:3px;
+}
+.fcw-msg.own .fcw-meta{justify-content:flex-end;}
+.fcw-read{color:var(--accent2);font-size:.68rem;}
+.fcw-input-bar{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 10px;border-top:1px solid rgba(255,255,255,.08);
+  background:#000;flex-shrink:0;
+}
+.fcw-inp{
+  flex:1;background:var(--surface2);border:1px solid var(--border);
+  border-radius:99px;padding:8px 14px;color:#fff;
+  font-family:'Space Grotesk',sans-serif;font-size:.84rem;outline:none;
+}
+.fcw-inp:focus{border-color:rgba(255,255,255,.25);}
+.fcw-inp::placeholder{color:var(--text-dim);}
+.fcw-send{
+  background:var(--accent);border:none;border-radius:50%;
+  width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;transition:opacity .18s;
+}
+.fcw-send:hover{opacity:.82;}
+/* ══ IMPROVED MSG TIME + READ ══ */
+.pc-msg-meta{
+  display:flex;align-items:center;gap:4px;margin-top:3px;
+  font-size:.62rem;color:var(--text-dim);
+}
+.pc-msg.own .pc-msg-meta{justify-content:flex-end;}
+.pc-read-tick{font-size:.72rem;font-weight:700;}
+.pc-read-tick.seen{color:var(--accent2);}
+.pc-read-tick.sent{color:var(--text-muted);}
 
 </style>
 </head>
@@ -1787,16 +1843,6 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
           <span style="font-size:1.5rem;cursor:pointer" onclick="insertEmoji('😴')">😴</span>
           <span style="font-size:1.5rem;cursor:pointer" onclick="insertEmoji('🫶')">🫶</span>
         </div>
-        <!-- GIF Picker -->
-        <div id="gif-picker">
-          <div class="gif-search-bar">
-            <input class="gif-search-inp" id="gif-search-inp" placeholder="🔍 Buscar GIFs..." oninput="searchGifs(this.value)"/>
-            <button onclick="toggleGifPicker()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;line-height:1;">✕</button>
-          </div>
-          <div class="gif-grid" id="gif-grid">
-            <div class="gif-loading">Escribí algo para buscar GIFs 🎬</div>
-          </div>
-        </div>
         <!-- Reply preview -->
         <div id="reply-preview" style="display:none;padding:8px 14px;background:var(--surface2);border-top:1px solid var(--border);border-left:3px solid var(--accent);margin:0 12px 4px;border-radius:8px;font-size:.8rem;color:var(--text-muted)">
           <div style="display:flex;justify-content:space-between;align-items:center">
@@ -1810,7 +1856,6 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           </button>
           <input class="pc-inp" id="pc-inp" placeholder="Enviar un mensaje..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPcMsg();}"/>
-          <button class="pc-attach" onclick="toggleGifPicker()" title="GIF" style="font-size:.72rem;font-weight:800;letter-spacing:-.5px;padding:4px 7px;color:var(--accent2)">GIF</button>
           <button class="pc-attach" onclick="toggleEmojiPicker()" style="font-size:1.3rem;padding:4px 8px">😊</button>
           <button class="pc-send" onclick="sendPcMsg()">
             <svg width="16" height="16" fill="white" viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
@@ -2307,6 +2352,17 @@ function timeAgo(ts) {
   if(s<86400) return Math.floor(s/3600)+'h';
   return Math.floor(s/86400)+'d';
 }
+function fmtMsgTime(ts) {
+  const d = ts?.toDate ? ts.toDate() : (ts ? new Date(ts) : null);
+  if(!d) return '';
+  const now = new Date();
+  const hm = d.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit',hour12:false});
+  const isToday = d.toDateString() === now.toDateString();
+  const isYesterday = new Date(now-86400000).toDateString() === d.toDateString();
+  if(isToday) return hm;
+  if(isYesterday) return 'Ayer ' + hm;
+  return d.toLocaleDateString('es',{day:'2-digit',month:'2-digit'}) + ' ' + hm;
+}
 function fmtNum(n) {
   if(n>=1000000) return (n/1000000).toFixed(1)+'M';
   if(n>=1000) return (n/1000).toFixed(1)+'K';
@@ -2554,6 +2610,13 @@ window.goTo = (screen) => {
     if(_lastChatUid && _lastChatId) {
       setTimeout(() => openPrivateChat(_lastChatUid, _lastChatName, _lastChatAvatar, _lastChatId), 80);
     }
+    // Hide float on chat screen
+    const fb=document.getElementById('float-chat-bubble');
+    const fw=document.getElementById('float-chat-window');
+    if(fb) fb.classList.remove('visible');
+    if(fw) fw.classList.remove('open');
+  } else {
+    setTimeout(()=>{ if(typeof updateBubbleVisibility==='function') updateBubbleVisibility(); },80);
   }
   if(screen==='explore') loadExplore();
   if(screen==='friends') loadFriends();
@@ -4413,6 +4476,8 @@ window.openPrivateChat = async (uid, name, avatar, chatId) => {
   }
   _lastChatId = chatId;
   window._currentChatId = chatId;
+  // Activate floating bubble
+  if(typeof activateFloatBubble==='function') activateFloatBubble(uid, name, avatar||'', chatId);
   // Subscribe to messages
   if(_chatUnsubscribe) _chatUnsubscribe();
   const msgsRef = collection(db,'chats',chatId,'messages');
@@ -4521,26 +4586,22 @@ function renderPcMessages(msgs) {
     ).join('');
     // Read receipt
     const isLast = idx === msgs.length-1;
-    const readHtml = isOwn && isLast ? `<div style="font-size:.62rem;color:var(--accent2);margin-top:2px;text-align:right;">${m.read ? '✓✓ Visto' : '✓ Enviado'}</div>` : '';
+    // readHtml handled inline in pc-msg-meta
     // Reply context
     const replyHtml = m.replyTo ? `<div style="background:rgba(255,255,255,.07);border-left:2px solid var(--accent);padding:4px 8px;border-radius:6px;font-size:.75rem;color:var(--text-muted);margin-bottom:4px;">↩ ${escHtml(m.replyTo.text?.slice(0,50)||'')}</div>` : '';
     div.innerHTML = `
       ${!isOwn ? `<img class="pc-msg-avatar" src="${escHtml(m.avatar||avatarFallback(m.uid||'u'))}" onerror="this.src='${avatarFallback(m.uid||'u')}'"/>` : ''}
       <div style="max-width:75%">
-        <div style="position:relative">
-          <div class="msg-react-bar">
-            ${['❤️','😂','😮','😢','👏','🔥'].map(e=>`<span class="react-btn" onclick="addMsgReaction('${m.id}','${e}')">${e}</span>`).join('')}
-          </div>
-          <div class="pc-bubble" oncontextmenu="event.preventDefault();showMsgMenu('${m.id}','${escHtml((m.text||'').replace(/'/g,'\''))}',${isOwn})" ondblclick="showMsgMenu('${m.id}','${escHtml((m.text||'').replace(/'/g,'\''))}',${isOwn})">
+        <div class="pc-bubble" oncontextmenu="event.preventDefault();showMsgMenu('${m.id}','${escHtml((m.text||'').replace(/'/g,'\''))}',${isOwn})">
           ${replyHtml}
           ${m.text ? escHtml(m.text) : ''}
           ${m.mediaUrl ? `<img class="pc-bubble-img" data-src="${escHtml(m.mediaUrl)}" onclick="window.open('${escHtml(m.mediaUrl)}','_blank')"/>` : ''}
-          ${m.gifUrl ? `<img src="${escHtml(m.gifUrl)}" style="max-width:200px;border-radius:10px;display:block;cursor:pointer;" onclick="window.open('${escHtml(m.gifUrl)}','_blank')" loading="lazy"/>` : ''}
-          </div>
         </div>
         ${rxnHtml ? `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:3px;">${rxnHtml}</div>` : ''}
-        <div class="pc-time">${timeAgo(m.ts)}</div>
-        ${readHtml}
+        <div class="pc-msg-meta">
+          <span>${fmtMsgTime(m.ts)}</span>
+          ${isOwn ? `<span class="pc-read-tick ${m.read?'seen':'sent'}">${m.read?'✓✓':'✓'}</span>` : ''}
+        </div>
       </div>
     `;
     container.appendChild(div);
@@ -4574,102 +4635,6 @@ window.showMsgMenu = (msgId, text, isOwn) => {
   document.body.appendChild(menu);
   menu.addEventListener('click', e => e.stopPropagation());
   setTimeout(() => document.addEventListener('click', () => menu.remove(), {once:true}), 100);
-};
-
-// ══════════════════════════════════════════════
-//  GIF PICKER  (Tenor API — free key)
-// ══════════════════════════════════════════════
-const TENOR_KEY = 'AIzaSyAyimkuYQYF_y1Qdq4x_X4T6UJRsMhXKo8'; // public demo key
-let _gifDebounce = null;
-let _gifOpen = false;
-
-window.toggleGifPicker = () => {
-  const picker = document.getElementById('gif-picker');
-  const emoji  = document.getElementById('emoji-picker');
-  _gifOpen = !_gifOpen;
-  picker.classList.toggle('open', _gifOpen);
-  if(_gifOpen) {
-    if(emoji) emoji.style.display = 'none';
-    // load trending GIFs on open
-    loadTrendingGifs();
-    setTimeout(() => document.getElementById('gif-search-inp')?.focus(), 100);
-  }
-};
-
-async function loadTrendingGifs() {
-  const grid = document.getElementById('gif-grid');
-  grid.innerHTML = '<div class="gif-loading">⏳ Cargando GIFs...</div>';
-  try {
-    const res = await fetch(`https://tenor.googleapis.com/v2/featured?key=${TENOR_KEY}&limit=18&media_filter=gif`);
-    const data = await res.json();
-    renderGifResults(data.results || []);
-  } catch(e) {
-    grid.innerHTML = '<div class="gif-loading">❌ Sin conexión</div>';
-  }
-}
-
-window.searchGifs = (q) => {
-  clearTimeout(_gifDebounce);
-  if(!q.trim()) { loadTrendingGifs(); return; }
-  _gifDebounce = setTimeout(async () => {
-    const grid = document.getElementById('gif-grid');
-    grid.innerHTML = '<div class="gif-loading">🔍 Buscando...</div>';
-    try {
-      const res = await fetch(`https://tenor.googleapis.com/v2/search?key=${TENOR_KEY}&q=${encodeURIComponent(q)}&limit=18&media_filter=gif`);
-      const data = await res.json();
-      renderGifResults(data.results || []);
-    } catch(e) {
-      grid.innerHTML = '<div class="gif-loading">❌ Error al buscar</div>';
-    }
-  }, 400);
-};
-
-function renderGifResults(results) {
-  const grid = document.getElementById('gif-grid');
-  if(!results.length) { grid.innerHTML = '<div class="gif-loading">Sin resultados 😕</div>'; return; }
-  grid.innerHTML = '';
-  results.forEach(gif => {
-    const url = gif.media_formats?.gif?.url || gif.media_formats?.tinygif?.url || '';
-    const preview = gif.media_formats?.tinygif?.url || url;
-    if(!url) return;
-    const cell = document.createElement('div');
-    cell.className = 'gif-cell';
-    const img = document.createElement('img');
-    img.src = preview;
-    img.alt = gif.title || 'gif';
-    img.loading = 'lazy';
-    cell.appendChild(img);
-    cell.onclick = () => sendGif(url);
-    grid.appendChild(cell);
-  });
-}
-
-async function sendGif(gifUrl) {
-  if(!currentUser || !window._currentChatId) return;
-  // Close picker
-  document.getElementById('gif-picker').classList.remove('open');
-  _gifOpen = false;
-  document.getElementById('gif-search-inp').value = '';
-  try {
-    await addDoc(collection(db,'chats',window._currentChatId,'messages'), {
-      uid: currentUser.uid,
-      name: myProfile.name || 'Usuario',
-      avatar: myProfile.avatar || avatarFallback(currentUser.uid),
-      text: '', gifUrl, ts: serverTimestamp(), read: false
-    });
-    await updateDoc(doc(db,'chats',window._currentChatId), {
-      lastMsg: '🎬 GIF', lastTs: serverTimestamp(),
-      [`unread.${_currentChatUid}`]: increment(1)
-    });
-  } catch(e) { showToast('❌ Error al enviar GIF: ' + e.message); }
-}
-
-// Close gif picker when emoji picker opens
-const _origToggleEmoji = window.toggleEmojiPicker;
-window.toggleEmojiPicker = () => {
-  const gifPicker = document.getElementById('gif-picker');
-  if(gifPicker) { gifPicker.classList.remove('open'); _gifOpen = false; }
-  _origToggleEmoji && _origToggleEmoji();
 };
 
 window.deleteMsgConfirm = async (msgId) => {
@@ -4736,6 +4701,118 @@ window.sendPcMedia = async (inp) => {
     });
   } catch(e) { showToast('❌ Error: '+e.message); }
   inp.value = '';
+};
+
+// ══════════════════════════════════════════════
+//  FLOATING CHAT BUBBLE
+// ══════════════════════════════════════════════
+let _fbUid='', _fbName='', _fbAvatar='', _fbChatId=null, _fbUnsub=null;
+
+function activateFloatBubble(uid, name, avatar, chatId) {
+  _fbUid=uid; _fbName=name; _fbAvatar=avatar||''; _fbChatId=chatId;
+  const av = document.getElementById('fcb-avatar');
+  if(av){ av.src=avatar||''; av.onerror=()=>{av.src=avatarFallback(uid);}; }
+  updateBubbleVisibility();
+}
+
+function updateBubbleVisibility() {
+  const el = document.getElementById('float-chat-bubble');
+  if(!el||!_fbUid) return;
+  el.classList.toggle('visible', _currentScreen !== 'chat');
+}
+
+window.toggleFloatChatWindow = () => {
+  const win = document.getElementById('float-chat-window');
+  const tag = document.getElementById('fcb-name-tag');
+  const unread = document.getElementById('fcb-unread');
+  if(win.classList.contains('open')) {
+    win.classList.remove('open');
+  } else {
+    document.getElementById('fcw-avatar').src = _fbAvatar||avatarFallback(_fbUid);
+    document.getElementById('fcw-name').textContent = _fbName||'';
+    win.classList.add('open');
+    if(unread) unread.style.display='none';
+    loadFloatMsgs();
+    setTimeout(()=>document.getElementById('fcw-inp')?.focus(),150);
+    // show name tag briefly
+    if(tag){ tag.textContent=_fbName; tag.style.display='block'; setTimeout(()=>tag.style.display='none',2500); }
+  }
+};
+
+window.closeFloatWindow = () => {
+  document.getElementById('float-chat-window').classList.remove('open');
+};
+
+window.dismissFloat = () => {
+  document.getElementById('float-chat-window').classList.remove('open');
+  document.getElementById('float-chat-bubble').classList.remove('visible');
+  if(_fbUnsub){_fbUnsub();_fbUnsub=null;}
+  _fbUid=''; _fbChatId=null;
+};
+
+window.openFloatFull = () => {
+  document.getElementById('float-chat-window').classList.remove('open');
+  goTo('chat');
+  setTimeout(()=>{ if(_fbUid) openPrivateChat(_fbUid,_fbName,_fbAvatar,_fbChatId); },150);
+};
+
+function loadFloatMsgs() {
+  if(!_fbChatId) return;
+  if(_fbUnsub){_fbUnsub();_fbUnsub=null;}
+  const msgsRef = collection(db,'chats',_fbChatId,'messages');
+  _fbUnsub = onSnapshot(query(msgsRef, orderBy('ts','asc')), snap => {
+    renderFloatMsgs(snap.docs.map(d=>({id:d.id,...d.data()})));
+    // show unread dot if window closed
+    const win = document.getElementById('float-chat-window');
+    if(win && !win.classList.contains('open')) {
+      const u = document.getElementById('fcb-unread');
+      if(u){ u.style.display='flex'; u.textContent='●'; }
+    }
+  });
+}
+
+function renderFloatMsgs(msgs) {
+  const box = document.getElementById('fcw-messages');
+  if(!box) return;
+  const wasBottom = box.scrollHeight-box.scrollTop-box.clientHeight < 60;
+  box.innerHTML='';
+  msgs.forEach(m => {
+    const isOwn = m.uid===currentUser?.uid;
+    const div = document.createElement('div');
+    div.className='fcw-msg'+(isOwn?' own':'');
+    const time = fmtMsgTime(m.ts);
+    const readMark = isOwn ? `<span class="fcw-read">${m.read?'✓✓':'✓'}</span>` : '';
+    div.innerHTML=`<div>
+      <div class="fcw-bubble">${m.gifUrl?`<img src="${escHtml(m.gifUrl)}" style="max-width:160px;border-radius:8px;display:block;" loading="lazy"/>`:escHtml(m.text||'📎')}</div>
+      <div class="fcw-meta">${time}${isOwn?` ${readMark}`:''}</div>
+    </div>`;
+    box.appendChild(div);
+  });
+  if(wasBottom||msgs.length<=3) box.scrollTop=box.scrollHeight;
+  // mark as read
+  const last=msgs[msgs.length-1];
+  if(last&&last.uid!==currentUser?.uid&&!last.read&&_fbChatId) {
+    updateDoc(doc(db,'chats',_fbChatId,'messages',last.id),{read:true}).catch(()=>{});
+  }
+}
+
+window.sendFloatMsg = async () => {
+  const inp=document.getElementById('fcw-inp');
+  const text=inp?.value.trim();
+  if(!text||!currentUser||!_fbChatId) return;
+  inp.value='';
+  try {
+    await addDoc(collection(db,'chats',_fbChatId,'messages'),{
+      uid:currentUser.uid,
+      name:myProfile.name||'Usuario',
+      avatar:myProfile.avatar||avatarFallback(currentUser.uid),
+      text, ts:serverTimestamp(), read:false
+    });
+    await updateDoc(doc(db,'chats',_fbChatId),{
+      lastMsg:text, lastTs:serverTimestamp(),
+      [`unread.${_fbUid}`]:increment(1)
+    });
+  } catch(e){ showToast('❌ '+e.message); inp.value=text; }
 };
 
 // ══════════════════════════════════════════════
@@ -6044,6 +6121,38 @@ window.publishDuet = async () => {
     background:none;border:none;color:#555;font-size:1.2rem;cursor:pointer;
     padding:4px;flex-shrink:0;
   ">✕</button>
+</div>
+
+
+<!-- ══ FLOATING CHAT BUBBLE ══ -->
+<div id="float-chat-bubble">
+  <div class="fcb-name-tag" id="fcb-name-tag" style="display:none"></div>
+  <div class="fcb-btn" id="fcb-btn" onclick="toggleFloatChatWindow()">
+    <img id="fcb-avatar" src="" alt=""/>
+    <div class="fcb-unread" id="fcb-unread" style="display:none">1</div>
+  </div>
+</div>
+<!-- ══ FLOATING CHAT WINDOW ══ -->
+<div id="float-chat-window">
+  <div class="fcw-header">
+    <img class="fcw-avatar" id="fcw-avatar" src="" alt=""/>
+    <div class="fcw-info">
+      <div class="fcw-name" id="fcw-name"></div>
+      <div class="fcw-status">En línea</div>
+    </div>
+    <div class="fcw-acts">
+      <button class="fcw-act" onclick="openFloatFull()" title="Abrir completo">⤢</button>
+      <button class="fcw-act" onclick="closeFloatWindow()" title="Minimizar">_</button>
+      <button class="fcw-act" onclick="dismissFloat()" title="Cerrar">✕</button>
+    </div>
+  </div>
+  <div class="fcw-messages" id="fcw-messages"></div>
+  <div class="fcw-input-bar">
+    <input class="fcw-inp" id="fcw-inp" placeholder="Mensaje..." onkeydown="if(event.key==='Enter'){event.preventDefault();sendFloatMsg();}"/>
+    <button class="fcw-send" onclick="sendFloatMsg()">
+      <svg width="14" height="14" fill="white" viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </div>
 </div>
 
 </body>
