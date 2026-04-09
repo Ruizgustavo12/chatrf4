@@ -1416,6 +1416,9 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
       </div>
       <div style="padding:10px 16px 0">
         <div class="profile-bio-tt" id="profile-bio-el">Sin bio todavía ✨</div>
+        <a class="profile-ig-link" id="profile-website-el" href="#" target="_blank" rel="noopener" style="display:none;">
+          🔗 <span id="profile-website-text"></span>
+        </a>
       </div>
       <div class="profile-actions-tt">
         <button class="btn-msg-tt" onclick="openEditProfile()">Editar perfil</button>
@@ -1748,6 +1751,14 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
     <div class="ep-field">
       <div class="ep-label">Usuario (@)</div>
       <input class="ep-inp" id="ep-handle" placeholder="tunombre"/>
+    </div>
+    <div class="ep-field">
+      <div class="ep-label">Sitio web</div>
+      <div style="position:relative;">
+        <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:.88rem;pointer-events:none;">🔗</span>
+        <input class="ep-inp" id="ep-website" placeholder="tudominio.uy" style="padding-left:30px;"/>
+      </div>
+      <div style="font-size:.7rem;color:var(--text-dim);margin-top:4px;">Sin https:// — solo el dominio o la URL</div>
     </div>
     <div class="ep-field">
       <div class="ep-label">Bio</div>
@@ -3083,6 +3094,17 @@ function renderProfile() {
   document.getElementById('stat-following').textContent = fmtNum(p.following||0);
   document.getElementById('stat-followers').textContent = fmtNum(p.followers||0);
   document.getElementById('stat-likes').textContent = fmtNum(p.totalLikes||0);
+  // Website link
+  const wsEl = document.getElementById('profile-website-el');
+  const wsTxt = document.getElementById('profile-website-text');
+  if(p.website) {
+    const url = p.website.startsWith('http') ? p.website : 'https://' + p.website;
+    wsEl.href = url;
+    wsTxt.textContent = p.website;
+    wsEl.style.display = 'flex';
+  } else {
+    wsEl.style.display = 'none';
+  }
   loadProfileClips();
 }
 
@@ -3287,6 +3309,7 @@ window.openEditProfile = () => {
   document.getElementById('ep-name').value = p.name || '';
   document.getElementById('ep-handle').value = (p.handle||'').replace('@','');
   document.getElementById('ep-bio').value = p.bio || '';
+  document.getElementById('ep-website').value = p.website || '';
   document.getElementById('edit-profile-modal').classList.add('open');
   closeSettings();
 };
@@ -3303,6 +3326,7 @@ window.saveProfile = async () => {
   const name = document.getElementById('ep-name').value.trim();
   const handle = '@' + document.getElementById('ep-handle').value.trim().replace('@','');
   const bio = document.getElementById('ep-bio').value.trim();
+  const website = document.getElementById('ep-website').value.trim().replace(/^https?:\/\//i,'');
   showToast('💾 Guardando...');
   try {
     let avatar = myProfile.avatar || avatarFallback(currentUser.uid);
@@ -3311,9 +3335,9 @@ window.saveProfile = async () => {
       const file = inp.files[0];
       avatar = await uploadToServer(file);
     }
-    await updateDoc(doc(db,'users',currentUser.uid), { name, handle, bio, avatar });
+    await updateDoc(doc(db,'users',currentUser.uid), { name, handle, bio, avatar, website });
     await updateProfile(currentUser, { displayName: name, photoURL: avatar });
-    myProfile = { ...myProfile, name, handle, bio, avatar };
+    myProfile = { ...myProfile, name, handle, bio, avatar, website };
     renderProfile();
     closeEditProfile();
     showToast('✅ Perfil actualizado');
@@ -3377,6 +3401,7 @@ window.openUserProfile = async (uid) => {
           </div>
         </div>
         ${p.bio ? `<div style="font-size:.85rem;color:rgba(255,255,255,.8);line-height:1.5;margin-bottom:12px;white-space:pre-line">${escHtml(p.bio)}</div>` : ''}
+        ${p.website ? `<a href="${escHtml(p.website.startsWith('http')?p.website:'https://'+p.website)}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;font-size:.8rem;color:var(--accent2);text-decoration:none;margin-bottom:12px;">🔗 ${escHtml(p.website)}</a>` : ''}
         <div style="display:flex;gap:8px;margin-bottom:16px">
           ${currentUser && uid !== currentUser.uid ? `<button class="btn-follow-tt" id="follow-btn-${uid}" style="${isFollowing?'background:var(--surface);border:1px solid var(--border);color:#fff;':''}" onclick="handleFollowBtnOverlay(this,'${uid}')">${isFollowing?'✅ Siguiendo':'Seguir'}</button>` : ''}
           ${currentUser && uid !== currentUser.uid ? `<button class="btn-msg-tt" onclick="openPrivateChat('${uid}','${escHtml(name)}','${escHtml(avatar)}');document.getElementById('user-profile-overlay').remove()">Mensaje</button>` : ''}
