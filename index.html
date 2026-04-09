@@ -2534,6 +2534,14 @@ async function loadNgrokMedia(root) {
       const blob = await res.blob();
       el.src = URL.createObjectURL(blob);
     } catch(e) { el.src = url; }
+    // Una vez con src, si es video visible en pantalla, reproducir (fix tablet)
+    if (el.tagName === 'VIDEO') {
+      el.muted = true;
+      el.load();
+      const rect = el.getBoundingClientRect();
+      const inView = rect.top < window.innerHeight && rect.bottom > 0;
+      if (inView) { el.play().catch(() => {}); }
+    }
   });
 }
 
@@ -2797,7 +2805,7 @@ function buildVideoSlide(id, data) {
   div.innerHTML = `
     <div class="video-wrap">
       ${isVideo
-        ? `<video class="video-el" data-src="${escHtml(data.mediaUrl||'')}" loop playsinline preload="none"></video>`
+        ? `<video class="video-el" data-src="${escHtml(data.mediaUrl||'')}" loop playsinline muted preload="none"></video>`
         : `<img class="video-el" data-src="${escHtml(data.mediaUrl||'')}" style="object-fit:contain"/>`
       }
       <div class="video-overlay"></div>
@@ -3019,6 +3027,21 @@ function updateFeedNavBtns() {
   });
 }
 
+function safePlayVideo(vid) {
+  if (!vid) return;
+  // Si el video todavía no tiene src (está cargando con loadNgrokMedia), esperar
+  if (!vid.src || vid.src === window.location.href) {
+    const onSrc = () => { vid.removeEventListener('loadedmetadata', onSrc); safePlayVideo(vid); };
+    vid.addEventListener('loadedmetadata', onSrc);
+    return;
+  }
+  vid.muted = true;
+  // En iOS/iPadOS necesitamos load() antes de play()
+  if (vid.readyState === 0) { vid.load(); }
+  const p = vid.play();
+  if (p && p.catch) p.catch(() => { vid.muted = true; vid.play().catch(() => {}); });
+}
+
 function setupVideoObserver() {
   if(_videoObserver) _videoObserver.disconnect();
   _videoObserver = new IntersectionObserver((entries) => {
@@ -3026,7 +3049,7 @@ function setupVideoObserver() {
       const vid = e.target.querySelector('video');
       const slideId = e.target.dataset.id;
       if(e.isIntersecting) {
-        if(vid) vid.play().catch(()=>{});
+        if(vid) safePlayVideo(vid);
         // Play music preview if this slide has music
         const musicUrl = e.target.dataset.musicPreview;
         if(musicUrl) {
@@ -3039,10 +3062,10 @@ function setupVideoObserver() {
           if(_currentMusicAudio) { _currentMusicAudio.pause(); _currentMusicAudio = null; }
         }
       } else {
-        if(vid) vid.pause();
+        if(vid) { vid.pause(); }
       }
     });
-  }, { threshold: 0.7 });
+  }, { threshold: 0.5 }); // Bajamos threshold de 0.7 a 0.5 para tablets
   document.querySelectorAll('.video-slide').forEach(s => _videoObserver.observe(s));
 }
 
@@ -3650,7 +3673,7 @@ function renderStoryViewer() {
   const media = document.getElementById('sv-media');
   if(s.mediaUrl) {
     if(s.mediaType==='video') {
-    media.innerHTML = `<video id="sv-vid" data-src="${escHtml(s.mediaUrl)}" autoplay loop style="width:100%;height:100%;object-fit:cover"></video>`;
+    media.innerHTML = `<video id="sv-vid" data-src="${escHtml(s.mediaUrl)}" autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover"></video>`;
   } else {
     media.innerHTML = `<img id="sv-img" data-src="${escHtml(s.mediaUrl)}" style="width:100%;height:100%;object-fit:cover"/>`;
   }
