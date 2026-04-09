@@ -1799,6 +1799,22 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
         <audio id="clipMusicPreviewAudio" style="display:none"></audio>
         <button onclick="clipClearMusic()" style="background:none;border:none;color:#ff5555;cursor:pointer;font-size:1rem;flex-shrink:0;">✕</button>
       </div>
+
+      <!-- Toggle silenciar video original -->
+      <div id="silence-toggle-wrap" style="display:none;margin-top:10px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;">
+        <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;gap:12px;">
+          <div>
+            <div style="font-size:.85rem;font-weight:600;color:#fff;">🔇 Silenciar audio original del video</div>
+            <div style="font-size:.72rem;color:var(--text-muted);margin-top:2px;">Solo se escuchará el audio que elegiste</div>
+          </div>
+          <div style="position:relative;flex-shrink:0;">
+            <input type="checkbox" id="silence-video-toggle" style="opacity:0;position:absolute;width:0;height:0;" onchange="onSilenceToggle(this)"/>
+            <div id="silence-toggle-track" style="width:44px;height:24px;background:var(--surface3);border-radius:99px;transition:background .2s;position:relative;">
+              <div id="silence-toggle-thumb" style="position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:left .2s;"></div>
+            </div>
+          </div>
+        </label>
+      </div>
     </div>
   </div>
 </div>
@@ -2615,12 +2631,13 @@ window.publishClip = async () => {
     // ── Si eligió un audio de Clipuy Y es un video → mezclar en el servidor ──
     if(_clipuySelectedAudio && isVideo) {
       showToast('🎵 Mezclando audio con tu video...');
+      const silenciar = document.getElementById('silence-video-toggle')?.checked || false;
       const formData = new FormData();
       formData.append('archivo', _pendingUploadFile);
       formData.append('audio_id', _clipuySelectedAudio.id);
       formData.append('usuario', handle);
-      formData.append('volumen_audio', '1.0');  // volumen del sonido elegido
-      formData.append('volumen_video', '0.0');  // silencia el audio original del video
+      formData.append('volumen_audio', '1.0');
+      formData.append('volumen_video', silenciar ? '0.0' : '1.0');
 
       const res = await fetch(UPLOAD_SERVER + '/audio/apply', {
         method: 'POST',
@@ -4109,6 +4126,7 @@ window.clipClearMusic = () => {
   if(s) { s.value = ''; }
   const r = document.getElementById('clipMusicResults');
   if(r) r.style.display = 'none';
+  showSilenceToggle(false);
 };
 
 // ══════════════════════════════════════════════
@@ -4118,6 +4136,30 @@ let _clipuySelectedAudio = null;
 let _clipuyAudioDebounceTimer = null;
 let _clipuyCurrentOrder = 'reciente';
 let _clipuyPreviewAudio = null;
+
+window.onSilenceToggle = (checkbox) => {
+  const track = document.getElementById('silence-toggle-track');
+  const thumb = document.getElementById('silence-toggle-thumb');
+  if(checkbox.checked) {
+    track.style.background = 'var(--accent)';
+    thumb.style.left = '23px';
+  } else {
+    track.style.background = 'var(--surface3)';
+    thumb.style.left = '3px';
+  }
+};
+
+function showSilenceToggle(show) {
+  const wrap = document.getElementById('silence-toggle-wrap');
+  if(!wrap) return;
+  wrap.style.display = show ? 'block' : 'none';
+  if(!show) {
+    // resetear al ocultar
+    const cb = document.getElementById('silence-video-toggle');
+    if(cb) cb.checked = false;
+    onSilenceToggle({ checked: false });
+  }
+}
 
 window.switchMusicTab = (tab) => {
   const isDeezer = tab === 'deezer';
@@ -4233,6 +4275,10 @@ function selectClipuyAudio(audio, itemEl) {
     method: 'POST',
     headers: { 'ngrok-skip-browser-warning': 'true' }
   }).catch(() => {});
+
+  // Mostrar toggle de silenciar solo si es video
+  const isVideoFile = _pendingUploadFile && _pendingUploadFile.type.startsWith('video');
+  showSilenceToggle(isVideoFile);
 
   showToast('🎵 Audio seleccionado: ' + audio.titulo);
 }
