@@ -7295,11 +7295,13 @@ window.carouselPublish = async function() {
 
 <canvas id="clipuy-render-canvas"></canvas>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <script>
 // ══════════════════════════════════════════════════════════════
-//  CLIPUY EXPORT MODULE — v1.0
+//  CLIPUY EXPORT MODULE — v2.0
+//  Audio real via fetch + Web Audio API OfflineContext
+//  End-card: 3s pantalla negra con logo + @usuario al final
 //  Llamar: clipuyOpenExport(mediaUrl, mediaType)
-//  desde cualquier acción de compartir/exportar en la app.
 // ══════════════════════════════════════════════════════════════
 const _EXP = {
   format:'reels', quality:'1080', wmPos:'bottom-right', wmOpacity:.8,
@@ -7389,9 +7391,8 @@ function _expLoadMedia(url, type) {
   _expStopMedia();
   if (type === 'video') {
     const vid = document.createElement('video');
-    vid.src = url; vid.muted = false; vid.loop = true; vid.playsInline = true;
+    vid.src = url; vid.muted = true; vid.loop = true; vid.playsInline = true;
     vid.crossOrigin = 'anonymous';
-    vid.volume = 0; // silencioso en preview pero audio disponible para captura
     vid.onloadeddata = () => {
       _EXP.mediaEl = vid;
       vid.play().catch(()=>{});
@@ -7569,72 +7570,205 @@ window.expStartExport = async function() {
       _expFinish();
     },'image/jpeg',.93);
   } else {
-    // Video export via MediaRecorder
-    const vid=_EXP.mediaEl;
-    _expSetProg(10,'Iniciando grabación...');
-    vid.currentTime=0;
-    vid.muted=false; // asegurar que el audio esté activo
-    await vid.play().catch(()=>{});
-    // Canvas stream (video frames con watermark)
-    const canvasStream = rc.captureStream(30);
-    let stream;
+    // ── VIDEO EXPORT CON AUDIO REAL + END-CARD ──
+    const vid = _EXP.mediaEl;
+    _expSetProg(8, 'Cargando audio original...');
+
+    // 1. Descargar el blob del video original para extraer audio
+    let originalAudioBuffer = null;
     try {
-      // Método 1: capturar audio directamente del elemento video via captureStream
-      // (funciona en Chrome/Edge sin problemas de CORS)
-      if (vid.captureStream) {
-        const vidStream = vid.captureStream();
-        const audioTracks = vidStream.getAudioTracks();
-        if (audioTracks.length > 0) {
-          stream = new MediaStream([...canvasStream.getVideoTracks(), audioTracks[0]]);
-        } else {
-          throw new Error('no audio tracks in captureStream');
-        }
-      } else {
-        throw new Error('captureStream not available');
-      }
-    } catch(e1) {
+      const resp = await fetch(_EXP.mediaUrl, { cache: 'force-cache' });
+      const arrayBuf = await resp.arrayBuffer();
+      const offlineCtx = new OfflineAudioContext(2, 44100 * 120, 44100);
+      originalAudioBuffer = await offlineCtx.decodeAudioData(arrayBuf);
+    } catch(e) {
+      // sin audio si falla decode
+      originalAudioBuffer = null;
+    }
+
+    _expSetProg(15, 'Iniciando grabación...');
+    vid.currentTime = 0;
+    vid.muted = true;
+    await vid.play().catch(() => {});
+
+    // 2. Canvas stream para los frames de video
+    const canvasStream = rc.captureStream(30);
+
+    // 3. Si tenemos audio, crear AudioContext y conectar al stream
+    let audioCtxLive = null;
+    let audioDestNode = null;
+    let audioSourceNode = null;
+    if (originalAudioBuffer) {
       try {
-        // Método 2: AudioContext con MediaElementSource
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const src = audioCtx.createMediaElementSource(vid);
-        const dest = audioCtx.createMediaStreamDestination();
-        src.connect(dest);
-        src.connect(audioCtx.destination);
-        const audioTrack = dest.stream.getAudioTracks()[0];
-        stream = new MediaStream([...canvasStream.getVideoTracks(), ...(audioTrack ? [audioTrack] : [])]);
-      } catch(e2) {
-        // Fallback sin audio
-        stream = new MediaStream(canvasStream.getVideoTracks());
-        if(typeof showToast!=='undefined') showToast('⚠️ Sin audio: el navegador bloqueó la captura');
+        audioCtxLive = new AudioContext({ sampleRate: 44100 });
+        audioDestNode = audioCtxLive.createMediaStreamDestination();
+        // Se arrancará sincronizado con el video (ver más abajo)
+      } catch(e) { audioCtxLive = null; }
+    }
+
+    // 4. Construir el MediaStream final
+    let finalStream;
+    if (audioCtxLive && audioDestNode) {
+      finalStream = new MediaStream([
+        ...canvasStream.getVideoTracks(),
+        ...audioDestNode.stream.getAudioTracks()
+      ]);
+    } else {
+      finalStream = new MediaStream(canvasStream.getVideoTracks());
+    }
+
+    const mime = _expGetMime();
+    const rec = new MediaRecorder(finalStream, {
+      mimeType: mime,
+      videoBitsPerSecond: _EXP.quality === '1080' ? 8000000 : 4000000
+    });
+    const chunks = [];
+    rec.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+
+    const videoDur = Math.min(vid.duration || 30, 120) * 1000; // ms
+    const END_CARD_MS = 3000; // 3 segundos de end-card
+    const totalDur = videoDur + END_CARD_MS;
+
+    rec.start(100);
+    _expSetProg(18, 'Grabando...');
+
+    // Arrancar audio sincronizado
+    if (audioCtxLive && audioDestNode && originalAudioBuffer) {
+      audioSourceNode = audioCtxLive.createBufferSource();
+      audioSourceNode.buffer = originalAudioBuffer;
+      audioSourceNode.connect(audioDestNode);
+      audioSourceNode.start(0);
+    }
+
+    const t0 = performance.now();
+    let raf2;
+    let endCardStarted = false;
+
+    function frame() {
+      const elapsed = performance.now() - t0;
+
+      if (elapsed < videoDur && !vid.ended) {
+        // ── Fase video: dibujar frames con watermark ──
+        rctx.fillStyle = '#000';
+        rctx.fillRect(0, 0, RW, RH);
+        _expDrawMediaFit(rctx, vid, RW, RH);
+        _expDrawWM(rctx, RW, RH, _EXP.wmOpacity, uname, 'Clipuy', _EXP.wmPos, sc);
+        const pct = Math.round(18 + (elapsed / totalDur) * 75);
+        _expSetProg(pct, 'Grabando... ' + Math.round(elapsed/1000) + 's / ' + Math.round(videoDur/1000) + 's');
+        raf2 = requestAnimationFrame(frame);
+      } else {
+        // ── Fase end-card ──
+        if (!endCardStarted) {
+          endCardStarted = true;
+          vid.pause();
+          // Detener audio de video en el punto correcto
+          if (audioSourceNode) { try { audioSourceNode.stop(); } catch(e){} }
+        }
+        const endElapsed = elapsed - videoDur;
+        if (endElapsed < END_CARD_MS) {
+          _expDrawEndCard(rctx, RW, RH, uname, endElapsed / END_CARD_MS);
+          _expSetProg(Math.round(93 + (endElapsed / END_CARD_MS) * 4), 'Agregando marca final...');
+          raf2 = requestAnimationFrame(frame);
+        } else {
+          rec.stop();
+        }
       }
     }
-    const rec=new MediaRecorder(stream,{mimeType:_expGetMime(),videoBitsPerSecond:_EXP.quality==='1080'?8000000:4000000});
-    const chunks=[];
-    rec.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
-    const dur=Math.min(vid.duration||30,60)*1000;
-    rec.start(100);
-    _expSetProg(15,'Grabando...');
-    const t0=performance.now();
-    let raf2;
-    function frame(){
-      rctx.fillStyle='#000'; rctx.fillRect(0,0,RW,RH);
-      _expDrawMediaFit(rctx,vid,RW,RH);
-      _expDrawWM(rctx,RW,RH,_EXP.wmOpacity,uname,'Clipuy',_EXP.wmPos,sc);
-      const elapsed=performance.now()-t0;
-      _expSetProg(Math.round(15+(elapsed/dur)*80),'Grabando... '+Math.round(elapsed/1000)+'s / '+Math.round(dur/1000)+'s');
-      if(elapsed<dur&&!vid.ended) raf2=requestAnimationFrame(frame);
-      else rec.stop();
-    }
-    raf2=requestAnimationFrame(frame);
-    rec.onstop=()=>{
-      cancelAnimationFrame(raf2); vid.pause();
-      _expSetProg(98,'Finalizando...');
-      const blob=new Blob(chunks,{type:_expGetMime()});
-      const ext=_expGetMime().includes('mp4')?'mp4':'webm';
-      setTimeout(()=>{ _expDownload(blob,'clipuy-reel.'+ext); _expFinish(); },400);
+
+    raf2 = requestAnimationFrame(frame);
+
+    rec.onstop = async () => {
+      cancelAnimationFrame(raf2);
+      if (audioCtxLive) { try { audioCtxLive.close(); } catch(e){} }
+      _expSetProg(98, 'Finalizando...');
+      const blob = new Blob(chunks, { type: mime });
+      const ext = mime.includes('mp4') ? 'mp4' : 'webm';
+      setTimeout(() => { _expDownload(blob, 'clipuy-reel.' + ext); _expFinish(); }, 400);
     };
   }
 };
+
+// ── END-CARD: pantalla negra con logo Clipuy + @usuario ──
+function _expDrawEndCard(ctx, W, H, uname, progress) {
+  // Fondo negro
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+
+  // Fade-in suave (0 → 1 en primer 30%)
+  const alpha = Math.min(1, progress / 0.3);
+  ctx.globalAlpha = alpha;
+
+  // Logo Clipuy centrado
+  const logoSize = W * 0.28;
+  const logoX = (W - logoSize) / 2;
+  const logoY = H / 2 - logoSize * 0.75;
+
+  if (_wmLogoImg && _wmLogoImg.complete && _wmLogoImg.naturalWidth > 0) {
+    // círculo recortado con borde gradiente
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(W/2, logoY + logoSize/2, logoSize/2 + 4, 0, Math.PI*2);
+    const borderGrad = ctx.createLinearGradient(logoX, logoY, logoX+logoSize, logoY+logoSize);
+    borderGrad.addColorStop(0, '#25f4ee');
+    borderGrad.addColorStop(1, '#fe2c55');
+    ctx.fillStyle = borderGrad;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(W/2, logoY + logoSize/2, logoSize/2, 0, Math.PI*2);
+    ctx.closePath();
+    ctx.clip();
+    ctx.drawImage(_wmLogoImg, logoX, logoY, logoSize, logoSize);
+    ctx.restore();
+  } else {
+    // fallback gradiente con "C"
+    const grd = ctx.createLinearGradient(logoX, logoY, logoX+logoSize, logoY+logoSize);
+    grd.addColorStop(0, '#25f4ee'); grd.addColorStop(1, '#fe2c55');
+    ctx.fillStyle = grd;
+    ctx.beginPath(); ctx.arc(W/2, logoY+logoSize/2, logoSize/2, 0, Math.PI*2); ctx.fill();
+    ctx.font = `700 ${logoSize*0.55}px 'Clash Display',sans-serif`;
+    ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+    ctx.fillText('C', W/2, logoY + logoSize/2);
+  }
+
+  // Nombre "Clipuy" debajo del logo
+  const brandY = logoY + logoSize + W * 0.06;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.font = `700 ${W * 0.085}px 'Clash Display',sans-serif`;
+  // gradiente en el texto
+  const tGrad = ctx.createLinearGradient(W*0.2, brandY, W*0.8, brandY);
+  tGrad.addColorStop(0, '#25f4ee'); tGrad.addColorStop(1, '#fe2c55');
+  ctx.fillStyle = tGrad;
+  ctx.fillText('Clipuy', W/2, brandY);
+
+  // @usuario
+  const handleY = brandY + W * 0.075;
+  ctx.font = `500 ${W * 0.048}px 'Space Grotesk',sans-serif`;
+  ctx.fillStyle = 'rgba(255,255,255,0.75)';
+  const displayName = uname.startsWith('@') ? uname : '@' + uname;
+  ctx.fillText(displayName, W/2, handleY);
+
+  // Línea decorativa bajo el usuario
+  const lineW = W * 0.18;
+  const lineY = handleY + W * 0.035;
+  const lineGrad = ctx.createLinearGradient(W/2 - lineW, lineY, W/2 + lineW, lineY);
+  lineGrad.addColorStop(0, 'transparent');
+  lineGrad.addColorStop(0.5, 'rgba(37,244,238,0.6)');
+  lineGrad.addColorStop(1, 'transparent');
+  ctx.strokeStyle = lineGrad;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(W/2 - lineW, lineY);
+  ctx.lineTo(W/2 + lineW, lineY);
+  ctx.stroke();
+
+  // Texto pequeño al fondo
+  const taglineY = H - H * 0.07;
+  ctx.font = `400 ${W * 0.032}px 'Space Grotesk',sans-serif`;
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.fillText('Compartido desde Clipuy', W/2, taglineY);
+
+  ctx.globalAlpha = 1;
+}
 
 function _expDownload(blob,name){
   const url=URL.createObjectURL(blob);
