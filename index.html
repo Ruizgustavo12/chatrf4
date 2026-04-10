@@ -7420,14 +7420,24 @@ function _expDrawMediaFit(ctx, media, W, H) {
   ctx.drawImage(media, (W-dw)/2, (H-dh)/2, dw, dh);
 }
 
+// Preload ClipUY logo for watermark
+var _wmLogoImg = null;
+(function(){
+  var img = new Image();
+  img.onload = function(){ _wmLogoImg = img; };
+  img.src = '/icon-192.png';
+})();
+
 function _expDrawWM(ctx, W, H, opacity, username, brand, pos, scale) {
-  const s=scale, padX=14*s, padY=14*s, fntLogo=13*s, fntUser=11*s, pillH=26*s, gap=6*s;
+  const s=scale, padX=10*s, padY=10*s, pillH=28*s, gap=6*s;
+  const logoSize=20*s; // logo image size (square)
+  const fntUser=11*s;
+  // Ensure username always has @
+  const uname = username && username.trim() ? (username.startsWith('@') ? username : '@'+username) : '@clipuy';
   ctx.save(); ctx.globalAlpha=opacity;
-  ctx.font=`700 ${fntLogo}px 'Clash Display',sans-serif`;
-  const logoW=ctx.measureText(brand).width;
   ctx.font=`500 ${fntUser}px 'Space Grotesk',sans-serif`;
-  const userW=ctx.measureText(username).width;
-  const totalW=logoW+gap+8*s+gap+userW+padX*2;
+  const userW=ctx.measureText(uname).width;
+  const totalW = padX + logoSize + gap + userW + padX;
   let x, y;
   if(pos.includes('top'))    y=padY;
   if(pos.includes('bottom')) y=H-padY-pillH;
@@ -7436,22 +7446,37 @@ function _expDrawWM(ctx, W, H, opacity, username, brand, pos, scale) {
   if(pos.includes('center')) x=(W-totalW)/2;
   // pill bg
   _expRRect(ctx,x,y,totalW,pillH,8*s);
-  ctx.fillStyle='rgba(0,0,0,.55)'; ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,.60)'; ctx.fill();
   _expRRect(ctx,x,y,totalW,pillH,8*s);
-  ctx.strokeStyle='rgba(255,255,255,.15)'; ctx.lineWidth=1*s; ctx.stroke();
-  // brand gradient text
-  const bg=ctx.createLinearGradient(x+padX,0,x+padX+logoW,0);
-  bg.addColorStop(0,'#fff'); bg.addColorStop(1,'#25f4ee');
-  ctx.font=`700 ${fntLogo}px 'Clash Display',sans-serif`;
-  ctx.fillStyle=bg; ctx.textBaseline='middle';
-  ctx.fillText(brand,x+padX,y+pillH/2);
-  // divider
-  ctx.fillStyle='rgba(255,255,255,.2)';
-  ctx.fillRect(x+padX+logoW+gap,y+6*s,1*s,pillH-12*s);
+  ctx.strokeStyle='rgba(255,255,255,.18)'; ctx.lineWidth=1*s; ctx.stroke();
+  // logo image (small icon)
+  const logoX = x + padX;
+  const logoY = y + (pillH - logoSize) / 2;
+  if(_wmLogoImg && _wmLogoImg.complete && _wmLogoImg.naturalWidth > 0) {
+    // clip to circle
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(logoX + logoSize/2, logoY + logoSize/2, logoSize/2, 0, Math.PI*2);
+    ctx.closePath();
+    ctx.clip();
+    ctx.drawImage(_wmLogoImg, logoX, logoY, logoSize, logoSize);
+    ctx.restore();
+  } else {
+    // fallback: draw a small gradient circle with "C"
+    const grd = ctx.createLinearGradient(logoX, logoY, logoX+logoSize, logoY+logoSize);
+    grd.addColorStop(0,'#25f4ee'); grd.addColorStop(1,'#fe2c55');
+    ctx.fillStyle=grd;
+    ctx.beginPath(); ctx.arc(logoX+logoSize/2, logoY+logoSize/2, logoSize/2, 0, Math.PI*2); ctx.fill();
+    ctx.font=`700 ${logoSize*0.6}px 'Clash Display',sans-serif`;
+    ctx.fillStyle='#fff'; ctx.textBaseline='middle'; ctx.textAlign='center';
+    ctx.fillText('C', logoX+logoSize/2, logoY+logoSize/2);
+    ctx.textAlign='left';
+  }
   // username
-  ctx.font=`500 ${fntUser}px 'Space Grotesk',sans-serif`;
-  ctx.fillStyle='rgba(255,255,255,.75)';
-  ctx.fillText(username,x+padX+logoW+gap+8*s,y+pillH/2);
+  ctx.font=`600 ${fntUser}px 'Space Grotesk',sans-serif`;
+  ctx.fillStyle='rgba(255,255,255,.9)';
+  ctx.textBaseline='middle';
+  ctx.fillText(uname, logoX + logoSize + gap, y + pillH/2);
   ctx.restore();
 }
 
