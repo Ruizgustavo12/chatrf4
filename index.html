@@ -7589,7 +7589,7 @@ window.expStartExport = async function() {
     _expSetProg(15, 'Iniciando grabación...');
     vid.currentTime = 0;
     vid.muted = true;
-    await vid.play().catch(() => {});
+    // No arrancar el video todavía — se arranca después de la intro
 
     // 2. Canvas stream para los frames de video
     const canvasStream = rc.captureStream(30);
@@ -7626,45 +7626,125 @@ window.expStartExport = async function() {
     rec.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
 
     const videoDur = Math.min(vid.duration || 30, 120) * 1000; // ms
+    const INTRO_MS = 2000;  // 2 segundos de intro
     const END_CARD_MS = 3000; // 3 segundos de end-card
-    const totalDur = videoDur + END_CARD_MS;
+    const totalDur = INTRO_MS + videoDur + END_CARD_MS;
 
     rec.start(100);
     _expSetProg(18, 'Grabando...');
 
-    // Arrancar audio sincronizado
+    // Arrancar audio sincronizado (con delay para esperar la intro)
     if (audioCtxLive && audioDestNode && originalAudioBuffer) {
       audioSourceNode = audioCtxLive.createBufferSource();
       audioSourceNode.buffer = originalAudioBuffer;
       audioSourceNode.connect(audioDestNode);
-      audioSourceNode.start(0);
+      audioSourceNode.start(INTRO_MS / 1000); // empieza después de la intro
     }
+
+    // Generar audio para intro y end-card
+    let introEndAudioCtx = null;
+    try {
+      introEndAudioCtx = new AudioContext({ sampleRate: 44100 });
+    } catch(e) {}
+
+    function _playIntroSound(actx) {
+      if (!actx) return;
+      try {
+        // Swoosh ascendente suave
+        const osc = actx.createOscillator();
+        const gain = actx.createGain();
+        osc.connect(gain); gain.connect(actx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(200, actx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, actx.currentTime + 0.4);
+        gain.gain.setValueAtTime(0, actx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.18, actx.currentTime + 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.5);
+        osc.start(actx.currentTime); osc.stop(actx.currentTime + 0.55);
+        // Ding brillante
+        const osc2 = actx.createOscillator();
+        const gain2 = actx.createGain();
+        osc2.connect(gain2); gain2.connect(actx.destination);
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(1100, actx.currentTime + 0.35);
+        gain2.gain.setValueAtTime(0, actx.currentTime + 0.35);
+        gain2.gain.linearRampToValueAtTime(0.22, actx.currentTime + 0.45);
+        gain2.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 1.1);
+        osc2.start(actx.currentTime + 0.35); osc2.stop(actx.currentTime + 1.2);
+      } catch(e) {}
+    }
+
+    function _playEndCardSound(actx) {
+      if (!actx) return;
+      try {
+        // Dos dings descendentes + reverb sintético
+        [0, 0.22].forEach((delay, i) => {
+          const osc = actx.createOscillator();
+          const gain = actx.createGain();
+          osc.connect(gain); gain.connect(actx.destination);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(i === 0 ? 880 : 660, actx.currentTime + delay);
+          gain.gain.setValueAtTime(0, actx.currentTime + delay);
+          gain.gain.linearRampToValueAtTime(0.2, actx.currentTime + delay + 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + delay + 1.0);
+          osc.start(actx.currentTime + delay);
+          osc.stop(actx.currentTime + delay + 1.1);
+        });
+        // Sub-bass suave
+        const sub = actx.createOscillator();
+        const subGain = actx.createGain();
+        sub.connect(subGain); subGain.connect(actx.destination);
+        sub.type = 'sine';
+        sub.frequency.setValueAtTime(80, actx.currentTime);
+        subGain.gain.setValueAtTime(0.12, actx.currentTime);
+        subGain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.5);
+        sub.start(actx.currentTime); sub.stop(actx.currentTime + 0.6);
+      } catch(e) {}
+    }
+
+    // Reproducir sonido de intro inmediatamente
+    _playIntroSound(introEndAudioCtx);
 
     const t0 = performance.now();
     let raf2;
+    let videoStarted = false;
     let endCardStarted = false;
+    let endSoundPlayed = false;
 
     function frame() {
       const elapsed = performance.now() - t0;
 
-      if (elapsed < videoDur && !vid.ended) {
-        // ── Fase video: dibujar frames con watermark ──
+      if (elapsed < INTRO_MS) {
+        // ── Fase INTRO ──
+        _expDrawIntroCard(rctx, RW, RH, uname, elapsed / INTRO_MS);
+        _expSetProg(Math.round(18 + (elapsed / totalDur) * 10), 'Intro...');
+        raf2 = requestAnimationFrame(frame);
+      } else if (elapsed < INTRO_MS + videoDur && !vid.ended) {
+        // ── Fase VIDEO ──
+        if (!videoStarted) {
+          videoStarted = true;
+          vid.currentTime = 0;
+          vid.play().catch(() => {});
+        }
         rctx.fillStyle = '#000';
         rctx.fillRect(0, 0, RW, RH);
         _expDrawMediaFit(rctx, vid, RW, RH);
         _expDrawWM(rctx, RW, RH, _EXP.wmOpacity, uname, 'Clipuy', _EXP.wmPos, sc);
-        const pct = Math.round(18 + (elapsed / totalDur) * 75);
-        _expSetProg(pct, 'Grabando... ' + Math.round(elapsed/1000) + 's / ' + Math.round(videoDur/1000) + 's');
+        const pct = Math.round(28 + ((elapsed - INTRO_MS) / totalDur) * 65);
+        _expSetProg(pct, 'Grabando... ' + Math.round((elapsed - INTRO_MS)/1000) + 's / ' + Math.round(videoDur/1000) + 's');
         raf2 = requestAnimationFrame(frame);
       } else {
-        // ── Fase end-card ──
+        // ── Fase END-CARD ──
         if (!endCardStarted) {
           endCardStarted = true;
           vid.pause();
-          // Detener audio de video en el punto correcto
           if (audioSourceNode) { try { audioSourceNode.stop(); } catch(e){} }
         }
-        const endElapsed = elapsed - videoDur;
+        if (!endSoundPlayed) {
+          endSoundPlayed = true;
+          _playEndCardSound(introEndAudioCtx);
+        }
+        const endElapsed = elapsed - INTRO_MS - videoDur;
         if (endElapsed < END_CARD_MS) {
           _expDrawEndCard(rctx, RW, RH, uname, endElapsed / END_CARD_MS);
           _expSetProg(Math.round(93 + (endElapsed / END_CARD_MS) * 4), 'Agregando marca final...');
@@ -7680,6 +7760,7 @@ window.expStartExport = async function() {
     rec.onstop = async () => {
       cancelAnimationFrame(raf2);
       if (audioCtxLive) { try { audioCtxLive.close(); } catch(e){} }
+      if (introEndAudioCtx) { setTimeout(() => { try { introEndAudioCtx.close(); } catch(e){} }, 1500); }
       _expSetProg(98, 'Finalizando...');
       const blob = new Blob(chunks, { type: mime });
       const ext = mime.includes('mp4') ? 'mp4' : 'webm';
@@ -7687,6 +7768,108 @@ window.expStartExport = async function() {
     };
   }
 };
+
+// ── INTRO-CARD: pantalla de entrada con logo Clipuy + @usuario ──
+function _expDrawIntroCard(ctx, W, H, uname, progress) {
+  // Fondo negro con partículas de gradiente
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+
+  // Glow de fondo radial animado
+  const glowAlpha = 0.15 + 0.1 * Math.sin(progress * Math.PI * 2);
+  const grd = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W * 0.6);
+  grd.addColorStop(0, `rgba(37,244,238,${glowAlpha})`);
+  grd.addColorStop(0.5, `rgba(254,44,85,${glowAlpha * 0.5})`);
+  grd.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, W, H);
+
+  // Fade-in en el primer 25%, fade-out en el último 20%
+  let alpha;
+  if (progress < 0.25) alpha = progress / 0.25;
+  else if (progress > 0.80) alpha = (1 - progress) / 0.20;
+  else alpha = 1;
+  ctx.globalAlpha = alpha;
+
+  // Logo centrado — más arriba
+  const logoSize = W * 0.30;
+  const logoX = (W - logoSize) / 2;
+  const logoY = H / 2 - logoSize * 0.85;
+
+  // Anillo de gradiente animado
+  ctx.save();
+  const ringAngle = progress * Math.PI * 4;
+  const ringGrad = ctx.createLinearGradient(
+    W/2 + Math.cos(ringAngle) * logoSize * 0.6,
+    H/2 + Math.sin(ringAngle) * logoSize * 0.6,
+    W/2 - Math.cos(ringAngle) * logoSize * 0.6,
+    H/2 - Math.sin(ringAngle) * logoSize * 0.6
+  );
+  ringGrad.addColorStop(0, '#25f4ee');
+  ringGrad.addColorStop(1, '#fe2c55');
+  ctx.strokeStyle = ringGrad;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.arc(W/2, logoY + logoSize/2, logoSize/2 + 6, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
+  if (_wmLogoImg && _wmLogoImg.complete && _wmLogoImg.naturalWidth > 0) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(W/2, logoY + logoSize/2, logoSize/2, 0, Math.PI*2);
+    ctx.closePath();
+    ctx.clip();
+    ctx.drawImage(_wmLogoImg, logoX, logoY, logoSize, logoSize);
+    ctx.restore();
+  } else {
+    const grd2 = ctx.createLinearGradient(logoX, logoY, logoX+logoSize, logoY+logoSize);
+    grd2.addColorStop(0, '#25f4ee'); grd2.addColorStop(1, '#fe2c55');
+    ctx.fillStyle = grd2;
+    ctx.beginPath(); ctx.arc(W/2, logoY+logoSize/2, logoSize/2, 0, Math.PI*2); ctx.fill();
+    ctx.font = `700 ${logoSize*0.55}px 'Clash Display',sans-serif`;
+    ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+    ctx.fillText('C', W/2, logoY + logoSize/2);
+  }
+
+  // Texto "Clipuy"
+  const brandY = logoY + logoSize + W * 0.06;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.font = `700 ${W * 0.09}px 'Clash Display',sans-serif`;
+  const tGrad = ctx.createLinearGradient(W*0.2, brandY, W*0.8, brandY);
+  tGrad.addColorStop(0, '#25f4ee'); tGrad.addColorStop(1, '#fe2c55');
+  ctx.fillStyle = tGrad;
+  ctx.fillText('Clipuy', W/2, brandY);
+
+  // Línea decorativa
+  const lineW = W * 0.20;
+  const lineY = brandY + W * 0.025;
+  const lineGrad = ctx.createLinearGradient(W/2 - lineW, lineY, W/2 + lineW, lineY);
+  lineGrad.addColorStop(0, 'transparent');
+  lineGrad.addColorStop(0.5, 'rgba(37,244,238,0.8)');
+  lineGrad.addColorStop(1, 'transparent');
+  ctx.strokeStyle = lineGrad;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(W/2 - lineW, lineY);
+  ctx.lineTo(W/2 + lineW, lineY);
+  ctx.stroke();
+
+  // @usuario debajo de la línea
+  const handleY = lineY + W * 0.06;
+  ctx.font = `600 ${W * 0.05}px 'Space Grotesk',sans-serif`;
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  const displayName = uname.startsWith('@') ? uname : '@' + uname;
+  ctx.fillText(displayName, W/2, handleY);
+
+  // Texto pequeño "subido por"
+  const subY = handleY + W * 0.04;
+  ctx.font = `400 ${W * 0.028}px 'Space Grotesk',sans-serif`;
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.fillText('subido por', W/2, subY);
+
+  ctx.globalAlpha = 1;
+}
 
 // ── END-CARD: pantalla negra con logo Clipuy + @usuario ──
 function _expDrawEndCard(ctx, W, H, uname, progress) {
