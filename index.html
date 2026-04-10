@@ -955,26 +955,6 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
 }
 #private-chat.open{display:flex;}
 
-/* Perfil del contacto estilo Messenger */
-#pc-contact-profile{
-  display:flex;flex-direction:column;align-items:center;
-  padding:28px 20px 18px;
-  flex-shrink:0;
-  border-bottom:1px solid var(--border);
-  background:#000;
-}
-#pc-contact-profile img{
-  width:68px;height:68px;border-radius:50%;object-fit:cover;
-  border:2px solid var(--border);margin-bottom:10px;
-}
-#pc-profile-name{
-  font-weight:700;font-size:1.05rem;color:#fff;margin-bottom:3px;
-}
-#pc-profile-handle{
-  font-size:.78rem;color:var(--text-muted);
-}
-
-
 /* pc-header etc. styles */
 .pc-header{
   display:flex;align-items:center;gap:12px;
@@ -1024,6 +1004,9 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
 .pc-send:hover{opacity:.85;color:#fff;}
 .pc-attach{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;padding:4px 6px;transition:color .15s;}
 .pc-attach:hover{color:#fff;}
+.pc-audio-btn.recording{color:var(--accent);animation:pulse-rec .8s infinite;}
+@keyframes pulse-rec{0%,100%{opacity:1;}50%{opacity:.4;}}
+
 
 /* ── UPLOAD VIDEO MODAL ── */
 #upload-modal{
@@ -1819,12 +1802,6 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
             <div class="pc-status" id="pc-status">@usuario</div>
           </div>
         </div>
-        <!-- Perfil del contacto (se muestra al inicio del chat, estilo Messenger) -->
-        <div id="pc-contact-profile">
-          <img id="pc-profile-avatar" src="" onerror="this.src=''" />
-          <div id="pc-profile-name"></div>
-          <div id="pc-profile-handle"></div>
-        </div>
         <div class="pc-messages" id="pc-messages"></div>
         <!-- Emoji picker -->
         <div id="emoji-picker" style="display:none;padding:8px 12px;background:var(--surface2);border-top:1px solid var(--border);flex-wrap:wrap;gap:4px;flex-direction:row;max-height:180px;overflow-y:auto;position:relative">
@@ -1883,6 +1860,7 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
           </button>
           <input class="pc-inp" id="pc-inp" placeholder="Enviar un mensaje..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPcMsg();}"/>
           <button class="pc-attach" onclick="toggleEmojiPicker()" style="font-size:1.3rem;padding:4px 8px">😊</button>
+          <button class="pc-attach pc-audio-btn" id="pc-audio-btn" onclick="toggleAudioRecord()" title="Grabar audio" style="font-size:1.3rem;padding:4px 8px">🎤</button>
           <button class="pc-send" onclick="sendPcMsg()">
             <svg width="16" height="16" fill="white" viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
           </button>
@@ -4479,13 +4457,6 @@ window.openPrivateChat = async (uid, name, avatar, chatId) => {
   document.getElementById('pc-avatar').src = avatar || avatarFallback(uid||'u');
   document.getElementById('pc-name').textContent = name;
   document.getElementById('pc-status').textContent = '@' + (name||'').toLowerCase().replace(/\s/g,'');
-  // Rellenar perfil del contacto (estilo Messenger)
-  const profileAvatar = document.getElementById('pc-profile-avatar');
-  if(profileAvatar){ profileAvatar.src = avatar || avatarFallback(uid||'u'); profileAvatar.onerror = ()=>{ profileAvatar.src = avatarFallback(uid||'u'); }; }
-  const profileName = document.getElementById('pc-profile-name');
-  if(profileName) profileName.textContent = name;
-  const profileHandle = document.getElementById('pc-profile-handle');
-  if(profileHandle) profileHandle.textContent = '@' + (name||'').toLowerCase().replace(/\s/g,'');
   // Show embedded chat, hide empty state
   document.getElementById('chat-empty-state').style.display = 'none';
   document.getElementById('private-chat').classList.add('open');
@@ -4630,7 +4601,8 @@ function renderPcMessages(msgs) {
         <div class="pc-bubble" oncontextmenu="event.preventDefault();showMsgMenu('${m.id}','${escHtml((m.text||'').replace(/'/g,'\''))}',${isOwn})">
           ${replyHtml}
           ${m.text ? escHtml(m.text) : ''}
-          ${m.mediaUrl ? `<img class="pc-bubble-img" data-src="${escHtml(m.mediaUrl)}" onclick="window.open('${escHtml(m.mediaUrl)}','_blank')"/>` : ''}
+          ${m.mediaUrl && m.isAudio ? `<audio controls src="${escHtml(m.mediaUrl)}" style="max-width:200px;height:36px;outline:none;border-radius:99px;"></audio>` : ''}
+          ${m.mediaUrl && !m.isAudio ? `<img class="pc-bubble-img" data-src="${escHtml(m.mediaUrl)}" onclick="window.open('${escHtml(m.mediaUrl)}','_blank')"/>` : ''}
         </div>
         ${rxnHtml ? `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:3px;">${rxnHtml}</div>` : ''}
         <div class="pc-msg-meta">
@@ -6191,6 +6163,120 @@ window.publishDuet = async () => {
     </button>
   </div>
 </div>
+// ══ AUDIO RECORD EN CHAT ══
+let _audioRecorder = null, _audioChunks = [], _audioRecording = false;
+
+window.toggleAudioRecord = async () => {
+  if (_audioRecording) {
+    // Detener
+    _audioRecorder.stop();
+  } else {
+    // Iniciar
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const supported = ['audio/webm;codecs=opus','audio/webm','audio/ogg','audio/mp4']
+        .find(t => MediaRecorder.isTypeSupported(t)) || '';
+      _audioRecorder = new MediaRecorder(stream, supported ? { mimeType: supported } : {});
+      _audioChunks = [];
+      _audioRecorder.ondataavailable = e => { if(e.data.size > 0) _audioChunks.push(e.data); };
+      _audioRecorder.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+        _audioRecording = false;
+        document.getElementById('pc-audio-btn').classList.remove('recording');
+        document.getElementById('pc-audio-btn').title = 'Grabar audio';
+        const blob = new Blob(_audioChunks, { type: _audioRecorder.mimeType || 'audio/webm' });
+        const ext = blob.type.includes('ogg') ? 'ogg' : blob.type.includes('mp4') ? 'mp4' : 'webm';
+        const file = new File([blob], `audio_${Date.now()}.${ext}`, { type: blob.type });
+        showToast('📤 Enviando audio...');
+        try {
+          const mediaUrl = await uploadToServer(file);
+          await addDoc(collection(db,'chats',window._currentChatId,'messages'), {
+            uid: currentUser.uid,
+            name: myProfile.name || 'Usuario',
+            avatar: myProfile.avatar || avatarFallback(currentUser.uid),
+            text: '', mediaUrl, isAudio: true, ts: serverTimestamp()
+          });
+          await updateDoc(doc(db,'chats',window._currentChatId), {
+            lastMsg: '🎤 Audio', lastTs: serverTimestamp()
+          });
+        } catch(e) { showToast('❌ Error al enviar audio: ' + e.message); }
+      };
+      _audioRecorder.start(200);
+      _audioRecording = true;
+      document.getElementById('pc-audio-btn').classList.add('recording');
+      document.getElementById('pc-audio-btn').title = 'Detener (tocá para enviar)';
+      showToast('🎤 Grabando... tocá el micrófono para enviar');
+    } catch(e) {
+      showToast('❌ No se pudo acceder al micrófono: ' + e.message);
+    }
+  }
+};
+
+// ══ BURBUJA FLOTANTE ARRASTRABLE ══
+(function() {
+  const bubble = document.getElementById('float-chat-bubble');
+  if (!bubble) return;
+  let dragging = false, startX, startY, origX, origY;
+
+  // Posición guardada
+  const saved = JSON.parse(localStorage.getItem('fcb_pos') || 'null');
+  if (saved) { bubble.style.right = 'auto'; bubble.style.bottom = 'auto'; bubble.style.left = saved.x + 'px'; bubble.style.top = saved.y + 'px'; }
+
+  bubble.addEventListener('mousedown', e => {
+    if (e.target.closest('#fcb-btn') === null) return;
+    dragging = true;
+    startX = e.clientX; startY = e.clientY;
+    const rect = bubble.getBoundingClientRect();
+    origX = rect.left; origY = rect.top;
+    bubble.style.transition = 'none';
+    bubble.style.right = 'auto'; bubble.style.bottom = 'auto';
+    bubble.style.left = origX + 'px'; bubble.style.top = origY + 'px';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - startX, dy = e.clientY - startY;
+    const nx = Math.max(0, Math.min(window.innerWidth - 70, origX + dx));
+    const ny = Math.max(0, Math.min(window.innerHeight - 70, origY + dy));
+    bubble.style.left = nx + 'px'; bubble.style.top = ny + 'px';
+  });
+
+  document.addEventListener('mouseup', e => {
+    if (!dragging) return;
+    dragging = false;
+    const rect = bubble.getBoundingClientRect();
+    try { localStorage.setItem('fcb_pos', JSON.stringify({ x: rect.left, y: rect.top })); } catch(e) {}
+  });
+
+  // Touch
+  bubble.addEventListener('touchstart', e => {
+    if (e.target.closest('#fcb-btn') === null) return;
+    const t = e.touches[0];
+    dragging = true; startX = t.clientX; startY = t.clientY;
+    const rect = bubble.getBoundingClientRect();
+    origX = rect.left; origY = rect.top;
+    bubble.style.transition = 'none';
+    bubble.style.right = 'auto'; bubble.style.bottom = 'auto';
+    bubble.style.left = origX + 'px'; bubble.style.top = origY + 'px';
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+    const nx = Math.max(0, Math.min(window.innerWidth - 70, origX + dx));
+    const ny = Math.max(0, Math.min(window.innerHeight - 70, origY + dy));
+    bubble.style.left = nx + 'px'; bubble.style.top = ny + 'px';
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => {
+    if (!dragging) return;
+    dragging = false;
+    const rect = bubble.getBoundingClientRect();
+    try { localStorage.setItem('fcb_pos', JSON.stringify({ x: rect.left, y: rect.top })); } catch(e) {}
+  });
+})();
 
 </body>
 </html>
