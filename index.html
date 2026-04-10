@@ -815,7 +815,7 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
 
 /* ── DUETO MODAL ── */
 #duet-modal{
-  position:fixed;inset:0;left:72px;z-index:460;background:#000;
+  position:fixed;inset:0;left:0;z-index:9990;background:#000;
   display:none;flex-direction:column;
 }
 #duet-modal.open{display:flex;}
@@ -2764,20 +2764,6 @@ async function loadExplore() {
 async function loadFeed() {
   const container = document.getElementById('videos-container');
   container.innerHTML = '';
-  // Delegación de clicks para botón dueto — evita problemas con comillas en onclick
-  container.onclick = null;
-  container.addEventListener('click', (e) => {
-    const btn = e.target.closest('.duet-btn');
-    if(!btn) return;
-    e.stopPropagation();
-    openDuet(
-      btn.dataset.clipId,
-      btn.dataset.mediaUrl,
-      btn.dataset.authorName,
-      btn.dataset.authorUid,
-      btn.dataset.desc
-    );
-  }, { capture: true });
   try {
     const q = query(collection(db,'clips'), orderBy('ts','desc'), limit(20));
     const snap = await getDocs(q);
@@ -2907,8 +2893,7 @@ function buildVideoSlide(id, data) {
       </div>` : ''}
     </div>
   `;
-  // Dueto button handler — se registra después via delegación en el contenedor
-  // (evita problemas de comillas en onclick inline y de querySelector antes del DOM)
+  // Dueto: manejado por delegación global en #videos-container
 
   // ── Scrub bar wiring (videos only) ──
   if(isVideo) {
@@ -3019,6 +3004,21 @@ function updateFeedNavBtns() {
     if(dnBtn) dnBtn.disabled = idx === slides.length - 1;
   });
 }
+
+// ── DELEGACIÓN GLOBAL DUETO ──
+document.getElementById('videos-container').addEventListener('click', function(e) {
+  const btn = e.target.closest('.duet-btn');
+  if (!btn) return;
+  e.stopPropagation();
+  e.preventDefault();
+  openDuet(
+    btn.dataset.clipId,
+    btn.dataset.mediaUrl,
+    btn.dataset.authorName,
+    btn.dataset.authorUid,
+    btn.dataset.desc
+  );
+}, true);
 
 function setupVideoObserver() {
   if(_videoObserver) _videoObserver.disconnect();
@@ -5936,9 +5936,16 @@ window.openDuet = async (clipId, mediaUrl, authorName, authorUid, desc) => {
 
   // Load original video
   const orig = document.getElementById('duet-original-video');
+  orig.pause();
+  orig.removeAttribute('src');
+  orig.load();
   orig.src = mediaUrl;
   orig.muted = true;
-  orig.play().catch(()=>{});
+  orig.load();
+  orig.play().catch(() => {
+    // Si el browser bloquea autoplay, mostrar overlay de play
+    orig.addEventListener('canplay', () => { orig.play().catch(()=>{}); }, { once: true });
+  });
 
   // Open modal
   document.getElementById('duet-modal').classList.add('open');
