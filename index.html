@@ -7285,9 +7285,13 @@ window.carouselPublish = async function() {
 
     <div class="exp-footer">
       <button class="exp-cancel-btn" onclick="clipuyCloseExport()">Cancelar</button>
+      <button class="exp-go-btn" id="exp-direct-btn" onclick="expDownloadOriginal()" style="background:var(--surface3);color:var(--text);border:1px solid var(--border);margin-right:6px;">
+        <svg viewBox="0 0 24 24"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
+        Original (con audio)
+      </button>
       <button class="exp-go-btn" id="exp-go-btn" onclick="expStartExport()">
         <svg viewBox="0 0 24 24"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
-        Exportar y descargar
+        Exportar con marca
       </button>
     </div>
   </div>
@@ -7352,6 +7356,8 @@ window.clipuyOpenExport = function(mediaUrl, mediaType) {
   document.getElementById('exp-wm-user').textContent = '@' + uname;
   document.getElementById('exp-progress').classList.remove('show');
   document.getElementById('exp-go-btn').disabled = !_EXP.mediaUrl;
+  const directBtn = document.getElementById('exp-direct-btn');
+  if (directBtn) directBtn.style.display = _EXP.mediaType === 'video' ? '' : 'none';
   document.getElementById('clipuy-export-modal').classList.add('open');
   if (_EXP.mediaUrl) _expLoadMedia(_EXP.mediaUrl, _EXP.mediaType);
   else _expDrawPreview();
@@ -7536,6 +7542,30 @@ function _expGetMime(){
   const types=['video/mp4;codecs=avc1','video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'];
   return types.find(t=>MediaRecorder.isTypeSupported(t))||'video/webm';
 }
+
+window.expDownloadOriginal = async function() {
+  if (!_EXP.mediaUrl || _EXP.exporting) return;
+  const btn = document.getElementById('exp-direct-btn');
+  const goBtn = document.getElementById('exp-go-btn');
+  btn.disabled = true;
+  goBtn.disabled = true;
+  btn.textContent = 'Descargando...';
+  try {
+    const res = await fetch(_EXP.mediaUrl);
+    if (!res.ok) throw new Error('No se pudo obtener el archivo');
+    const blob = await res.blob();
+    // Detectar extensión por el tipo del blob o la URL
+    let ext = 'mp4';
+    if (blob.type.includes('webm') || _EXP.mediaUrl.includes('.webm')) ext = 'webm';
+    else if (blob.type.includes('quicktime') || _EXP.mediaUrl.includes('.mov')) ext = 'mov';
+    _expDownload(blob, 'clipuy-original.' + ext);
+  } catch(e) {
+    alert('No se pudo descargar el original: ' + e.message);
+  }
+  btn.disabled = false;
+  goBtn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg> Original (con audio)';
+};
 
 window.expStartExport = async function() {
   if(!_EXP.mediaUrl||_EXP.exporting) return;
