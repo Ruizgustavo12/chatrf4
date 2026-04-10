@@ -2846,7 +2846,7 @@ async function loadNgrokMedia(root) {
         el.src = url;
       } else {
         // Servidor tunnel — necesita el header
-        const res = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+        const res = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true', 'Authorization': 'Bearer APaYczEALjtr_w6GtSM58-qCc0SPDyVvUjmwHiB74pE' } });
         if (!res.ok) throw new Error('status ' + res.status);
         const blob = await res.blob();
         el.src = URL.createObjectURL(blob);
@@ -4922,7 +4922,7 @@ function renderPcMessages(msgs) {
         <div class="pc-bubble" oncontextmenu="event.preventDefault();showMsgMenu('${m.id}','${escHtml((m.text||'').replace(/'/g,'\''))}',${isOwn})">
           ${replyHtml}
           ${m.text ? escHtml(m.text) : ''}
-          ${m.gifUrl ? `<img src="${escHtml(m.gifUrl)}" style="max-width:200px;border-radius:10px;display:block;cursor:pointer;" onclick="window.open('${escHtml(m.gifUrl)}','_blank')" loading="lazy"/>` : ''}
+          ${m.gifUrl ? `<img src="${escHtml(m.gifUrl)}" style="max-width:200px;border-radius:10px;display:block;cursor:pointer;" onclick="window.open('${escHtml(m.gifUrl)}','_blank')" loading="lazy" onerror="this.alt='GIF no disponible';this.style.display='none';this.nextSibling&&(this.nextSibling.style.display='block')"/><span style="display:none;font-size:.8rem;color:var(--text-muted);">📎 GIF</span>` : ''}
           ${m.mediaUrl && m.isAudio ? `<audio controls data-audio-src="${escHtml(m.mediaUrl)}" style="max-width:200px;height:36px;outline:none;border-radius:99px;"></audio>` : ''}
           ${m.mediaUrl && !m.isAudio ? `<img class="pc-bubble-img" data-src="${escHtml(m.mediaUrl)}" onclick="window.open('${escHtml(m.mediaUrl)}','_blank')"/>` : ''}
         </div>
@@ -5112,12 +5112,13 @@ function renderFloatMsgs(msgs) {
     const time = fmtMsgTime(m.ts);
     const readMark = isOwn ? `<span class="fcw-read">${m.read?'✓✓':'✓'}</span>` : '';
     div.innerHTML=`<div>
-      <div class="fcw-bubble">${m.gifUrl?`<img src="${escHtml(m.gifUrl)}" style="max-width:160px;border-radius:8px;display:block;" loading="lazy"/>`:escHtml(m.text||'📎')}</div>
+      <div class="fcw-bubble">${m.gifUrl?`<img src="${escHtml(m.gifUrl)}" style="max-width:160px;border-radius:8px;display:block;" loading="lazy" onerror="this.style.display='none'"/>`:m.mediaUrl&&m.isAudio?`<audio controls data-audio-src="${escHtml(m.mediaUrl)}" style="max-width:180px;height:36px;outline:none;border-radius:99px;"></audio>`:escHtml(m.text||'📎')}</div>
       <div class="fcw-meta">${time}${isOwn?` ${readMark}`:''}</div>
     </div>`;
     box.appendChild(div);
   });
   if(wasBottom||msgs.length<=3) box.scrollTop=box.scrollHeight;
+  loadNgrokMedia(box);
   // mark as read
   const last=msgs[msgs.length-1];
   if(last&&last.uid!==currentUser?.uid&&!last.read&&_fbChatId) {
@@ -6562,18 +6563,35 @@ window.toggleAudioRecord = async () => {
             mediaUrl = UPLOAD_SERVER + '/files/' + data.tipo + '/' + data.fecha + '/' + data.archivo;
           } catch(serverErr) {
             console.warn('Servidor local no disponible para audio, usando Cloudinary:', serverErr.message);
-            // Cloudinary no soporta audio webm directamente — convertir a blob y subir como raw
+            // Subir audio a Cloudinary como video para mantener Content-Type correcto
             showToast('☁️ Subiendo a la nube...');
             const fd2 = new FormData();
             fd2.append('file', file);
             fd2.append('upload_preset', CLOUDINARY_PRESET);
-            fd2.append('resource_type', 'raw');
-            const res2 = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`, {
-              method: 'POST', body: fd2
-            });
-            if (!res2.ok) throw new Error('Cloudinary error ' + res2.status);
-            const d2 = await res2.json();
-            mediaUrl = d2.secure_url;
+            // Intentar como video primero (mejor soporte de audio), fallback a raw
+            let mediaUrl2 = null;
+            try {
+              const res2v = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/video/upload`, {
+                method: 'POST', body: fd2
+              });
+              if (res2v.ok) {
+                const d2v = await res2v.json();
+                mediaUrl2 = d2v.secure_url;
+              }
+            } catch(_) {}
+            if (!mediaUrl2) {
+              const fd3 = new FormData();
+              fd3.append('file', file);
+              fd3.append('upload_preset', CLOUDINARY_PRESET);
+              fd3.append('resource_type', 'raw');
+              const res2 = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`, {
+                method: 'POST', body: fd3
+              });
+              if (!res2.ok) throw new Error('Cloudinary error ' + res2.status);
+              const d2 = await res2.json();
+              mediaUrl2 = d2.secure_url;
+            }
+            mediaUrl = mediaUrl2;
           }
           await addDoc(collection(db,'chats',window._currentChatId,'messages'), {
             uid: currentUser.uid,
@@ -6582,7 +6600,8 @@ window.toggleAudioRecord = async () => {
             text: '', mediaUrl, isAudio: true, ts: serverTimestamp()
           });
           await updateDoc(doc(db,'chats',window._currentChatId), {
-            lastMsg: '🎤 Audio', lastTs: serverTimestamp()
+            lastMsg: '🎤 Audio', lastTs: serverTimestamp(),
+            ['unread.'+_currentChatUid]: increment(1)
           });
           showToast('✅ Audio enviado');
         } catch(e) { showToast('❌ Error al enviar audio: ' + e.message); }
@@ -6712,11 +6731,13 @@ window.searchGifs = (q) => {
       }
       results.innerHTML = '';
       data.results.forEach(item => {
-        const url = (item.media_formats&&item.media_formats.tinygif&&item.media_formats.tinygif.url)||(item.media_formats&&item.media_formats.gif&&item.media_formats.gif.url);
+        const url = (item.media_formats&&item.media_formats.gif&&item.media_formats.gif.url)||(item.media_formats&&item.media_formats.mediumgif&&item.media_formats.mediumgif.url)||(item.media_formats&&item.media_formats.tinygif&&item.media_formats.tinygif.url);
+        const previewUrl = (item.media_formats&&item.media_formats.tinygif&&item.media_formats.tinygif.url)||url;
         if (!url) return;
         const img = document.createElement('img');
-        img.src = url;
+        img.src = previewUrl;
         img.style.cssText = 'width:100%;height:80px;object-fit:cover;border-radius:8px;cursor:pointer;transition:opacity .15s;';
+        img.onerror = function(){ this.style.background='var(--surface3)'; };
         img.addEventListener('click', () => window.sendGifMsg(url));
         results.appendChild(img);
       });
