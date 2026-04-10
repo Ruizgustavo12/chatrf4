@@ -2834,6 +2834,28 @@ async function loadNgrokMedia(root) {
       el.src = URL.createObjectURL(blob);
     } catch(e) { el.src = url; }
   });
+  // Cargar audios del chat con blob URL (necesita header para el tunnel)
+  const audioEls = (root || document).querySelectorAll('audio[data-audio-src]');
+  audioEls.forEach(async (el) => {
+    const url = el.getAttribute('data-audio-src');
+    if (!url) return;
+    el.removeAttribute('data-audio-src');
+    try {
+      // Si la URL es de Cloudinary, se puede cargar directo (no necesita header)
+      if (url.includes('cloudinary.com') || url.includes('res.cloudinary')) {
+        el.src = url;
+      } else {
+        // Servidor tunnel — necesita el header
+        const res = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+        if (!res.ok) throw new Error('status ' + res.status);
+        const blob = await res.blob();
+        el.src = URL.createObjectURL(blob);
+      }
+    } catch(e) {
+      // Fallback: intentar src directo
+      el.src = url;
+    }
+  });
 }
 
 onAuthStateChanged(auth, async (user) => {
@@ -4871,8 +4893,7 @@ function renderPcMessages(msgs) {
   const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
   container.innerHTML = '';
   let lastDate = '';
-  msgs.forEach((m, idx) => {
-    const isOwn = m.uid === currentUser?.uid;
+  msgs.forEach((m, idx) => {    const isOwn = m.uid === currentUser?.uid;
     const msgDate = m.ts?.toDate ? m.ts.toDate().toLocaleDateString('es') : '';
     // Date separator
     if(msgDate && msgDate !== lastDate) {
@@ -4902,7 +4923,7 @@ function renderPcMessages(msgs) {
           ${replyHtml}
           ${m.text ? escHtml(m.text) : ''}
           ${m.gifUrl ? `<img src="${escHtml(m.gifUrl)}" style="max-width:200px;border-radius:10px;display:block;cursor:pointer;" onclick="window.open('${escHtml(m.gifUrl)}','_blank')" loading="lazy"/>` : ''}
-          ${m.mediaUrl && m.isAudio ? `<audio controls src="${escHtml(m.mediaUrl)}" style="max-width:200px;height:36px;outline:none;border-radius:99px;"></audio>` : ''}
+          ${m.mediaUrl && m.isAudio ? `<audio controls data-audio-src="${escHtml(m.mediaUrl)}" style="max-width:200px;height:36px;outline:none;border-radius:99px;"></audio>` : ''}
           ${m.mediaUrl && !m.isAudio ? `<img class="pc-bubble-img" data-src="${escHtml(m.mediaUrl)}" onclick="window.open('${escHtml(m.mediaUrl)}','_blank')"/>` : ''}
         </div>
         ${rxnHtml ? `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:3px;">${rxnHtml}</div>` : ''}
@@ -6515,12 +6536,45 @@ window.toggleAudioRecord = async () => {
         _audioRecording = false;
         document.getElementById('pc-audio-btn').classList.remove('recording');
         document.getElementById('pc-audio-btn').title = 'Grabar audio';
-        const blob = new Blob(_audioChunks, { type: _audioRecorder.mimeType || 'audio/webm' });
-        const ext = blob.type.includes('ogg') ? 'ogg' : blob.type.includes('mp4') ? 'mp4' : 'webm';
-        const file = new File([blob], `audio_${Date.now()}.${ext}`, { type: blob.type });
+        const mimeType = _audioRecorder.mimeType || 'audio/webm';
+        const blob = new Blob(_audioChunks, { type: mimeType });
+        // Forzar extensión compatible: preferir webm, fallback mp4, ogg
+        const ext = mimeType.includes('ogg') ? 'ogg' : mimeType.includes('mp4') ? 'mp4' : 'webm';
+        const file = new File([blob], `audio_${Date.now()}.${ext}`, { type: mimeType });
         showToast('📤 Enviando audio...');
         try {
-          const mediaUrl = await uploadToServer(file);
+          // Intentar servidor tunnel primero
+          let mediaUrl = null;
+          try {
+            const fd = new FormData();
+            fd.append('archivo', file);
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 30000);
+            const res = await fetch(UPLOAD_SERVER + '/subir', {
+              method: 'POST', body: fd,
+              headers: { 'ngrok-skip-browser-warning': 'true', 'Authorization': 'Bearer APaYczEALjtr_w6GtSM58-qCc0SPDyVvUjmwHiB74pE' },
+              signal: controller.signal
+            });
+            clearTimeout(timeout);
+            if (!res.ok) throw new Error('status ' + res.status);
+            const data = await res.json();
+            if (!data.archivo) throw new Error('sin archivo');
+            mediaUrl = UPLOAD_SERVER + '/files/' + data.tipo + '/' + data.fecha + '/' + data.archivo;
+          } catch(serverErr) {
+            console.warn('Servidor local no disponible para audio, usando Cloudinary:', serverErr.message);
+            // Cloudinary no soporta audio webm directamente — convertir a blob y subir como raw
+            showToast('☁️ Subiendo a la nube...');
+            const fd2 = new FormData();
+            fd2.append('file', file);
+            fd2.append('upload_preset', CLOUDINARY_PRESET);
+            fd2.append('resource_type', 'raw');
+            const res2 = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`, {
+              method: 'POST', body: fd2
+            });
+            if (!res2.ok) throw new Error('Cloudinary error ' + res2.status);
+            const d2 = await res2.json();
+            mediaUrl = d2.secure_url;
+          }
           await addDoc(collection(db,'chats',window._currentChatId,'messages'), {
             uid: currentUser.uid,
             name: myProfile.name || 'Usuario',
@@ -6530,6 +6584,7 @@ window.toggleAudioRecord = async () => {
           await updateDoc(doc(db,'chats',window._currentChatId), {
             lastMsg: '🎤 Audio', lastTs: serverTimestamp()
           });
+          showToast('✅ Audio enviado');
         } catch(e) { showToast('❌ Error al enviar audio: ' + e.message); }
       };
       _audioRecorder.start(200);
