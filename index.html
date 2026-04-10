@@ -7312,17 +7312,41 @@ const _EXP_DIMS = {
 };
 let _expRAF = null;
 
+function _expResolveUsername() {
+  // 1. handle del perfil (ej: "ruizgustavo" o "@ruizgustavo")
+  if (typeof myProfile !== 'undefined' && myProfile) {
+    if (myProfile.handle && myProfile.handle.trim()) {
+      return myProfile.handle.replace(/^@+/, '').trim();
+    }
+    if (myProfile.username && myProfile.username.trim()) {
+      return myProfile.username.replace(/^@+/, '').trim();
+    }
+    if (myProfile.name && myProfile.name.trim()) {
+      return myProfile.name.replace(/\s+/g, '').toLowerCase();
+    }
+  }
+  // 2. currentUser de Firebase Auth
+  if (typeof currentUser !== 'undefined' && currentUser) {
+    if (currentUser.displayName && currentUser.displayName.trim()) {
+      return currentUser.displayName.replace(/\s+/g, '').toLowerCase();
+    }
+    if (currentUser.email) {
+      return currentUser.email.split('@')[0].toLowerCase();
+    }
+  }
+  // 3. DOM fallback — si ya se renderizó el handle en algún lugar de la UI
+  const handleEl = document.querySelector('.profile-handle-tt, #profile-handle, [data-profile-handle]');
+  if (handleEl && handleEl.textContent && handleEl.textContent.trim() && handleEl.textContent.trim() !== '@') {
+    return handleEl.textContent.replace(/^@+/, '').trim();
+  }
+  return 'clipuy';
+}
+
 window.clipuyOpenExport = function(mediaUrl, mediaType) {
   _EXP.mediaUrl  = mediaUrl  || null;
   _EXP.mediaType = mediaType || 'video';
   // Prefill username from myProfile if available
-  const uname = (typeof myProfile!=='undefined' && myProfile?.handle)
-                  ? myProfile.handle.replace(/^@+/,'').trim()
-                  : (typeof myProfile!=='undefined' && myProfile?.name)
-                    ? myProfile.name.replace(/\s+/g,'').toLowerCase()
-                    : (typeof currentUser!=='undefined' && currentUser?.displayName)
-                      ? currentUser.displayName.replace(/\s+/g,'').toLowerCase()
-                      : 'clipuy';
+  const uname = _expResolveUsername();
   document.getElementById('exp-wm-user').textContent = '@' + uname;
   document.getElementById('exp-progress').classList.remove('show');
   document.getElementById('exp-go-btn').disabled = !_EXP.mediaUrl;
@@ -7365,8 +7389,9 @@ function _expLoadMedia(url, type) {
   _expStopMedia();
   if (type === 'video') {
     const vid = document.createElement('video');
-    vid.src = url; vid.muted = true; vid.loop = true; vid.playsInline = true;
+    vid.src = url; vid.muted = false; vid.loop = true; vid.playsInline = true;
     vid.crossOrigin = 'anonymous';
+    vid.volume = 0; // silencioso en preview pero audio disponible para captura
     vid.onloadeddata = () => {
       _EXP.mediaEl = vid;
       vid.play().catch(()=>{});
@@ -7523,20 +7548,11 @@ window.expStartExport = async function() {
   const rc=document.getElementById('clipuy-render-canvas');
   rc.width=RW; rc.height=RH;
   const rctx=rc.getContext('2d');
-  // Obtener username real desde el perfil, no solo del DOM
-  let uname = document.getElementById('exp-wm-user')?.textContent || '';
-  if(!uname || uname === '@clipuy') {
-    const h = (typeof myProfile!=='undefined' && myProfile?.handle)
-      ? myProfile.handle.replace(/^@+/,'').trim()
-      : (typeof myProfile!=='undefined' && myProfile?.name)
-        ? myProfile.name.replace(/\s+/g,'').toLowerCase()
-        : (typeof currentUser!=='undefined' && currentUser?.displayName)
-          ? currentUser.displayName.replace(/\s+/g,'').toLowerCase()
-          : 'clipuy';
-    uname = '@' + h;
-    const wmEl = document.getElementById('exp-wm-user');
-    if(wmEl) wmEl.textContent = uname;
-  }
+  // Obtener username real — siempre usar _expResolveUsername() para consistencia
+  const resolvedUser = _expResolveUsername();
+  let uname = '@' + resolvedUser;
+  const wmEl = document.getElementById('exp-wm-user');
+  if(wmEl) wmEl.textContent = uname;
   const sc=RW/180;
 
   if(_EXP.mediaType==='image'||!_EXP.mediaEl||_EXP.mediaEl.tagName!=='VIDEO'){
@@ -7557,22 +7573,40 @@ window.expStartExport = async function() {
     const vid=_EXP.mediaEl;
     _expSetProg(10,'Iniciando grabación...');
     vid.currentTime=0;
+    vid.muted=false; // asegurar que el audio esté activo
     await vid.play().catch(()=>{});
-    // Capturar video del canvas + audio del video original
+    // Canvas stream (video frames con watermark)
     const canvasStream = rc.captureStream(30);
     let stream;
     try {
-      // Intentar capturar audio del elemento de video
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const src = audioCtx.createMediaElementSource(vid);
-      const dest = audioCtx.createMediaStreamDestination();
-      src.connect(dest);
-      src.connect(audioCtx.destination); // mantener audio en speakers
-      const audioTrack = dest.stream.getAudioTracks()[0];
-      stream = new MediaStream([...canvasStream.getVideoTracks(), ...(audioTrack ? [audioTrack] : [])]);
-    } catch(e) {
-      // fallback sin audio si falla
-      stream = new MediaStream(canvasStream.getVideoTracks());
+      // Método 1: capturar audio directamente del elemento video via captureStream
+      // (funciona en Chrome/Edge sin problemas de CORS)
+      if (vid.captureStream) {
+        const vidStream = vid.captureStream();
+        const audioTracks = vidStream.getAudioTracks();
+        if (audioTracks.length > 0) {
+          stream = new MediaStream([...canvasStream.getVideoTracks(), audioTracks[0]]);
+        } else {
+          throw new Error('no audio tracks in captureStream');
+        }
+      } else {
+        throw new Error('captureStream not available');
+      }
+    } catch(e1) {
+      try {
+        // Método 2: AudioContext con MediaElementSource
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const src = audioCtx.createMediaElementSource(vid);
+        const dest = audioCtx.createMediaStreamDestination();
+        src.connect(dest);
+        src.connect(audioCtx.destination);
+        const audioTrack = dest.stream.getAudioTracks()[0];
+        stream = new MediaStream([...canvasStream.getVideoTracks(), ...(audioTrack ? [audioTrack] : [])]);
+      } catch(e2) {
+        // Fallback sin audio
+        stream = new MediaStream(canvasStream.getVideoTracks());
+        if(typeof showToast!=='undefined') showToast('⚠️ Sin audio: el navegador bloqueó la captura');
+      }
     }
     const rec=new MediaRecorder(stream,{mimeType:_expGetMime(),videoBitsPerSecond:_EXP.quality==='1080'?8000000:4000000});
     const chunks=[];
