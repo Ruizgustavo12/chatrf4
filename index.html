@@ -1860,6 +1860,7 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
           </button>
           <input class="pc-inp" id="pc-inp" placeholder="Enviar un mensaje..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPcMsg();}"/>
           <button class="pc-attach" onclick="toggleEmojiPicker()" style="font-size:1.3rem;padding:4px 8px">😊</button>
+          <button class="pc-attach" id="gif-btn" onclick="toggleGifPicker()" title="Enviar GIF" style="font-size:1rem;padding:4px 8px;font-weight:700;color:var(--accent2);">GIF</button>
           <button class="pc-attach pc-audio-btn" id="pc-audio-btn" onclick="toggleAudioRecord()" title="Grabar audio" style="font-size:1.3rem;padding:4px 8px">🎤</button>
           <button class="pc-send" onclick="sendPcMsg()">
             <svg width="16" height="16" fill="white" viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
@@ -4601,6 +4602,7 @@ function renderPcMessages(msgs) {
         <div class="pc-bubble" oncontextmenu="event.preventDefault();showMsgMenu('${m.id}','${escHtml((m.text||'').replace(/'/g,'\''))}',${isOwn})">
           ${replyHtml}
           ${m.text ? escHtml(m.text) : ''}
+          ${m.gifUrl ? `<img src="${escHtml(m.gifUrl)}" style="max-width:200px;border-radius:10px;display:block;cursor:pointer;" onclick="window.open('${escHtml(m.gifUrl)}','_blank')" loading="lazy"/>` : ''}
           ${m.mediaUrl && m.isAudio ? `<audio controls src="${escHtml(m.mediaUrl)}" style="max-width:200px;height:36px;outline:none;border-radius:99px;"></audio>` : ''}
           ${m.mediaUrl && !m.isAudio ? `<img class="pc-bubble-img" data-src="${escHtml(m.mediaUrl)}" onclick="window.open('${escHtml(m.mediaUrl)}','_blank')"/>` : ''}
         </div>
@@ -6163,6 +6165,7 @@ window.publishDuet = async () => {
     </button>
   </div>
 </div>
+<script>
 // ══ AUDIO RECORD EN CHAT ══
 let _audioRecorder = null, _audioChunks = [], _audioRecording = false;
 
@@ -6277,6 +6280,91 @@ window.toggleAudioRecord = async () => {
     try { localStorage.setItem('fcb_pos', JSON.stringify({ x: rect.left, y: rect.top })); } catch(e) {}
   });
 })();
+
+// ══ GIF PICKER ══
+window._gifPickerOpen = false;
+
+window.toggleGifPicker = () => {
+  let picker = document.getElementById('gif-picker-panel');
+  if (!picker) {
+    picker = document.createElement('div');
+    picker.id = 'gif-picker-panel';
+    picker.style.cssText = 'position:fixed;bottom:70px;left:50%;transform:translateX(-50%);width:340px;max-width:95vw;background:var(--surface);border:1px solid var(--border);border-radius:16px;z-index:600;padding:12px;box-shadow:0 8px 32px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:8px;';
+    picker.innerHTML = '<div style="display:flex;align-items:center;gap:8px;"><input id="gif-search-inp" placeholder="Buscar GIFs..." style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:8px 14px;color:#fff;font-family:Space Grotesk,sans-serif;font-size:.85rem;outline:none;" oninput="searchGifs(this.value)"/><button onclick="document.getElementById(\'gif-picker-panel\').remove();window._gifPickerOpen=false;" style="background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;padding:4px;">✕</button></div><div id="gif-results" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-height:260px;overflow-y:auto;"><div style="grid-column:1/-1;text-align:center;color:var(--text-muted);font-size:.82rem;padding:20px 0;">Escribí para buscar GIFs</div></div><div style="text-align:center;font-size:.65rem;color:var(--text-dim);">Powered by Tenor</div>';
+    document.body.appendChild(picker);
+    window._gifPickerOpen = true;
+    setTimeout(()=>document.getElementById('gif-search-inp')&&document.getElementById('gif-search-inp').focus(), 100);
+    setTimeout(() => {
+      document.addEventListener('click', function closeGif(e) {
+        const p = document.getElementById('gif-picker-panel');
+        if (p && !p.contains(e.target) && e.target.id !== 'gif-btn') {
+          p.remove(); window._gifPickerOpen = false;
+          document.removeEventListener('click', closeGif);
+        }
+      });
+    }, 200);
+  } else {
+    picker.remove();
+    window._gifPickerOpen = false;
+  }
+};
+
+let _gifSearchTimer = null;
+window.searchGifs = (q) => {
+  clearTimeout(_gifSearchTimer);
+  const results = document.getElementById('gif-results');
+  if (!q.trim()) {
+    results.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);font-size:.82rem;padding:20px 0;">Escribí para buscar GIFs</div>';
+    return;
+  }
+  results.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);font-size:.82rem;padding:20px 0;">Buscando...</div>';
+  _gifSearchTimer = setTimeout(async () => {
+    try {
+      const API_KEY = 'AIzaSyAyimkuYQYF_y76amsFzHxRSWKSEiQIZPA';
+      const res = await fetch('https://tenor.googleapis.com/v2/search?q='+encodeURIComponent(q)+'&key='+API_KEY+'&limit=18&media_filter=gif');
+      const data = await res.json();
+      if (!data.results || !data.results.length) {
+        results.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);font-size:.82rem;padding:20px 0;">Sin resultados</div>';
+        return;
+      }
+      results.innerHTML = '';
+      data.results.forEach(item => {
+        const url = (item.media_formats&&item.media_formats.tinygif&&item.media_formats.tinygif.url)||(item.media_formats&&item.media_formats.gif&&item.media_formats.gif.url);
+        if (!url) return;
+        const img = document.createElement('img');
+        img.src = url;
+        img.style.cssText = 'width:100%;height:80px;object-fit:cover;border-radius:8px;cursor:pointer;transition:opacity .15s;';
+        img.addEventListener('click', () => window.sendGifMsg(url));
+        results.appendChild(img);
+      });
+    } catch(err) {
+      results.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);font-size:.82rem;padding:20px 0;">Error al cargar GIFs</div>';
+    }
+  }, 400);
+};
+
+window.sendGifMsg = async (gifUrl) => {
+  const p = document.getElementById('gif-picker-panel');
+  if(p) p.remove();
+  window._gifPickerOpen = false;
+  if (!currentUser || !window._currentChatId) return;
+  showToast('Enviando GIF...');
+  try {
+    await addDoc(collection(db,'chats',window._currentChatId,'messages'), {
+      uid: currentUser.uid,
+      name: myProfile.name || currentUser.displayName || 'Usuario',
+      avatar: myProfile.avatar || avatarFallback(currentUser.uid),
+      text: '',
+      gifUrl,
+      ts: serverTimestamp()
+    });
+    await updateDoc(doc(db,'chats',window._currentChatId), {
+      lastMsg: 'GIF', lastTs: serverTimestamp(),
+      ['unread.'+_currentChatUid]: increment(1)
+    });
+  } catch(e) { showToast('Error: ' + e.message); }
+};
+</script>
 
 </body>
 </html>
