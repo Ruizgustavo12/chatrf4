@@ -7574,18 +7574,18 @@ window.expStartExport = async function() {
     const vid = _EXP.mediaEl;
     _expSetProg(15, 'Iniciando grabación...');
 
-    vid.pause();
+    // Esperar a que cualquier play/pause previo se resuelva antes de resetear
+    try { await vid.play(); vid.pause(); } catch(e) {}
     vid.currentTime = 0;
-    // Desmutar para poder capturar el audio (el usuario no lo escucha porque
-    // el volumen del elemento sigue en 0 para el parlante, solo va al MediaRecorder)
+    // Desmutar con volumen REAL (1) para que captureStream() capture el audio.
+    // Lo silenciamos para el usuario via un GainNode (no con volume=0 que bloquea el audio).
     vid.muted = false;
-    vid.volume = 0; // silencioso para el usuario pero no muted → captureStream da audio
+    vid.volume = 1;
 
     // 1. Canvas stream (frames visuales)
     const canvasStream = rc.captureStream(30);
 
-    // 2. Un único AudioContext compartido para todo: audio del video + intro/end sounds
-    //    Así todo el audio se graba en el mismo destino del MediaRecorder
+    // 2. AudioContext único para video + intro/end sounds
     let audioCtxLive = null;
     let audioDestNode = null;
     let audioSrcNode = null;
@@ -7593,28 +7593,18 @@ window.expStartExport = async function() {
       audioCtxLive = new AudioContext({ sampleRate: 44100 });
       audioDestNode = audioCtxLive.createMediaStreamDestination();
 
-      // captureStream() en el video: en Chrome/Edge funciona aunque no haya play() aún
-      // porque el stream de audio se activa en cuanto hay tracks de audio en el elemento.
-      // NOTA: mozCaptureStream para Firefox.
       const vidStream = vid.captureStream
         ? vid.captureStream()
         : (vid.mozCaptureStream ? vid.mozCaptureStream() : null);
 
-      if (vidStream) {
-        // Si ya hay audio tracks, conectar ahora
-        if (vidStream.getAudioTracks().length > 0) {
-          audioSrcNode = audioCtxLive.createMediaStreamSource(vidStream);
-          audioSrcNode.connect(audioDestNode);
-        } else {
-          // Algunos navegadores agregan el audio track después del primer play().
-          // Escuchar el evento y conectar cuando aparezca.
-          vidStream.onaddtrack = (ev) => {
-            if (ev.track.kind === 'audio' && !audioSrcNode) {
-              audioSrcNode = audioCtxLive.createMediaStreamSource(vidStream);
-              audioSrcNode.connect(audioDestNode);
-            }
-          };
-        }
+      if (vidStream && vidStream.getAudioTracks().length > 0) {
+        audioSrcNode = audioCtxLive.createMediaStreamSource(vidStream);
+        // GainNode en 0 para silenciar al usuario, pero la señal sigue al grabador
+        const silentGain = audioCtxLive.createGain();
+        silentGain.gain.value = 0;
+        audioSrcNode.connect(silentGain);
+        silentGain.connect(audioCtxLive.destination); // silencio al parlante
+        audioSrcNode.connect(audioDestNode);           // audio completo al grabador
       }
     } catch(e) { audioCtxLive = null; audioDestNode = null; }
 
