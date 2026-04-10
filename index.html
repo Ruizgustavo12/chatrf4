@@ -3241,6 +3241,10 @@ function buildVideoSlide(id, data) {
         : `<img class="video-el" data-src="${escHtml(data.mediaUrl||'')}" style="object-fit:contain"/>`
       }
       <div class="video-overlay"></div>
+      ${data.handle ? `<div style="position:absolute;top:14px;left:12px;z-index:12;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:4px 10px 4px 6px;pointer-events:none;">
+        <img src="${data.avatar||avatarFallback(data.uid||'u')}" onerror="this.src='${avatarFallback(data.uid||'u')}'" style="width:20px;height:20px;border-radius:50%;object-fit:cover;flex-shrink:0;"/>
+        <span style="font-size:.68rem;font-weight:600;color:rgba(255,255,255,.9);font-family:'Space Grotesk',sans-serif;white-space:nowrap;">${escHtml(data.handle.startsWith('@')?data.handle:'@'+data.handle)}</span>
+      </div>` : ''}
       <div class="play-indicator" id="pi-${id}">
         <div class="play-indicator-circle">▶</div>
       </div>
@@ -3874,6 +3878,7 @@ window.publishClip = async () => {
     const clipData = {
       uid: currentUser.uid,
       name: myProfile.name || currentUser.displayName || 'Usuario',
+      handle: myProfile.handle || ('@' + handle),
       avatar: myProfile.avatar || avatarFallback(currentUser.uid),
       description: desc,
       tags,
