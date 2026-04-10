@@ -955,6 +955,26 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
 }
 #private-chat.open{display:flex;}
 
+/* Perfil del contacto estilo Messenger */
+#pc-contact-profile{
+  display:flex;flex-direction:column;align-items:center;
+  padding:28px 20px 18px;
+  flex-shrink:0;
+  border-bottom:1px solid var(--border);
+  background:#000;
+}
+#pc-contact-profile img{
+  width:68px;height:68px;border-radius:50%;object-fit:cover;
+  border:2px solid var(--border);margin-bottom:10px;
+}
+#pc-profile-name{
+  font-weight:700;font-size:1.05rem;color:#fff;margin-bottom:3px;
+}
+#pc-profile-handle{
+  font-size:.78rem;color:var(--text-muted);
+}
+
+
 /* pc-header etc. styles */
 .pc-header{
   display:flex;align-items:center;gap:12px;
@@ -1799,6 +1819,12 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
             <div class="pc-status" id="pc-status">@usuario</div>
           </div>
         </div>
+        <!-- Perfil del contacto (se muestra al inicio del chat, estilo Messenger) -->
+        <div id="pc-contact-profile">
+          <img id="pc-profile-avatar" src="" onerror="this.src=''" />
+          <div id="pc-profile-name"></div>
+          <div id="pc-profile-handle"></div>
+        </div>
         <div class="pc-messages" id="pc-messages"></div>
         <!-- Emoji picker -->
         <div id="emoji-picker" style="display:none;padding:8px 12px;background:var(--surface2);border-top:1px solid var(--border);flex-wrap:wrap;gap:4px;flex-direction:row;max-height:180px;overflow-y:auto;position:relative">
@@ -2264,7 +2290,7 @@ async function uploadToServer(file, usuario, titulo) {
   try {
     const formData = new FormData();
     formData.append("archivo", file);
-    if(usuario) formData.append("subido_por", usuario);
+    if(usuario && file.type && file.type.startsWith("video")) formData.append("usuario", usuario);
     if(titulo) formData.append("titulo", titulo);
 
     const controller = new AbortController();
@@ -4453,6 +4479,13 @@ window.openPrivateChat = async (uid, name, avatar, chatId) => {
   document.getElementById('pc-avatar').src = avatar || avatarFallback(uid||'u');
   document.getElementById('pc-name').textContent = name;
   document.getElementById('pc-status').textContent = '@' + (name||'').toLowerCase().replace(/\s/g,'');
+  // Rellenar perfil del contacto (estilo Messenger)
+  const profileAvatar = document.getElementById('pc-profile-avatar');
+  if(profileAvatar){ profileAvatar.src = avatar || avatarFallback(uid||'u'); profileAvatar.onerror = ()=>{ profileAvatar.src = avatarFallback(uid||'u'); }; }
+  const profileName = document.getElementById('pc-profile-name');
+  if(profileName) profileName.textContent = name;
+  const profileHandle = document.getElementById('pc-profile-handle');
+  if(profileHandle) profileHandle.textContent = '@' + (name||'').toLowerCase().replace(/\s/g,'');
   // Show embedded chat, hide empty state
   document.getElementById('chat-empty-state').style.display = 'none';
   document.getElementById('private-chat').classList.add('open');
