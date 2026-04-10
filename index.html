@@ -7574,13 +7574,19 @@ window.expStartExport = async function() {
     const vid = _EXP.mediaEl;
     _expSetProg(15, 'Iniciando grabación...');
 
-    // Esperar a que cualquier play/pause previo se resuelva antes de resetear
-    try { await vid.play(); vid.pause(); } catch(e) {}
-    vid.currentTime = 0;
-    // Desmutar con volumen REAL (1) para que captureStream() capture el audio.
-    // Lo silenciamos para el usuario via un GainNode (no con volume=0 que bloquea el audio).
+    // FIX AUDIO: desmutar ANTES de play() para que el navegador
+    // active los audio tracks en captureStream(). Si muted=false llega
+    // después del primer play/pause, el stream sale sin tracks de audio.
     vid.muted = false;
     vid.volume = 1;
+    vid.currentTime = 0;
+    // Reproducir 300ms con audio activo para que captureStream() encuentre los tracks.
+    try {
+      await vid.play();
+      await new Promise(r => setTimeout(r, 300));
+      vid.pause();
+      vid.currentTime = 0;
+    } catch(e) {}
 
     // 1. Canvas stream (frames visuales)
     const canvasStream = rc.captureStream(30);
