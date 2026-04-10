@@ -815,7 +815,7 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Space Grotesk',san
 
 /* ── DUETO MODAL ── */
 #duet-modal{
-  position:fixed;inset:0;left:0;z-index:9990;background:#000;
+  position:fixed;inset:0;left:72px;z-index:460;background:#000;
   display:none;flex-direction:column;
 }
 #duet-modal.open{display:flex;}
@@ -2318,6 +2318,7 @@ const googleProvider = new GoogleAuthProvider();
 
 // ── STATE ──
 let currentUser = null;
+window._getUser = () => currentUser;
 let myProfile = {};
 let _currentScreen = 'home';
 let _stories = [];
@@ -2893,7 +2894,21 @@ function buildVideoSlide(id, data) {
       </div>` : ''}
     </div>
   `;
-  // Dueto: manejado por delegación global en #videos-container
+  // Dueto button handler (uses data attributes to avoid URL encoding issues)
+  const duetBtn = div.querySelector('.duet-btn');
+  if(duetBtn) {
+    duetBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const btn = e.currentTarget;
+      openDuet(
+        btn.dataset.clipId,
+        btn.dataset.mediaUrl,
+        btn.dataset.authorName,
+        btn.dataset.authorUid,
+        btn.dataset.desc
+      );
+    });
+  }
 
   // ── Scrub bar wiring (videos only) ──
   if(isVideo) {
@@ -3004,21 +3019,6 @@ function updateFeedNavBtns() {
     if(dnBtn) dnBtn.disabled = idx === slides.length - 1;
   });
 }
-
-// ── DELEGACIÓN GLOBAL DUETO ──
-document.getElementById('videos-container').addEventListener('click', function(e) {
-  const btn = e.target.closest('.duet-btn');
-  if (!btn) return;
-  e.stopPropagation();
-  e.preventDefault();
-  openDuet(
-    btn.dataset.clipId,
-    btn.dataset.mediaUrl,
-    btn.dataset.authorName,
-    btn.dataset.authorUid,
-    btn.dataset.desc
-  );
-}, true);
 
 function setupVideoObserver() {
   if(_videoObserver) _videoObserver.disconnect();
@@ -5916,7 +5916,8 @@ let _duetTimerInterval = null;
 let _duetSeconds = 0;
 
 window.openDuet = async (clipId, mediaUrl, authorName, authorUid, desc) => {
-  if(!currentUser) { showToast('⚠️ Iniciá sesión para hacer un dueto'); return; }
+  const currentUser = window._getUser ? window._getUser() : null;
+  if(!currentUser) { alert('⚠️ Iniciá sesión para hacer un dueto'); return; }
   _duetClipId = clipId;
   _duetOriginalUid = authorUid;
   _duetOriginalName = authorName;
@@ -5936,16 +5937,9 @@ window.openDuet = async (clipId, mediaUrl, authorName, authorUid, desc) => {
 
   // Load original video
   const orig = document.getElementById('duet-original-video');
-  orig.pause();
-  orig.removeAttribute('src');
-  orig.load();
   orig.src = mediaUrl;
   orig.muted = true;
-  orig.load();
-  orig.play().catch(() => {
-    // Si el browser bloquea autoplay, mostrar overlay de play
-    orig.addEventListener('canplay', () => { orig.play().catch(()=>{}); }, { once: true });
-  });
+  orig.play().catch(()=>{});
 
   // Open modal
   document.getElementById('duet-modal').classList.add('open');
@@ -6039,6 +6033,7 @@ function showDuetPublishUI() {
 }
 
 window.publishDuet = async () => {
+  const currentUser = window._getUser ? window._getUser() : null;
   if(!currentUser || !_duetBlob) return;
   const caption = document.getElementById('duet-caption').value.trim();
   const btn = document.getElementById('duet-publish-btn');
