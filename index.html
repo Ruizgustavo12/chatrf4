@@ -73,22 +73,28 @@ img { display:block; }
   background:#000; min-height:320px;
 }
 .auth-hero img {
-  width:100%; height:100%; object-fit:cover; object-position:center;
-  filter:brightness(.88);
+  /* contain: muestra la imagen completa sin recortar */
+  width:100%; height:100%;
+  object-fit:contain; object-position:center;
 }
 .auth-hero-overlay {
   position:absolute; inset:0;
-  background:linear-gradient(135deg, rgba(255,45,85,.18) 0%, rgba(0,255,255,.08) 100%);
+  background:linear-gradient(135deg, rgba(255,45,85,.12) 0%, rgba(0,255,255,.05) 100%);
+  pointer-events:none;
 }
 .auth-wrap {
-  width:100%; max-width:380px; padding:36px 32px;
+  width:100%; max-width:400px; padding:32px 32px 24px;
   background:var(--bg2); display:flex; flex-direction:column; justify-content:center;
-  flex-shrink:0;
+  flex-shrink:0; overflow-y:auto;
+}
+.auth-footer {
+  margin-top:auto; padding-top:18px; text-align:center;
+  border-top:1px solid var(--border);
 }
 @media(max-width:640px){
-  .auth-split { flex-direction:column; max-width:400px; margin:8px; }
-  .auth-hero { min-height:180px; max-height:220px; }
-  .auth-wrap { padding:24px 20px; }
+  .auth-split { flex-direction:column; max-width:420px; margin:8px; }
+  .auth-hero { min-height:200px; flex:none; }
+  .auth-wrap { padding:22px 20px 18px; }
 }
 @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
 
@@ -139,15 +145,14 @@ img { display:block; }
 }
 .btn-google:hover { border-color:rgba(255,255,255,.28); }
 .auth-err { color:#ff6b7a; font-size:.76rem; margin-top:8px; min-height:16px; }
-.auth-footer { margin-top:22px; text-align:center; }
 .auth-footer-terms {
-  font-size:.74rem; color:var(--muted); cursor:pointer;
+  font-size:.76rem; color:var(--muted); cursor:pointer;
   text-decoration:underline; text-underline-offset:3px;
-  transition:color .2s;
+  transition:color .2s; display:block; margin-bottom:6px;
 }
 .auth-footer-terms:hover { color:var(--accent2); }
 .auth-footer-copy {
-  margin-top:8px; font-size:.68rem; color:var(--dim); letter-spacing:.3px;
+  font-size:.7rem; color:var(--dim); letter-spacing:.3px;
 }
 .auth-footer-copy span {
   background:linear-gradient(90deg, var(--accent2), var(--accent));
@@ -1145,8 +1150,7 @@ img { display:block; }
         Continuar con Google
       </button>
       <div class="auth-err" id="reg-err"></div>
-    </div>
-    </div>
+    </div><!-- /auth-register -->
     <div class="auth-footer">
       <div class="auth-footer-terms" onclick="document.getElementById('terms-modal').classList.add('show')">
         📄 Términos y Condiciones de Trendlify
@@ -1155,9 +1159,9 @@ img { display:block; }
         <span>Trendlify</span> 2026 · Todos los derechos reservados
       </div>
     </div>
-    </div>
-  </div>
-</div>
+    </div><!-- /auth-wrap -->
+  </div><!-- /auth-split -->
+</div><!-- /auth-screen -->
 
 <!-- ════════════════════════════════════════════
      APP SHELL
