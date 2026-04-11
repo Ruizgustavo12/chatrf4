@@ -2601,10 +2601,11 @@ window.openStory = (stories) => {
     const hdr = document.createElement('div');
     hdr.style.cssText = 'position:absolute;top:20px;left:0;right:0;z-index:10;display:flex;align-items:center;gap:8px;padding:0 14px;';
     hdr.innerHTML = `
-      <img style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.5);flex-shrink:0;" src="${av}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff'"/>
-      <span style="font-size:.85rem;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6);">@${esc(s.username||'usuario')}</span>
+      <img style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.5);flex-shrink:0;cursor:pointer;" src="${av}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff'" onclick="closeOverlay();openUserProfile('${s.uid}','${esc(s.username||'usuario')}')"/>
+      <span style="font-size:.85rem;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6);cursor:pointer;" onclick="closeOverlay();openUserProfile('${s.uid}','${esc(s.username||'usuario')}')">@${esc(s.username||'usuario')}</span>
       <span style="font-size:.72rem;color:rgba(255,255,255,.6);">${relT(s.createdAt?.toDate?.())}</span>
       <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+        ${CU&&CU.email===ADMIN_EMAIL?`<button onclick="openAdminStoryMenu('${s.id}','${s.uid}','${esc(s.username||'usuario')}')" style="background:rgba(255,45,85,.25);border:1px solid rgba(255,45,85,.4);color:#fff;font-size:.7rem;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;">⚙️</button>`:''}
         ${isVid?`<button id="story-mute-btn" title="Audio">${state.muted?SVG_MUTE:SVG_VOL}</button>`:''}
         <button id="story-close-btn" style="background:rgba(0,0,0,.45);border:none;color:#fff;font-size:1rem;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
       </div>`;
@@ -2816,10 +2817,10 @@ function buildPost(post){
   const isOwn=CU&&post.uid===CU.uid;
   card.innerHTML=`
     <div class="post-header">
-      <img class="post-avatar" src="${av}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff'"/>
-      <div><div class="post-username">@${esc(post.username||'usuario')}</div><div class="post-time">${relT(post.createdAt?.toDate?.())}</div></div>
+      <img class="post-avatar" src="${av}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff'" onclick="openUserProfile('${post.uid}','${esc(post.username||'usuario')}')"/>
+      <div onclick="openUserProfile('${post.uid}','${esc(post.username||'usuario')}')" style="cursor:pointer;"><div class="post-username">@${esc(post.username||'usuario')}</div><div class="post-time">${relT(post.createdAt?.toDate?.())}</div></div>
       ${!isOwn?`<button class="post-follow-btn" data-uid="${post.uid}" onclick="toggleFollow('${post.uid}',this)">Seguir</button>`:''}
-      <button class="post-more" onclick="openOptions('${post.id}','${post.uid}')">···</button>
+      <button class="post-more" onclick="openOptions('${post.id}','${post.uid}','${esc(post.username||'usuario')}','${esc(post.caption||'')}','${post.mediaUrl||''}')">···</button>
     </div>
     <div class="post-media ${isVid?'video':'portrait'}" style="position:relative;">
       ${isVid
@@ -3311,14 +3312,198 @@ window.sendCommentInline = async (postId, inputEl) => {
   await _doSendComment(postId, text);
 };
 
+// ── USER PROFILE MODAL ──
+window.openUserProfile = async (uid, username) => {
+  if(!uid) return;
+  // Crear modal si no existe
+  let modal = document.getElementById('user-profile-modal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'user-profile-modal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:16px;';
+    modal.innerHTML = `
+      <div id="upm-box" style="width:100%;max-width:420px;background:var(--surface);border:1px solid var(--border2);border-radius:22px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.8);animation:fadeUp .25s ease both;max-height:92vh;display:flex;flex-direction:column;">
+        <div style="position:relative;height:120px;background:linear-gradient(135deg,rgba(255,45,85,.25),rgba(0,255,255,.12));">
+          <button onclick="closeUserProfile()" style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,.5);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;">✕</button>
+        </div>
+        <div style="padding:0 20px 20px;flex:1;overflow-y:auto;">
+          <div style="display:flex;align-items:flex-end;gap:14px;margin-top:-40px;margin-bottom:14px;">
+            <img id="upm-av" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--surface);background:var(--surface3);flex-shrink:0;" src="" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff&size=128'"/>
+            <div style="flex:1;padding-bottom:4px;">
+              <div id="upm-name" style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;line-height:1.1;"></div>
+              <div id="upm-handle" style="font-size:.8rem;color:var(--muted);margin-top:2px;"></div>
+            </div>
+            <button id="upm-follow-btn" style="background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:var(--r-sm);padding:9px 18px;color:#fff;font-size:.83rem;font-weight:700;cursor:pointer;flex-shrink:0;" onclick="toggleFollow(window._upmUid,this)">Seguir</button>
+          </div>
+          <div id="upm-bio" style="font-size:.86rem;color:var(--muted);margin-bottom:14px;line-height:1.5;"></div>
+          <div style="display:flex;gap:24px;margin-bottom:16px;">
+            <div style="text-align:center;"><div id="upm-posts" style="font-weight:800;font-size:1.1rem;font-family:var(--font-display);">—</div><div style="font-size:.72rem;color:var(--muted);">Posts</div></div>
+            <div style="text-align:center;"><div id="upm-followers" style="font-weight:800;font-size:1.1rem;font-family:var(--font-display);">—</div><div style="font-size:.72rem;color:var(--muted);">Seguidores</div></div>
+            <div style="text-align:center;"><div id="upm-following" style="font-weight:800;font-size:1.1rem;font-family:var(--font-display);">—</div><div style="font-size:.72rem;color:var(--muted);">Siguiendo</div></div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="window._openDMFromProfile()" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r-sm);padding:10px;color:#fff;font-size:.84rem;font-weight:600;cursor:pointer;">✉️ Mensaje</button>
+          </div>
+          <div id="upm-admin-actions" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px;">
+            <div style="font-size:.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">⚙️ Acciones de admin</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+              <button onclick="adminSuspendUser(window._upmUid,window._upmUsername)" style="flex:1;min-width:120px;background:rgba(255,165,0,.12);border:1px solid rgba(255,165,0,.3);border-radius:var(--r-sm);padding:9px;color:#ffa500;font-size:.8rem;font-weight:700;cursor:pointer;">⏸ Suspender</button>
+              <button onclick="adminBanUser(window._upmUid,window._upmUsername)" style="flex:1;min-width:120px;background:rgba(255,45,85,.12);border:1px solid rgba(255,45,85,.3);border-radius:var(--r-sm);padding:9px;color:var(--accent);font-size:.8rem;font-weight:700;cursor:pointer;">🚫 Banear</button>
+              <button onclick="adminEditUserRole(window._upmUid,window._upmUsername)" style="flex:1;min-width:120px;background:rgba(0,255,255,.07);border:1px solid rgba(0,255,255,.2);border-radius:var(--r-sm);padding:9px;color:var(--accent2);font-size:.8rem;font-weight:700;cursor:pointer;">✏️ Editar rol</button>
+              <button onclick="adminDeleteUserPosts(window._upmUid,window._upmUsername)" style="flex:1;min-width:120px;background:rgba(255,45,85,.07);border:1px solid rgba(255,45,85,.2);border-radius:var(--r-sm);padding:9px;color:#ff6b7a;font-size:.8rem;font-weight:700;cursor:pointer;">🗑️ Borrar posts</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if(e.target===modal) closeUserProfile(); });
+  }
+  modal.style.display = 'flex';
+  window._upmUid = uid;
+  window._upmUsername = username;
+  window._openDMFromProfile = () => {
+    closeUserProfile();
+    const av = document.getElementById('upm-av')?.src || '';
+    openDMChat(uid, username, av, null);
+    setPage('messages');
+  };
+  // Mostrar acciones admin si corresponde
+  const adminSection = document.getElementById('upm-admin-actions');
+  if(adminSection) adminSection.style.display = CU?.email === ADMIN_EMAIL ? 'block' : 'none';
+  // Cargar datos del usuario
+  document.getElementById('upm-name').textContent = '@' + username;
+  document.getElementById('upm-handle').textContent = 'Cargando...';
+  document.getElementById('upm-bio').textContent = '';
+  document.getElementById('upm-posts').textContent = '—';
+  document.getElementById('upm-followers').textContent = '—';
+  document.getElementById('upm-following').textContent = '—';
+  try{
+    const snap = await getDoc(doc(db,'users',uid));
+    if(snap.exists()){
+      const u = snap.data();
+      const av = u.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.username||'U')}&background=222&color=fff&size=128`;
+      document.getElementById('upm-av').src = av;
+      document.getElementById('upm-name').textContent = u.displayName || '@' + (u.username||username);
+      document.getElementById('upm-handle').textContent = '@' + (u.username||username) + (u.status==='suspended'?' 🟡 Suspendido':u.status==='banned'?' 🔴 Baneado':'');
+      document.getElementById('upm-bio').textContent = u.bio || '';
+      document.getElementById('upm-posts').textContent = fmtN(u.posts||0);
+      document.getElementById('upm-followers').textContent = fmtN(u.followers||0);
+      document.getElementById('upm-following').textContent = fmtN(u.following||0);
+      // Check if already following
+      if(CU && uid !== CU.uid){
+        const mySnap = await getDoc(doc(db,'users',CU.uid));
+        const fl = mySnap.data()?.followingList||[];
+        const followBtn = document.getElementById('upm-follow-btn');
+        if(followBtn){ followBtn.textContent = fl.includes(uid)?'Siguiendo':'Seguir'; followBtn.style.opacity = fl.includes(uid)?'.6':'1'; }
+      }
+      if(CU && uid === CU.uid){ const fb=document.getElementById('upm-follow-btn'); if(fb) fb.style.display='none'; }
+    }
+  }catch(e){ console.warn(e); }
+};
+window.closeUserProfile = () => {
+  const m = document.getElementById('user-profile-modal');
+  if(m) m.style.display = 'none';
+};
+
+// ── ADMIN USER ACTIONS ──
+window.adminSuspendUser = async (uid, username) => {
+  if(!CU||CU.email!==ADMIN_EMAIL) return;
+  const action = confirm(`¿Suspender a @${username}? Podrás reactivarlo después.`);
+  if(!action) return;
+  try{
+    await updateDoc(doc(db,'users',uid),{status:'suspended',suspendedAt:serverTimestamp(),suspendedBy:CU.uid});
+    showToast(`⏸ @${username} suspendido`);
+    closeUserProfile();
+  }catch(e){ showToast('Error: '+e.message); }
+};
+window.adminBanUser = async (uid, username) => {
+  if(!CU||CU.email!==ADMIN_EMAIL) return;
+  const action = confirm(`⚠️ ¿Banear permanentemente a @${username}? Esta acción es grave.`);
+  if(!action) return;
+  try{
+    await updateDoc(doc(db,'users',uid),{status:'banned',bannedAt:serverTimestamp(),bannedBy:CU.uid});
+    showToast(`🚫 @${username} baneado`);
+    closeUserProfile();
+  }catch(e){ showToast('Error: '+e.message); }
+};
+window.adminEditUserRole = async (uid, username) => {
+  if(!CU||CU.email!==ADMIN_EMAIL) return;
+  const role = prompt(`Nuevo rol para @${username} (user / moderator / admin):`,'user');
+  if(!role) return;
+  try{
+    await updateDoc(doc(db,'users',uid),{role:role.trim(),updatedBy:CU.uid,updatedAt:serverTimestamp()});
+    showToast(`✅ Rol de @${username} actualizado a "${role.trim()}"`);
+  }catch(e){ showToast('Error: '+e.message); }
+};
+window.adminDeleteUserPosts = async (uid, username) => {
+  if(!CU||CU.email!==ADMIN_EMAIL) return;
+  if(!confirm(`¿Eliminar TODOS los posts de @${username}? Esta acción no se puede deshacer.`)) return;
+  try{
+    showToast('🗑️ Eliminando posts...');
+    const snap = await getDocs(query(collection(db,'posts'),where('uid','==',uid)));
+    for(const d of snap.docs) await deleteDoc(doc(db,'posts',d.id));
+    showToast(`✅ Posts de @${username} eliminados`);
+    closeUserProfile();
+    loadFeed();
+  }catch(e){ showToast('Error: '+e.message); }
+};
+
+// ── ADMIN CONTENT MENU (para reels, videos, fotos en contexto) ──
+window.openAdminContentMenu = (postId, ownerUid, ownerUsername, caption, contentType) => {
+  if(!CU||CU.email!==ADMIN_EMAIL) return;
+  const box=document.getElementById('opt-box');
+  box.innerHTML=`
+    <div style="font-size:.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;padding:12px 16px 8px;">⚙️ Admin — ${contentType||'contenido'}</div>
+    <button class="opt-item danger" onclick="adminDeleteThisPost('${postId}');closeOptions();">🗑️ Eliminar este ${contentType||'post'}</button>
+    <button class="opt-item" onclick="adminEditPost('${postId}','${esc(caption||'')}');closeOptions();">✏️ Editar descripción</button>
+    <button class="opt-item" onclick="closeOptions();openUserProfile('${ownerUid}','${ownerUsername}');">👤 Ver perfil de @${ownerUsername} · Suspender/Banear</button>
+    <button class="opt-item" onclick="showToast('Reportado ✓');closeOptions();">🚩 Marcar contenido</button>`;
+  document.getElementById('options-overlay').classList.add('show');
+};
+
 // ── OPTIONS SHEET ──
-window.openOptions = (postId,ownerUid) => {
+window.openOptions = (postId, ownerUid, ownerUsername, caption, mediaUrl) => {
+  ownerUsername = ownerUsername || 'usuario';
   const box=document.getElementById('opt-box');
   const isOwn=CU&&ownerUid===CU.uid;
-  box.innerHTML=`${isOwn?`<button class="opt-item danger" onclick="deletePost('${postId}');closeOptions();">🗑️ Eliminar publicación</button>`:''}<button class="opt-item" onclick="sharePost('${postId}');closeOptions();">🔗 Copiar enlace</button><button class="opt-item" onclick="showToast('Reportado ✓');closeOptions();">🚩 Reportar</button>`;
+  const isAdmin=CU&&CU.email===ADMIN_EMAIL;
+  let adminBtns = '';
+  if(isAdmin && !isOwn){
+    adminBtns = `
+      <div style="border-top:1px solid var(--border);margin:8px 0;padding-top:8px;">
+        <div style="font-size:.7rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;padding:0 16px 8px;">⚙️ Admin</div>
+        <button class="opt-item danger" onclick="adminDeleteThisPost('${postId}');closeOptions();">🗑️ Eliminar post</button>
+        <button class="opt-item" onclick="adminEditPost('${postId}','${esc(caption||'')}');closeOptions();">✏️ Editar descripción</button>
+        <button class="opt-item" onclick="closeOptions();openUserProfile('${ownerUid}','${ownerUsername}');">👤 Ver perfil · Suspender/Banear</button>
+      </div>`;
+  }
+  box.innerHTML=`
+    ${isOwn?`<button class="opt-item danger" onclick="deletePost('${postId}');closeOptions();">🗑️ Eliminar publicación</button>`:''}
+    ${isAdmin&&isOwn?`<button class="opt-item danger" onclick="adminDeleteThisPost('${postId}');closeOptions();">🗑️ Eliminar (Admin)</button>`:''}
+    <button class="opt-item" onclick="sharePost('${postId}');closeOptions();">🔗 Copiar enlace</button>
+    <button class="opt-item" onclick="closeOptions();openUserProfile('${ownerUid}','${ownerUsername}');">👤 Ver perfil de @${ownerUsername}</button>
+    <button class="opt-item" onclick="showToast('Reportado ✓');closeOptions();">🚩 Reportar</button>
+    ${adminBtns}`;
   document.getElementById('options-overlay').classList.add('show');
 };
 window.closeOptions = () => document.getElementById('options-overlay').classList.remove('show');
+
+window.adminDeleteThisPost = async postId => {
+  if(!CU||CU.email!==ADMIN_EMAIL) return;
+  if(!confirm('¿Eliminar este post?')) return;
+  try{ await deleteDoc(doc(db,'posts',postId)); showToast('✅ Post eliminado'); loadFeed(); }catch(e){ showToast('Error'); }
+};
+window.adminEditPost = async (postId, currentCaption) => {
+  if(!CU||CU.email!==ADMIN_EMAIL) return;
+  const newCaption = prompt('Nueva descripción:', currentCaption||'');
+  if(newCaption===null) return;
+  try{
+    await updateDoc(doc(db,'posts',postId),{caption:newCaption});
+    showToast('✅ Descripción actualizada');
+    loadFeed();
+  }catch(e){ showToast('Error: '+e.message); }
+};
+
 window.deletePost = async postId => {
   try{ await deleteDoc(doc(db,'posts',postId)); showToast('Eliminado'); loadFeed(); }catch(e){ showToast('Error'); }
 };
@@ -3852,8 +4037,8 @@ function openExploreViewer(startIdx){
           </div>
           <div class="ev-info">
             <div class="ev-user-row">
-              <img class="ev-av" src="${av}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff'"/>
-              <span class="ev-username">@${esc(p.username||'usuario')}</span>
+              <img class="ev-av" src="${av}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff'" onclick="openUserProfile('${p.uid}','${esc(p.username||'usuario')}')" style="cursor:pointer;"/>
+              <span class="ev-username" onclick="openUserProfile('${p.uid}','${esc(p.username||'usuario')}')" style="cursor:pointer;">@${esc(p.username||'usuario')}</span>
             </div>
             ${p.caption ? `<div class="ev-caption">${esc((p.caption||'').slice(0,120))}</div>` : ''}
             <div class="ev-controls">
@@ -3867,6 +4052,7 @@ function openExploreViewer(startIdx){
                   <button class="vid-btn ev-mute-btn">${SVG_VOL}</button>
                   <input type="range" class="vid-vol-slider ev-vol" min="0" max="1" step="0.05" value="1"/>
                 </div>
+                ${`<button onclick="openAdminContentMenu('${p.id}','${p.uid}','${esc(p.username||'usuario')}','${esc((p.caption||'').slice(0,60))}','video')" id="ev-admin-${p.id}" style="display:none;background:rgba(255,45,85,.2);border:1px solid rgba(255,45,85,.35);color:var(--accent);border-radius:6px;padding:4px 8px;font-size:.7rem;font-weight:700;cursor:pointer;margin-left:4px;">⚙️</button>`}
               </div>
             </div>
           </div>
@@ -4082,6 +4268,11 @@ async function loadExplore(term=''){
     // Iniciar la cola de thumbnails para los primeros 6
     drainThumbQueue();
 
+    // Mostrar botones admin si corresponde
+    if(CU && CU.email === ADMIN_EMAIL){
+      document.querySelectorAll('[id^="ev-admin-"]').forEach(btn => btn.style.display = 'flex');
+    }
+
   }catch(e){ grid.innerHTML='<div style="grid-column:1/-1;padding:44px;text-align:center;color:var(--muted);">Error al cargar</div>'; console.error(e); }
 }
 let _et;
@@ -4149,9 +4340,10 @@ async function loadReels(){
           </div>
           <div class="reel-info">
             <div class="reel-user">
-              <img class="reel-av" src="${av}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff'"/>
-              <span class="reel-username">@${esc(p.username||'usuario')}</span>
+              <img class="reel-av" src="${av}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff'" onclick="openUserProfile('${p.uid}','${esc(p.username||'usuario')}')" style="cursor:pointer;"/>
+              <span class="reel-username" onclick="openUserProfile('${p.uid}','${esc(p.username||'usuario')}')" style="cursor:pointer;">@${esc(p.username||'usuario')}</span>
               ${CU&&p.uid!==CU.uid?`<button class="reel-follow-btn" onclick="toggleFollow('${p.uid}',this)">Seguir</button>`:''}
+              ${CU&&CU.email===ADMIN_EMAIL?`<button onclick="openAdminContentMenu('${p.id}','${p.uid}','${esc(p.username||'usuario')}','${esc(p.caption||'')}','reel')" style="background:rgba(255,45,85,.18);border:1px solid rgba(255,45,85,.35);color:var(--accent);border-radius:6px;padding:4px 8px;font-size:.7rem;font-weight:700;cursor:pointer;margin-left:auto;">⚙️ Admin</button>`:''}
             </div>
             ${p.caption?`<div class="reel-caption">${esc((p.caption||'').slice(0,120))}</div>`:''}
             ${p.deezerTrack?`<div class="reel-music"><span>🎵</span><span>${esc(p.deezerTrack.title)} — ${esc(p.deezerTrack.artist)}</span></div>`:''}
@@ -4750,6 +4942,27 @@ function refreshAdminPanel(user, ud) {
     panel.style.display = 'none';
   }
 }
+
+// ── ADMIN STORY MENU ──
+window.openAdminStoryMenu = (storyId, ownerUid, ownerUsername) => {
+  if(!CU||CU.email!==ADMIN_EMAIL) return;
+  const box = document.getElementById('opt-box');
+  box.innerHTML = `
+    <div style="font-size:.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;padding:12px 16px 8px;">⚙️ Admin — Historia</div>
+    <button class="opt-item danger" onclick="adminDeleteStoryById('${storyId}');closeOptions();">🗑️ Eliminar esta historia</button>
+    <button class="opt-item" onclick="closeOptions();openUserProfile('${ownerUid}','${ownerUsername}');">👤 Ver perfil de @${ownerUsername} · Suspender/Banear</button>
+    <button class="opt-item" onclick="showToast('Historia reportada ✓');closeOptions();">🚩 Reportar historia</button>`;
+  document.getElementById('options-overlay').classList.add('show');
+};
+window.adminDeleteStoryById = async (storyId) => {
+  if(!CU||CU.email!==ADMIN_EMAIL) return;
+  if(!confirm('¿Eliminar esta historia?')) return;
+  try{
+    await deleteDoc(doc(db,'stories',storyId));
+    showToast('✅ Historia eliminada');
+    loadStories();
+  }catch(e){ showToast('Error: '+e.message); }
+};
 
 window.adminResetEdits = async () => {
   if (!CU || CU.email !== ADMIN_EMAIL) return;
