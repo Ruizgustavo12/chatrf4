@@ -1591,117 +1591,179 @@ async function loadStories(){
 }
 
 window.openStory = (stories) => {
-  const overlay=document.createElement('div');
-  overlay.style.cssText='position:fixed;inset:0;z-index:8000;background:#000;display:flex;align-items:center;justify-content:center;';
-  let idx=0;
-  let storyMuted=false; // audio activado por defecto en historias
-
-  const render=()=>{
-    const s=stories[idx];
-    const isVid=s.mediaUrl?.match(/\.(mp4|mov|webm)/i)||s.mediaType==='video';
-    const av=s.avatarUrl||`https://ui-avatars.com/api/?name=${encodeURIComponent(s.username||'U')}&background=222&color=fff`;
-    const myAv=CU?(document.getElementById('cs-my-av')?.src||`https://ui-avatars.com/api/?name=U&background=222&color=fff`):'';
-
-    overlay.innerHTML=`
-      <div id="story-inner" style="position:relative;width:100%;max-width:420px;height:100%;max-height:100vh;background:#111;border-radius:0;overflow:hidden;display:flex;flex-direction:column;">
-        <!-- Barras de progreso -->
-        <div style="position:absolute;top:0;left:0;right:0;z-index:10;display:flex;gap:3px;padding:10px 10px 0;">
-          ${stories.map((_,i)=>`<div style="flex:1;height:3px;background:${i<idx?'#fff':i===idx?'rgba(255,255,255,.9)':'rgba(255,255,255,.35)'};border-radius:2px;overflow:hidden;">${i===idx?`<div id="story-prog-bar" style="height:100%;background:#fff;width:0%;border-radius:2px;transition:width 5s linear;"></div>`:''}</div>`).join('')}
-        </div>
-        <!-- Header -->
-        <div style="position:absolute;top:20px;left:0;right:0;z-index:10;display:flex;align-items:center;gap:10px;padding:0 14px;">
-          <img style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.5);" src="${av}"/>
-          <span style="font-size:.85rem;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6);">@${esc(s.username||'usuario')}</span>
-          <span style="font-size:.72rem;color:rgba(255,255,255,.6);margin-left:4px;">${relT(s.createdAt?.toDate?.())}</span>
-          ${isVid?`<button id="story-mute-btn" onclick="storyToggleMute()" style="margin-left:auto;margin-right:4px;background:rgba(0,0,0,.4);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>
-          </button>`:'<div style="margin-left:auto;"></div>'}
-          <button onclick="overlay.remove()" style="background:rgba(0,0,0,.4);border:none;color:#fff;font-size:1.1rem;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);line-height:1;">✕</button>
-        </div>
-        <!-- Media (ocupa todo el espacio) -->
-        <div style="flex:1;position:relative;overflow:hidden;">
-          ${isVid
-            ?`<video id="story-vid" src="${s.mediaUrl}" autoplay ${storyMuted?'muted':''} loop playsinline style="width:100%;height:100%;object-fit:cover;"></video>`
-            :`<img src="${s.mediaUrl}" style="width:100%;height:100%;object-fit:cover;display:block;"/>`
-          }
-          <!-- Navegación tap -->
-          <div style="position:absolute;inset:0;display:flex;">
-            <div style="flex:1;cursor:pointer;" onclick="if(idx>0){idx--;render();}"></div>
-            <div style="flex:1;cursor:pointer;" onclick="if(idx<stories.length-1){idx++;render();}else{overlay.remove();}"></div>
-          </div>
-        </div>
-        <!-- Panel de comentarios inferior -->
-        <div style="position:absolute;bottom:0;left:0;right:0;z-index:10;background:linear-gradient(transparent,rgba(0,0,0,.8) 30%);padding:60px 14px 14px;">
-          ${s.caption?`<div style="font-size:.84rem;color:rgba(255,255,255,.9);margin-bottom:10px;text-shadow:0 1px 3px rgba(0,0,0,.5);">${esc(s.caption)}</div>`:''}
-          <!-- Input comentario -->
-          ${CU?`<div style="display:flex;align-items:center;gap:8px;">
-            <img style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,.3);flex-shrink:0;" src="${myAv}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff'"/>
-            <input id="story-comment-inp" placeholder="Comentar historia..." style="flex:1;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:99px;padding:8px 14px;color:#fff;font-size:.82rem;outline:none;font-family:inherit;backdrop-filter:blur(4px);" onclick="event.stopPropagation()" oninput="event.stopPropagation()"/>
-            <button onclick="event.stopPropagation();sendStoryComment('${s.id}', document.getElementById('story-comment-inp'))" style="background:var(--accent);border:none;border-radius:99px;color:#fff;font-size:.78rem;font-weight:700;padding:8px 14px;cursor:pointer;white-space:nowrap;transition:opacity .2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Enviar</button>
-          </div>`:''}
-        </div>
-      </div>`;
-
-    // Aplicar mute actual al video
-    const vidEl=document.getElementById('story-vid');
-    if(vidEl){ vidEl.muted=storyMuted; }
-
-    // Animar barra de progreso
-    requestAnimationFrame(()=>{
-      const pb=document.getElementById('story-prog-bar');
-      if(pb){ pb.style.width='100%'; }
-    });
-
-    // Marcar como vista
-    if(CU&&!s.viewers?.includes(CU.uid)){
-      updateDoc(doc(db,'stories',s.id),{viewers:arrayUnion(CU.uid)}).catch(()=>{});
-    }
-    // Auto-avanzar a los 5s
-    clearTimeout(overlay._t);
-    overlay._t=setTimeout(()=>{ if(idx<stories.length-1){idx++;render();}else{overlay.remove();} },5000);
-  };
-
-  // Mute toggle para historias
-  window.storyToggleMute = () => {
-    storyMuted=!storyMuted;
-    const vidEl=document.getElementById('story-vid');
-    if(vidEl) vidEl.muted=storyMuted;
-    const btn=document.getElementById('story-mute-btn');
-    if(btn){
-      btn.innerHTML=storyMuted
-        ?`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`
-        :`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>`;
-    }
-  };
-
-  // Enviar comentario en historia
-  window.sendStoryComment = async (storyId, inputEl) => {
-    if(!CU){ showToast('Iniciá sesión'); return; }
-    const text=(inputEl?.value||'').trim();
-    if(!text) return;
-    inputEl.value='';
-    try{
-      const ud=(await getDoc(doc(db,'users',CU.uid))).data()||{};
-      await addDoc(collection(db,'stories',storyId,'comments'),{uid:CU.uid,username:ud.username||CU.displayName||'usuario',avatarUrl:ud.avatarUrl||CU.photoURL||'',text,createdAt:serverTimestamp()});
-      showToast('✅ Comentario enviado');
-    }catch(e){ showToast('Error al comentar'); }
-  };
-
-  // ESC para cerrar
-  const onKey=e=>{ if(e.key==='Escape'){overlay.remove();document.removeEventListener('keydown',onKey);} };
-  document.addEventListener('keydown',onKey);
-  overlay.addEventListener('remove',()=>{ clearTimeout(overlay._t); document.removeEventListener('keydown',onKey); });
-  document.body.appendChild(overlay);
-  // CSS para badges
+  // CSS una sola vez
   if(!document.getElementById('story-prog-style')){
     const st=document.createElement('style');
     st.id='story-prog-style';
     st.textContent=`
     .story-new-badge{position:absolute;top:-4px;right:-4px;background:var(--accent);color:#fff;font-size:.5rem;font-weight:800;padding:2px 4px;border-radius:4px;letter-spacing:.5px;border:1.5px solid var(--bg);}
     .story-count-badge{position:absolute;bottom:-4px;right:-4px;background:var(--accent2);color:#000;font-size:.55rem;font-weight:800;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--bg);}
-    #story-comment-inp::placeholder{color:rgba(255,255,255,.5);}`;
+    #story-comment-inp::placeholder{color:rgba(255,255,255,.5);}
+    #story-mute-btn{background:rgba(0,0,0,.45);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}`;
     document.head.appendChild(st);
   }
+
+  const SVG_VOL  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>`;
+  const SVG_MUTE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`;
+
+  // Estado del visor — en objeto para que render() lo lea siempre fresco
+  const state = { idx: 0, muted: false, timer: null };
+
+  // Overlay principal
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:8000;background:#000;display:flex;align-items:center;justify-content:center;';
+
+  const closeOverlay = () => {
+    clearTimeout(state.timer);
+    overlay.remove();
+    document.removeEventListener('keydown', onKey);
+  };
+
+  const render = () => {
+    clearTimeout(state.timer);
+    const s = stories[state.idx];
+    const isVid = s.mediaUrl?.match(/\.(mp4|mov|webm)/i) || s.mediaType==='video';
+    const av = s.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.username||'U')}&background=222&color=fff`;
+    const myAv = document.getElementById('cs-my-av')?.src || `https://ui-avatars.com/api/?name=U&background=222&color=fff`;
+
+    // Construir HTML sin ningún onclick inline que referencie closures
+    const inner = document.createElement('div');
+    inner.style.cssText = 'position:relative;width:100%;max-width:420px;height:100%;max-height:100vh;background:#111;overflow:hidden;display:flex;flex-direction:column;';
+
+    // — Barras de progreso —
+    const barsDiv = document.createElement('div');
+    barsDiv.style.cssText = 'position:absolute;top:0;left:0;right:0;z-index:10;display:flex;gap:3px;padding:10px 10px 0;';
+    stories.forEach((_,i)=>{
+      const bar=document.createElement('div');
+      bar.style.cssText=`flex:1;height:3px;background:${i<state.idx?'#fff':'rgba(255,255,255,.3)'};border-radius:2px;overflow:hidden;`;
+      if(i===state.idx){
+        const fill=document.createElement('div');
+        fill.id='story-prog-bar';
+        fill.style.cssText='height:100%;background:#fff;width:0%;border-radius:2px;transition:width 5s linear;';
+        bar.appendChild(fill);
+      }
+      barsDiv.appendChild(bar);
+    });
+    inner.appendChild(barsDiv);
+
+    // — Header —
+    const hdr = document.createElement('div');
+    hdr.style.cssText = 'position:absolute;top:20px;left:0;right:0;z-index:10;display:flex;align-items:center;gap:8px;padding:0 14px;';
+    hdr.innerHTML = `
+      <img style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.5);flex-shrink:0;" src="${av}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff'"/>
+      <span style="font-size:.85rem;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6);">@${esc(s.username||'usuario')}</span>
+      <span style="font-size:.72rem;color:rgba(255,255,255,.6);">${relT(s.createdAt?.toDate?.())}</span>
+      <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+        ${isVid?`<button id="story-mute-btn" title="Audio">${state.muted?SVG_MUTE:SVG_VOL}</button>`:''}
+        <button id="story-close-btn" style="background:rgba(0,0,0,.45);border:none;color:#fff;font-size:1rem;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+      </div>`;
+    inner.appendChild(hdr);
+
+    // — Media —
+    const mediaWrap = document.createElement('div');
+    mediaWrap.style.cssText = 'flex:1;position:relative;overflow:hidden;';
+    if(isVid){
+      const vid = document.createElement('video');
+      vid.id = 'story-vid';
+      vid.src = s.mediaUrl;
+      vid.autoplay = true;
+      vid.loop = true;
+      vid.playsInline = true;
+      vid.muted = state.muted; // respeta estado actual
+      vid.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+      // Si el browser fuerza muted para autoplay, intentar unmute tras interacción
+      vid.addEventListener('canplay', ()=>{ if(!state.muted){ vid.muted=false; vid.play().catch(()=>{}); } });
+      mediaWrap.appendChild(vid);
+    } else {
+      const img = document.createElement('img');
+      img.src = s.mediaUrl;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+      mediaWrap.appendChild(img);
+    }
+    // Zonas tap izq/der — sin onclick inline
+    const tapLeft = document.createElement('div');
+    tapLeft.style.cssText = 'position:absolute;top:0;left:0;width:40%;height:100%;cursor:pointer;z-index:5;';
+    tapLeft.addEventListener('click', ()=>{ if(state.idx>0){state.idx--;render();} });
+    const tapRight = document.createElement('div');
+    tapRight.style.cssText = 'position:absolute;top:0;right:0;width:60%;height:100%;cursor:pointer;z-index:5;';
+    tapRight.addEventListener('click', ()=>{ if(state.idx<stories.length-1){state.idx++;render();}else{closeOverlay();} });
+    mediaWrap.appendChild(tapLeft);
+    mediaWrap.appendChild(tapRight);
+    inner.appendChild(mediaWrap);
+
+    // — Barra inferior: caption + comentario —
+    const btm = document.createElement('div');
+    btm.style.cssText = 'position:absolute;bottom:0;left:0;right:0;z-index:10;background:linear-gradient(transparent,rgba(0,0,0,.82) 35%);padding:56px 14px 14px;';
+    if(s.caption){
+      const cap=document.createElement('div');
+      cap.style.cssText='font-size:.84rem;color:rgba(255,255,255,.92);margin-bottom:10px;text-shadow:0 1px 3px rgba(0,0,0,.5);';
+      cap.textContent=s.caption;
+      btm.appendChild(cap);
+    }
+    if(CU){
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:8px;';
+      const myAvImg=document.createElement('img');
+      myAvImg.src=myAv; myAvImg.style.cssText='width:28px;height:28px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,.3);flex-shrink:0;';
+      myAvImg.onerror=()=>{myAvImg.src='https://ui-avatars.com/api/?name=U&background=222&color=fff';};
+      const inp=document.createElement('input');
+      inp.id='story-comment-inp';
+      inp.placeholder='Comentar historia...';
+      inp.style.cssText='flex:1;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:99px;padding:8px 14px;color:#fff;font-size:.82rem;outline:none;font-family:inherit;';
+      inp.addEventListener('click', e=>e.stopPropagation());
+      inp.addEventListener('keydown', e=>{ e.stopPropagation(); if(e.key==='Enter') sendBtn.click(); });
+      const sendBtn=document.createElement('button');
+      sendBtn.textContent='Enviar';
+      sendBtn.style.cssText='background:var(--accent);border:none;border-radius:99px;color:#fff;font-size:.78rem;font-weight:700;padding:8px 14px;cursor:pointer;white-space:nowrap;flex-shrink:0;';
+      sendBtn.addEventListener('click', async e=>{
+        e.stopPropagation();
+        const text=inp.value.trim(); if(!text) return;
+        inp.value='';
+        try{
+          const ud=(await getDoc(doc(db,'users',CU.uid))).data()||{};
+          await addDoc(collection(db,'stories',s.id,'comments'),{uid:CU.uid,username:ud.username||CU.displayName||'usuario',avatarUrl:ud.avatarUrl||CU.photoURL||'',text,createdAt:serverTimestamp()});
+          showToast('✅ Comentario enviado');
+        }catch(err){ showToast('Error al comentar'); }
+      });
+      row.appendChild(myAvImg); row.appendChild(inp); row.appendChild(sendBtn);
+      btm.appendChild(row);
+    }
+    inner.appendChild(btm);
+
+    // Vaciar overlay y agregar inner
+    overlay.innerHTML='';
+    overlay.appendChild(inner);
+
+    // Bind botones del header (ahora en el DOM)
+    const closeBtn = document.getElementById('story-close-btn');
+    if(closeBtn) closeBtn.addEventListener('click', e=>{ e.stopPropagation(); closeOverlay(); });
+
+    const muteBtn = document.getElementById('story-mute-btn');
+    if(muteBtn){
+      muteBtn.addEventListener('click', e=>{
+        e.stopPropagation();
+        state.muted = !state.muted;
+        const vidEl = document.getElementById('story-vid');
+        if(vidEl) vidEl.muted = state.muted;
+        muteBtn.innerHTML = state.muted ? SVG_MUTE : SVG_VOL;
+      });
+    }
+
+    // Animar barra de progreso
+    requestAnimationFrame(()=>{ const pb=document.getElementById('story-prog-bar'); if(pb) pb.style.width='100%'; });
+
+    // Marcar como vista
+    if(CU&&!s.viewers?.includes(CU.uid)){
+      updateDoc(doc(db,'stories',s.id),{viewers:arrayUnion(CU.uid)}).catch(()=>{});
+    }
+
+    // Auto-avanzar
+    state.timer = setTimeout(()=>{ if(state.idx<stories.length-1){state.idx++;render();}else{closeOverlay();} }, 5000);
+  };
+
+  const onKey = e=>{ if(e.key==='Escape') closeOverlay(); };
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(overlay);
   render();
 };
 
@@ -2251,9 +2313,8 @@ window.dzSearch = async q => {
   box.style.display='block';
   box.innerHTML='<div style="padding:16px;text-align:center;color:var(--muted);font-size:.82rem;">🔍 Buscando...</div>';
 
-  // Intentar Deezer primero, si falla usar iTunes
-  let tracks = await searchDeezer(q);
-  if (!tracks) tracks = await searchItunes(q);
+  // Usar solo iTunes — CORS nativo, sin proxy
+  let tracks = await searchItunes(q);
 
   if (!tracks || !tracks.length) {
     box.innerHTML='<div style="padding:16px;text-align:center;color:var(--muted);font-size:.82rem;">Sin resultados para "'+esc(q)+'"</div>';
