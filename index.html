@@ -261,8 +261,10 @@ img { display:block; }
 .post-act:hover { background:rgba(255,255,255,.06); }
 .post-act:active { transform:scale(.9); }
 .post-act svg { width:22px; height:22px; }
-.post-act.liked svg { fill:var(--accent); stroke:var(--accent); }
+.post-act.liked svg { fill:var(--accent) !important; stroke:var(--accent) !important; }
 .post-act.liked { color:var(--accent); }
+.reel-action.liked svg { fill:var(--accent) !important; stroke:var(--accent) !important; }
+.reel-action.liked { color:var(--accent); }
 .post-bookmark { margin-left:auto; }
 
 .post-likes { font-size:.86rem; font-weight:700; margin-bottom:6px; }
@@ -1966,6 +1968,23 @@ function buildPost(post){
   if(post.deezerTrack?.preview){
     setTimeout(()=>initPostMusic(post.id, post.deezerTrack.preview), 0);
   }
+  // Inicializar estado de like y seguir
+  if(CU){
+    getDoc(doc(db,'likes',`${CU.uid}_${post.id}`)).then(snap=>{
+      const btn=card.querySelector(`#like-btn-${post.id}`);
+      if(btn && snap.exists()) btn.classList.add('liked');
+    }).catch(()=>{});
+    if(!isOwn){
+      getDoc(doc(db,'users',CU.uid)).then(snap=>{
+        const fl=snap.data()?.followingList||[];
+        const followBtn=card.querySelector('.post-follow-btn');
+        if(followBtn && fl.includes(post.uid)){
+          followBtn.textContent='Siguiendo';
+          followBtn.style.color='var(--muted)';
+        }
+      }).catch(()=>{});
+    }
+  }
   return card;
 }
 
@@ -2853,8 +2872,8 @@ window.searchDMUser=v=>{
     if(!q){box.innerHTML='';return;}
     box.innerHTML='<div style="padding:12px;text-align:center;color:var(--muted);font-size:.8rem;">Buscando...</div>';
     try{
-      const snap=await getDocs(query(collection(db,'users'),limit(20)));
-      const results=snap.docs.map(d=>d.data()).filter(u=>u.uid!==CU.uid&&((u.username||'').toLowerCase().includes(q)));
+      const snap=await getDocs(query(collection(db,'users'),limit(50)));
+      const results=snap.docs.map(d=>d.data()).filter(u=>u.uid!==CU.uid&&((u.username||'').toLowerCase().includes(q)||(u.displayName||'').toLowerCase().includes(q)));
       box.innerHTML='';
       if(!results.length){box.innerHTML='<div style="padding:12px;text-align:center;color:var(--muted);font-size:.8rem;">Sin resultados</div>';return;}
       results.slice(0,8).forEach(u=>{
