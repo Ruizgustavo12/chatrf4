@@ -538,19 +538,31 @@ img { display:block; }
   cursor:pointer; border:none; box-shadow:0 0 3px rgba(0,0,0,.4);
 }
 
-/* ───── MUSIC BAR ON POSTS ───── */
+/* ───── MUSIC BAR ON POSTS — TikTok style ───── */
 .post-music-bar {
-  position:absolute; bottom:0; left:0; right:0;
-  background:linear-gradient(transparent, rgba(0,0,0,.75));
-  display:flex; align-items:center; gap:8px; padding:20px 12px 10px;
+  display:flex; align-items:center; gap:10px;
+  padding:8px 4px 2px;
   pointer-events:none;
 }
-.pmb-cover { width:32px; height:32px; border-radius:6px; object-fit:cover; border:1px solid rgba(255,255,255,.2); flex-shrink:0; }
+.pmb-disc-wrap {
+  position:relative; width:36px; height:36px; flex-shrink:0;
+}
+.pmb-disc {
+  width:36px; height:36px; border-radius:50%; object-fit:cover;
+  border:2px solid var(--border2);
+  animation:disc-spin 4s linear infinite;
+  box-shadow:0 0 0 3px rgba(0,0,0,.35);
+}
+.pmb-disc-center {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:10px; height:10px; border-radius:50%;
+  background:var(--bg); border:1.5px solid var(--border2);
+}
+@keyframes disc-spin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
 .pmb-info { flex:1; min-width:0; }
-.pmb-title { display:block; font-size:.78rem; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.pmb-artist { display:block; font-size:.69rem; color:rgba(255,255,255,.7); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.pmb-note { font-size:1rem; flex-shrink:0; animation:spin-note 4s linear infinite; }
-@keyframes spin-note { 0%,100%{transform:rotate(-10deg);} 50%{transform:rotate(10deg);} }
+.pmb-title { display:block; font-size:.78rem; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pmb-artist { display:block; font-size:.7rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pmb-note { font-size:.85rem; flex-shrink:0; color:var(--muted); }
 
 /* ───── DEEZER PICKER ───── */
 .dz-track {
@@ -1449,12 +1461,11 @@ function buildPost(post){
                 </div>
               </div>
             </div>
-            ${post.deezerTrack?`<div class="post-music-bar"><img class="pmb-cover" src="${post.deezerTrack.cover||''}" /><div class="pmb-info"><span class="pmb-title">${post.deezerTrack.title||''}</span><span class="pmb-artist">${post.deezerTrack.artist||''}</span></div><span class="pmb-note">🎵</span></div>`:''}
           </div>`
-        :`<img src="${post.mediaUrl}" alt="post" loading="lazy"/>
-          ${post.deezerTrack?`<div class="post-music-bar"><img class="pmb-cover" src="${post.deezerTrack.cover||''}" /><div class="pmb-info"><span class="pmb-title">${post.deezerTrack.title||''}</span><span class="pmb-artist">${post.deezerTrack.artist||''}</span></div><span class="pmb-note">🎵</span></div>`:''}`
+        :`<img src="${post.mediaUrl}" alt="post" loading="lazy"/>`
       }
     </div>
+    ${post.deezerTrack?`<div class="post-music-bar"><div class="pmb-disc-wrap"><img class="pmb-disc" src="${post.deezerTrack.cover||''}" onerror="this.src='https://ui-avatars.com/api/?name=♫&background=222&color=fff&size=64'"/><div class="pmb-disc-center"></div></div><div class="pmb-info"><span class="pmb-title">${post.deezerTrack.title||''}</span><span class="pmb-artist">${post.deezerTrack.artist||''}</span></div><span class="pmb-note">🎵</span></div>`:''}
     <div class="post-actions">
       <button class="post-act" id="like-btn-${post.id}" onclick="toggleLike('${post.id}',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
