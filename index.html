@@ -2321,19 +2321,21 @@ async function loadStories(){
   }
   try{
     const now=new Date();
-    const snap=await getDocs(query(collection(db,'stories'),orderBy('createdAt','desc'),limit(60)));
+    const snap=await getDocs(query(collection(db,'stories'),orderBy('createdAt','asc'),limit(60)));
     const byUid=new Map();
     snap.docs.forEach(d=>{
       const s={id:d.id,...d.data()};
       const exp=s.expiresAt?.toDate?.();
       if(exp&&exp<now) return;
       if(!byUid.has(s.uid)) byUid.set(s.uid,[]);
-      byUid.get(s.uid).push(s);
+      byUid.get(s.uid).push(s); // ordered asc so stories play oldest→newest
     });
     const entries=[...byUid.entries()].sort((a,b)=>{
       if(a[0]===CU?.uid) return -1;
       if(b[0]===CU?.uid) return 1;
-      return (b[1][0].createdAt?.seconds||0)-(a[1][0].createdAt?.seconds||0);
+      const aLast=a[1][a[1].length-1];
+      const bLast=b[1][b[1].length-1];
+      return (bLast.createdAt?.seconds||0)-(aLast.createdAt?.seconds||0);
     });
     entries.forEach(([uid,stories])=>{
       const s=stories[0];
@@ -2374,6 +2376,14 @@ async function loadStories(){
       const nameEl=document.createElement('span');
       nameEl.className='story-name';
       nameEl.textContent=isOwn?'Tu historia':'@'+esc(s.username||'usuario');
+
+      // Badge de cantidad si tiene más de 1 historia
+      if(stories.length>1){
+        const cntBadge=document.createElement('div');
+        cntBadge.style.cssText='position:absolute;top:8px;right:8px;z-index:4;background:var(--accent2);color:#000;font-size:.6rem;font-weight:800;min-width:18px;height:18px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 4px;border:1.5px solid var(--bg);';
+        cntBadge.textContent=stories.length;
+        el.appendChild(cntBadge);
+      }
 
       el.appendChild(bgImg);
       el.appendChild(ring);
@@ -2586,7 +2596,31 @@ window.openStory = (stories) => {
           showToast('✅ Comentario enviado');
         }catch(err){ showToast('Error al comentar'); }
       });
-      row.appendChild(myAvImg); row.appendChild(inp); row.appendChild(sendBtn);
+
+      // ── Botón corazón ❤️ ──
+      const heartBtn=document.createElement('button');
+      heartBtn.id='story-heart-btn';
+      const alreadyLiked = s.likedBy?.includes(CU.uid);
+      heartBtn.innerHTML = alreadyLiked ? '❤️' : '🤍';
+      heartBtn.style.cssText='background:none;border:none;font-size:1.6rem;cursor:pointer;flex-shrink:0;filter:drop-shadow(0 1px 3px rgba(0,0,0,.6));transition:transform .15s;';
+      heartBtn.addEventListener('click', async e=>{
+        e.stopPropagation();
+        const liked = s.likedBy?.includes(CU.uid);
+        if(liked){
+          heartBtn.innerHTML='🤍';
+          s.likedBy=(s.likedBy||[]).filter(u=>u!==CU.uid);
+          await updateDoc(doc(db,'stories',s.id),{likes:increment(-1),likedBy:arrayRemove(CU.uid)}).catch(()=>{});
+        } else {
+          heartBtn.innerHTML='❤️';
+          heartBtn.style.transform='scale(1.35)';
+          setTimeout(()=>heartBtn.style.transform='scale(1)',200);
+          spawnHeartFlood(e.clientX, e.clientY);
+          s.likedBy=[...(s.likedBy||[]),CU.uid];
+          await updateDoc(doc(db,'stories',s.id),{likes:increment(1),likedBy:arrayUnion(CU.uid)}).catch(()=>{});
+        }
+      });
+
+      row.appendChild(myAvImg); row.appendChild(inp); row.appendChild(heartBtn); row.appendChild(sendBtn);
       btm.appendChild(row);
     }
     inner.appendChild(btm);
