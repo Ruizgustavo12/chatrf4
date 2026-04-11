@@ -1428,7 +1428,7 @@ function buildPost(post){
     <div class="post-media ${isVid?'video':'portrait'}" style="position:relative;">
       ${isVid
         ?`<div class="vid-player paused" id="vp-${post.id}">
-            <video src="${post.mediaUrl}" muted loop playsinline preload="metadata"></video>
+            <video src="${post.mediaUrl}" loop playsinline preload="metadata"></video>
             <div class="vid-controls">
               <div class="vid-progress-wrap" id="vp-prog-${post.id}">
                 <div class="vid-progress-bg">
@@ -1475,8 +1475,8 @@ function buildPost(post){
     <div class="post-view-comments" onclick="openComments('${post.id}','${comms}')">Ver los ${comms} comentarios</div>
     <div class="post-comment-row">
       <img class="post-comment-av" src="${document.getElementById('cs-my-av').src}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff'"/>
-      <input class="post-comment-inp" placeholder="Añadí un comentario..." onkeydown="if(event.key==='Enter'){currentPostId='${post.id}';document.getElementById('cs-inp').value=this.value;sendComment();this.value='';}"/>
-      <button class="post-comment-send" onclick="currentPostId='${post.id}';document.getElementById('cs-inp').value=this.previousElementSibling.value;sendComment();this.previousElementSibling.value='';">Publicar</button>
+      <input class="post-comment-inp" placeholder="Añadí un comentario..." onkeydown="if(event.key==='Enter'){sendCommentInline('${post.id}',this);}"/>
+      <button class="post-comment-send" onclick="sendCommentInline('${post.id}',this.previousElementSibling);">Publicar</button>
     </div>`;
   if(isVid){
     // Initialize custom player after card is in DOM context
@@ -1575,21 +1575,23 @@ window.toggleMute = btn => { /* legacy — handled by player now */ };
 // ── LIKES ──
 window.toggleLike = async (postId,btn) => {
   if(!CU){ showToast('Iniciá sesión'); return; }
-  const lr=doc(db,'likes',`${CU.uid}_${postId}`);
-  const pr=doc(db,'posts',postId);
-  const snap=await getDoc(lr);
-  const label=document.getElementById('likes-label-'+postId);
-  const cur=parseInt(label?.textContent)||0;
-  if(snap.exists()){
-    await deleteDoc(lr); await updateDoc(pr,{likes:increment(-1)});
-    btn?.classList.remove('liked');
-    if(label)label.textContent=fmtN(Math.max(0,cur-1))+' Me gusta';
-  } else {
-    await setDoc(lr,{uid:CU.uid,postId,createdAt:serverTimestamp()}); await updateDoc(pr,{likes:increment(1)});
-    btn?.classList.add('liked');
-    if(label)label.textContent=fmtN(cur+1)+' Me gusta';
-    spawnHeart();
-  }
+  try{
+    const lr=doc(db,'likes',`${CU.uid}_${postId}`);
+    const pr=doc(db,'posts',postId);
+    const [likeSnap, postSnap] = await Promise.all([getDoc(lr), getDoc(pr)]);
+    const label=document.getElementById('likes-label-'+postId);
+    const realLikes=postSnap.exists()?(postSnap.data().likes||0):0;
+    if(likeSnap.exists()){
+      await deleteDoc(lr); await updateDoc(pr,{likes:increment(-1)});
+      btn?.classList.remove('liked');
+      if(label)label.textContent=fmtN(Math.max(0,realLikes-1))+' Me gusta';
+    } else {
+      await setDoc(lr,{uid:CU.uid,postId,createdAt:serverTimestamp()}); await updateDoc(pr,{likes:increment(1)});
+      btn?.classList.add('liked');
+      if(label)label.textContent=fmtN(realLikes+1)+' Me gusta';
+      spawnHeart();
+    }
+  }catch(e){ console.error(e); showToast('Error al reaccionar'); }
 };
 function spawnHeart(){
   const h=document.createElement('div');
@@ -1638,17 +1640,33 @@ window.openComments = (postId,count) => {
   });
 };
 window.closeComments = () => { document.getElementById('comments-overlay').classList.remove('show'); if(commentsUnsub){commentsUnsub();commentsUnsub=null;} currentPostId=null; };
+// Función interna que hace el guardado real del comentario
+async function _doSendComment(postId, text){
+  if(!CU){ showToast('Iniciá sesión'); return; }
+  if(!text||!postId) return;
+  try{
+    const ud=(await getDoc(doc(db,'users',CU.uid))).data()||{};
+    await addDoc(collection(db,'posts',postId,'comments'),{uid:CU.uid,username:ud.username||CU.displayName||'usuario',avatarUrl:ud.avatarUrl||CU.photoURL||'',text,createdAt:serverTimestamp()});
+    await updateDoc(doc(db,'posts',postId),{commentsCount:increment(1)});
+    showToast('✅ Comentario publicado');
+  }catch(e){ console.error(e); showToast('Error al comentar'); }
+}
+// Desde el overlay de comentarios
 window.sendComment = async () => {
   if(!CU){ showToast('Iniciá sesión'); return; }
   const inp=document.getElementById('cs-inp');
   const text=inp.value.trim();
   if(!text||!currentPostId) return;
   inp.value='';
-  try{
-    const ud=(await getDoc(doc(db,'users',CU.uid))).data()||{};
-    await addDoc(collection(db,'posts',currentPostId,'comments'),{uid:CU.uid,username:ud.username||CU.displayName||'usuario',avatarUrl:ud.avatarUrl||CU.photoURL||'',text,createdAt:serverTimestamp()});
-    await updateDoc(doc(db,'posts',currentPostId),{commentsCount:increment(1)});
-  }catch(e){ showToast('Error al comentar'); }
+  await _doSendComment(currentPostId, text);
+};
+// Desde el input inline del feed
+window.sendCommentInline = async (postId, inputEl) => {
+  if(!CU){ showToast('Iniciá sesión'); return; }
+  const text=(inputEl?.value||'').trim();
+  if(!text||!postId) return;
+  inputEl.value='';
+  await _doSendComment(postId, text);
 };
 
 // ── OPTIONS SHEET ──
@@ -1881,7 +1899,7 @@ async function loadReels(){
       const el=document.createElement('div');
       el.className='reel-card';
       el.innerHTML=`
-        <video class="reel-video" src="${p.mediaUrl}" loop playsinline muted preload="metadata"></video>
+        <video class="reel-video" src="${p.mediaUrl}" loop playsinline preload="metadata"></video>
         <div class="reel-overlay">
           <div class="reel-side-actions">
             <div class="reel-action" onclick="toggleLike('${p.id}',this)">
