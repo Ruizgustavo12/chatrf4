@@ -559,6 +559,13 @@ img { display:block; }
 }
 .dz-track:last-child { border-bottom:none; }
 .dz-track:hover { background:rgba(255,255,255,.06); }
+.dz-preview-btn {
+  background:rgba(0,255,255,.12); border:1px solid rgba(0,255,255,.25);
+  color:var(--accent2); border-radius:50%; width:30px; height:30px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.75rem; cursor:pointer; flex-shrink:0; transition:background .15s;
+}
+.dz-preview-btn:hover { background:rgba(0,255,255,.25); }
 .dz-cover { width:42px; height:42px; border-radius:6px; object-fit:cover; flex-shrink:0; }
 .dz-info { flex:1; min-width:0; }
 .dz-title { font-size:.85rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -1689,42 +1696,115 @@ window.clearUpload = () => {
   document.getElementById('dz-selected').innerHTML='';
 };
 
-// ── DEEZER MUSIC PICKER ──
+// ── MUSIC PICKER (Deezer con fallback a iTunes) ──
 let _dzTimeout;
 window.dzSearchDebounce = v => { clearTimeout(_dzTimeout); _dzTimeout = setTimeout(()=>dzSearch(v), 500); };
-window.dzSearch = async query => {
-  query = (query||'').trim();
-  const box = document.getElementById('dz-results');
-  if(!query){ box.style.display='none'; box.innerHTML=''; return; }
-  box.style.display='block';
-  box.innerHTML='<div style="padding:16px;text-align:center;color:var(--muted);font-size:.82rem;">Buscando...</div>';
-  try{
-    // Use CORS proxy for Deezer API (public, no auth needed for search)
-    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(`https://api.deezer.com/search?q=${encodeURIComponent(query)}&limit=8`)}`);
-    if(!res.ok) throw new Error('Error Deezer');
-    const data = await res.json();
-    if(!data.data?.length){ box.innerHTML='<div style="padding:16px;text-align:center;color:var(--muted);font-size:.82rem;">Sin resultados</div>'; return; }
-    box.innerHTML='';
-    data.data.forEach(track=>{
-      const el=document.createElement('div');
-      el.className='dz-track';
-      el.innerHTML=`<img class="dz-cover" src="${track.album?.cover_small||''}" onerror="this.src='https://via.placeholder.com/42x42/222/fff?text=♪'"/><div class="dz-info"><div class="dz-title">${esc(track.title||'')}</div><div class="dz-artist">${esc(track.artist?.name||'')}</div></div>`;
-      el.addEventListener('click',()=>dzSelect({id:track.id,title:track.title||'',artist:track.artist?.name||'',cover:track.album?.cover_small||'',preview:track.preview||''}));
-      box.appendChild(el);
-    });
-  }catch(e){
-    box.innerHTML='<div style="padding:16px;text-align:center;color:var(--muted);font-size:.82rem;">No se pudo conectar con Deezer</div>';
+
+async function fetchWithProxy(url) {
+  // Intentar varios proxies en orden
+  const proxies = [
+    u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+    u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+    u => `https://proxy.cors.sh/${u}`,
+  ];
+  for (const makeUrl of proxies) {
+    try {
+      const res = await fetch(makeUrl(url), { signal: AbortSignal.timeout(6000) });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && !data.error) return data;
+      }
+    } catch(e) { /* siguiente proxy */ }
   }
+  return null;
+}
+
+async function searchDeezer(q) {
+  const data = await fetchWithProxy(`https://api.deezer.com/search?q=${encodeURIComponent(q)}&limit=8&output=json`);
+  if (!data?.data?.length) return null;
+  return data.data.map(t => ({
+    id:     t.id,
+    title:  t.title || '',
+    artist: t.artist?.name || '',
+    cover:  t.album?.cover_medium || t.album?.cover_small || '',
+    preview:t.preview || '',
+    source: 'deezer'
+  }));
+}
+
+async function searchItunes(q) {
+  // iTunes tiene CORS abierto nativo — no necesita proxy
+  try {
+    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&entity=song&limit=8&country=UY`, { signal: AbortSignal.timeout(6000) });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    if (!data.results?.length) return null;
+    return data.results.map(t => ({
+      id:     t.trackId,
+      title:  t.trackName || '',
+      artist: t.artistName || '',
+      cover:  (t.artworkUrl60||'').replace('60x60','100x100'),
+      preview:t.previewUrl || '',
+      source: 'itunes'
+    }));
+  } catch(e) { return null; }
+}
+
+window.dzSearch = async q => {
+  q = (q||'').trim();
+  const box = document.getElementById('dz-results');
+  if(!q){ box.style.display='none'; box.innerHTML=''; return; }
+  box.style.display='block';
+  box.innerHTML='<div style="padding:16px;text-align:center;color:var(--muted);font-size:.82rem;">🔍 Buscando...</div>';
+
+  // Intentar Deezer primero, si falla usar iTunes
+  let tracks = await searchDeezer(q);
+  if (!tracks) tracks = await searchItunes(q);
+
+  if (!tracks || !tracks.length) {
+    box.innerHTML='<div style="padding:16px;text-align:center;color:var(--muted);font-size:.82rem;">Sin resultados para "'+esc(q)+'"</div>';
+    return;
+  }
+
+  box.innerHTML='';
+  tracks.forEach(track => {
+    const el = document.createElement('div');
+    el.className = 'dz-track';
+    el.innerHTML = `
+      <img class="dz-cover" src="${esc(track.cover)}" onerror="this.style.background='var(--surface3)';this.src=''"/>
+      <div class="dz-info">
+        <div class="dz-title">${esc(track.title)}</div>
+        <div class="dz-artist">${esc(track.artist)}</div>
+      </div>
+      ${track.preview ? `<button class="dz-preview-btn" onclick="event.stopPropagation();dzPreview('${esc(track.preview)}',this)" title="Previsualizar">▶</button>` : ''}`;
+    el.addEventListener('click', () => dzSelect(track));
+    box.appendChild(el);
+  });
 };
+
+// Preview de 30 seg
+let _previewAudio = null;
+window.dzPreview = (url, btn) => {
+  if (_previewAudio) { _previewAudio.pause(); _previewAudio = null; btn.textContent='▶'; return; }
+  // reset all preview buttons
+  document.querySelectorAll('.dz-preview-btn').forEach(b=>b.textContent='▶');
+  _previewAudio = new Audio(url);
+  _previewAudio.volume = 0.7;
+  _previewAudio.play().catch(()=>{ showToast('No se pudo reproducir preview'); });
+  _previewAudio.onended = () => { btn.textContent='▶'; _previewAudio=null; };
+  btn.textContent = '⏹';
+};
+
 window.dzSelect = track => {
+  if (_previewAudio) { _previewAudio.pause(); _previewAudio=null; }
   _deezerTrack = track;
-  const box=document.getElementById('dz-results');
-  const sel=document.getElementById('dz-selected');
+  const box = document.getElementById('dz-results');
+  const sel = document.getElementById('dz-selected');
   box.style.display='none'; box.innerHTML='';
   document.getElementById('dz-search').value='';
   sel.style.display='block';
   sel.innerHTML=`<div class="dz-selected-card">
-    <img class="dz-selected-cover" src="${esc(track.cover)}" onerror="this.src='https://via.placeholder.com/40x40/222/fff?text=♪'"/>
+    <img class="dz-selected-cover" src="${esc(track.cover)}" onerror="this.style.background='var(--surface3)'"/>
     <div class="dz-selected-info">
       <div class="dz-selected-title">🎵 ${esc(track.title)}</div>
       <div class="dz-selected-artist">${esc(track.artist)}</div>
@@ -1734,6 +1814,7 @@ window.dzSelect = track => {
 };
 window.dzRemove = () => {
   _deezerTrack=null;
+  if (_previewAudio) { _previewAudio.pause(); _previewAudio=null; }
   document.getElementById('dz-selected').style.display='none';
   document.getElementById('dz-selected').innerHTML='';
 };
