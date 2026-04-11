@@ -3356,21 +3356,6 @@ window.downloadVideo = async (url, filename) => {
   }
 };
 
-  } catch(e) {
-    console.warn('Error generando outro en canvas:', e);
-    // Fallback: descarga directa sin outro
-    try {
-      const r = await fetch(url, { mode: 'cors', cache: 'no-store' });
-      const b = await r.blob();
-      const bu = URL.createObjectURL(b);
-      const a = document.createElement('a');
-      a.href = bu; a.download = safeFilename; a.style.display = 'none';
-      document.body.appendChild(a); a.click();
-      setTimeout(() => { URL.revokeObjectURL(bu); a.remove(); }, 3000);
-      showToast('⬇️ Video descargado');
-    } catch(e2) { window.open(url, '_blank'); }
-  }
-};
 window.shareProfile = () => { if(!CU)return; const url=`${location.origin}/?u=${CU.uid}`; if(navigator.share)navigator.share({title:'Mi perfil en Clipuy',url}).catch(()=>{}); else navigator.clipboard?.writeText(url).then(()=>showToast('¡Link copiado! 🔗')); };
 
 // ── UPLOAD COMPONENT ──
