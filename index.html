@@ -986,7 +986,7 @@ img { display:block; }
     <!-- HOME / FEED -->
     <div id="page-home">
       <div class="stories-bar" id="stories-bar">
-        <div class="story-item" onclick="openUpload()">
+        <div class="story-item" onclick="openUploadStory()">
           <div class="story-ring mine"><div class="story-add">+</div></div>
           <span class="story-name">Tu historia</span>
         </div>
@@ -1753,7 +1753,7 @@ function buildPost(post){
         :`<img src="${post.mediaUrl}" alt="post" loading="lazy"/>`
       }
     </div>
-    ${post.deezerTrack?`<div class="post-music-bar"><div class="pmb-disc-wrap"><img class="pmb-disc" src="${post.deezerTrack.cover||''}" onerror="this.src='https://ui-avatars.com/api/?name=♫&background=222&color=fff&size=64'"/><div class="pmb-disc-center"></div></div><div class="pmb-info"><span class="pmb-title">${post.deezerTrack.title||''}</span><span class="pmb-artist">${post.deezerTrack.artist||''}</span></div><span class="pmb-note">🎵</span></div>`:''}
+    ${post.deezerTrack?`<div class="post-music-bar" id="pmb-${post.id}" style="cursor:pointer;" onclick="togglePostMusic('${post.id}')"><div class="pmb-disc-wrap"><img class="pmb-disc" id="pmb-disc-${post.id}" src="${post.deezerTrack.cover||''}" onerror="this.src='https://ui-avatars.com/api/?name=♫&background=222&color=fff&size=64'" style="animation-play-state:paused;"/><div class="pmb-disc-center"></div></div><div class="pmb-info"><span class="pmb-title">${post.deezerTrack.title||''}</span><span class="pmb-artist">${post.deezerTrack.artist||''}</span></div><span class="pmb-note" id="pmb-icon-${post.id}">▶ 🎵</span></div>`:''}
     <div class="post-actions">
       <button class="post-act" id="like-btn-${post.id}" onclick="toggleLike('${post.id}',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
@@ -1780,6 +1780,10 @@ function buildPost(post){
   if(isVid){
     // Initialize custom player after card is in DOM context
     setTimeout(()=>initVideoPlayer(post.id, card), 0);
+  }
+  // Música Deezer: inicializar audio con IntersectionObserver
+  if(post.deezerTrack?.preview){
+    setTimeout(()=>initPostMusic(post.id, post.deezerTrack.preview), 0);
   }
   return card;
 }
@@ -1901,6 +1905,49 @@ function initVideoPlayer(postId, card){
 
 window.toggleVid = vid => { vid.paused?vid.play():vid.pause(); };
 window.toggleMute = btn => { /* legacy — handled by player now */ };
+
+// ── MUSIC AUDIO PARA POSTS ──
+const _postAudios = new Map(); // postId -> Audio
+
+function initPostMusic(postId, previewUrl){
+  if(!previewUrl) return;
+  const audio = new Audio(previewUrl);
+  audio.loop = true;
+  audio.volume = 0.65;
+  _postAudios.set(postId, audio);
+
+  // Actualizar ícono del disco cuando cambia el estado
+  audio.addEventListener('play', ()=>{
+    const disc = document.getElementById(`pmb-disc-${postId}`);
+    const icon = document.getElementById(`pmb-icon-${postId}`);
+    if(disc) disc.style.animationPlayState = 'running';
+    if(icon) icon.textContent = '⏸ 🎵';
+  });
+  audio.addEventListener('pause', ()=>{
+    const disc = document.getElementById(`pmb-disc-${postId}`);
+    const icon = document.getElementById(`pmb-icon-${postId}`);
+    if(disc) disc.style.animationPlayState = 'paused';
+    if(icon) icon.textContent = '▶ 🎵';
+  });
+
+  // IntersectionObserver: play cuando el post es visible, pause cuando sale
+  const bar = document.getElementById(`pmb-${postId}`);
+  if(bar){
+    new IntersectionObserver(entries=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){ audio.play().catch(()=>{}); }
+        else { audio.pause(); }
+      });
+    },{threshold:.5}).observe(bar);
+  }
+}
+
+window.togglePostMusic = postId => {
+  const audio = _postAudios.get(postId);
+  if(!audio) return;
+  if(audio.paused){ audio.play().catch(()=>{}); }
+  else { audio.pause(); }
+};
 
 // ── LIKES ──
 window.toggleLike = async (postId,btn) => {
@@ -2101,6 +2148,11 @@ window.openUpload    = () => {
   setUploadType('post', document.getElementById('uptype-post'));
   document.getElementById('upload-modal').classList.add('show');
 };
+window.openUploadStory = () => {
+  document.getElementById('upload-modal').classList.add('show');
+  // Pequeño delay para que el modal esté visible antes de activar el tab
+  setTimeout(()=>setUploadType('story', document.getElementById('uptype-story')), 30);
+};
 window.setUploadType = (type, btn) => {
   _uploadType = type;
   document.querySelectorAll('.up-type-btn').forEach(b=>b.classList.remove('active'));
@@ -2125,7 +2177,7 @@ window.onFileSelected = file => {
   document.getElementById('up-submit').disabled=false;
 };
 window.clearUpload = () => {
-  _file=null; _deezerTrack=null;
+  _file=null; _deezerTrack=null; _uploadType='post';
   document.getElementById('up-prev').style.display='none';
   document.getElementById('up-drop').style.display='block';
   document.getElementById('up-vid').src=''; document.getElementById('up-img').src='';
