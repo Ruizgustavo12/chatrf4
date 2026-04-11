@@ -882,6 +882,47 @@ img { display:block; }
 }
 .explore-thumb-loading video { opacity: 0 !important; }
 
+/* ───── EXPLORE VIEWER (estilo Reels) ───── */
+#explore-viewer::-webkit-scrollbar { display:none; }
+#ev-scroller::-webkit-scrollbar { display:none; }
+
+.ev-overlay {
+  position:absolute; inset:0; pointer-events:none;
+  display:flex; justify-content:flex-end;
+}
+.ev-side {
+  pointer-events:all;
+  display:flex; flex-direction:column; align-items:center; gap:18px;
+  padding:20px 12px 100px; justify-content:flex-end;
+}
+.ev-action {
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  color:#fff; cursor:pointer; font-size:.7rem; font-weight:700;
+  text-shadow:0 1px 4px rgba(0,0,0,.6); user-select:none;
+  pointer-events:all;
+}
+.ev-action svg { filter:drop-shadow(0 1px 3px rgba(0,0,0,.5)); }
+.ev-action.liked svg { fill:var(--accent); stroke:var(--accent); }
+.ev-info {
+  position:absolute; bottom:0; left:0; right:60px;
+  padding:16px 16px 28px; pointer-events:all;
+  background:linear-gradient(transparent, rgba(0,0,0,.75) 60%);
+}
+.ev-user-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.ev-av { width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,.5); flex-shrink:0; }
+.ev-username { font-weight:700; font-size:.9rem; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.6); }
+.ev-caption { font-size:.84rem; color:rgba(255,255,255,.9); line-height:1.45; margin-bottom:10px; text-shadow:0 1px 3px rgba(0,0,0,.5); }
+.ev-controls {
+  background:rgba(0,0,0,.35); border-radius:10px; padding:8px 10px;
+  backdrop-filter:blur(4px);
+}
+.ev-prog-wrap { position:relative; height:16px; display:flex; align-items:center; cursor:pointer; margin-bottom:4px; }
+.ev-prog-bg { width:100%; height:3px; background:rgba(255,255,255,.3); border-radius:99px; position:relative; }
+.ev-prog-fill { height:100%; background:var(--accent2); border-radius:99px; width:0%; pointer-events:none; }
+.ev-prog-thumb { position:absolute; top:50%; left:0; transform:translate(-50%,-50%); width:11px; height:11px; border-radius:50%; background:#fff; pointer-events:none; opacity:0; transition:opacity .15s; }
+.ev-prog-wrap:hover .ev-prog-thumb { opacity:1; }
+.ev-ctrl-row { display:flex; align-items:center; gap:4px; }
+
 /* Search */
 .search-bar { display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm); padding:11px 15px; margin:16px 0 14px; transition:border-color .2s; }
 .search-bar:focus-within { border-color:var(--accent2); }
@@ -3165,106 +3206,358 @@ window.doUpload = async () => {
 
 // ── EXPLORE ──
 
-// Genera un poster (dataURL) del primer frame de un video URL
+// Genera thumbnail del primer frame usando un video oculto + canvas
 const _thumbCache = new Map();
 function generateVideoThumb(url, el){
   if(_thumbCache.has(url)){
-    el.style.backgroundImage = `url(${_thumbCache.get(url)})`;
+    const cached = _thumbCache.get(url);
+    if(cached === 'error'){ el.classList.remove('explore-thumb-loading'); return; }
+    el.style.backgroundImage = `url(${cached})`;
     el.style.backgroundSize = 'cover';
     el.style.backgroundPosition = 'center';
     el.classList.remove('explore-thumb-loading');
     return;
   }
+  if(_thumbCache.get(url) === 'pending') return;
+  _thumbCache.set(url, 'pending');
+
   const vid = document.createElement('video');
-  vid.src = url;
   vid.muted = true;
   vid.playsInline = true;
   vid.preload = 'metadata';
-  vid.crossOrigin = 'anonymous';
-  const doSeek = () => { try{ vid.currentTime = 0.5; }catch(e){} };
-  vid.addEventListener('loadedmetadata', doSeek, {once:true});
-  vid.addEventListener('seeked', function onSeeked(){
-    vid.removeEventListener('seeked', onSeeked);
+  vid.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;';
+  document.body.appendChild(vid);
+
+  const cleanup = () => { try{ document.body.removeChild(vid); }catch(e){} };
+
+  const tryCapture = () => {
     try{
       const canvas = document.createElement('canvas');
-      canvas.width  = 180;
-      canvas.height = 180;
+      canvas.width = 240; canvas.height = 240;
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(vid, 0, 0, 180, 180);
-      const dataURL = canvas.toDataURL('image/jpeg', 0.72);
+      ctx.drawImage(vid, 0, 0, 240, 240);
+      // Verificar que no sea frame negro
+      const px = ctx.getImageData(60, 60, 120, 120).data;
+      let sum = 0;
+      for(let i = 0; i < px.length; i += 4) sum += px[i] + px[i+1] + px[i+2];
+      const avg = sum / (px.length / 4 * 3);
+      if(avg < 4 && vid.currentTime < 2){ vid.currentTime = Math.min(vid.duration * 0.1 + 0.5, vid.duration - 0.1); return; }
+      const dataURL = canvas.toDataURL('image/jpeg', 0.75);
       _thumbCache.set(url, dataURL);
       el.style.backgroundImage = `url(${dataURL})`;
       el.style.backgroundSize = 'cover';
       el.style.backgroundPosition = 'center';
       el.classList.remove('explore-thumb-loading');
-    }catch(e){ el.classList.remove('explore-thumb-loading'); }
-    vid.src = '';
+      cleanup();
+    }catch(e){
+      _thumbCache.set(url, 'error');
+      el.classList.remove('explore-thumb-loading');
+      cleanup();
+    }
+  };
+
+  vid.addEventListener('seeked', tryCapture, {once:true});
+  vid.addEventListener('loadedmetadata', ()=>{
+    vid.currentTime = Math.min(0.5, vid.duration * 0.05);
+  }, {once:true});
+  vid.addEventListener('error', ()=>{
+    _thumbCache.set(url, 'error');
+    el.classList.remove('explore-thumb-loading');
+    cleanup();
+  }, {once:true});
+
+  // Timeout de seguridad: si en 8s no cargó, remover
+  setTimeout(()=>{
+    if(_thumbCache.get(url) === 'pending'){
+      _thumbCache.set(url, 'error');
+      el.classList.remove('explore-thumb-loading');
+      cleanup();
+    }
+  }, 8000);
+
+  vid.src = url;
+}
+
+// ── VISOR DE EXPLORAR (estilo Reels) ──
+let _explorePostsList = [];
+
+function openExploreViewer(startIdx){
+  // Reutilizar la infraestructura de reels: construir un overlay propio
+  const posts = _explorePostsList;
+  if(!posts.length) return;
+
+  // Crear overlay fullscreen
+  const overlay = document.createElement('div');
+  overlay.id = 'explore-viewer';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:4000;background:#000;display:flex;flex-direction:column;overflow:hidden;';
+
+  // Header con botón cerrar
+  const hdr = document.createElement('div');
+  hdr.style.cssText = 'position:absolute;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:linear-gradient(to bottom,rgba(0,0,0,.7),transparent);';
+  hdr.innerHTML = `<span style="font-family:var(--font-display);font-size:1rem;font-weight:700;color:#fff;">Explorar</span><button id="ev-close" style="background:rgba(0,0,0,.45);border:none;color:#fff;font-size:1rem;width:34px;height:34px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>`;
+  overlay.appendChild(hdr);
+
+  // Contenedor de cards scrollable (snap)
+  const scroller = document.createElement('div');
+  scroller.id = 'ev-scroller';
+  scroller.style.cssText = 'width:100%;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;';
+  overlay.appendChild(scroller);
+
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+
+  // Construir todas las cards
+  const SVG_PLAY  = `<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><polygon points="5,3 19,12 5,21"/></svg>`;
+  const SVG_PAUSE = `<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+  const SVG_VOL   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>`;
+  const SVG_MUTE  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`;
+
+  posts.forEach((p, idx) => {
+    const isVid = p.mediaUrl?.match(/\.(mp4|mov|webm|ogg)/i) || p.mediaType === 'video';
+    const av = p.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.username||'U')}&background=222&color=fff&size=128`;
+    const card = document.createElement('div');
+    card.style.cssText = 'position:relative;width:100%;height:100vh;flex-shrink:0;scroll-snap-align:start;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center;';
+    card.dataset.idx = idx;
+
+    if(isVid){
+      card.innerHTML = `
+        <video class="ev-video" src="${p.mediaUrl}" loop playsinline preload="metadata" style="width:100%;height:100%;object-fit:contain;display:block;"></video>
+        <div class="ev-overlay">
+          <div class="ev-side">
+            <div class="ev-action" data-post="${p.id}" data-action="like">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+              <span class="ev-likes-label" id="ev-likes-${p.id}">${fmtN(p.likes||0)}</span>
+            </div>
+            <div class="ev-action" data-post="${p.id}" data-action="comment">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              <span>${fmtN(p.commentsCount||0)}</span>
+            </div>
+            <div class="ev-action" data-post="${p.id}" data-action="share">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              <span>Compartir</span>
+            </div>
+          </div>
+          <div class="ev-info">
+            <div class="ev-user-row">
+              <img class="ev-av" src="${av}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff'"/>
+              <span class="ev-username">@${esc(p.username||'usuario')}</span>
+            </div>
+            ${p.caption ? `<div class="ev-caption">${esc((p.caption||'').slice(0,120))}</div>` : ''}
+            <div class="ev-controls">
+              <div class="ev-prog-wrap">
+                <div class="ev-prog-bg"><div class="ev-prog-fill"></div><div class="ev-prog-thumb"></div></div>
+              </div>
+              <div class="ev-ctrl-row">
+                <button class="vid-btn ev-play-btn">${SVG_PLAY}</button>
+                <span class="vid-time ev-time">0:00 / 0:00</span>
+                <div class="vid-vol-wrap" style="margin-left:auto;">
+                  <button class="vid-btn ev-mute-btn">${SVG_VOL}</button>
+                  <input type="range" class="vid-vol-slider ev-vol" min="0" max="1" step="0.05" value="1"/>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    } else {
+      card.innerHTML = `
+        <img src="${p.mediaUrl}" style="width:100%;height:100%;object-fit:contain;display:block;" loading="lazy"/>
+        <div class="ev-overlay">
+          <div class="ev-side">
+            <div class="ev-action" data-post="${p.id}" data-action="like">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+              <span class="ev-likes-label" id="ev-likes-${p.id}">${fmtN(p.likes||0)}</span>
+            </div>
+            <div class="ev-action" data-post="${p.id}" data-action="comment">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              <span>${fmtN(p.commentsCount||0)}</span>
+            </div>
+            <div class="ev-action" data-post="${p.id}" data-action="share">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              <span>Compartir</span>
+            </div>
+          </div>
+          <div class="ev-info">
+            <div class="ev-user-row">
+              <img class="ev-av" src="${av}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff'"/>
+              <span class="ev-username">@${esc(p.username||'usuario')}</span>
+            </div>
+            ${p.caption ? `<div class="ev-caption">${esc((p.caption||'').slice(0,120))}</div>` : ''}
+          </div>
+        </div>`;
+    }
+    scroller.appendChild(card);
+
+    // Wiring de video
+    if(isVid){
+      const vid      = card.querySelector('.ev-video');
+      const fill     = card.querySelector('.ev-prog-fill');
+      const thmb     = card.querySelector('.ev-prog-thumb');
+      const timeEl   = card.querySelector('.ev-time');
+      const playBtn  = card.querySelector('.ev-play-btn');
+      const muteBtn  = card.querySelector('.ev-mute-btn');
+      const volSl    = card.querySelector('.ev-vol');
+      const progWrap = card.querySelector('.ev-prog-wrap');
+
+      const updProg = () => {
+        const dur = vid.duration, cur = vid.currentTime;
+        if(!isFinite(dur)||isNaN(dur)||dur<=0){ if(timeEl) timeEl.textContent=fmt(cur)+' / --:--'; return; }
+        const pct = Math.max(0,Math.min(100,(cur/dur)*100));
+        if(fill)  fill.style.width = pct+'%';
+        if(thmb)  thmb.style.left  = pct+'%';
+        if(timeEl) timeEl.textContent = fmt(cur)+' / '+fmt(dur);
+      };
+      vid.addEventListener('timeupdate', updProg);
+      vid.addEventListener('loadedmetadata', updProg);
+      vid.addEventListener('play',  ()=>{ if(playBtn) playBtn.innerHTML=SVG_PAUSE; });
+      vid.addEventListener('pause', ()=>{ if(playBtn) playBtn.innerHTML=SVG_PLAY; });
+
+      let _dbl=0;
+      vid.addEventListener('click', e=>{
+        const now=Date.now();
+        if(now-_dbl<350){ toggleLike(p.id, card.querySelector('.ev-action')); spawnHeartFlood(e.clientX, e.clientY); _dbl=0; }
+        else { _dbl=now; vid.paused?vid.play():vid.pause(); }
+      });
+      if(playBtn) playBtn.addEventListener('click', e=>{ e.stopPropagation(); vid.paused?vid.play():vid.pause(); });
+      if(muteBtn) muteBtn.addEventListener('click', e=>{ e.stopPropagation(); vid.muted=!vid.muted; if(volSl) volSl.value=vid.muted?0:vid.volume; muteBtn.innerHTML=vid.muted?SVG_MUTE:SVG_VOL; });
+      if(volSl)   volSl.addEventListener('input', e=>{ e.stopPropagation(); vid.volume=parseFloat(volSl.value); vid.muted=vid.volume===0; if(muteBtn) muteBtn.innerHTML=vid.muted?SVG_MUTE:SVG_VOL; });
+
+      // Scrub
+      let _rs=false;
+      const scrub=e=>{ const dur=vid.duration; if(!isFinite(dur)||isNaN(dur)||dur<=0)return; const r=progWrap.getBoundingClientRect(); const cx=e.touches?e.touches[0].clientX:e.clientX; const pct=Math.max(0,Math.min(1,(cx-r.left)/r.width)); if(vid.readyState>=1){vid.currentTime=pct*dur;updProg();} };
+      if(progWrap){
+        progWrap.addEventListener('mousedown', e=>{_rs=true;scrub(e);e.stopPropagation();});
+        window.addEventListener('mousemove', e=>{if(_rs)scrub(e);});
+        window.addEventListener('mouseup', ()=>{_rs=false;});
+        progWrap.addEventListener('touchstart', e=>{_rs=true;scrub(e);e.preventDefault();},{passive:false});
+        progWrap.addEventListener('touchmove', e=>{if(_rs)scrub(e);e.preventDefault();},{passive:false});
+        progWrap.addEventListener('touchend', ()=>{_rs=false;});
+      }
+
+      // Autoplay por viewport
+      new IntersectionObserver(entries=>{
+        entries.forEach(en=>{
+          if(en.isIntersecting){
+            const pp=vid.play(); if(pp) pp.catch(()=>{ vid.muted=true; vid.play().catch(()=>{}); });
+          } else { vid.pause(); vid.currentTime=0; }
+        });
+      },{threshold:0.6}).observe(card);
+    }
+
+    // Like / comentar / compartir desde botones laterales
+    card.querySelectorAll('.ev-action').forEach(btn=>{
+      btn.addEventListener('click', e=>{
+        e.stopPropagation();
+        const action = btn.dataset.action;
+        const postId = btn.dataset.post;
+        if(action==='like'){ toggleLike(postId, btn); }
+        else if(action==='comment'){ openComments(postId, fmtN(p.commentsCount||0)); }
+        else if(action==='share'){ sharePost(postId); }
+      });
+    });
   });
-  vid.addEventListener('error', ()=>{ el.classList.remove('explore-thumb-loading'); vid.src=''; }, {once:true});
+
+  // Scroll al índice de inicio
+  requestAnimationFrame(()=>{
+    const cards = scroller.children;
+    if(cards[startIdx]) cards[startIdx].scrollIntoView({behavior:'instant'});
+  });
+
+  // Cerrar
+  const closeViewer = () => {
+    // Pausar todos los videos
+    overlay.querySelectorAll('video').forEach(v=>{ v.pause(); v.src=''; });
+    overlay.remove();
+    document.body.style.overflow = '';
+  };
+  document.getElementById('ev-close').addEventListener('click', closeViewer);
+  overlay.addEventListener('keydown', e=>{ if(e.key==='Escape') closeViewer(); });
+
+  // ESC global
+  const onEsc = e=>{ if(e.key==='Escape'){ closeViewer(); document.removeEventListener('keydown',onEsc); } };
+  document.addEventListener('keydown', onEsc);
 }
 
 async function loadExplore(term=''){
-  const grid=document.getElementById('explore-grid');
-  // Mostrar skeletons mientras carga
+  const grid = document.getElementById('explore-grid');
   grid.innerHTML = Array(9).fill(0).map(()=>'<div class="media-thumb explore-thumb-loading skel"></div>').join('');
   try{
-    const snap=await getDocs(query(collection(db,'posts'),orderBy('likes','desc'),limit(30)));
-    const posts=snap.docs.map(d=>({id:d.id,...d.data()}));
-    const filtered=term?posts.filter(p=>(p.caption||'').toLowerCase().includes(term.toLowerCase())||(p.username||'').toLowerCase().includes(term.toLowerCase())):posts;
-    grid.innerHTML='';
+    const snap = await getDocs(query(collection(db,'posts'), orderBy('likes','desc'), limit(40)));
+    const posts = snap.docs.map(d=>({id:d.id,...d.data()}));
+    const filtered = term
+      ? posts.filter(p=>(p.caption||'').toLowerCase().includes(term.toLowerCase())||(p.username||'').toLowerCase().includes(term.toLowerCase()))
+      : posts;
+    _explorePostsList = filtered; // guardar para el visor
+    grid.innerHTML = '';
     if(!filtered.length){ grid.innerHTML='<div style="grid-column:1/-1;padding:44px;text-align:center;color:var(--muted);">Sin resultados</div>'; return; }
 
-    // Observer para cargar el src del video al acercarse al viewport
-    const _exploreIO=new IntersectionObserver(entries=>{
-      entries.forEach(e=>{
-        if(e.isIntersecting){
-          const v=e.target.querySelector('video[data-src]');
-          if(v){ v.src=v.dataset.src; delete v.dataset.src; v.load(); }
-          _exploreIO.unobserve(e.target);
-        }
-      });
-    },{rootMargin:'300px'});
+    // Throttle para no lanzar muchas descargas a la vez
+    let _thumbQueue = [], _thumbActive = 0, _thumbMax = 3;
+    const drainThumbQueue = () => {
+      while(_thumbActive < _thumbMax && _thumbQueue.length){
+        const {url, el} = _thumbQueue.shift();
+        _thumbActive++;
+        generateVideoThumb(url, el);
+        // Detectar cuando termina observando el cache
+        const poll = setInterval(()=>{
+          const v = _thumbCache.get(url);
+          if(v && v !== 'pending'){ _thumbActive = Math.max(0, _thumbActive-1); clearInterval(poll); drainThumbQueue(); }
+        }, 200);
+      }
+    };
 
-    // Observer para generar thumbnail cuando entra al viewport
     const _thumbIO = new IntersectionObserver(entries=>{
       entries.forEach(e=>{
         if(e.isIntersecting){
           const url = e.target.dataset.thumbUrl;
-          if(url) generateVideoThumb(url, e.target);
+          if(url){ _thumbQueue.push({url, el:e.target}); drainThumbQueue(); }
           _thumbIO.unobserve(e.target);
         }
       });
-    },{rootMargin:'400px'});
+    },{rootMargin:'500px'});
 
     filtered.forEach((p, i)=>{
-      const el=document.createElement('div');
-      el.className='media-thumb';
-      const isVid=p.mediaUrl?.match(/\.(mp4|mov|webm|ogg)/i)||p.mediaType==='video';
+      const el = document.createElement('div');
+      el.className = 'media-thumb';
+      const isVid = p.mediaUrl?.match(/\.(mp4|mov|webm|ogg)/i) || p.mediaType==='video';
+
       if(isVid){
         el.classList.add('explore-thumb-loading');
         el.dataset.thumbUrl = p.mediaUrl;
-        el.innerHTML=`<video data-src="${p.mediaUrl}" muted preload="none" style="width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .25s;"></video><div class="media-thumb-badge">▶</div>`;
-        // Los primeros 9 generan thumbnail de inmediato; el resto espera el viewport
-        if(i < 9){ generateVideoThumb(p.mediaUrl, el); }
-        else { _thumbIO.observe(el); }
-        _exploreIO.observe(el);
+        // Ícono ▶ siempre visible
+        el.innerHTML = `<div class="media-thumb-badge">▶</div>`;
+        // Preview en hover
         el.addEventListener('mouseenter',()=>{
-          const v=el.querySelector('video');
-          if(!v) return;
-          if(v.dataset.src){ v.src=v.dataset.src; delete v.dataset.src; }
-          v.style.opacity='1';
+          if(el.querySelector('video')) return;
+          const v = document.createElement('video');
+          v.src = p.mediaUrl; v.muted = true; v.loop = true; v.playsInline = true;
+          v.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
+          el.insertBefore(v, el.firstChild);
           v.play().catch(()=>{});
         });
         el.addEventListener('mouseleave',()=>{
-          const v=el.querySelector('video');
-          if(v){ v.pause(); v.currentTime=0; v.style.opacity='0'; }
+          const v = el.querySelector('video');
+          if(v){ v.pause(); v.remove(); }
         });
+        // Encolar thumbnail
+        if(i < 6){ _thumbQueue.push({url:p.mediaUrl, el}); }
+        else { _thumbIO.observe(el); }
       } else {
-        el.innerHTML=`<img src="${p.mediaUrl}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"/>`;
+        const img = document.createElement('img');
+        img.src = p.mediaUrl;
+        img.loading = 'lazy';
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+        el.appendChild(img);
       }
+
+      // Click → abrir visor
+      el.addEventListener('click', ()=> openExploreViewer(i));
       grid.appendChild(el);
     });
-  }catch(e){ grid.innerHTML='<div style="grid-column:1/-1;padding:44px;text-align:center;color:var(--muted);">Error</div>'; }
+
+    // Iniciar la cola de thumbnails para los primeros 6
+    drainThumbQueue();
+
+  }catch(e){ grid.innerHTML='<div style="grid-column:1/-1;padding:44px;text-align:center;color:var(--muted);">Error al cargar</div>'; console.error(e); }
 }
 let _et;
 window.handleExploreSearch = v => { clearTimeout(_et); _et=setTimeout(()=>loadExplore(v),350); };
