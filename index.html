@@ -1716,9 +1716,129 @@ const TRENDLIFY_LOGO_SRC = "data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4g
 // como overlay canvas en el player al terminar cada reproducción.
 // El username se almacena en el nombre del archivo para que el player lo recupere.
 async function processVideoWithWatermark(videoFile, username) {
-  // No tocamos el archivo — el outro se renderiza en el player como overlay.
-  // Solo devolvemos el original preservando audio perfecto.
-  return videoFile;
+  // Detectar mimeType compatible con MediaRecorder
+  const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
+    ? 'video/webm;codecs=vp9,opus'
+    : MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
+    ? 'video/webm;codecs=vp8,opus'
+    : MediaRecorder.isTypeSupported('video/webm')
+    ? 'video/webm'
+    : 'video/mp4';
+
+  // 1. Renderizar el outro animado como Blob de video
+  const outroBlob = await _renderOutro(username, mime);
+
+  // 2. Concatenar: video original + outro usando MediaSource o CanvasStream
+  // Usamos un enfoque canvas: reproducir el video original frame a frame, luego el outro
+  return await _concatVideoWithOutro(videoFile, outroBlob, username, mime);
+}
+
+// Concatena el video original con el outro usando canvas + MediaRecorder
+function _concatVideoWithOutro(originalFile, outroBlob, username, mime) {
+  return new Promise((resolve, reject) => {
+    const originalUrl = URL.createObjectURL(originalFile);
+    const outroUrl    = URL.createObjectURL(outroBlob);
+
+    const vidOriginal = document.createElement('video');
+    const vidOutro    = document.createElement('video');
+    vidOriginal.muted = false;
+    vidOutro.muted    = false;
+    vidOriginal.playsInline = vidOutro.playsInline = true;
+    vidOriginal.preload = vidOutro.preload = 'auto';
+
+    // Canvas para capturar frames
+    const canvas = document.createElement('canvas');
+    const ctx    = canvas.getContext('2d');
+
+    const chunks = [];
+    let recorder = null;
+    let phase = 'original'; // 'original' | 'outro' | 'done'
+    let rafId;
+
+    // AudioContext para capturar audio del video original
+    let audioCtx = null, srcNode = null, destNode = null;
+
+    vidOriginal.src = originalUrl;
+    vidOutro.src    = outroUrl;
+
+    vidOriginal.addEventListener('loadedmetadata', () => {
+      canvas.width  = vidOriginal.videoWidth  || 720;
+      canvas.height = vidOriginal.videoHeight || 1280;
+
+      // Configurar AudioContext para capturar audio del original
+      try {
+        audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+        srcNode   = audioCtx.createMediaElementSource(vidOriginal);
+        destNode  = audioCtx.createMediaStreamDestination();
+        srcNode.connect(destNode);
+        srcNode.connect(audioCtx.destination); // también reproducir localmente
+      } catch(e) { /* sin audio context */ }
+
+      const videoStream = canvas.captureStream(30);
+      if (destNode) destNode.stream.getAudioTracks().forEach(t => videoStream.addTrack(t));
+
+      try {
+        recorder = new MediaRecorder(videoStream, { mimeType: mime, videoBitsPerSecond: 4000000 });
+      } catch(e) {
+        recorder = new MediaRecorder(videoStream);
+      }
+      recorder.ondataavailable = e => { if(e.data && e.data.size > 0) chunks.push(e.data); };
+      recorder.onstop = () => {
+        URL.revokeObjectURL(originalUrl);
+        URL.revokeObjectURL(outroUrl);
+        if(audioCtx) audioCtx.close();
+        const finalBlob = new Blob(chunks, { type: mime });
+        resolve(new File([finalBlob], originalFile.name.replace(/\.[^.]+$/, '') + '_trendlify.' + (mime.includes('mp4') ? 'mp4' : 'webm'), { type: mime }));
+      };
+      recorder.start(100);
+
+      // Fase 1: video original
+      phase = 'original';
+      const drawFrame = () => {
+        if (phase === 'done') return;
+        if (phase === 'original') {
+          if (vidOriginal.ended || vidOriginal.paused && vidOriginal.currentTime >= vidOriginal.duration - 0.05) {
+            // Pasar al outro
+            phase = 'outro';
+            vidOriginal.pause();
+            vidOutro.currentTime = 0;
+            vidOutro.play().catch(() => {});
+            rafId = requestAnimationFrame(drawFrame);
+            return;
+          }
+          ctx.drawImage(vidOriginal, 0, 0, canvas.width, canvas.height);
+        } else if (phase === 'outro') {
+          if (vidOutro.ended || (vidOutro.paused && vidOutro.currentTime >= vidOutro.duration - 0.05)) {
+            phase = 'done';
+            cancelAnimationFrame(rafId);
+            recorder.stop();
+            return;
+          }
+          ctx.drawImage(vidOutro, 0, 0, canvas.width, canvas.height);
+        }
+        rafId = requestAnimationFrame(drawFrame);
+      };
+
+      vidOriginal.play().then(() => {
+        rafId = requestAnimationFrame(drawFrame);
+      }).catch(err => {
+        URL.revokeObjectURL(originalUrl); URL.revokeObjectURL(outroUrl);
+        reject(err);
+      });
+
+      // Timeout de seguridad: máx 3 minutos
+      setTimeout(() => {
+        if (phase !== 'done') {
+          phase = 'done';
+          cancelAnimationFrame(rafId);
+          if (recorder && recorder.state !== 'inactive') recorder.stop();
+        }
+      }, 180000);
+    });
+
+    vidOriginal.addEventListener('error', () => resolve(originalFile));
+    vidOutro.addEventListener('error', () => resolve(originalFile));
+  });
 }
 
 // Renderiza la pantalla final animada (SIN audio original, solo tono de cierre)
