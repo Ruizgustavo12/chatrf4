@@ -2443,9 +2443,33 @@ async function loadReels(){
   const container=document.getElementById('reels-container');
   container.innerHTML='<div style="padding:60px;text-align:center;color:var(--muted);">Cargando reels...</div>';
   try{
-    // Traer todos los videos y filtrar reels (contentType='reel' o mediaType='video' sin contentType para compatibilidad)
-    const snap=await getDocs(query(collection(db,'posts'),orderBy('createdAt','desc'),limit(60)));
-    const reelDocs=snap.docs.filter(d=>{ const p=d.data(); return p.mediaType==='video'||p.mediaUrl?.match(/\.(mp4|mov|webm|ogg)/i); }).filter(d=>{ const ct=d.data().contentType; return ct==='reel'||!ct; });
+    // Traer por likes desc (más reaccionados primero), fallback a createdAt
+    // Pedimos dos queries y combinamos: top por likes y top por views
+    const [snapLikes, snapRecent] = await Promise.all([
+      getDocs(query(collection(db,'posts'), orderBy('likes','desc'), limit(40))),
+      getDocs(query(collection(db,'posts'), orderBy('views','desc'), limit(40)))
+    ]);
+
+    // Unir ambos sets, deduplicar por id
+    const seen = new Set();
+    const allDocs = [];
+    [...snapLikes.docs, ...snapRecent.docs].forEach(d=>{
+      if(!seen.has(d.id)){ seen.add(d.id); allDocs.push(d); }
+    });
+
+    // Filtrar solo videos/reels
+    const reelDocs = allDocs
+      .filter(d=>{ const p=d.data(); return p.mediaType==='video'||p.mediaUrl?.match(/\.(mp4|mov|webm|ogg)/i); })
+      .filter(d=>{ const ct=d.data().contentType; return ct==='reel'||!ct; });
+
+    // Ordenar por score: likes*3 + commentsCount*2 + views*1
+    reelDocs.sort((a,b)=>{
+      const pa=a.data(), pb=b.data();
+      const sa=(pa.likes||0)*3 + (pa.commentsCount||0)*2 + (pa.views||0);
+      const sb=(pb.likes||0)*3 + (pb.commentsCount||0)*2 + (pb.views||0);
+      return sb - sa;
+    });
+
     if(!reelDocs.length){ container.innerHTML='<div style="padding:60px;text-align:center;color:var(--muted);">Sin reels todavía</div>'; return; }
     container.innerHTML='';
     reelDocs.forEach((d)=>{
@@ -2468,6 +2492,10 @@ async function loadReels(){
             <div class="reel-action" onclick="sharePost('${p.id}')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="26" height="26"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
               <span>Compartir</span>
+            </div>
+            <div class="reel-action" style="pointer-events:none;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="26" height="26"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span id="views-label-${p.id}">${fmtN(p.views||0)}</span>
             </div>
           </div>
           <div class="reel-info">
@@ -2543,11 +2571,26 @@ async function loadReels(){
       muteBtn.addEventListener('click',e=>{ e.stopPropagation(); vid.muted=!vid.muted; volSlider.value=vid.muted?0:vid.volume; muteBtn.innerHTML=vid.muted?SVG_MUTE:SVG_VOL; });
       volSlider.addEventListener('input',e=>{ e.stopPropagation(); vid.volume=parseFloat(volSlider.value); vid.muted=vid.volume===0; muteBtn.innerHTML=vid.muted?SVG_MUTE:SVG_VOL; });
 
-      // Autoplay on scroll
+      // Autoplay on scroll + trackear vista
+      const _viewedReels = window._viewedReels || (window._viewedReels = new Set());
       new IntersectionObserver(entries=>{
         entries.forEach(e=>{
-          if(e.isIntersecting){ vid.play().catch(()=>{}); }
-          else { vid.pause(); vid.currentTime=0; }
+          if(e.isIntersecting){
+            vid.play().catch(()=>{});
+            // Contar vista una sola vez por sesión por reel
+            if(!_viewedReels.has(p.id)){
+              _viewedReels.add(p.id);
+              // Incrementar views en Firestore con debounce de 2s (esperar que realmente lo vean)
+              setTimeout(()=>{
+                updateDoc(doc(db,'posts',p.id),{views:increment(1)}).catch(()=>{});
+                // Actualizar contador en UI
+                const vl=document.getElementById(`views-label-${p.id}`);
+                if(vl) vl.textContent=fmtN((p.views||0)+1);
+              },2000);
+            }
+          } else {
+            vid.pause(); vid.currentTime=0;
+          }
         });
       },{threshold:.6}).observe(el);
     });
