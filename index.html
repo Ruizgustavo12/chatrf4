@@ -464,6 +464,21 @@ img { display:block; }
   display:flex; align-items:center; gap:4px;
 }
 
+/* ───── GLOBAL UNMUTE BUTTON ───── */
+#global-unmute-btn {
+  position:fixed; bottom:80px; right:16px; z-index:9000;
+  background:rgba(0,0,0,.72); backdrop-filter:blur(8px);
+  border:1.5px solid rgba(255,255,255,.18); border-radius:99px;
+  color:#fff; font-size:.78rem; font-weight:700;
+  padding:8px 14px; cursor:pointer;
+  display:flex; align-items:center; gap:7px;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  animation:fadeUp .35s ease;
+  transition:opacity .2s, transform .15s;
+}
+#global-unmute-btn:hover { opacity:.85; transform:scale(1.04); }
+#global-unmute-btn svg { width:15px; height:15px; flex-shrink:0; }
+
 /* ───── CUSTOM VIDEO PLAYER ───── */
 .vid-player {
   position:relative; width:100%; height:100%;
@@ -1440,7 +1455,7 @@ function buildPost(post){
     <div class="post-media ${isVid?'video':'portrait'}" style="position:relative;">
       ${isVid
         ?`<div class="vid-player paused" id="vp-${post.id}">
-            <video src="${post.mediaUrl}" loop playsinline preload="metadata"></video>
+            <video src="${post.mediaUrl}" muted loop playsinline preload="metadata"></video>
             <div class="vid-controls">
               <div class="vid-progress-wrap" id="vp-prog-${post.id}">
                 <div class="vid-progress-bg">
@@ -1499,6 +1514,31 @@ function buildPost(post){
 // ── CUSTOM VIDEO PLAYER ──
 function fmt(s){ s=Math.floor(s)||0; return Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60); }
 
+// ── GLOBAL MUTE STATE (empieza muted para permitir autoplay) ──
+let _globalMuted = true;
+const _allVids = new Set();
+
+function applyGlobalMute(muted){
+  _globalMuted = muted;
+  _allVids.forEach(v => { v.muted = muted; });
+  const btn = document.getElementById('global-unmute-btn');
+  if(btn) btn.style.display = muted ? 'flex' : 'none';
+}
+
+window.globalUnmute = () => {
+  applyGlobalMute(false);
+  showToast('🔊 Audio activado');
+};
+
+function ensureUnmuteBtn(){
+  if(document.getElementById('global-unmute-btn')) return;
+  const btn = document.createElement('button');
+  btn.id = 'global-unmute-btn';
+  btn.onclick = globalUnmute;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg> Toca para escuchar`;
+  document.body.appendChild(btn);
+}
+
 function initVideoPlayer(postId, card){
   const wrap   = card.querySelector(`#vp-${postId}`);
   const vid    = wrap?.querySelector('video');
@@ -1510,6 +1550,11 @@ function initVideoPlayer(postId, card){
   const volSlider = card.querySelector(`#vp-vol-${postId}`);
   const progWrap  = card.querySelector(`#vp-prog-${postId}`);
   if(!vid || !wrap) return;
+
+  // Registrar video en el pool global
+  _allVids.add(vid);
+  vid.muted = _globalMuted;
+  ensureUnmuteBtn();
 
   const SVG_PLAY  = `<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><polygon points="5,3 19,12 5,21"/></svg>`;
   const SVG_PAUSE = `<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
@@ -1535,6 +1580,8 @@ function initVideoPlayer(postId, card){
   vid.addEventListener('pause', ()=>{ wrap.classList.add('paused'); setPlayIcon(); });
   vid.addEventListener('timeupdate', updateProgress);
   vid.addEventListener('loadedmetadata', updateProgress);
+  // Sync mute icon cuando el estado cambia externamente
+  vid.addEventListener('volumechange', setMuteIcon);
 
   // Progress bar scrubbing (mouse)
   let scrubbing = false;
@@ -1547,25 +1594,24 @@ function initVideoPlayer(postId, card){
     progWrap.addEventListener('mousedown', e=>{ scrubbing=true; scrubTo(e); e.stopPropagation(); });
     window.addEventListener('mousemove',   e=>{ if(scrubbing) scrubTo(e); });
     window.addEventListener('mouseup',     ()=>{ scrubbing=false; });
-    // Touch support
     progWrap.addEventListener('touchstart', e=>{ scrubTo(e.touches[0]); e.preventDefault(); }, {passive:false});
     progWrap.addEventListener('touchmove',  e=>{ scrubTo(e.touches[0]); e.preventDefault(); }, {passive:false});
   }
 
-  // Mute button
+  // Mute button — también actualiza estado global
   if(muteBtn) muteBtn.addEventListener('click', e=>{
     e.stopPropagation();
-    vid.muted = !vid.muted;
-    if(volSlider) volSlider.value = vid.muted ? 0 : vid.volume;
-    setMuteIcon();
+    const newMuted = !vid.muted;
+    applyGlobalMute(newMuted);
+    if(volSlider) volSlider.value = newMuted ? 0 : vid.volume;
   });
 
   // Volume slider
   if(volSlider) volSlider.addEventListener('input', e=>{
     e.stopPropagation();
     vid.volume  = parseFloat(volSlider.value);
-    vid.muted   = vid.volume === 0;
-    setMuteIcon();
+    const newMuted = vid.volume === 0;
+    applyGlobalMute(newMuted);
   });
 
   // IntersectionObserver autoplay
