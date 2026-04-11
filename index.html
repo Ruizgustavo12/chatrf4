@@ -4032,7 +4032,7 @@ async function _procesarVideoParaFeed(file, handle) {
           ctx.restore();
         }
         // Handle
-        ctx.font = \`700 \${fontSize}px "Space Grotesk", sans-serif\`;
+        ctx.font = `700 ${fontSize}px "Space Grotesk", sans-serif`;
         ctx.fillStyle = '#fff';
         ctx.textBaseline = 'middle';
         ctx.fillText(uname, lx + icoSize + 8 * sc, ly + icoSize/2);
@@ -4070,7 +4070,7 @@ async function _procesarVideoParaFeed(file, handle) {
         const brandY = logoY + logoSize + W * 0.06;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'alphabetic';
-        ctx.font = \`700 \${W * 0.085}px "Clash Display", sans-serif\`;
+        ctx.font = `700 ${W * 0.085}px "Clash Display", sans-serif`;
         const tGrad = ctx.createLinearGradient(W*0.2, brandY, W*0.8, brandY);
         tGrad.addColorStop(0, '#25f4ee');
         tGrad.addColorStop(1, '#fe2c55');
@@ -4078,7 +4078,7 @@ async function _procesarVideoParaFeed(file, handle) {
         ctx.fillText('Clipuy', W/2, brandY);
 
         const handleY = brandY + W * 0.075;
-        ctx.font = \`500 \${W * 0.048}px "Space Grotesk", sans-serif\`;
+        ctx.font = `500 ${W * 0.048}px "Space Grotesk", sans-serif`;
         ctx.fillStyle = 'rgba(255,255,255,0.75)';
         ctx.fillText(uname, W/2, handleY);
 
