@@ -2151,14 +2151,11 @@ window.toggleFollow = async (uid,btn) => {
 window.openComments = async (postId,count) => {
   currentPostId=postId;
   window._csPostId=postId;
-
-  // Pausar el reel que estaba reproduciéndose (si aplica)
-  const activeReel = document.querySelector('#reels-container .reel-video:not([paused])');
-  window._pausedReelOnComment = null;
-  document.querySelectorAll('#reels-container .reel-video').forEach(v=>{
-    if(!v.paused){ v.pause(); window._pausedReelOnComment = v; }
+  // Pausar TODOS los videos de la página (reels, feed) antes de abrir el modal
+  window._pausedVideosOnComment = [];
+  document.querySelectorAll('video').forEach(v=>{
+    if(!v.paused){ v.pause(); window._pausedVideosOnComment.push(v); }
   });
-
   document.getElementById('comments-overlay').classList.add('show');
   document.getElementById('cs-inp').value='';
   document.querySelector('.cs-send').disabled=true;
@@ -2216,15 +2213,15 @@ window.openComments = async (postId,count) => {
 };
 window.closeComments = () => {
   document.getElementById('comments-overlay').classList.remove('show');
-  // Pausar video del panel si hay uno
+  // Pausar y limpiar video del panel de comentarios
   const v=document.querySelector('#cs-media-panel video');
   if(v){ v.pause(); v.src=''; }
   if(commentsUnsub){commentsUnsub();commentsUnsub=null;}
   currentPostId=null; window._csPostId=null;
-  // Reanudar el reel que estaba reproduciendo antes de abrir comentarios
-  if(window._pausedReelOnComment){
-    window._pausedReelOnComment.play().catch(()=>{});
-    window._pausedReelOnComment=null;
+  // Reanudar los videos que estaban reproduciéndose antes de abrir el modal
+  if(window._pausedVideosOnComment){
+    window._pausedVideosOnComment.forEach(vid=>{ vid.play().catch(()=>{}); });
+    window._pausedVideosOnComment=[];
   }
 };
 // Cerrar con ESC
@@ -2526,7 +2523,7 @@ async function loadReels(){
       if(!seen.has(d.id)){ seen.add(d.id); allDocs.push(d); }
     });
 
-    // Filtrar solo videos (todos: reels, posts con video, etc.)
+    // Filtrar solo videos (todos, sin importar contentType)
     const reelDocs = allDocs
       .filter(d=>{ const p=d.data(); return p.mediaType==='video'||p.mediaUrl?.match(/\.(mp4|mov|webm|ogg)/i); });
 
