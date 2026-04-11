@@ -2520,7 +2520,12 @@ function buildPost(post){
 }
 
 // ── CUSTOM VIDEO PLAYER ──
-function fmt(s){ s=Math.floor(s)||0; return Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60); }
+function fmt(s){
+  s = parseFloat(s);
+  if(!isFinite(s) || isNaN(s) || s < 0) return '0:00';
+  s = Math.floor(s);
+  return Math.floor(s/60) + ':' + (s%60 < 10 ? '0' : '') + (s%60);
+}
 
 // ── GLOBAL MUTE STATE (arranca con sonido) ──
 let _globalMuted = false;
@@ -2562,81 +2567,114 @@ function initVideoPlayer(postId, card){
   const SVG_VOL   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>`;
   const SVG_MUTE  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`;
 
+  // ── Progress update — guarda contra NaN/Infinity ──
   function updateProgress(){
-    if(!vid.duration) return;
-    const pct = (vid.currentTime/vid.duration)*100;
-    if(fill) fill.style.width = pct+'%';
-    if(thumb) thumb.style.left = pct+'%';
-    if(timeEl) timeEl.textContent = fmt(vid.currentTime)+' / '+fmt(vid.duration);
+    const dur = vid.duration;
+    const cur = vid.currentTime;
+    if(!isFinite(dur) || isNaN(dur) || dur <= 0) {
+      if(timeEl) timeEl.textContent = fmt(cur) + ' / --:--';
+      return;
+    }
+    const pct = Math.max(0, Math.min(100, (cur / dur) * 100));
+    if(fill)  fill.style.width = pct + '%';
+    if(thumb) thumb.style.left = pct + '%';
+    if(timeEl) timeEl.textContent = fmt(cur) + ' / ' + fmt(dur);
   }
 
   function setPlayIcon(){ if(playBtn) playBtn.innerHTML = vid.paused ? SVG_PLAY : SVG_PAUSE; }
   function setMuteIcon(){ if(muteBtn) muteBtn.innerHTML = vid.muted ? SVG_MUTE : SVG_VOL; }
 
   // Play/pause on video click or button
-  let _vidDblTap=0;
-  vid.addEventListener('click', e=>{
-    const now=Date.now();
-    if(now-_vidDblTap<350){
-      const card=vid.closest('[data-post-id]');
-      if(card){ toggleLike(card.dataset.postId, card.querySelector('.post-act')); spawnHeartFlood(e.clientX,e.clientY); }
-      _vidDblTap=0;
-    } else { _vidDblTap=now; vid.paused?vid.play():vid.pause(); }
+  let _vidDblTap = 0;
+  vid.addEventListener('click', e => {
+    const now = Date.now();
+    if(now - _vidDblTap < 350){
+      const card = vid.closest('[data-post-id]');
+      if(card){ toggleLike(card.dataset.postId, card.querySelector('.post-act')); spawnHeartFlood(e.clientX, e.clientY); }
+      _vidDblTap = 0;
+    } else { _vidDblTap = now; vid.paused ? vid.play() : vid.pause(); }
   });
-  if(playBtn) playBtn.addEventListener('click', e=>{ e.stopPropagation(); vid.paused?vid.play():vid.pause(); });
+  if(playBtn) playBtn.addEventListener('click', e => { e.stopPropagation(); vid.paused ? vid.play() : vid.pause(); });
 
-  vid.addEventListener('play',  ()=>{ wrap.classList.remove('paused'); setPlayIcon(); });
-  vid.addEventListener('pause', ()=>{ wrap.classList.add('paused'); setPlayIcon(); });
-  vid.addEventListener('timeupdate', updateProgress);
+  vid.addEventListener('play',         () => { wrap.classList.remove('paused'); setPlayIcon(); });
+  vid.addEventListener('pause',        () => { wrap.classList.add('paused'); setPlayIcon(); });
+  vid.addEventListener('timeupdate',   updateProgress);
   vid.addEventListener('loadedmetadata', updateProgress);
-  // Sync mute icon cuando el estado cambia externamente
+  vid.addEventListener('durationchange', updateProgress);  // fires when duration becomes known
   vid.addEventListener('volumechange', setMuteIcon);
 
-  // Progress bar scrubbing (mouse)
+  // ── Progress bar scrubbing — mouse + touch + teclado ──
   let scrubbing = false;
+
+  function getClientX(e){ return e.touches ? e.touches[0].clientX : e.clientX; }
+
   function scrubTo(e){
+    if(!progWrap) return;
+    const dur = vid.duration;
+    if(!isFinite(dur) || isNaN(dur) || dur <= 0) return;
     const rect = progWrap.getBoundingClientRect();
-    const pct  = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    if(vid.duration) vid.currentTime = pct * vid.duration;
-  }
-  if(progWrap){
-    progWrap.addEventListener('mousedown', e=>{ scrubbing=true; scrubTo(e); e.stopPropagation(); });
-    window.addEventListener('mousemove',   e=>{ if(scrubbing) scrubTo(e); });
-    window.addEventListener('mouseup',     ()=>{ scrubbing=false; });
-    progWrap.addEventListener('touchstart', e=>{ scrubTo(e.touches[0]); e.preventDefault(); }, {passive:false});
-    progWrap.addEventListener('touchmove',  e=>{ scrubTo(e.touches[0]); e.preventDefault(); }, {passive:false});
+    const pct  = Math.max(0, Math.min(1, (getClientX(e) - rect.left) / rect.width));
+    // readyState >= 1 (HAVE_METADATA) is enough to seek
+    if(vid.readyState >= 1){
+      vid.currentTime = pct * dur;
+      updateProgress();
+    }
   }
 
-  // Mute button — también actualiza estado global
-  if(muteBtn) muteBtn.addEventListener('click', e=>{
+  if(progWrap){
+    progWrap.addEventListener('mousedown', e => {
+      e.stopPropagation(); scrubbing = true; scrubTo(e);
+    });
+    window.addEventListener('mousemove', e => { if(scrubbing) scrubTo(e); });
+    window.addEventListener('mouseup',   () => { scrubbing = false; });
+    progWrap.addEventListener('touchstart', e => { scrubbing = true; scrubTo(e); e.preventDefault(); }, { passive: false });
+    progWrap.addEventListener('touchmove',  e => { if(scrubbing) scrubTo(e); e.preventDefault(); }, { passive: false });
+    progWrap.addEventListener('touchend',   () => { scrubbing = false; });
+  }
+
+  // Mute button
+  if(muteBtn) muteBtn.addEventListener('click', e => {
     e.stopPropagation();
-    const newMuted = !vid.muted;
-    applyGlobalMute(newMuted);
-    if(volSlider) volSlider.value = newMuted ? 0 : vid.volume;
+    applyGlobalMute(!vid.muted);
+    if(volSlider) volSlider.value = vid.muted ? 0 : vid.volume;
   });
 
   // Volume slider
-  if(volSlider) volSlider.addEventListener('input', e=>{
+  if(volSlider) volSlider.addEventListener('input', e => {
     e.stopPropagation();
-    vid.volume  = parseFloat(volSlider.value);
-    const newMuted = vid.volume === 0;
-    applyGlobalMute(newMuted);
+    vid.volume = parseFloat(volSlider.value);
+    applyGlobalMute(vid.volume === 0);
   });
 
-  // IntersectionObserver autoplay — sin mute
-  new IntersectionObserver(entries=>{
-    entries.forEach(e=>{
-      if(e.isIntersecting){
+  // ── IntersectionObserver autoplay ──
+  // Espera canplay antes de reproducir para evitar el freeze de 1 segundo
+  let _readyToPlay = vid.readyState >= 3; // HAVE_FUTURE_DATA
+  vid.addEventListener('canplay', () => { _readyToPlay = true; }, { once: true });
+
+  new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
         vid.muted = _globalMuted;
-        const p = vid.play();
-        if(p) p.catch(()=>{
-          vid.muted = true;
-          vid.play().catch(()=>{});
-          wrap.addEventListener('click', ()=>{ vid.muted=_globalMuted; }, {once:true});
-        });
-      } else vid.pause();
+        const tryPlay = () => {
+          const p = vid.play();
+          if(p) p.catch(() => {
+            // Autoplay blocked — mute y reintentar
+            vid.muted = true;
+            vid.play().catch(() => {});
+            wrap.addEventListener('click', () => { vid.muted = _globalMuted; }, { once: true });
+          });
+        };
+        if(_readyToPlay){
+          tryPlay();
+        } else {
+          // Video no buffereado aún — esperar canplay para no freezar
+          vid.addEventListener('canplay', tryPlay, { once: true });
+        }
+      } else {
+        vid.pause();
+      }
     });
-  },{threshold:.5}).observe(vid);
+  }, { threshold: 0.5 }).observe(vid);
 
   // Init icons
   setPlayIcon(); setMuteIcon();
@@ -3258,68 +3296,85 @@ async function loadReels(){
       const SVG_VOL   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>`;
       const SVG_MUTE  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`;
 
-      const updProg = ()=>{
-        if(!vid.duration) return;
-        const pct=(vid.currentTime/vid.duration)*100;
-        fill.style.width=pct+'%'; thumb.style.left=pct+'%';
-        timeEl.textContent=fmt(vid.currentTime)+' / '+fmt(vid.duration);
+      // ── Reel progress — guarda contra NaN/Infinity ──
+      const updProg = () => {
+        const dur = vid.duration;
+        const cur = vid.currentTime;
+        if(!isFinite(dur) || isNaN(dur) || dur <= 0){
+          timeEl.textContent = fmt(cur) + ' / --:--'; return;
+        }
+        const pct = Math.max(0, Math.min(100, (cur/dur)*100));
+        fill.style.width = pct + '%'; thumb.style.left = pct + '%';
+        timeEl.textContent = fmt(cur) + ' / ' + fmt(dur);
       };
-      vid.addEventListener('timeupdate', updProg);
+      vid.addEventListener('timeupdate',    updProg);
       vid.addEventListener('loadedmetadata', updProg);
-      vid.addEventListener('play',  ()=>{ playBtn.innerHTML=SVG_PAUSE; });
-      vid.addEventListener('pause', ()=>{ playBtn.innerHTML=SVG_PLAY; });
+      vid.addEventListener('durationchange', updProg);
+      vid.addEventListener('play',  () => { playBtn.innerHTML = SVG_PAUSE; });
+      vid.addEventListener('pause', () => { playBtn.innerHTML = SVG_PLAY;  });
 
-      let _reelDblTap=0;
-      vid.addEventListener('click', e=>{
-        const now=Date.now();
-        if(now-_reelDblTap<350){
+      let _reelDblTap = 0;
+      vid.addEventListener('click', e => {
+        const now = Date.now();
+        if(now - _reelDblTap < 350){
           toggleLike(p.id, el.querySelector('.reel-action'));
-          spawnHeartFlood(e.clientX,e.clientY);
-          _reelDblTap=0;
-        } else { _reelDblTap=now; vid.paused?vid.play():vid.pause(); }
+          spawnHeartFlood(e.clientX, e.clientY);
+          _reelDblTap = 0;
+        } else { _reelDblTap = now; vid.paused ? vid.play() : vid.pause(); }
       });
-      playBtn.addEventListener('click', e=>{ e.stopPropagation(); vid.paused?vid.play():vid.pause(); });
+      playBtn.addEventListener('click', e => { e.stopPropagation(); vid.paused ? vid.play() : vid.pause(); });
 
-      // Scrub
-      let rs=false;
-      const reelScrub=e=>{ const r=progWrap.getBoundingClientRect(); const pct=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)); if(vid.duration) vid.currentTime=pct*vid.duration; };
-      progWrap.addEventListener('mousedown',e=>{ rs=true; reelScrub(e); e.stopPropagation(); });
-      window.addEventListener('mousemove',e=>{ if(rs) reelScrub(e); });
-      window.addEventListener('mouseup',()=>{ rs=false; });
-      progWrap.addEventListener('touchstart',e=>{ reelScrub(e.touches[0]); e.preventDefault(); },{passive:false});
-      progWrap.addEventListener('touchmove',e=>{ reelScrub(e.touches[0]); e.preventDefault(); },{passive:false});
+      // ── Reel scrub — mouse + touch ──
+      let rs = false;
+      const reelScrub = e => {
+        const dur = vid.duration;
+        if(!isFinite(dur) || isNaN(dur) || dur <= 0) return;
+        const r   = progWrap.getBoundingClientRect();
+        const cx  = e.touches ? e.touches[0].clientX : e.clientX;
+        const pct = Math.max(0, Math.min(1, (cx - r.left) / r.width));
+        if(vid.readyState >= 1) { vid.currentTime = pct * dur; updProg(); }
+      };
+      progWrap.addEventListener('mousedown', e => { rs = true; reelScrub(e); e.stopPropagation(); });
+      window.addEventListener('mousemove',   e => { if(rs) reelScrub(e); });
+      window.addEventListener('mouseup',     () => { rs = false; });
+      progWrap.addEventListener('touchstart', e => { rs = true; reelScrub(e); e.preventDefault(); }, { passive: false });
+      progWrap.addEventListener('touchmove',  e => { if(rs) reelScrub(e); e.preventDefault(); }, { passive: false });
+      progWrap.addEventListener('touchend',   () => { rs = false; });
 
-      muteBtn.addEventListener('click',e=>{ e.stopPropagation(); vid.muted=!vid.muted; volSlider.value=vid.muted?0:vid.volume; muteBtn.innerHTML=vid.muted?SVG_MUTE:SVG_VOL; });
-      volSlider.addEventListener('input',e=>{ e.stopPropagation(); vid.volume=parseFloat(volSlider.value); vid.muted=vid.volume===0; muteBtn.innerHTML=vid.muted?SVG_MUTE:SVG_VOL; });
+      muteBtn.addEventListener('click', e => { e.stopPropagation(); vid.muted = !vid.muted; volSlider.value = vid.muted ? 0 : vid.volume; muteBtn.innerHTML = vid.muted ? SVG_MUTE : SVG_VOL; });
+      volSlider.addEventListener('input', e => { e.stopPropagation(); vid.volume = parseFloat(volSlider.value); vid.muted = vid.volume === 0; muteBtn.innerHTML = vid.muted ? SVG_MUTE : SVG_VOL; });
 
-      // Autoplay on scroll + trackear vista — arranca con sonido
+      // ── Reel autoplay — espera canplay para no freezar ──
+      let _reelReady = vid.readyState >= 3;
+      vid.addEventListener('canplay', () => { _reelReady = true; }, { once: true });
+
       const _viewedReels = window._viewedReels || (window._viewedReels = new Set());
-      new IntersectionObserver(entries=>{
-        entries.forEach(e=>{
+      new IntersectionObserver(entries => {
+        entries.forEach(e => {
           if(e.isIntersecting){
             vid.muted = false;
-            const playP = vid.play();
-            if(playP) playP.catch(()=>{
-              // Autoplay policy: play muted, unmute al primer toque
-              vid.muted = true;
-              vid.play().catch(()=>{});
-              const unlock = ()=>{ vid.muted=false; };
-              el.addEventListener('click', unlock, {once:true});
-            });
-            // Contar vista una sola vez por sesión por reel
+            const tryPlay = () => {
+              const pp = vid.play();
+              if(pp) pp.catch(() => {
+                vid.muted = true;
+                vid.play().catch(() => {});
+                el.addEventListener('click', () => { vid.muted = false; }, { once: true });
+              });
+            };
+            _reelReady ? tryPlay() : vid.addEventListener('canplay', tryPlay, { once: true });
             if(!_viewedReels.has(p.id)){
               _viewedReels.add(p.id);
-              setTimeout(()=>{
-                updateDoc(doc(db,'posts',p.id),{views:increment(1)}).catch(()=>{});
-                const vl=document.getElementById(`views-label-${p.id}`);
-                if(vl) vl.textContent=fmtN((p.views||0)+1);
-              },2000);
+              setTimeout(() => {
+                updateDoc(doc(db,'posts',p.id), { views: increment(1) }).catch(() => {});
+                const vl = document.getElementById(`views-label-${p.id}`);
+                if(vl) vl.textContent = fmtN((p.views||0) + 1);
+              }, 2000);
             }
           } else {
-            vid.pause(); vid.currentTime=0;
+            vid.pause(); vid.currentTime = 0;
           }
         });
-      },{threshold:.6}).observe(el);
+      }, { threshold: 0.6 }).observe(el);
     });
   }catch(e){ container.innerHTML='<div style="padding:60px;text-align:center;color:var(--muted);">Error al cargar reels</div>'; console.error(e); }
 }
