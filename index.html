@@ -419,6 +419,15 @@ img { display:block; }
 }
 #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
+/* ───── UPLOAD TYPE SELECTOR ───── */
+.up-type-btn {
+  flex:1; padding:8px 4px; background:none; border:none; color:var(--muted);
+  font-size:.78rem; font-weight:600; cursor:pointer; border-radius:6px;
+  transition:background .15s, color .15s;
+}
+.up-type-btn.active { background:var(--surface); color:#fff; }
+.up-type-btn:hover:not(.active) { color:rgba(255,255,255,.6); }
+
 /* ───── UPLOAD MODAL ───── */
 #upload-modal {
   position:fixed; inset:0; z-index:800; background:rgba(0,0,0,.88);
@@ -1160,6 +1169,13 @@ img { display:block; }
       <button class="up-close" onclick="closeUpload()">✕</button>
     </div>
     <div class="up-body">
+      <!-- Selector tipo de contenido -->
+      <div style="display:flex;gap:6px;margin-bottom:14px;background:var(--surface2);border-radius:var(--r-sm);padding:4px;">
+        <button class="up-type-btn active" id="uptype-post" onclick="setUploadType('post',this)">📸 Post</button>
+        <button class="up-type-btn" id="uptype-story" onclick="setUploadType('story',this)">⚡ Historia</button>
+        <button class="up-type-btn" id="uptype-reel" onclick="setUploadType('reel',this)">🎬 Reel</button>
+      </div>
+      <div id="up-type-hint" style="font-size:.75rem;color:var(--muted);margin-bottom:10px;text-align:center;">Aparecerá en el feed principal</div>
       <div class="up-drop" id="up-drop"
         onclick="document.getElementById('media-file').click()"
         ondragover="event.preventDefault();this.classList.add('drag-over')"
@@ -1367,7 +1383,7 @@ Object.assign(window, {
 });
 
 // ── STATE ──
-let CU=null, commentsUnsub=null, notifUnsub=null, currentPostId=null, _file=null, _fileIsVideo=false, _deezerTrack=null;
+let CU=null, commentsUnsub=null, notifUnsub=null, currentPostId=null, _file=null, _fileIsVideo=false, _deezerTrack=null, _uploadType='post';
 
 // ── UTILS ──
 let _toastT;
@@ -1442,6 +1458,7 @@ onAuthStateChanged(auth, async user => {
     document.getElementById('app').classList.add('show');
     await syncUI(user);
     loadFeed();
+    loadStories();
     loadSuggestions();
   } else {
     document.getElementById('auth-screen').classList.add('show');
@@ -1501,13 +1518,13 @@ async function loadFeed(){
   _feedUnsubs.forEach(u=>u()); _feedUnsubs.length=0;
   const list=document.getElementById('feed-list');
   try{
-    const snap=await getDocs(query(collection(db,'posts'),orderBy('createdAt','desc'),limit(20)));
+    const snap=await getDocs(query(collection(db,'posts'),orderBy('createdAt','desc'),limit(40)));
     list.innerHTML='';
     if(snap.empty){ list.innerHTML='<div style="padding:52px;text-align:center;color:var(--muted);font-size:.9rem;">Sin publicaciones todavía.<br/>¡Sé el primero en compartir algo!</div>'; return; }
-    const authors=new Map();
-    snap.docs.forEach(d=>{ const p=d.data(); if(!authors.has(p.uid)) authors.set(p.uid,p); });
-    buildStories(authors);
-    snap.docs.forEach(d=>{
+    loadStories(); // Carga historias reales desde colección stories
+    // Filtrar: solo posts (no reels). Posts viejos sin contentType también se muestran.
+    const feedDocs = snap.docs.filter(d=>{ const ct=d.data().contentType; return !ct||ct==='post'; }).slice(0,20);
+    feedDocs.forEach(d=>{
       const postData={id:d.id,...d.data()};
       const card=buildPost(postData);
       list.appendChild(card);
@@ -1527,18 +1544,112 @@ async function loadFeed(){
   }catch(e){ list.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Error: '+esc(e.message)+'</div>'; }
 }
 
-function buildStories(authors){
+// ── STORIES (colección real con expiración 24h) ──
+async function loadStories(){
   const bar=document.getElementById('stories-bar');
   const addEl=bar.querySelector('.story-item');
   bar.innerHTML=''; bar.appendChild(addEl);
-  authors.forEach(p=>{
-    const av=p.avatarUrl||`https://ui-avatars.com/api/?name=${encodeURIComponent(p.username||'U')}&background=222&color=fff&size=128`;
-    const el=document.createElement('div');
-    el.className='story-item';
-    el.innerHTML=`<div class="story-ring"><img class="story-avatar" src="${av}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff'"/></div><span class="story-name">@${esc(p.username||'u')}</span>`;
-    bar.appendChild(el);
-  });
+  try{
+    const now=new Date();
+    const snap=await getDocs(query(collection(db,'stories'),orderBy('createdAt','desc'),limit(60)));
+    // Agrupar por uid, solo historias no expiradas
+    const byUid=new Map();
+    snap.docs.forEach(d=>{
+      const s={id:d.id,...d.data()};
+      const exp=s.expiresAt?.toDate?.();
+      if(exp&&exp<now) return; // expirada
+      if(!byUid.has(s.uid)) byUid.set(s.uid,[]);
+      byUid.get(s.uid).push(s);
+    });
+    // Ordenar: historias propias primero, luego por más reciente
+    const entries=[...byUid.entries()].sort((a,b)=>{
+      if(a[0]===CU?.uid) return -1;
+      if(b[0]===CU?.uid) return 1;
+      return (b[1][0].createdAt?.seconds||0)-(a[1][0].createdAt?.seconds||0);
+    });
+    entries.forEach(([uid,stories])=>{
+      const s=stories[0];
+      const av=s.avatarUrl||`https://ui-avatars.com/api/?name=${encodeURIComponent(s.username||'U')}&background=222&color=fff&size=128`;
+      const isNew=!s.viewers?.includes(CU?.uid);
+      const isOwn=uid===CU?.uid;
+      const el=document.createElement('div');
+      el.className='story-item';
+      el.style.cursor='pointer';
+      el.onclick=()=>openStory(stories);
+      // Badge NEW para historias no vistas (no propias)
+      const newBadge=(!isOwn&&isNew)?`<div class="story-new-badge">NEW</div>`:'';
+      el.innerHTML=`
+        <div class="story-ring${isOwn?' mine':''}" style="position:relative;">
+          <img class="story-avatar" src="${av}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff'"/>
+          ${newBadge}
+          ${stories.length>1?`<div class="story-count-badge">${stories.length}</div>`:''}
+        </div>
+        <span class="story-name">${isOwn?'Tu historia':'@'+esc(s.username||'u')}</span>`;
+      bar.appendChild(el);
+    });
+  }catch(e){ console.warn('Error cargando historias:',e); }
 }
+
+window.openStory = (stories) => {
+  // Visor simple de historias
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;z-index:8000;background:#000;display:flex;align-items:center;justify-content:center;';
+  let idx=0;
+  const render=()=>{
+    const s=stories[idx];
+    const isVid=s.mediaUrl?.match(/\.(mp4|mov|webm)/i)||s.mediaType==='video';
+    const av=s.avatarUrl||`https://ui-avatars.com/api/?name=${encodeURIComponent(s.username||'U')}&background=222&color=fff`;
+    overlay.innerHTML=`
+      <div style="position:relative;width:100%;max-width:420px;height:100%;max-height:100vh;background:#111;border-radius:0;overflow:hidden;">
+        <!-- Barras de progreso -->
+        <div style="position:absolute;top:0;left:0;right:0;z-index:10;display:flex;gap:3px;padding:10px 10px 0;">
+          ${stories.map((_,i)=>`<div style="flex:1;height:3px;background:${i<idx?'#fff':i===idx?'rgba(255,255,255,.9)':'rgba(255,255,255,.35)'};border-radius:2px;${i===idx?'animation:story-prog 5s linear forwards;':''}"></div>`).join('')}
+        </div>
+        <!-- Header -->
+        <div style="position:absolute;top:20px;left:0;right:0;z-index:10;display:flex;align-items:center;gap:10px;padding:0 14px;">
+          <img style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.5);" src="${av}"/>
+          <span style="font-size:.85rem;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6);">@${esc(s.username||'usuario')}</span>
+          <span style="font-size:.72rem;color:rgba(255,255,255,.6);margin-left:4px;">${relT(s.createdAt?.toDate?.())}</span>
+          <button onclick="this.closest('[style*=z-index:8000]').remove()" style="margin-left:auto;background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer;line-height:1;">✕</button>
+        </div>
+        <!-- Media -->
+        ${isVid
+          ?`<video src="${s.mediaUrl}" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;"></video>`
+          :`<img src="${s.mediaUrl}" style="width:100%;height:100%;object-fit:cover;display:block;"/>`
+        }
+        <!-- Navegación tap -->
+        <div style="position:absolute;inset:0;display:flex;">
+          <div style="flex:1;cursor:pointer;" onclick="if(idx>0){idx--;render();}"></div>
+          <div style="flex:1;cursor:pointer;" onclick="if(idx<stories.length-1){idx++;render();}else{overlay.remove();}"></div>
+        </div>
+      </div>`;
+    // Marcar como vista
+    if(CU&&!s.viewers?.includes(CU.uid)){
+      updateDoc(doc(db,'stories',s.id),{viewers:arrayUnion(CU.uid)}).catch(()=>{});
+    }
+    // Auto-avanzar a los 5s
+    clearTimeout(overlay._t);
+    overlay._t=setTimeout(()=>{ if(idx<stories.length-1){idx++;render();}else{overlay.remove();} },5000);
+  };
+  // ESC para cerrar
+  const onKey=e=>{ if(e.key==='Escape'){overlay.remove();document.removeEventListener('keydown',onKey);} };
+  document.addEventListener('keydown',onKey);
+  overlay.addEventListener('remove',()=>{ clearTimeout(overlay._t); document.removeEventListener('keydown',onKey); });
+  document.body.appendChild(overlay);
+  // CSS para la barra de progreso
+  if(!document.getElementById('story-prog-style')){
+    const st=document.createElement('style');
+    st.id='story-prog-style';
+    st.textContent=`@keyframes story-prog{from{opacity:1;}to{opacity:1;}}
+    .story-new-badge{position:absolute;top:-4px;right:-4px;background:var(--accent);color:#fff;font-size:.5rem;font-weight:800;padding:2px 4px;border-radius:4px;letter-spacing:.5px;border:1.5px solid var(--bg);}
+    .story-count-badge{position:absolute;bottom:-4px;right:-4px;background:var(--accent2);color:#000;font-size:.55rem;font-weight:800;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--bg);}`;
+    document.head.appendChild(st);
+  }
+  render();
+};
+
+// Llamar loadStories al cargar el feed
+function buildStories(){ loadStories(); }
 
 // ── POST COMPONENT ──
 function buildPost(post){
@@ -1892,7 +2003,20 @@ window.sharePost = id => { const url=`${location.origin}/?p=${id}`; if(navigator
 window.shareProfile = () => { if(!CU)return; const url=`${location.origin}/?u=${CU.uid}`; if(navigator.share)navigator.share({title:'Mi perfil en Clipuy',url}).catch(()=>{}); else navigator.clipboard?.writeText(url).then(()=>showToast('¡Link copiado! 🔗')); };
 
 // ── UPLOAD COMPONENT ──
-window.openUpload    = () => document.getElementById('upload-modal').classList.add('show');
+window.openUpload    = () => {
+  setUploadType('post', document.getElementById('uptype-post'));
+  document.getElementById('upload-modal').classList.add('show');
+};
+window.setUploadType = (type, btn) => {
+  _uploadType = type;
+  document.querySelectorAll('.up-type-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const hints = {post:'Aparecerá en el feed principal', story:'Dura 24h · solo visible en historias', reel:'Aparecerá en la sección Reels · solo videos'};
+  document.getElementById('up-type-hint').textContent = hints[type]||'';
+  // Si eligieron reel, solo videos
+  const fi = document.getElementById('media-file');
+  fi.accept = type==='reel' ? 'video/*' : 'image/*,video/*';
+};
 window.closeUpload   = () => { document.getElementById('upload-modal').classList.remove('show'); clearUpload(); };
 window.onDrop        = e  => { e.preventDefault(); document.getElementById('up-drop').classList.remove('drag-over'); const f=e.dataTransfer.files[0]; if(f)onFileSelected(f); };
 window.onFileSelected = file => {
@@ -2045,6 +2169,7 @@ window.dzRemove = () => {
 // ⚠️ UPLOAD FLOW — no cambiar endpoint ni lógica de subida
 window.doUpload = async () => {
   if(!_file||!CU){ showToast('Seleccioná un archivo'); return; }
+  if(_uploadType==='reel'&&!_fileIsVideo){ showToast('Los reels son solo para videos'); return; }
   const btn=document.getElementById('up-submit');
   const pBar=document.getElementById('up-progress'); const pFill=document.getElementById('up-fill');
   btn.disabled=true; btn.textContent='Subiendo...';
@@ -2056,11 +2181,26 @@ window.doUpload = async () => {
     pFill.style.width='30%';
     const mediaUrl=await uploadToServer(_file,ud.username||CU.displayName,caption);
     pFill.style.width='80%';
-    await addDoc(collection(db,'posts'),{uid:CU.uid,username:ud.username||CU.displayName||'usuario',avatarUrl:ud.avatarUrl||CU.photoURL||'',mediaUrl,mediaType:_fileIsVideo?'video':'image',caption,tags,...(_deezerTrack?{deezerTrack:_deezerTrack}:{}),likes:0,commentsCount:0,createdAt:serverTimestamp()});
-    await updateDoc(doc(db,'users',CU.uid),{posts:increment(1)});
+    const base={uid:CU.uid,username:ud.username||CU.displayName||'usuario',avatarUrl:ud.avatarUrl||CU.photoURL||'',mediaUrl,mediaType:_fileIsVideo?'video':'image',contentType:_uploadType,caption,tags,...(_deezerTrack?{deezerTrack:_deezerTrack}:{}),likes:0,commentsCount:0,createdAt:serverTimestamp()};
+    if(_uploadType==='story'){
+      // Historias van a colección separada con expiración 24h
+      const exp=new Date(Date.now()+24*60*60*1000);
+      await addDoc(collection(db,'stories'),{...base,expiresAt:exp,viewers:[]});
+      showToast('✅ ¡Historia publicada!');
+    } else {
+      // Posts y reels van a posts con contentType
+      await addDoc(collection(db,'posts'),base);
+      await updateDoc(doc(db,'users',CU.uid),{posts:increment(1)});
+      showToast(_uploadType==='reel'?'✅ ¡Reel publicado!':'✅ ¡Publicado!');
+    }
     pFill.style.width='100%';
-    showToast('✅ ¡Publicado!');
-    setTimeout(()=>{ closeUpload(); pBar.style.display='none'; pFill.style.width='0%'; btn.textContent='Compartir'; btn.disabled=false; loadFeed(); },900);
+    setTimeout(()=>{
+      closeUpload(); pBar.style.display='none'; pFill.style.width='0%';
+      btn.textContent='Compartir'; btn.disabled=false;
+      if(_uploadType==='story') loadStories();
+      else if(_uploadType==='reel') { loadFeed(); if(document.getElementById('page-reels').style.display!=='none') loadReels(); }
+      else loadFeed();
+    },900);
   }catch(e){ console.error(e); showToast('Error: '+e.message); btn.disabled=false; btn.textContent='Compartir'; pBar.style.display='none'; pFill.style.width='0%'; }
 };
 
@@ -2096,10 +2236,12 @@ async function loadReels(){
   const container=document.getElementById('reels-container');
   container.innerHTML='<div style="padding:60px;text-align:center;color:var(--muted);">Cargando reels...</div>';
   try{
-    const snap=await getDocs(query(collection(db,'posts'),where('mediaType','==','video'),orderBy('createdAt','desc'),limit(30)));
-    if(!snap.size){ container.innerHTML='<div style="padding:60px;text-align:center;color:var(--muted);">Sin reels todavía</div>'; return; }
+    // Traer todos los videos y filtrar reels (contentType='reel' o mediaType='video' sin contentType para compatibilidad)
+    const snap=await getDocs(query(collection(db,'posts'),orderBy('createdAt','desc'),limit(60)));
+    const reelDocs=snap.docs.filter(d=>{ const p=d.data(); return p.mediaType==='video'||p.mediaUrl?.match(/\.(mp4|mov|webm|ogg)/i); }).filter(d=>{ const ct=d.data().contentType; return ct==='reel'||!ct; });
+    if(!reelDocs.length){ container.innerHTML='<div style="padding:60px;text-align:center;color:var(--muted);">Sin reels todavía</div>'; return; }
     container.innerHTML='';
-    snap.docs.forEach((d)=>{
+    reelDocs.forEach((d)=>{
       const p={id:d.id,...d.data()};
       const av=p.avatarUrl||`https://ui-avatars.com/api/?name=${encodeURIComponent(p.username||'U')}&background=222&color=fff&size=128`;
       const el=document.createElement('div');
