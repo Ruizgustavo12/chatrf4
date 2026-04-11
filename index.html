@@ -3312,7 +3312,7 @@ window.sendCommentInline = async (postId, inputEl) => {
   await _doSendComment(postId, text);
 };
 
-// ── USER PROFILE MODAL ──
+// ── USER PROFILE MODAL (página completa) ──
 window.openUserProfile = async (uid, username) => {
   if(!uid) return;
   // Crear modal si no existe
@@ -3320,89 +3320,243 @@ window.openUserProfile = async (uid, username) => {
   if(!modal){
     modal = document.createElement('div');
     modal.id = 'user-profile-modal';
-    modal.style.cssText = 'position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:16px;';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:7000;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;';
     modal.innerHTML = `
-      <div id="upm-box" style="width:100%;max-width:420px;background:var(--surface);border:1px solid var(--border2);border-radius:22px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.8);animation:fadeUp .25s ease both;max-height:92vh;display:flex;flex-direction:column;">
-        <div style="position:relative;height:120px;background:linear-gradient(135deg,rgba(255,45,85,.25),rgba(0,255,255,.12));">
-          <button onclick="closeUserProfile()" style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,.5);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;">✕</button>
+      <!-- Header con botón volver -->
+      <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;">
+        <button onclick="closeUserProfile()" style="background:none;border:none;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px;font-size:.9rem;font-weight:600;padding:6px 10px;border-radius:var(--r-sm);transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.07)'" onmouseout="this.style.background='none'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          Volver
+        </button>
+        <span id="upm-header-name" style="font-family:var(--font-display);font-weight:700;font-size:1rem;">@${username}</span>
+        <div id="upm-admin-btn-top" style="display:none;margin-left:auto;">
+          <button onclick="openUserAdminPanel()" style="background:rgba(255,45,85,.15);border:1px solid rgba(255,45,85,.3);color:var(--accent);border-radius:var(--r-sm);padding:6px 12px;font-size:.78rem;font-weight:700;cursor:pointer;">⚙️ Admin</button>
         </div>
-        <div style="padding:0 20px 20px;flex:1;overflow-y:auto;">
-          <div style="display:flex;align-items:flex-end;gap:14px;margin-top:-40px;margin-bottom:14px;">
-            <img id="upm-av" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--surface);background:var(--surface3);flex-shrink:0;" src="" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff&size=128'"/>
-            <div style="flex:1;padding-bottom:4px;">
-              <div id="upm-name" style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;line-height:1.1;"></div>
-              <div id="upm-handle" style="font-size:.8rem;color:var(--muted);margin-top:2px;"></div>
-            </div>
-            <button id="upm-follow-btn" style="background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:var(--r-sm);padding:9px 18px;color:#fff;font-size:.83rem;font-weight:700;cursor:pointer;flex-shrink:0;" onclick="toggleFollow(window._upmUid,this)">Seguir</button>
-          </div>
-          <div id="upm-bio" style="font-size:.86rem;color:var(--muted);margin-bottom:14px;line-height:1.5;"></div>
-          <div style="display:flex;gap:24px;margin-bottom:16px;">
-            <div style="text-align:center;"><div id="upm-posts" style="font-weight:800;font-size:1.1rem;font-family:var(--font-display);">—</div><div style="font-size:.72rem;color:var(--muted);">Posts</div></div>
-            <div style="text-align:center;"><div id="upm-followers" style="font-weight:800;font-size:1.1rem;font-family:var(--font-display);">—</div><div style="font-size:.72rem;color:var(--muted);">Seguidores</div></div>
-            <div style="text-align:center;"><div id="upm-following" style="font-weight:800;font-size:1.1rem;font-family:var(--font-display);">—</div><div style="font-size:.72rem;color:var(--muted);">Siguiendo</div></div>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <button onclick="window._openDMFromProfile()" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r-sm);padding:10px;color:#fff;font-size:.84rem;font-weight:600;cursor:pointer;">✉️ Mensaje</button>
-          </div>
-          <div id="upm-admin-actions" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px;">
-            <div style="font-size:.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">⚙️ Acciones de admin</div>
-            <div style="display:flex;flex-wrap:wrap;gap:8px;">
-              <button onclick="adminSuspendUser(window._upmUid,window._upmUsername)" style="flex:1;min-width:120px;background:rgba(255,165,0,.12);border:1px solid rgba(255,165,0,.3);border-radius:var(--r-sm);padding:9px;color:#ffa500;font-size:.8rem;font-weight:700;cursor:pointer;">⏸ Suspender</button>
-              <button onclick="adminBanUser(window._upmUid,window._upmUsername)" style="flex:1;min-width:120px;background:rgba(255,45,85,.12);border:1px solid rgba(255,45,85,.3);border-radius:var(--r-sm);padding:9px;color:var(--accent);font-size:.8rem;font-weight:700;cursor:pointer;">🚫 Banear</button>
-              <button onclick="adminEditUserRole(window._upmUid,window._upmUsername)" style="flex:1;min-width:120px;background:rgba(0,255,255,.07);border:1px solid rgba(0,255,255,.2);border-radius:var(--r-sm);padding:9px;color:var(--accent2);font-size:.8rem;font-weight:700;cursor:pointer;">✏️ Editar rol</button>
-              <button onclick="adminDeleteUserPosts(window._upmUid,window._upmUsername)" style="flex:1;min-width:120px;background:rgba(255,45,85,.07);border:1px solid rgba(255,45,85,.2);border-radius:var(--r-sm);padding:9px;color:#ff6b7a;font-size:.8rem;font-weight:700;cursor:pointer;">🗑️ Borrar posts</button>
+      </div>
+      <!-- Scroll body -->
+      <div style="flex:1;overflow-y:auto;" id="upm-scroll">
+        <!-- Cover / avatar area -->
+        <div style="position:relative;height:130px;background:linear-gradient(135deg,rgba(255,45,85,.2) 0%,rgba(0,255,255,.1) 100%);flex-shrink:0;">
+          <div id="upm-cover-gradient" style="position:absolute;inset:0;"></div>
+        </div>
+        <div style="padding:0 16px 0;margin-top:-48px;position:relative;z-index:2;">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px;">
+            <img id="upm-av" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:4px solid var(--bg);background:var(--surface3);" src="" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff&size=128'"/>
+            <div style="display:flex;gap:8px;padding-bottom:6px;" id="upm-action-btns">
+              <button id="upm-msg-btn" onclick="window._openDMFromProfile()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r-sm);padding:8px 16px;color:#fff;font-size:.83rem;font-weight:600;cursor:pointer;">✉️ Mensaje</button>
+              <button id="upm-follow-btn" onclick="toggleFollow(window._upmUid,this);updateFollowStyle(this)" style="background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:var(--r-sm);padding:8px 18px;color:#fff;font-size:.83rem;font-weight:700;cursor:pointer;">Seguir</button>
             </div>
           </div>
+          <div id="upm-name" style="font-family:var(--font-display);font-size:1.15rem;font-weight:800;line-height:1.1;margin-bottom:2px;"></div>
+          <div id="upm-handle" style="font-size:.8rem;color:var(--muted);margin-bottom:8px;"></div>
+          <div id="upm-bio" style="font-size:.86rem;line-height:1.55;margin-bottom:14px;white-space:pre-wrap;"></div>
+          <div style="display:flex;gap:28px;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+            <div><span id="upm-posts" style="font-weight:800;font-size:1.05rem;font-family:var(--font-display);">—</span> <span style="font-size:.8rem;color:var(--muted);">Posts</span></div>
+            <div><span id="upm-followers" style="font-weight:800;font-size:1.05rem;font-family:var(--font-display);">—</span> <span style="font-size:.8rem;color:var(--muted);">Seguidores</span></div>
+            <div><span id="upm-following" style="font-weight:800;font-size:1.05rem;font-family:var(--font-display);">—</span> <span style="font-size:.8rem;color:var(--muted);">Siguiendo</span></div>
+          </div>
+          <!-- Tabs -->
+          <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin:0 -16px;padding:0 16px;" id="upm-tabs">
+            <button onclick="upmSwitchTab('posts')" id="upm-tab-posts" style="flex:1;background:none;border:none;border-bottom:2px solid var(--accent);color:#fff;font-weight:700;font-size:.85rem;padding:12px 0;cursor:pointer;">Posts</button>
+            <button onclick="upmSwitchTab('reels')" id="upm-tab-reels" style="flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-weight:600;font-size:.85rem;padding:12px 0;cursor:pointer;">Reels</button>
+            <button onclick="upmSwitchTab('liked')" id="upm-tab-liked" style="flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-weight:600;font-size:.85rem;padding:12px 0;cursor:pointer;">Me gusta</button>
+          </div>
+        </div>
+        <!-- Grids -->
+        <div id="upm-grid-posts" style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px 0;"></div>
+        <div id="upm-grid-reels"  style="display:none;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px 0;"></div>
+        <div id="upm-grid-liked"  style="display:none;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px 0;"></div>
+      </div>
+      <!-- Admin panel flotante -->
+      <div id="upm-admin-panel" style="display:none;position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);align-items:flex-end;justify-content:center;padding:16px;">
+        <div style="width:100%;max-width:480px;background:var(--surface);border:1px solid var(--border2);border-radius:22px 22px 0 0;padding:20px;animation:slideUp .22s ease;">
+          <div style="font-size:.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">⚙️ Acciones de Admin</div>
+          <div id="upm-admin-target-label" style="font-size:.85rem;color:var(--muted);margin-bottom:16px;"></div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+            <button onclick="adminSuspendUser(window._upmUid,window._upmUsername)" style="flex:1;min-width:130px;background:rgba(255,165,0,.12);border:1px solid rgba(255,165,0,.3);border-radius:var(--r-sm);padding:11px;color:#ffa500;font-size:.83rem;font-weight:700;cursor:pointer;">⏸ Suspender</button>
+            <button onclick="adminBanUser(window._upmUid,window._upmUsername)" style="flex:1;min-width:130px;background:rgba(255,45,85,.12);border:1px solid rgba(255,45,85,.3);border-radius:var(--r-sm);padding:11px;color:var(--accent);font-size:.83rem;font-weight:700;cursor:pointer;">🚫 Banear</button>
+            <button onclick="adminEditUserRole(window._upmUid,window._upmUsername)" style="flex:1;min-width:130px;background:rgba(0,255,255,.07);border:1px solid rgba(0,255,255,.2);border-radius:var(--r-sm);padding:11px;color:var(--accent2);font-size:.83rem;font-weight:700;cursor:pointer;">✏️ Editar rol</button>
+            <button onclick="adminDeleteUserPosts(window._upmUid,window._upmUsername)" style="flex:1;min-width:130px;background:rgba(255,45,85,.07);border:1px solid rgba(255,45,85,.2);border-radius:var(--r-sm);padding:11px;color:#ff6b7a;font-size:.83rem;font-weight:700;cursor:pointer;">🗑️ Borrar todos sus posts</button>
+          </div>
+          <button onclick="document.getElementById('upm-admin-panel').style.display='none'" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r-sm);padding:12px;color:var(--muted);font-size:.88rem;font-weight:600;cursor:pointer;">Cancelar</button>
         </div>
       </div>`;
     document.body.appendChild(modal);
-    modal.addEventListener('click', e => { if(e.target===modal) closeUserProfile(); });
   }
+
   modal.style.display = 'flex';
   window._upmUid = uid;
   window._upmUsername = username;
+
+  // Botón Admin solo para synxyes
+  const adminBtnTop = document.getElementById('upm-admin-btn-top');
+  if(adminBtnTop) adminBtnTop.style.display = (CU?.email === ADMIN_EMAIL && CU?.uid !== uid) ? 'block' : 'none';
+
+  window.openUserAdminPanel = () => {
+    const panel = document.getElementById('upm-admin-panel');
+    const lbl = document.getElementById('upm-admin-target-label');
+    if(lbl) lbl.textContent = 'Usuario: @' + window._upmUsername;
+    if(panel) panel.style.display = 'flex';
+  };
+
   window._openDMFromProfile = () => {
     closeUserProfile();
     const av = document.getElementById('upm-av')?.src || '';
     openDMChat(uid, username, av, null);
     setPage('messages');
   };
-  // Mostrar acciones admin si corresponde
-  const adminSection = document.getElementById('upm-admin-actions');
-  if(adminSection) adminSection.style.display = CU?.email === ADMIN_EMAIL ? 'block' : 'none';
-  // Cargar datos del usuario
-  document.getElementById('upm-name').textContent = '@' + username;
+
+  // Reset tabs
+  upmSwitchTab('posts');
+
+  // Resetear contenido
+  document.getElementById('upm-header-name').textContent = '@' + username;
+  document.getElementById('upm-name').textContent = '';
   document.getElementById('upm-handle').textContent = 'Cargando...';
   document.getElementById('upm-bio').textContent = '';
   document.getElementById('upm-posts').textContent = '—';
   document.getElementById('upm-followers').textContent = '—';
   document.getElementById('upm-following').textContent = '—';
+  document.getElementById('upm-av').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username||'U')}&background=222&color=fff&size=128`;
+  document.getElementById('upm-grid-posts').innerHTML = '<div style="grid-column:1/-1;padding:32px;text-align:center;color:var(--muted);font-size:.82rem;">Cargando...</div>';
+  document.getElementById('upm-grid-reels').innerHTML  = '<div style="grid-column:1/-1;padding:32px;text-align:center;color:var(--muted);font-size:.82rem;">Cargando...</div>';
+  document.getElementById('upm-grid-liked').innerHTML  = '<div style="grid-column:1/-1;padding:32px;text-align:center;color:var(--muted);font-size:.82rem;">Cargando...</div>';
+
+  // Ocultar/mostrar botones según si es propio perfil
+  const followBtn = document.getElementById('upm-follow-btn');
+  const msgBtn    = document.getElementById('upm-msg-btn');
+  if(CU && uid === CU.uid){
+    if(followBtn) followBtn.style.display = 'none';
+    if(msgBtn)    msgBtn.style.display    = 'none';
+  } else {
+    if(followBtn) followBtn.style.display = 'inline-block';
+    if(msgBtn)    msgBtn.style.display    = 'inline-block';
+  }
+
   try{
+    // 1. Datos del usuario
     const snap = await getDoc(doc(db,'users',uid));
     if(snap.exists()){
       const u = snap.data();
       const av = u.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.username||'U')}&background=222&color=fff&size=128`;
       document.getElementById('upm-av').src = av;
       document.getElementById('upm-name').textContent = u.displayName || '@' + (u.username||username);
-      document.getElementById('upm-handle').textContent = '@' + (u.username||username) + (u.status==='suspended'?' 🟡 Suspendido':u.status==='banned'?' 🔴 Baneado':'');
+      document.getElementById('upm-header-name').textContent = '@' + (u.username||username);
+      const statusTag = u.status==='suspended' ? ' 🟡 Suspendido' : u.status==='banned' ? ' 🔴 Baneado' : '';
+      document.getElementById('upm-handle').textContent = '@' + (u.username||username) + statusTag;
       document.getElementById('upm-bio').textContent = u.bio || '';
       document.getElementById('upm-posts').textContent = fmtN(u.posts||0);
       document.getElementById('upm-followers').textContent = fmtN(u.followers||0);
       document.getElementById('upm-following').textContent = fmtN(u.following||0);
-      // Check if already following
-      if(CU && uid !== CU.uid){
+      // Estado del botón seguir
+      if(CU && uid !== CU.uid && followBtn){
         const mySnap = await getDoc(doc(db,'users',CU.uid));
         const fl = mySnap.data()?.followingList||[];
-        const followBtn = document.getElementById('upm-follow-btn');
-        if(followBtn){ followBtn.textContent = fl.includes(uid)?'Siguiendo':'Seguir'; followBtn.style.opacity = fl.includes(uid)?'.6':'1'; }
+        const isFollowing = fl.includes(uid);
+        followBtn.textContent = isFollowing ? 'Siguiendo' : 'Seguir';
+        followBtn.style.opacity = isFollowing ? '.6' : '1';
       }
-      if(CU && uid === CU.uid){ const fb=document.getElementById('upm-follow-btn'); if(fb) fb.style.display='none'; }
+    }
+
+    // 2. Cargar posts
+    const postsSnap = await getDocs(query(collection(db,'posts'), where('uid','==',uid), orderBy('createdAt','desc'), limit(30)));
+    const allDocs = postsSnap.docs.map(d=>({id:d.id, data:d.data()}));
+    const postDocs = allDocs.filter(({data:p})=>{ const ct=p.contentType; return !ct||ct==='post'; });
+    const reelDocs = allDocs.filter(({data:p})=>{ return p.mediaType==='video'||p.mediaUrl?.match(/\.(mp4|mov|webm)/i); });
+
+    upmRenderGrid('upm-grid-posts', postDocs, 'Sin publicaciones todavía.', uid);
+    upmRenderGrid('upm-grid-reels', reelDocs, 'Sin reels todavía.', uid);
+
+    // 3. Me gusta
+    const likesSnap = await getDocs(query(collection(db,'likes'), where('uid','==',uid), limit(40)));
+    const postIds = likesSnap.docs.map(d=>d.data().postId).filter(Boolean);
+    if(postIds.length){
+      const chunks=[];
+      for(let i=0;i<postIds.length;i+=30) chunks.push(postIds.slice(i,i+30));
+      let likedDocs=[];
+      for(const chunk of chunks){
+        try{
+          const s=await getDocs(query(collection(db,'posts'),where('__name__','in',chunk)));
+          s.docs.forEach(d=>likedDocs.push({id:d.id,data:d.data()}));
+        }catch(e){}
+      }
+      upmRenderGrid('upm-grid-liked', likedDocs, 'Sin me gusta todavía.', uid);
+    } else {
+      document.getElementById('upm-grid-liked').innerHTML = '<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--muted);font-size:.85rem;">Sin me gusta todavía.</div>';
     }
   }catch(e){ console.warn(e); }
 };
+
+window.updateFollowStyle = (btn) => {
+  const isFollowing = btn.textContent.trim() === 'Siguiendo';
+  btn.style.opacity = isFollowing ? '.6' : '1';
+};
+
+window.upmSwitchTab = (tab) => {
+  ['posts','reels','liked'].forEach(t => {
+    const btn  = document.getElementById('upm-tab-'+t);
+    const grid = document.getElementById('upm-grid-'+t);
+    if(btn){
+      btn.style.borderBottomColor = t===tab ? 'var(--accent)' : 'transparent';
+      btn.style.color = t===tab ? '#fff' : 'var(--muted)';
+      btn.style.fontWeight = t===tab ? '700' : '600';
+    }
+    if(grid) grid.style.display = t===tab ? 'grid' : 'none';
+  });
+};
+
+function upmRenderGrid(gridId, docs, emptyMsg, ownerUid){
+  const grid = document.getElementById(gridId);
+  if(!grid) return;
+  grid.innerHTML = '';
+  if(!docs.length){
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--muted);font-size:.85rem;">${emptyMsg}</div>`;
+    return;
+  }
+  docs.forEach(({id, data:p}) => {
+    const isVid = p.mediaUrl?.match(/\.(mp4|mov|webm|ogg)/i) || p.mediaType==='video';
+    const el = document.createElement('div');
+    el.style.cssText = 'position:relative;aspect-ratio:1;background:var(--surface2);overflow:hidden;cursor:pointer;';
+    el.onclick = () => upmOpenViewer(id, p);
+    if(isVid){
+      const vid = document.createElement('video');
+      vid.src = p.mediaUrl; vid.muted = true; vid.preload = 'metadata';
+      vid.style.cssText = 'width:100%;height:100%;object-fit:cover;pointer-events:none;';
+      const badge = document.createElement('div');
+      badge.innerHTML = '<svg viewBox="0 0 24 24" fill="#fff" width="16" height="16"><polygon points="5,3 19,12 5,21"/></svg>';
+      badge.style.cssText = 'position:absolute;top:6px;right:6px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.8));';
+      el.appendChild(vid); el.appendChild(badge);
+    } else if(p.mediaUrl){
+      const img = document.createElement('img');
+      img.src = p.mediaUrl; img.loading = 'lazy';
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+      el.appendChild(img);
+    } else {
+      el.style.background = 'var(--surface2)';
+      el.style.display = 'flex'; el.style.alignItems = 'center'; el.style.justifyContent = 'center'; el.style.padding = '8px';
+      el.innerHTML = `<span style="font-size:.72rem;color:var(--muted);text-align:center;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;">${esc(p.caption||'')}</span>`;
+    }
+    // Overlay de likes
+    const hov = document.createElement('div');
+    hov.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;gap:10px;opacity:0;transition:opacity .16s;pointer-events:none;';
+    hov.innerHTML = `<span style="color:#fff;font-size:.85rem;font-weight:700;display:flex;align-items:center;gap:4px;"><svg viewBox="0 0 24 24" fill="#fff" width="14" height="14"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>${fmtN(p.likes||0)}</span>`;
+    el.appendChild(hov);
+    el.addEventListener('mouseenter', ()=>hov.style.opacity='1');
+    el.addEventListener('mouseleave', ()=>hov.style.opacity='0');
+    grid.appendChild(el);
+  });
+}
+
+window.upmOpenViewer = (postId, p) => {
+  // Abrir el post en el overlay de comentarios para verlo completo
+  openComments(postId, fmtN(p.commentsCount||0));
+};
+
 window.closeUserProfile = () => {
   const m = document.getElementById('user-profile-modal');
   if(m) m.style.display = 'none';
+  const panel = document.getElementById('upm-admin-panel');
+  if(panel) panel.style.display = 'none';
 };
 
 // ── ADMIN USER ACTIONS ──
@@ -4902,24 +5056,7 @@ window.saveProfile = async () => {
   const showThreads=document.getElementById('edit-threads')?.checked!==false;
   const showSuggestions=document.getElementById('edit-suggestions')?.checked!==false;
   try{
-    const ud=(await getDoc(doc(db,'users',CU.uid))).data()||{};
-    // Límite de 2 ediciones por mes para @vero
-    if((ud.username||'').toLowerCase()==='vero'){
-      const now=new Date();
-      const monthKey=`${now.getFullYear()}-${now.getMonth()+1}`;
-      const edits=ud.profileEdits||{};
-      const thisMonth=edits[monthKey]||0;
-      if(thisMonth>=2){
-        showToast('⛔ @vero solo puede editar el perfil 2 veces por mes');
-        return;
-      }
-      await updateDoc(doc(db,'users',CU.uid),{
-        bio,website,gender,showThreads,showSuggestions,
-        profileEdits:{...edits,[monthKey]:thisMonth+1}
-      });
-    } else {
-      await updateDoc(doc(db,'users',CU.uid),{bio,website,gender,showThreads,showSuggestions});
-    }
+    await updateDoc(doc(db,'users',CU.uid),{bio,website,gender,showThreads,showSuggestions});
     closeEditProfile(); showToast('✅ Perfil actualizado'); syncUI(CU);
   }catch(e){ showToast('Error al guardar'); }
 };
