@@ -2686,7 +2686,7 @@ input.exp-range::-webkit-slider-thumb{
           <div class="music-selected-name" id="clipMusicName"></div>
           <div class="music-selected-artist" id="clipMusicArtist"></div>
         </div>
-        <audio id="clipMusicPreviewAudio" style="display:none"></audio>
+        <audio id="clipMusicPreviewAudio" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none;"></audio>
         <button onclick="clipClearMusic()" style="background:none;border:none;color:#ff5555;cursor:pointer;font-size:1rem;flex-shrink:0;">✕</button>
       </div>
 
@@ -2920,11 +2920,26 @@ window.openMusicDisc = function(clipId) {
   document.getElementById('uam-prog').style.width = '0%';
   document.getElementById('uam-time').textContent = '0:00';
 
+  if (musicPreview) {
+    audio.load();
+    // Mostrar duración total cuando cargue metadata
+    audio.addEventListener('loadedmetadata', () => {
+      const tot = audio.duration || 0;
+      if (tot > 0) {
+        const ts = Math.floor(tot);
+        document.getElementById('uam-time').textContent = '0:00 / ' + Math.floor(ts/60) + ':' + String(ts%60).padStart(2,'0');
+      }
+    }, { once: true });
+  }
+
   audio.ontimeupdate = () => {
     const pct = audio.duration ? (audio.currentTime / audio.duration * 100) : 0;
     document.getElementById('uam-prog').style.width = pct + '%';
     const s = Math.floor(audio.currentTime);
-    document.getElementById('uam-time').textContent = Math.floor(s/60)+':'+ String(s%60).padStart(2,'0');
+    const tot = Math.floor(audio.duration || 0);
+    const cur = Math.floor(s/60)+':'+ String(s%60).padStart(2,'0');
+    const end = Math.floor(tot/60)+':'+ String(tot%60).padStart(2,'0');
+    document.getElementById('uam-time').textContent = tot > 0 ? cur + ' / ' + end : cur;
   };
   audio.onended = () => { document.getElementById('uam-play-btn').textContent = '▶'; };
 
@@ -2935,8 +2950,19 @@ window.uamTogglePlay = function() {
   const audio = document.getElementById('uam-audio');
   const btn   = document.getElementById('uam-play-btn');
   if (!audio.src) return;
-  if (audio.paused) { audio.play().catch(()=>{}); btn.textContent = '⏸'; }
-  else { audio.pause(); btn.textContent = '▶'; }
+  if (audio.paused) {
+    // Si no cargó todavía, load() primero
+    if (audio.readyState < 2) {
+      audio.load();
+      audio.addEventListener('canplaythrough', () => { audio.play().catch(() => {}); btn.textContent = '⏸'; }, { once: true });
+    } else {
+      audio.play().catch(() => {});
+      btn.textContent = '⏸';
+    }
+  } else {
+    audio.pause();
+    btn.textContent = '▶';
+  }
 };
 
 window.uamSeek = function(e, bar) {
@@ -4091,437 +4117,241 @@ window.closeCaptionModal = () => {
 //  Se ejecuta antes de subir al feed
 // ══════════════════════════════════════════════
 async function _procesarVideoParaFeed(file, handle) {
-  // ── Carga logo ──────────────────────────────────────────────
-  const logoImg = await new Promise(res => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => res(img);
-    img.onerror = () => res(null);
-    img.src = '/icon-192.png';
-  });
-
-  const W = 720, H = 1280;
-  const displayHandle = handle.startsWith('@') ? handle : '@' + handle;
-
-  // ── Canvas ──────────────────────────────────────────────────
-  const canvas = document.createElement('canvas');
-  canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext('2d');
-
-  // ── Video element ───────────────────────────────────────────
-  const vid = document.createElement('video');
-  vid.muted = true;
-  vid.playsInline = true;
-  vid.crossOrigin = 'anonymous';
-  const blobUrl = URL.createObjectURL(file);
-  vid.src = blobUrl;
-
-  await new Promise((res, rej) => {
-    vid.onloadedmetadata = res;
-    vid.onerror = rej;
-    vid.load();
-  });
-
-  const videoDurSec = Math.min(vid.duration || 30, 120);
-  const ENDCARD_SEC = 3;
-
-  // ── Audio pipeline ──────────────────────────────────────────
-  let audioCtx = null, audioDest = null, vidAudioSrc = null;
-  try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
-    audioDest = audioCtx.createMediaStreamDestination();
-    // Conectar el audio del video directamente (evita decodificar todo el buffer)
-    const vidForAudio = document.createElement('video');
-    vidForAudio.src = blobUrl;
-    vidForAudio.muted = false;
-    vidForAudio.playsInline = true;
-    await new Promise(r => { vidForAudio.onloadedmetadata = r; vidForAudio.load(); });
-    vidAudioSrc = audioCtx.createMediaElementSource(vidForAudio);
-    vidAudioSrc.connect(audioDest);
-    vid._audioSibling = vidForAudio; // guardar referencia
-  } catch(e) { audioCtx = null; audioDest = null; }
-
-  // ── MediaRecorder ───────────────────────────────────────────
-  const canvasStream = canvas.captureStream(30);
-  const tracks = [...canvasStream.getVideoTracks()];
-  if (audioDest) tracks.push(...audioDest.stream.getAudioTracks());
-  const finalStream = new MediaStream(tracks);
-
-  const mime = ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t => MediaRecorder.isTypeSupported(t)) || 'video/webm';
-  const rec = new MediaRecorder(finalStream, { mimeType: mime, videoBitsPerSecond: 3500000 });
-  const chunks = [];
-  rec.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
-
-  // ── Helpers de dibujo ───────────────────────────────────────
-  function drawVideoFit(v) {
-    const vw = v.videoWidth || W, vh = v.videoHeight || H;
-    const scale = Math.max(W / vw, H / vh);
-    const sw = vw * scale, sh = vh * scale;
-    ctx.drawImage(v, (W - sw) / 2, (H - sh) / 2, sw, sh);
-  }
-
-  function drawWM(uname, t) {
-    // Pulso suave del alpha con el tiempo
-    const pulse = 0.75 + 0.15 * Math.sin(t * 2.5);
-    ctx.save();
-    ctx.globalAlpha = pulse;
-
-    const fontSize = 28;
-    const icoSize  = 38;
-    const padX = 14, padY = 10;
-
-    ctx.font = `700 ${fontSize}px "Space Grotesk", Arial, sans-serif`;
-    const tw = ctx.measureText(uname).width;
-    const boxW = padX + icoSize + 10 + tw + padX;
-    const boxH = icoSize + padY * 2;
-
-    // Posición: esquina inferior DERECHA pegada al borde
-    const bx = W - boxW - 14;
-    const by = H - boxH - 55;
-
-    // Fondo con gradiente sutil
-    const bgGrad = ctx.createLinearGradient(bx, by, bx + boxW, by + boxH);
-    bgGrad.addColorStop(0, 'rgba(0,0,0,0.6)');
-    bgGrad.addColorStop(1, 'rgba(20,20,20,0.55)');
-    const r = 12;
-    ctx.beginPath();
-    ctx.moveTo(bx + r, by);
-    ctx.lineTo(bx + boxW - r, by);
-    ctx.quadraticCurveTo(bx + boxW, by, bx + boxW, by + r);
-    ctx.lineTo(bx + boxW, by + boxH - r);
-    ctx.quadraticCurveTo(bx + boxW, by + boxH, bx + boxW - r, by + boxH);
-    ctx.lineTo(bx + r, by + boxH);
-    ctx.quadraticCurveTo(bx, by + boxH, bx, by + boxH - r);
-    ctx.lineTo(bx, by + r);
-    ctx.quadraticCurveTo(bx, by, bx + r, by);
-    ctx.closePath();
-    ctx.fillStyle = bgGrad;
-    ctx.fill();
-
-    // Borde gradiente animado
-    const borderGrad = ctx.createLinearGradient(bx, by, bx + boxW, by + boxH);
-    const hue = (t * 60) % 360;
-    borderGrad.addColorStop(0, `hsla(${hue}, 100%, 70%, 0.8)`);
-    borderGrad.addColorStop(1, `hsla(${(hue + 180) % 360}, 100%, 70%, 0.8)`);
-    ctx.strokeStyle = borderGrad;
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // Logo circular
-    const lx = bx + padX;
-    const ly = by + (boxH - icoSize) / 2;
-    if (logoImg) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(lx + icoSize / 2, ly + icoSize / 2, icoSize / 2, 0, Math.PI * 2);
-      ctx.closePath();
-      ctx.clip();
-      ctx.drawImage(logoImg, lx, ly, icoSize, icoSize);
-      ctx.restore();
-    } else {
-      // Fallback "C"
-      const grd = ctx.createLinearGradient(lx, ly, lx + icoSize, ly + icoSize);
-      grd.addColorStop(0, '#25f4ee'); grd.addColorStop(1, '#fe2c55');
-      ctx.fillStyle = grd;
-      ctx.beginPath();
-      ctx.arc(lx + icoSize/2, ly + icoSize/2, icoSize/2, 0, Math.PI*2);
-      ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.font = `700 ${icoSize * 0.55}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('C', lx + icoSize/2, ly + icoSize/2);
-    }
-
-    // Texto @usuario
-    ctx.font = `700 ${fontSize}px "Space Grotesk", Arial, sans-serif`;
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    // Sombra
-    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-    ctx.shadowBlur = 6;
-    ctx.fillStyle = '#fff';
-    ctx.fillText(uname, lx + icoSize + 10, by + boxH / 2);
-    ctx.shadowBlur = 0;
-
-    ctx.restore();
-  }
-
-  // End-card animada: partículas + pulso del logo + texto
-  const _ecParticles = Array.from({length: 22}, () => ({
-    x: Math.random() * W,
-    y: Math.random() * H,
-    r: 1.5 + Math.random() * 3,
-    vx: (Math.random() - 0.5) * 0.8,
-    vy: -0.4 - Math.random() * 0.8,
-    hue: Math.random() * 360,
-    life: Math.random()
-  }));
-
-  function drawEndCard(progress, elapsedSec) {
-    // Fondo oscuro con gradiente radial
-    const bgGrad = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W * 0.8);
-    bgGrad.addColorStop(0, '#0d0d0d');
-    bgGrad.addColorStop(1, '#000');
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(0, 0, W, H);
-
-    const fadeIn = Math.min(1, progress / 0.25);
-    ctx.globalAlpha = fadeIn;
-
-    // Onda de fondo animada
-    ctx.save();
-    ctx.globalAlpha = fadeIn * 0.12;
-    for (let ring = 0; ring < 4; ring++) {
-      const rProgress = ((elapsedSec * 0.5 + ring * 0.25) % 1);
-      const rRadius = rProgress * W * 0.85;
-      const rAlpha = (1 - rProgress) * 0.6;
-      ctx.globalAlpha = fadeIn * rAlpha * 0.15;
-      const rGrad = ctx.createRadialGradient(W/2, H/2, rRadius * 0.8, W/2, H/2, rRadius);
-      rGrad.addColorStop(0, 'transparent');
-      rGrad.addColorStop(0.7, '#25f4ee');
-      rGrad.addColorStop(1, 'transparent');
-      ctx.strokeStyle = rGrad;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(W/2, H/2, rRadius, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-    ctx.restore();
-
-    // Partículas
-    ctx.save();
-    _ecParticles.forEach(p => {
-      p.x += p.vx; p.y += p.vy;
-      p.life -= 0.004;
-      if (p.life <= 0 || p.y < -10) {
-        p.x = Math.random() * W; p.y = H + 10;
-        p.life = 0.6 + Math.random() * 0.4;
-        p.hue = Math.random() * 360;
-      }
-      ctx.globalAlpha = fadeIn * p.life * 0.7;
-      ctx.fillStyle = `hsl(${p.hue}, 100%, 70%)`;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fill();
-    });
-    ctx.restore();
-
-    // Logo con pulso
-    const pulse = 1 + 0.06 * Math.sin(elapsedSec * 4);
-    const logoSize = W * 0.26 * pulse;
-    const logoX = (W - logoSize) / 2;
-    const logoY = H / 2 - logoSize * 0.80;
-
-    ctx.save();
-    ctx.globalAlpha = fadeIn;
-
-    // Halo gradiente animado
-    const haloAngle = elapsedSec * 1.5;
-    const haloGrad = ctx.createConicalGradient ? null : null; // no existe nativo
-    // Simular halo con arcos
-    for (let i = 0; i < 3; i++) {
-      const a0 = haloAngle + i * (Math.PI * 2 / 3);
-      const arcGrad = ctx.createLinearGradient(
-        W/2 + Math.cos(a0) * logoSize/2, logoY + logoSize/2 + Math.sin(a0) * logoSize/2,
-        W/2 + Math.cos(a0 + Math.PI) * logoSize/2, logoY + logoSize/2 + Math.sin(a0 + Math.PI) * logoSize/2
-      );
-      arcGrad.addColorStop(0, 'rgba(37,244,238,0.9)');
-      arcGrad.addColorStop(0.5, 'rgba(254,44,85,0.9)');
-      arcGrad.addColorStop(1, 'rgba(37,244,238,0.0)');
-      ctx.strokeStyle = arcGrad;
-      ctx.lineWidth = 4 + 2 * Math.sin(elapsedSec * 3 + i);
-      ctx.beginPath();
-      ctx.arc(W/2, logoY + logoSize/2, logoSize/2 + 6, a0, a0 + Math.PI * 2 / 3);
-      ctx.stroke();
-    }
-
-    // Clip circular del logo
-    ctx.beginPath();
-    ctx.arc(W/2, logoY + logoSize/2, logoSize/2, 0, Math.PI * 2);
-    ctx.closePath();
-    ctx.clip();
-    if (logoImg) {
-      ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
-    } else {
-      const grd = ctx.createLinearGradient(logoX, logoY, logoX + logoSize, logoY + logoSize);
-      grd.addColorStop(0, '#25f4ee'); grd.addColorStop(1, '#fe2c55');
-      ctx.fillStyle = grd;
-      ctx.fillRect(logoX, logoY, logoSize, logoSize);
-      ctx.fillStyle = '#fff';
-      ctx.font = `700 ${logoSize * 0.5}px sans-serif`;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('C', W/2, logoY + logoSize/2);
-    }
-    ctx.restore();
-
-    // Texto "Clipuy"
-    ctx.save();
-    ctx.globalAlpha = fadeIn;
-    const brandY = logoY + logoSize + W * 0.07;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'alphabetic';
-    ctx.font = `700 ${W * 0.09}px "Clash Display", sans-serif`;
-    const tGrad = ctx.createLinearGradient(W * 0.2, brandY, W * 0.8, brandY);
-    tGrad.addColorStop(0, '#25f4ee');
-    tGrad.addColorStop(1, '#fe2c55');
-    ctx.fillStyle = tGrad;
-    ctx.shadowColor = 'rgba(37,244,238,0.5)';
-    ctx.shadowBlur = 18 + 8 * Math.sin(elapsedSec * 3);
-    ctx.fillText('Clipuy', W / 2, brandY);
-    ctx.shadowBlur = 0;
-
-    // @usuario con brillo pulsante
-    const handleY = brandY + W * 0.075;
-    const userAlpha = 0.75 + 0.25 * Math.sin(elapsedSec * 2.5 + 1);
-    ctx.font = `600 ${W * 0.052}px "Space Grotesk", Arial, sans-serif`;
-    ctx.fillStyle = `rgba(255,255,255,${userAlpha})`;
-    ctx.shadowColor = 'rgba(255,255,255,0.4)';
-    ctx.shadowBlur = 12 * Math.abs(Math.sin(elapsedSec * 2.5));
-    ctx.fillText(displayHandle, W / 2, handleY);
-    ctx.shadowBlur = 0;
-
-    // Línea decorativa
-    const lineW = W * 0.22;
-    const lineY = handleY + W * 0.03;
-    const lineGrad = ctx.createLinearGradient(W/2 - lineW, lineY, W/2 + lineW, lineY);
-    lineGrad.addColorStop(0, 'transparent');
-    lineGrad.addColorStop(0.5, `rgba(37,244,238,${0.6 + 0.3 * Math.sin(elapsedSec * 3)})`);
-    lineGrad.addColorStop(1, 'transparent');
-    ctx.strokeStyle = lineGrad;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(W/2 - lineW, lineY);
-    ctx.lineTo(W/2 + lineW, lineY);
-    ctx.stroke();
-
-    // Tagline inferior
-    const taglineY = H - H * 0.06;
-    ctx.font = `400 ${W * 0.033}px "Space Grotesk", Arial, sans-serif`;
-    ctx.fillStyle = `rgba(255,255,255,${0.3 + 0.1 * Math.sin(elapsedSec * 2)})`;
-    ctx.fillText('Compartido desde Clipuy', W / 2, taglineY);
-
-    ctx.restore();
-    ctx.globalAlpha = 1;
-  }
-
-  // ── Sonido de la end-card: beep suave generado con AudioContext ─
-  function _playEndCardSound(actx, dest) {
-    if (!actx || !dest) return;
+  return new Promise(async (resolve, reject) => {
     try {
-      // Acorde suave: do + mi + sol (523, 659, 784 Hz)
-      const notes = [523.25, 659.25, 783.99];
-      notes.forEach((freq, i) => {
-        const osc = actx.createOscillator();
-        const gain = actx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0, actx.currentTime + i * 0.08);
-        gain.gain.linearRampToValueAtTime(0.12, actx.currentTime + i * 0.08 + 0.05);
-        gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + i * 0.08 + 0.6);
-        osc.connect(gain);
-        gain.connect(dest);
-        osc.start(actx.currentTime + i * 0.08);
-        osc.stop(actx.currentTime + i * 0.08 + 0.65);
+      const W = 720, H = 1280;
+      const ENDCARD_MS = 3000;
+
+      // Cargar logo
+      const logoImg = await new Promise(res => {
+        const img = new Image();
+        img.onload = () => res(img);
+        img.onerror = () => res(null);
+        img.src = '/icon-192.png';
       });
-    } catch(e) {}
-  }
 
-  // ── Grab: avanzamos el video frame a frame usando 'seeked' ──
-  // Esto evita que el tiempo real se desacople del tiempo del video.
-  return new Promise((resolve, reject) => {
-    let endcardStarted = false;
-    let endcardT0 = null;
-    let raf = null;
-    const FPS = 30;
-    const frameDur = 1 / FPS;
+      // Crear canvas de renderizado
+      const canvas = document.createElement('canvas');
+      canvas.width = W; canvas.height = H;
+      const ctx = canvas.getContext('2d');
 
-    rec.start(200);
+      // Crear video element
+      const vid = document.createElement('video');
+      const blobUrl = URL.createObjectURL(file);
+      vid.src = blobUrl;
+      vid.muted = true;
+      vid.playsInline = true;
 
-    function stopAll() {
-      if (raf) { cancelAnimationFrame(raf); raf = null; }
-      vid.pause();
-      if (vid._audioSibling) { vid._audioSibling.pause(); }
-      URL.revokeObjectURL(blobUrl);
-      if (audioCtx) { try { audioCtx.close(); } catch(e){} }
-    }
+      await new Promise((res, rej) => {
+        vid.onloadeddata = res;
+        vid.onerror = rej;
+        vid.load();
+      });
 
-    rec.onstop = () => {
-      stopAll();
-      const blob = new Blob(chunks, { type: mime });
-      resolve(new File([blob], 'clip.webm', { type: mime }));
-    };
+      const videoDur = Math.min(vid.duration || 30, 120) * 1000;
 
-    // Fase 1: captura el video sincronizado frame a frame
-    function captureVideoFrames() {
-      let frameTime = 0;
+      // Audio: fetch + decodeAudioData
+      let audioCtx = null, audioDest = null, audioBuffer = null;
+      try {
+        audioCtx = new AudioContext({ sampleRate: 44100 });
+        audioDest = audioCtx.createMediaStreamDestination();
+        const resp = await fetch(blobUrl);
+        const arrBuf = await resp.arrayBuffer();
+        audioBuffer = await audioCtx.decodeAudioData(arrBuf);
+      } catch(e) { audioBuffer = null; }
 
-      function nextFrame() {
-        if (frameTime > videoDurSec) {
-          // Terminó la parte de video → end-card
-          startEndCard();
-          return;
-        }
-        vid.currentTime = frameTime;
+      // Stream final
+      const canvasStream = canvas.captureStream(30);
+      let finalStream;
+      if (audioCtx && audioDest) {
+        finalStream = new MediaStream([
+          ...canvasStream.getVideoTracks(),
+          ...audioDest.stream.getAudioTracks()
+        ]);
+      } else {
+        finalStream = new MediaStream(canvasStream.getVideoTracks());
       }
 
-      vid.onseeked = () => {
+      // MediaRecorder
+      const mime = ['video/mp4','video/webm;codecs=vp9','video/webm'].find(t => MediaRecorder.isTypeSupported(t)) || 'video/webm';
+      const rec = new MediaRecorder(finalStream, { mimeType: mime, videoBitsPerSecond: 4000000 });
+      const chunks = [];
+      rec.ondataavailable = e => { if(e.data.size > 0) chunks.push(e.data); };
+
+      const displayHandle = handle.startsWith('@') ? handle : '@' + handle;
+      const sc = W / 180;
+
+      // Función marca de agua (igual que la exportación)
+      function drawWM(ctx, W, H, uname) {
+        const pad = 12 * sc;
+        const icoSize = 26 * sc;
+        const fontSize = 11 * sc;
+        ctx.save();
+        ctx.globalAlpha = 0.82;
+        // Fondo semi-transparente
+        const textW = ctx.measureText(uname).width + icoSize + 10 * sc + pad * 2;
+        const boxH = icoSize + pad * 1.2;
+        const bx = W - textW - 12 * sc;
+        const by = H - boxH - 40 * sc;
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        const r = 10 * sc;
+        ctx.beginPath();
+        ctx.moveTo(bx + r, by);
+        ctx.lineTo(bx + textW - r, by);
+        ctx.quadraticCurveTo(bx + textW, by, bx + textW, by + r);
+        ctx.lineTo(bx + textW, by + boxH - r);
+        ctx.quadraticCurveTo(bx + textW, by + boxH, bx + textW - r, by + boxH);
+        ctx.lineTo(bx + r, by + boxH);
+        ctx.quadraticCurveTo(bx, by + boxH, bx, by + boxH - r);
+        ctx.lineTo(bx, by + r);
+        ctx.quadraticCurveTo(bx, by, bx + r, by);
+        ctx.closePath();
+        ctx.fill();
+        // Logo
+        const lx = bx + pad;
+        const ly = by + (boxH - icoSize) / 2;
+        if (logoImg) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(lx + icoSize/2, ly + icoSize/2, icoSize/2, 0, Math.PI*2);
+          ctx.closePath();
+          ctx.clip();
+          ctx.drawImage(logoImg, lx, ly, icoSize, icoSize);
+          ctx.restore();
+        }
+        // Handle
+        ctx.font = `700 ${fontSize}px "Space Grotesk", sans-serif`;
+        ctx.fillStyle = '#fff';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(uname, lx + icoSize + 8 * sc, ly + icoSize/2);
+        ctx.restore();
+      }
+
+      // Función end-card
+      function drawEndCard(ctx, W, H, uname, progress) {
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, W, H);
-        drawVideoFit(vid);
-        drawWM(displayHandle, frameTime);
-        frameTime += frameDur;
-        // Pequeño yield para que el MediaRecorder capture el frame
-        setTimeout(nextFrame, 1000 / FPS);
-      };
+        const alpha = Math.min(1, progress / 0.3);
+        ctx.globalAlpha = alpha;
 
-      vid.onerror = (e) => reject(new Error('Error en video: ' + e));
-      nextFrame();
-    }
+        const logoSize = W * 0.28;
+        const logoX = (W - logoSize) / 2;
+        const logoY = H / 2 - logoSize * 0.75;
 
-    // Fase 2: end-card animada en tiempo real
-    function startEndCard() {
-      endcardStarted = true;
-      endcardT0 = performance.now();
-      if (audioCtx && audioDest) _playEndCardSound(audioCtx, audioDest);
+        if (logoImg) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(W/2, logoY + logoSize/2, logoSize/2 + 4, 0, Math.PI*2);
+          const borderGrad = ctx.createLinearGradient(logoX, logoY, logoX+logoSize, logoY+logoSize);
+          borderGrad.addColorStop(0, '#25f4ee');
+          borderGrad.addColorStop(1, '#fe2c55');
+          ctx.fillStyle = borderGrad;
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(W/2, logoY + logoSize/2, logoSize/2, 0, Math.PI*2);
+          ctx.closePath();
+          ctx.clip();
+          ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
+          ctx.restore();
+        }
 
-      // Ahora sí usamos rAF porque la end-card es sintética (no depende del video)
-      function ecFrame() {
-        const elapsedMs = performance.now() - endcardT0;
-        const elapsedSec = elapsedMs / 1000;
-        const progress = elapsedMs / (ENDCARD_SEC * 1000);
+        const brandY = logoY + logoSize + W * 0.06;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'alphabetic';
+        ctx.font = `700 ${W * 0.085}px "Clash Display", sans-serif`;
+        const tGrad = ctx.createLinearGradient(W*0.2, brandY, W*0.8, brandY);
+        tGrad.addColorStop(0, '#25f4ee');
+        tGrad.addColorStop(1, '#fe2c55');
+        ctx.fillStyle = tGrad;
+        ctx.fillText('Clipuy', W/2, brandY);
 
-        drawEndCard(progress, elapsedSec);
+        const handleY = brandY + W * 0.075;
+        ctx.font = `500 ${W * 0.048}px "Space Grotesk", sans-serif`;
+        ctx.fillStyle = 'rgba(255,255,255,0.75)';
+        ctx.fillText(uname, W/2, handleY);
 
-        if (elapsedMs < ENDCARD_SEC * 1000) {
-          raf = requestAnimationFrame(ecFrame);
+        ctx.globalAlpha = 1;
+      }
+
+      // Función para escalar/centrar video en canvas (9:16)
+      function drawVideoFit(ctx, vid, W, H) {
+        const vw = vid.videoWidth || W;
+        const vh = vid.videoHeight || H;
+        const scale = Math.max(W / vw, H / vh);
+        const sw = vw * scale, sh = vh * scale;
+        ctx.drawImage(vid, (W - sw) / 2, (H - sh) / 2, sw, sh);
+      }
+
+      rec.start(100);
+
+      const t0 = performance.now();
+      let videoStarted = false;
+      let audioSrcNode = null;
+      let raf;
+
+      function frame() {
+        const elapsed = performance.now() - t0;
+
+        if (elapsed < videoDur && !vid.ended) {
+          // Fase VIDEO con marca de agua
+          if (!videoStarted) {
+            videoStarted = true;
+            vid.currentTime = 0;
+            vid.play().catch(() => {});
+            if (audioCtx && audioDest && audioBuffer) {
+              audioSrcNode = audioCtx.createBufferSource();
+              audioSrcNode.buffer = audioBuffer;
+              audioSrcNode.connect(audioDest);
+              audioSrcNode.start(0);
+            }
+          }
+          ctx.fillStyle = '#000';
+          ctx.fillRect(0, 0, W, H);
+          drawVideoFit(ctx, vid, W, H);
+          drawWM(ctx, W, H, displayHandle);
+          raf = requestAnimationFrame(frame);
         } else {
-          rec.stop();
+          // Fase END-CARD
+          if (videoStarted && !vid.paused) {
+            vid.pause();
+            if (audioSrcNode) { try { audioSrcNode.disconnect(); } catch(e){} }
+          }
+          const endElapsed = elapsed - videoDur;
+          if (endElapsed < ENDCARD_MS) {
+            drawEndCard(ctx, W, H, displayHandle, endElapsed / ENDCARD_MS);
+            raf = requestAnimationFrame(frame);
+          } else {
+            rec.stop();
+          }
         }
       }
-      raf = requestAnimationFrame(ecFrame);
-    }
 
-    // Sincronizar también el video de audio
-    if (vid._audioSibling) {
-      vid._audioSibling.play().catch(() => {});
-    }
+      raf = requestAnimationFrame(frame);
 
-    captureVideoFrames();
+      rec.onstop = async () => {
+        cancelAnimationFrame(raf);
+        vid.pause();
+        URL.revokeObjectURL(blobUrl);
+        if (audioCtx) { try { audioCtx.close(); } catch(e){} }
+        const blob = new Blob(chunks, { type: mime });
+        const ext = mime.includes('mp4') ? 'mp4' : 'webm';
+        const processedFile = new File([blob], 'clip.' + ext, { type: mime });
+        resolve(processedFile);
+      };
+
+    } catch(e) {
+      reject(e);
+    }
   });
 }
 
 window.publishClip = async () => {
   if(!currentUser || !_pendingUploadFile) return;
-  // Capturar y limpiar AHORA para evitar que otro intento use el mismo archivo
-  const fileToProcess = _pendingUploadFile;
-  _pendingUploadFile = null;
-
   const desc     = document.getElementById('caption-text').value.trim();
   const memeText = document.getElementById('caption-meme-text')?.value.trim() || '';
   const memoPosEl = document.querySelector('input[name="meme-pos"]:checked');
   const memePos  = memoPosEl ? memoPosEl.value : 'bottom';
-  const isVideo  = fileToProcess.type.startsWith('video');
+  const isVideo  = _pendingUploadFile.type.startsWith('video');
   const handle   = (myProfile.handle || myProfile.name || currentUser.displayName || 'Clipuy').replace('@','');
 
   showToast('📤 Procesando clip...');
@@ -4529,12 +4359,11 @@ window.publishClip = async () => {
 
   try {
     let mediaUrl;
-    let finalFile = fileToProcess;
 
     // ── Si es video → procesar con marca de agua + end-card antes de subir ──
     if (isVideo) {
       showToast('🎬 Agregando marca de agua...');
-      finalFile = await _procesarVideoParaFeed(fileToProcess, handle);
+      _pendingUploadFile = await _procesarVideoParaFeed(_pendingUploadFile, handle);
       showToast('📤 Subiendo clip...');
     }
 
@@ -4543,7 +4372,7 @@ window.publishClip = async () => {
       showToast('🎵 Mezclando audio con tu video...');
       const silenciar = document.getElementById('silence-video-toggle')?.checked || false;
       const formData = new FormData();
-      formData.append('archivo', finalFile);
+      formData.append('archivo', _pendingUploadFile);
       formData.append('audio_id', _clipuySelectedAudio.id);
       formData.append('usuario', handle);
       formData.append('volumen_audio', '1.0');
@@ -4563,7 +4392,7 @@ window.publishClip = async () => {
 
     } else {
       // ── Sin audio Clipuy → subida normal ──
-      mediaUrl = await uploadToServer(finalFile, '@' + handle, desc || 'Sonido original');
+      mediaUrl = await uploadToServer(_pendingUploadFile, '@' + handle, desc || 'Sonido original');
     }
 
     const tagMatches = desc.match(/(#[\w\u00C0-\u017E]+|@[\w\u00C0-\u017E]+)/g) || [];
@@ -4605,6 +4434,7 @@ window.publishClip = async () => {
     loadFeed();
     goTo('home');
   } catch(e) { showToast('❌ Error: ' + e.message); }
+  _pendingUploadFile = null;
 };
 
 // ══════════════════════════════════════════════
@@ -6905,12 +6735,26 @@ window.clipSelectMusic = (track) => {
   document.getElementById('clipMusicResults').style.display = 'none';
   document.getElementById('clipMusicSearch').value = '';
   document.getElementById('clipMusicCover').src = track.cover || '';
+  document.getElementById('clipMusicCover').style.display = '';
   document.getElementById('clipMusicName').textContent = track.title || '';
   document.getElementById('clipMusicArtist').textContent = track.artist || '';
   document.getElementById('clipMusicSelected').classList.add('show');
-  // Play preview
   const audio = document.getElementById('clipMusicPreviewAudio');
-  if(audio && track.preview) { audio.src = track.preview; audio.volume = 0.5; audio.play().catch(()=>{}); }
+  if (audio && track.preview) {
+    audio.src = track.preview;
+    audio.volume = 0.5;
+    audio.load();
+    const tryPlay = () => audio.play().catch(() => {});
+    audio.addEventListener('canplaythrough', tryPlay, { once: true });
+    // Mostrar duración real cuando cargue metadata
+    audio.addEventListener('loadedmetadata', () => {
+      const d = Math.round(audio.duration || 0);
+      if (d > 0) {
+        const cur = document.getElementById('clipMusicArtist').textContent;
+        if (!cur.includes('·')) document.getElementById('clipMusicArtist').textContent = cur + ' · ' + d + 's';
+      }
+    }, { once: true });
+  }
 };
 
 window.clipClearMusic = () => {
@@ -7015,7 +6859,7 @@ window.loadClipuyAudios = async (orden, q) => {
         <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">🎵</div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:.83rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(audio.titulo)}</div>
-          <div style="font-size:.7rem;color:var(--text-muted);">@${escHtml(audio.usuario)} · ❤️ ${audio.likes} · 🔥 ${audio.usos} usos${audio.duracion ? ' · ' + Math.round(audio.duracion) + 's' : ''}</div>
+          <div style="font-size:.7rem;color:var(--text-muted);">@${escHtml(audio.usuario)} · ❤️ ${audio.likes} · 🔥 ${audio.usos} usos<span data-dur>${audio.duracion > 0 ? ' · ' + Math.round(audio.duracion) + 's' : ''}</span></div>
         </div>
         <button data-aid="${escHtml(audio.id)}" style="background:none;border:none;color:var(--accent2);font-size:1.1rem;cursor:pointer;flex-shrink:0;padding:4px;" title="Preview">▶</button>
       `;
@@ -7025,11 +6869,23 @@ window.loadClipuyAudios = async (orden, q) => {
         e.stopPropagation();
         _stopClipuyPreview();
         const audioUrl = UPLOAD_SERVER + '/audio/stream/' + audio.id;
-        _clipuyPreviewAudio = new Audio(audioUrl);
-        _clipuyPreviewAudio.volume = 0.6;
-        _clipuyPreviewAudio.play().catch(() => {});
+        const a = new Audio();
+        a.volume = 0.6;
+        _clipuyPreviewAudio = a;
+        // Mostrar duración real en el item cuando cargue
+        a.addEventListener('loadedmetadata', () => {
+          const dur = Math.round(a.duration || 0);
+          if (dur > 0) {
+            const durEl = item.querySelector('[data-dur]');
+            if (durEl) durEl.textContent = ' · ' + dur + 's';
+          }
+        }, { once: true });
+        a.addEventListener('canplaythrough', () => a.play().catch(() => {}), { once: true });
+        a.onended = () => { playBtn.textContent = '▶'; _clipuyPreviewAudio = null; };
+        a.onerror = () => { playBtn.textContent = '▶'; _clipuyPreviewAudio = null; };
+        a.src = audioUrl;
+        a.load();
         playBtn.textContent = '⏹';
-        _clipuyPreviewAudio.onended = () => { playBtn.textContent = '▶'; };
       });
       // Seleccionar al tocar el item
       item.addEventListener('click', () => selectClipuyAudio(audio, item));
@@ -7047,7 +6903,7 @@ function _stopClipuyPreview() {
 function selectClipuyAudio(audio, itemEl) {
   _stopClipuyPreview();
   _clipuySelectedAudio = audio;
-  _clipSelectedMusic = null; // limpiar selección de Deezer
+  _clipSelectedMusic = null;
 
   // Highlight item seleccionado
   document.querySelectorAll('#clipuyAudioList > div').forEach(el => el.style.borderColor = 'var(--border)');
@@ -7060,12 +6916,22 @@ function selectClipuyAudio(audio, itemEl) {
   document.getElementById('clipMusicArtist').textContent = '🎤 @' + audio.usuario + ' — Clipuy';
   document.getElementById('clipMusicSelected').classList.add('show');
 
-  // Previsualizar
+  // Previsualizar con load() + canplaythrough para mobile
   const previewEl = document.getElementById('clipMusicPreviewAudio');
   if(previewEl) {
     previewEl.src = UPLOAD_SERVER + '/audio/stream/' + audio.id;
     previewEl.volume = 0.5;
-    previewEl.play().catch(() => {});
+    previewEl.load();
+    previewEl.addEventListener('canplaythrough', () => previewEl.play().catch(() => {}), { once: true });
+    // Actualizar duración real cuando cargue
+    previewEl.addEventListener('loadedmetadata', () => {
+      const dur = Math.round(previewEl.duration || 0);
+      if (dur > 0) {
+        const artistEl = document.getElementById('clipMusicArtist');
+        const base = '🎤 @' + audio.usuario + ' — Clipuy';
+        artistEl.textContent = base + ' · ' + dur + 's';
+      }
+    }, { once: true });
   }
 
   // Registrar uso
@@ -8917,7 +8783,7 @@ _expDrawPreview();
     </button>
   </div>
 </div>
-<audio id="uam-audio" style="display:none;"></audio>
+<audio id="uam-audio" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none;"></audio>
 
 </body>
 </html>
