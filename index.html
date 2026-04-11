@@ -2850,6 +2850,51 @@ let _videoObserver = null;
 // ══════════════════════════════════════════════
 //  UTILS
 // ══════════════════════════════════════════════
+// ── MUSIC DISC: carga foto del artista desde Deezer o usa avatar del uploader ──
+const _discCache = {};
+
+async function _loadMusicDiscImg(clipId, musicName, musicArtist, fallbackAvatar) {
+  const key = musicArtist || musicName;
+  if (!key) return; // sin música, queda avatar
+
+  // Usar caché para no repetir llamadas
+  if (_discCache[key]) {
+    _applyDiscImg(clipId, _discCache[key]);
+    return;
+  }
+
+  try {
+    const q = encodeURIComponent((musicArtist || musicName).split(' feat')[0].split(' ft.')[0].trim());
+    const res = await fetch(`${window.DEEZER_PROXY || 'https://corsproxy.io/?https://api.deezer.com'}/search/artist?q=${q}&limit=1`);
+    const data = await res.json();
+    const artist = data?.data?.[0];
+    if (artist?.picture_medium) {
+      _discCache[key] = artist.picture_medium;
+      _applyDiscImg(clipId, artist.picture_medium);
+    }
+    // Si no encuentra nada, queda el avatar del uploader (ya puesto por defecto)
+  } catch(e) {
+    // Sin internet o error → queda el avatar del uploader
+  }
+}
+
+function _applyDiscImg(clipId, src) {
+  const d1 = document.getElementById('disc-' + clipId);
+  const d2 = document.getElementById('disc-btn-' + clipId);
+  if (d1) d1.src = src;
+  if (d2) d2.src = src;
+}
+
+window.openMusicDisc = function(clipId) {
+  // Futuro: abrir modal con info de la canción
+};
+
+window.initMusicDisc = function(clipId, musicName, musicArtist, fallbackAvatar) {
+  if (musicName) {
+    _loadMusicDiscImg(clipId, musicName, musicArtist, fallbackAvatar);
+  }
+};
+
 window.showToast = function showToast(msg, dur=2400) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -3350,7 +3395,11 @@ function buildVideoSlide(id, data) {
         </div>
         <div class="video-desc">${escHtml((data.description||'').replace(/(#[\w\u00C0-\u017E]+|@[\w\u00C0-\u017E]+)/g,'').trim())}</div>
         ${data.tags ? `<div class="video-tags" style="cursor:pointer">${data.tags.split(' ').map(t=>`<span onclick="searchByTag('${t}')" style="margin-right:6px;cursor:pointer">${escHtml(t)}</span>`).join('')}</div>` : ''}
-        <div class="video-music" id="vm-${id}">🎵 ${data.musicName ? escHtml(data.musicName)+' — '+escHtml(data.musicArtist||'') : 'Clipuy original'}</div>
+        <div class="video-music" id="vm-${id}" style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="openMusicDisc('${id}')">
+          <img id="disc-${id}" src="${avatar}" onerror="this.src='${avatarFallback(data.uid||'u')}'"
+            style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.4);animation:spin 4s linear infinite;flex-shrink:0;"/>
+          <span style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">🎵 ${data.musicName ? escHtml(data.musicName)+' — '+escHtml(data.musicArtist||'') : 'Clipuy original'}</span>
+        </div>
       </div>
       <button id="mute-${id}" onclick="toggleMute('${id}')" style="position:absolute;top:60px;right:12px;background:rgba(0,0,0,.5);border:none;border-radius:50%;width:38px;height:38px;font-size:1.1rem;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;z-index:10;">🔇</button>
       ${(currentUser && (currentUser.email==='synxyes@gmail.com' || currentUser.uid===data.uid)) ? `<button onclick="deleteMyClip('${id}',this)" style="position:absolute;top:106px;right:12px;background:rgba(254,44,85,.7);border:none;border-radius:50%;width:38px;height:38px;font-size:1rem;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;z-index:10;">🗑️</button>` : ''}
@@ -3439,6 +3488,20 @@ function buildVideoSlide(id, data) {
         </div>
         <span>Dueto</span>
       </div>` : ''}
+      <!-- Disco musical giratorio -->
+      <div class="v-action" onclick="openMusicDisc('${id}')" style="margin-top:4px;">
+        <div style="position:relative;width:52px;height:52px;">
+          <img id="disc-btn-${id}" src="${avatar}" onerror="this.src='${avatarFallback(data.uid||'u')}'"
+            style="width:52px;height:52px;border-radius:50%;object-fit:cover;
+                   border:3px solid rgba(255,255,255,.35);animation:spin 4s linear infinite;
+                   box-shadow:0 0 0 3px rgba(37,244,238,.3);"/>
+          <div style="position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,.35);
+                      display:flex;align-items:center;justify-content:center;pointer-events:none;">
+            <div style="width:12px;height:12px;border-radius:50%;background:#fff;opacity:.9;"></div>
+          </div>
+        </div>
+        <span>Música</span>
+      </div>
     </div>
   `;
   // Dueto button handler (uses data attributes to avoid URL encoding issues)
@@ -3517,6 +3580,9 @@ function buildVideoSlide(id, data) {
     }
     lastTap = now;
   });
+  // Init music disc image (artist photo or uploader avatar)
+  setTimeout(() => { window.initMusicDisc(id, data.musicName, data.musicArtist, avatar); }, 200);
+
   return div;
 }
 
@@ -7523,6 +7589,7 @@ window.sendGifMsg = async (gifUrl) => {
 
 <script>
 const DEEZER_PROXY = 'https://corsproxy.io/?https://api.deezer.com';
+window.DEEZER_PROXY = DEEZER_PROXY;
 let _carouselPhotos = [], _carouselCurrent = 0, _carouselTrack = null;
 let _carouselPlaying = false, _carouselProgInterval = null;
 let _cDragStartX = 0, _cIsDragging = false;
