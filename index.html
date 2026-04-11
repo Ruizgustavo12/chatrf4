@@ -7916,6 +7916,8 @@ window.clipuyCloseExport = function() {
   if (_EXP.exporting) return;
   document.getElementById('clipuy-export-modal').classList.remove('open');
   _expStopMedia();
+  _EXP.mediaUrl = null;   // ← reset URL para evitar reusar video anterior
+  _EXP.exporting = false;
 };
 
 window.expSetFormat = function(f, el) {
@@ -7967,8 +7969,12 @@ function _expLoadMedia(url, type) {
 
 function _expStopMedia() {
   cancelAnimationFrame(_expRAF);
-  if (_EXP.mediaEl && _EXP.mediaEl.tagName === 'VIDEO') {
-    try { _EXP.mediaEl.pause(); } catch(e){}
+  _expRAF = null;
+  if (_EXP.mediaEl) {
+    if (_EXP.mediaEl.tagName === 'VIDEO') {
+      try { _EXP.mediaEl.pause(); _EXP.mediaEl.src = ''; _EXP.mediaEl.load(); } catch(e){}
+    }
+    _EXP.mediaEl = null; // ← limpiar referencia para evitar exportar video anterior
   }
 }
 
@@ -8036,6 +8042,9 @@ function _expDrawWM(ctx, W, H, opacity, username, brand, pos, scale) {
   if(pos.includes('left'))   x=padX;
   if(pos.includes('right'))  x=W-padX-totalW;
   if(pos.includes('center')) x=(W-totalW)/2;
+  // Clamp so pill never overflows canvas edges
+  x = Math.max(padX, Math.min(x, W - totalW - padX));
+  y = Math.max(padY, Math.min(y, H - pillH - padY));
   // pill bg
   _expRRect(ctx,x,y,totalW,pillH,8*s);
   ctx.fillStyle='rgba(0,0,0,.60)'; ctx.fill();
@@ -8133,7 +8142,8 @@ window.expStartExport = async function() {
   let uname = '@' + resolvedUser;
   const wmEl = document.getElementById('exp-wm-user');
   if(wmEl) wmEl.textContent = uname;
-  const sc=RW/180;
+  // Scale watermark relative to output: target ~10% of width for pill, baseline 180px preview
+  const sc = Math.max(1, Math.min(RW / 180, 3.5));
 
   if(_EXP.mediaType==='image'||!_EXP.mediaEl||_EXP.mediaEl.tagName!=='VIDEO'){
     // Image export
