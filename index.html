@@ -874,6 +874,13 @@ img { display:block; }
 .media-thumb img, .media-thumb video { width:100%; height:100%; object-fit:cover; display:block; transition:opacity .2s; }
 .media-thumb:hover img, .media-thumb:hover video { opacity:.85; }
 .media-thumb-badge { position:absolute; top:6px; right:6px; font-size:.68rem; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.8); }
+/* Video thumbnail loading shimmer */
+.explore-thumb-loading {
+  background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+}
+.explore-thumb-loading video { opacity: 0 !important; }
 
 /* Search */
 .search-bar { display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm); padding:11px 15px; margin:16px 0 14px; transition:border-color .2s; }
@@ -3158,27 +3165,101 @@ window.doUpload = async () => {
 };
 
 // ── EXPLORE ──
+
+// Genera un poster (dataURL) del primer frame de un video URL
+const _thumbCache = new Map();
+function generateVideoThumb(url, el){
+  if(_thumbCache.has(url)){
+    el.style.backgroundImage = `url(${_thumbCache.get(url)})`;
+    el.style.backgroundSize = 'cover';
+    el.style.backgroundPosition = 'center';
+    el.classList.remove('explore-thumb-loading');
+    return;
+  }
+  const vid = document.createElement('video');
+  vid.src = url;
+  vid.muted = true;
+  vid.playsInline = true;
+  vid.preload = 'metadata';
+  vid.crossOrigin = 'anonymous';
+  const doSeek = () => { try{ vid.currentTime = 0.5; }catch(e){} };
+  vid.addEventListener('loadedmetadata', doSeek, {once:true});
+  vid.addEventListener('seeked', function onSeeked(){
+    vid.removeEventListener('seeked', onSeeked);
+    try{
+      const canvas = document.createElement('canvas');
+      canvas.width  = 180;
+      canvas.height = 180;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(vid, 0, 0, 180, 180);
+      const dataURL = canvas.toDataURL('image/jpeg', 0.72);
+      _thumbCache.set(url, dataURL);
+      el.style.backgroundImage = `url(${dataURL})`;
+      el.style.backgroundSize = 'cover';
+      el.style.backgroundPosition = 'center';
+      el.classList.remove('explore-thumb-loading');
+    }catch(e){ el.classList.remove('explore-thumb-loading'); }
+    vid.src = '';
+  });
+  vid.addEventListener('error', ()=>{ el.classList.remove('explore-thumb-loading'); vid.src=''; }, {once:true});
+}
+
 async function loadExplore(term=''){
   const grid=document.getElementById('explore-grid');
-  grid.innerHTML='<div style="grid-column:1/-1;padding:24px;text-align:center;color:var(--muted);">Cargando...</div>';
+  // Mostrar skeletons mientras carga
+  grid.innerHTML = Array(9).fill(0).map(()=>'<div class="media-thumb explore-thumb-loading skel"></div>').join('');
   try{
     const snap=await getDocs(query(collection(db,'posts'),orderBy('likes','desc'),limit(30)));
     const posts=snap.docs.map(d=>({id:d.id,...d.data()}));
     const filtered=term?posts.filter(p=>(p.caption||'').toLowerCase().includes(term.toLowerCase())||(p.username||'').toLowerCase().includes(term.toLowerCase())):posts;
     grid.innerHTML='';
     if(!filtered.length){ grid.innerHTML='<div style="grid-column:1/-1;padding:44px;text-align:center;color:var(--muted);">Sin resultados</div>'; return; }
+
+    // Observer para cargar el src del video al acercarse al viewport
     const _exploreIO=new IntersectionObserver(entries=>{
-      entries.forEach(e=>{ if(e.isIntersecting){ const v=e.target.querySelector('video[data-src]'); if(v){v.src=v.dataset.src;delete v.dataset.src;v.load();} _exploreIO.unobserve(e.target); } });
-    },{rootMargin:'200px'});
-    filtered.forEach(p=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          const v=e.target.querySelector('video[data-src]');
+          if(v){ v.src=v.dataset.src; delete v.dataset.src; v.load(); }
+          _exploreIO.unobserve(e.target);
+        }
+      });
+    },{rootMargin:'300px'});
+
+    // Observer para generar thumbnail cuando entra al viewport
+    const _thumbIO = new IntersectionObserver(entries=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          const url = e.target.dataset.thumbUrl;
+          if(url) generateVideoThumb(url, e.target);
+          _thumbIO.unobserve(e.target);
+        }
+      });
+    },{rootMargin:'400px'});
+
+    filtered.forEach((p, i)=>{
       const el=document.createElement('div');
       el.className='media-thumb';
       const isVid=p.mediaUrl?.match(/\.(mp4|mov|webm|ogg)/i)||p.mediaType==='video';
       if(isVid){
-        el.innerHTML=`<video data-src="${p.mediaUrl}" muted preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video><div class="media-thumb-badge">▶</div>`;
+        el.classList.add('explore-thumb-loading');
+        el.dataset.thumbUrl = p.mediaUrl;
+        el.innerHTML=`<video data-src="${p.mediaUrl}" muted preload="none" style="width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .25s;"></video><div class="media-thumb-badge">▶</div>`;
+        // Los primeros 9 generan thumbnail de inmediato; el resto espera el viewport
+        if(i < 9){ generateVideoThumb(p.mediaUrl, el); }
+        else { _thumbIO.observe(el); }
         _exploreIO.observe(el);
-        el.addEventListener('mouseenter',()=>{ const v=el.querySelector('video'); if(!v)return; if(v.dataset.src){v.src=v.dataset.src;delete v.dataset.src;} v.play().catch(()=>{}); });
-        el.addEventListener('mouseleave',()=>{ const v=el.querySelector('video'); if(v){v.pause();v.currentTime=0;} });
+        el.addEventListener('mouseenter',()=>{
+          const v=el.querySelector('video');
+          if(!v) return;
+          if(v.dataset.src){ v.src=v.dataset.src; delete v.dataset.src; }
+          v.style.opacity='1';
+          v.play().catch(()=>{});
+        });
+        el.addEventListener('mouseleave',()=>{
+          const v=el.querySelector('video');
+          if(v){ v.pause(); v.currentTime=0; v.style.opacity='0'; }
+        });
       } else {
         el.innerHTML=`<img src="${p.mediaUrl}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"/>`;
       }
