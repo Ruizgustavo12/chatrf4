@@ -3439,16 +3439,46 @@ window.downloadVideo = async (url, filename) => {
     console.warn('Servidor externo no disponible, usando marca local:', e.message);
   }
 
-  // 2️⃣ Fallback: marca de agua en el navegador con Canvas + MediaRecorder
+  // 2️⃣ Fallback: marca de agua en el navegador con Canvas + MediaRecorder, luego convertir a MP4 en el servidor
   try {
     showToast('🖌️ Aplicando marca en el dispositivo...');
     const watermarkedBlob = await _wm_addWatermarkToVideo(url, username);
+
+    // Intentar convertir WebM → MP4 en el servidor
+    try {
+      showToast('🔄 Convirtiendo a MP4...');
+      const fd2 = new FormData();
+      fd2.append('video', watermarkedBlob, 'watermarked.webm');
+      fd2.append('username', username);
+
+      const res2 = await fetch('https://uploads.wikipediarf4.uy/convertir-mp4', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer APaYczEALjtr_w6GtSM58-qCc0SPDyVvUjmwHiB74pE' },
+        body: fd2,
+        signal: AbortSignal.timeout(60000)   // 60s para la conversión
+      });
+
+      if (res2.ok) {
+        const mp4Blob = await res2.blob();
+        const blobUrl = URL.createObjectURL(mp4Blob);
+        const a = document.createElement('a');
+        a.href = blobUrl; a.download = safeFilename; a.style.display = 'none';
+        document.body.appendChild(a); a.click();
+        setTimeout(() => { URL.revokeObjectURL(blobUrl); a.remove(); }, 10000);
+        showToast('✅ ¡Video MP4 con marca descargado!');
+        return;
+      }
+    } catch(convErr) {
+      console.warn('Conversión MP4 falló, descargando WebM:', convErr.message);
+    }
+
+    // Si la conversión falla, descargar el WebM directamente
     const blobUrl = URL.createObjectURL(watermarkedBlob);
     const a = document.createElement('a');
     a.href = blobUrl; a.download = safeFilename.replace('.mp4','.webm'); a.style.display = 'none';
     document.body.appendChild(a); a.click();
     setTimeout(() => { URL.revokeObjectURL(blobUrl); a.remove(); }, 10000);
-    showToast('✅ ¡Video con marca de agua descargado!');
+    showToast('✅ ¡Video con marca descargado!');
     return;
 
   } catch(e) {
