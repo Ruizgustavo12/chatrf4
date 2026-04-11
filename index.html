@@ -3309,41 +3309,60 @@ window.deletePost = async postId => {
 // ── SHARE ──
 window.sharePost = id => { const url=`${location.origin}/?p=${id}`; if(navigator.share)navigator.share({title:'Trendlify',url}).catch(()=>{}); else navigator.clipboard?.writeText(url).then(()=>showToast('¡Link copiado! 🔗')); };
 
-// ── DOWNLOAD VIDEO ──
+// ── DOWNLOAD VIDEO — con outro del servidor (logo + @usuario) ──
 window.downloadVideo = async (url, filename) => {
   if(!url) return;
-  showToast('⬇️ Preparando descarga...');
-  // Siempre descargar como .mp4 para máxima compatibilidad
-  const fname = 'trendlify_' + (filename || 'video') + '.mp4';
+
+  // username viene en filename con formato "username_postId"
+  const username = (filename||'').split('_')[0] || 'trendlify';
+  const safeFilename = 'trendlify_' + username + '.mp4';
+
+  showToast('🎬 Generando video con tu marca... un momento');
+
   try {
-    // Intentar fetch con blob para forzar descarga real del archivo con watermark
-    const res = await fetch(url, { mode: 'cors', cache: 'no-store' });
-    if (!res.ok) throw new Error('fetch failed ' + res.status);
+    const fd = new FormData();
+    fd.append('video_url', url);
+    fd.append('username', username);
+
+    const res = await fetch('https://uploads.wikipediarf4.uy/procesar-outro', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer APaYczEALjtr_w6GtSM58-qCc0SPDyVvUjmwHiB74pE' },
+      body: fd
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.error || 'Error del servidor');
+    }
+
     const blob = await res.blob();
     const blobUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = blobUrl;
-    a.download = fname;
+    a.download = safeFilename;
     a.style.display = 'none';
     document.body.appendChild(a);
     a.click();
-    setTimeout(() => { URL.revokeObjectURL(blobUrl); a.remove(); }, 3000);
-    showToast('✅ ¡Video de Trendlify descargado!');
+    setTimeout(() => { URL.revokeObjectURL(blobUrl); a.remove(); }, 5000);
+    showToast('✅ ¡Video con tu marca descargado!');
+
   } catch(e) {
-    // Fallback: crear elemento <a> con download apuntando directo a la URL
-    // El video en la URL ya tiene el watermark/logo de Trendlify + @usuario
+    console.warn('Outro server falló, descargando original:', e);
+    // Fallback: descargar video original sin outro
     try {
+      const res2 = await fetch(url, { mode: 'cors', cache: 'no-store' });
+      const blob2 = await res2.blob();
+      const blobUrl2 = URL.createObjectURL(blob2);
       const a = document.createElement('a');
-      a.href = url;
-      a.download = fname;
+      a.href = blobUrl2;
+      a.download = safeFilename;
       a.style.display = 'none';
       document.body.appendChild(a);
       a.click();
-      setTimeout(() => a.remove(), 1000);
-      showToast('⬇️ Descargando video Trendlify...');
+      setTimeout(() => { URL.revokeObjectURL(blobUrl2); a.remove(); }, 3000);
+      showToast('⬇️ Descargado (instalá ffmpeg en el servidor para agregar tu marca)');
     } catch(e2) {
       window.open(url, '_blank');
-      showToast('⬇️ Abriendo video en nueva pestaña...');
     }
   }
 };
