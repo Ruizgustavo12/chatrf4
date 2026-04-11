@@ -2804,6 +2804,32 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
+// ── EXPOSE MODULE VARS TO NON-MODULE SCRIPTS ──
+window.db = db;
+window.auth = auth;
+window.collection = collection;
+window.addDoc = addDoc;
+window.getDocs = getDocs;
+window.doc = doc;
+window.getDoc = getDoc;
+window.setDoc = setDoc;
+window.updateDoc = updateDoc;
+window.query = query;
+window.orderBy = orderBy;
+window.limit = limit;
+window.onSnapshot = onSnapshot;
+window.serverTimestamp = serverTimestamp;
+window.where = where;
+window.arrayUnion = arrayUnion;
+window.arrayRemove = arrayRemove;
+window.increment = increment;
+window.deleteDoc = deleteDoc;
+window.UPLOAD_SERVER = UPLOAD_SERVER;
+window.CLOUDINARY_CLOUD = CLOUDINARY_CLOUD;
+window.CLOUDINARY_PRESET = CLOUDINARY_PRESET;
+window.uploadToServer = uploadToServer;
+window.uploadToCloudinary = uploadToCloudinary;
+
 // ── STATE ──
 let currentUser = null;
 window._getUser = () => currentUser;
@@ -2858,7 +2884,7 @@ function fmtNum(n) {
   if(n>=1000) return (n/1000).toFixed(1)+'K';
   return n||0;
 }
-function avatarFallback(seed) {
+window.avatarFallback = function avatarFallback(seed) {
   return `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(seed||'user')}`;
 }
 
@@ -3052,7 +3078,7 @@ async function loadNgrokMedia(root) {
 onAuthStateChanged(auth, async (user) => {
   document.getElementById('global-loading').classList.add('hidden');
   if (user) {
-    currentUser = user;
+    currentUser = user; window.currentUser = user;
     if(user.email === 'synxyes@gmail.com') {
       document.getElementById('admin-nav-btn').style.display = '';
     }
@@ -3062,7 +3088,7 @@ onAuthStateChanged(auth, async (user) => {
     startActivityListener();
     startChatBadgeListener();
   } else {
-    currentUser = null;
+    currentUser = null; window.currentUser = null;
     document.getElementById('admin-nav-btn').style.display = 'none';
     myProfile = {};
     if(_activityUnsub) { _activityUnsub(); _activityUnsub = null; }
@@ -3897,6 +3923,240 @@ window.closeCaptionModal = () => {
   switchMusicTab('deezer');
 };
 
+
+// ══════════════════════════════════════════════
+//  PROCESADO DE VIDEO CON MARCA DE AGUA + END-CARD
+//  Se ejecuta antes de subir al feed
+// ══════════════════════════════════════════════
+async function _procesarVideoParaFeed(file, handle) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const W = 720, H = 1280;
+      const ENDCARD_MS = 3000;
+
+      // Cargar logo
+      const logoImg = await new Promise(res => {
+        const img = new Image();
+        img.onload = () => res(img);
+        img.onerror = () => res(null);
+        img.src = '/icon-192.png';
+      });
+
+      // Crear canvas de renderizado
+      const canvas = document.createElement('canvas');
+      canvas.width = W; canvas.height = H;
+      const ctx = canvas.getContext('2d');
+
+      // Crear video element
+      const vid = document.createElement('video');
+      const blobUrl = URL.createObjectURL(file);
+      vid.src = blobUrl;
+      vid.muted = true;
+      vid.playsInline = true;
+
+      await new Promise((res, rej) => {
+        vid.onloadeddata = res;
+        vid.onerror = rej;
+        vid.load();
+      });
+
+      const videoDur = Math.min(vid.duration || 30, 120) * 1000;
+
+      // Audio: fetch + decodeAudioData
+      let audioCtx = null, audioDest = null, audioBuffer = null;
+      try {
+        audioCtx = new AudioContext({ sampleRate: 44100 });
+        audioDest = audioCtx.createMediaStreamDestination();
+        const resp = await fetch(blobUrl);
+        const arrBuf = await resp.arrayBuffer();
+        audioBuffer = await audioCtx.decodeAudioData(arrBuf);
+      } catch(e) { audioBuffer = null; }
+
+      // Stream final
+      const canvasStream = canvas.captureStream(30);
+      let finalStream;
+      if (audioCtx && audioDest) {
+        finalStream = new MediaStream([
+          ...canvasStream.getVideoTracks(),
+          ...audioDest.stream.getAudioTracks()
+        ]);
+      } else {
+        finalStream = new MediaStream(canvasStream.getVideoTracks());
+      }
+
+      // MediaRecorder
+      const mime = ['video/mp4','video/webm;codecs=vp9','video/webm'].find(t => MediaRecorder.isTypeSupported(t)) || 'video/webm';
+      const rec = new MediaRecorder(finalStream, { mimeType: mime, videoBitsPerSecond: 4000000 });
+      const chunks = [];
+      rec.ondataavailable = e => { if(e.data.size > 0) chunks.push(e.data); };
+
+      const displayHandle = handle.startsWith('@') ? handle : '@' + handle;
+      const sc = W / 180;
+
+      // Función marca de agua (igual que la exportación)
+      function drawWM(ctx, W, H, uname) {
+        const pad = 12 * sc;
+        const icoSize = 26 * sc;
+        const fontSize = 11 * sc;
+        ctx.save();
+        ctx.globalAlpha = 0.82;
+        // Fondo semi-transparente
+        const textW = ctx.measureText(uname).width + icoSize + 10 * sc + pad * 2;
+        const boxH = icoSize + pad * 1.2;
+        const bx = W - textW - 12 * sc;
+        const by = H - boxH - 40 * sc;
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        const r = 10 * sc;
+        ctx.beginPath();
+        ctx.moveTo(bx + r, by);
+        ctx.lineTo(bx + textW - r, by);
+        ctx.quadraticCurveTo(bx + textW, by, bx + textW, by + r);
+        ctx.lineTo(bx + textW, by + boxH - r);
+        ctx.quadraticCurveTo(bx + textW, by + boxH, bx + textW - r, by + boxH);
+        ctx.lineTo(bx + r, by + boxH);
+        ctx.quadraticCurveTo(bx, by + boxH, bx, by + boxH - r);
+        ctx.lineTo(bx, by + r);
+        ctx.quadraticCurveTo(bx, by, bx + r, by);
+        ctx.closePath();
+        ctx.fill();
+        // Logo
+        const lx = bx + pad;
+        const ly = by + (boxH - icoSize) / 2;
+        if (logoImg) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(lx + icoSize/2, ly + icoSize/2, icoSize/2, 0, Math.PI*2);
+          ctx.closePath();
+          ctx.clip();
+          ctx.drawImage(logoImg, lx, ly, icoSize, icoSize);
+          ctx.restore();
+        }
+        // Handle
+        ctx.font = \`700 \${fontSize}px "Space Grotesk", sans-serif\`;
+        ctx.fillStyle = '#fff';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(uname, lx + icoSize + 8 * sc, ly + icoSize/2);
+        ctx.restore();
+      }
+
+      // Función end-card
+      function drawEndCard(ctx, W, H, uname, progress) {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, W, H);
+        const alpha = Math.min(1, progress / 0.3);
+        ctx.globalAlpha = alpha;
+
+        const logoSize = W * 0.28;
+        const logoX = (W - logoSize) / 2;
+        const logoY = H / 2 - logoSize * 0.75;
+
+        if (logoImg) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(W/2, logoY + logoSize/2, logoSize/2 + 4, 0, Math.PI*2);
+          const borderGrad = ctx.createLinearGradient(logoX, logoY, logoX+logoSize, logoY+logoSize);
+          borderGrad.addColorStop(0, '#25f4ee');
+          borderGrad.addColorStop(1, '#fe2c55');
+          ctx.fillStyle = borderGrad;
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(W/2, logoY + logoSize/2, logoSize/2, 0, Math.PI*2);
+          ctx.closePath();
+          ctx.clip();
+          ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
+          ctx.restore();
+        }
+
+        const brandY = logoY + logoSize + W * 0.06;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'alphabetic';
+        ctx.font = \`700 \${W * 0.085}px "Clash Display", sans-serif\`;
+        const tGrad = ctx.createLinearGradient(W*0.2, brandY, W*0.8, brandY);
+        tGrad.addColorStop(0, '#25f4ee');
+        tGrad.addColorStop(1, '#fe2c55');
+        ctx.fillStyle = tGrad;
+        ctx.fillText('Clipuy', W/2, brandY);
+
+        const handleY = brandY + W * 0.075;
+        ctx.font = \`500 \${W * 0.048}px "Space Grotesk", sans-serif\`;
+        ctx.fillStyle = 'rgba(255,255,255,0.75)';
+        ctx.fillText(uname, W/2, handleY);
+
+        ctx.globalAlpha = 1;
+      }
+
+      // Función para escalar/centrar video en canvas (9:16)
+      function drawVideoFit(ctx, vid, W, H) {
+        const vw = vid.videoWidth || W;
+        const vh = vid.videoHeight || H;
+        const scale = Math.max(W / vw, H / vh);
+        const sw = vw * scale, sh = vh * scale;
+        ctx.drawImage(vid, (W - sw) / 2, (H - sh) / 2, sw, sh);
+      }
+
+      rec.start(100);
+
+      const t0 = performance.now();
+      let videoStarted = false;
+      let audioSrcNode = null;
+      let raf;
+
+      function frame() {
+        const elapsed = performance.now() - t0;
+
+        if (elapsed < videoDur && !vid.ended) {
+          // Fase VIDEO con marca de agua
+          if (!videoStarted) {
+            videoStarted = true;
+            vid.currentTime = 0;
+            vid.play().catch(() => {});
+            if (audioCtx && audioDest && audioBuffer) {
+              audioSrcNode = audioCtx.createBufferSource();
+              audioSrcNode.buffer = audioBuffer;
+              audioSrcNode.connect(audioDest);
+              audioSrcNode.start(0);
+            }
+          }
+          ctx.fillStyle = '#000';
+          ctx.fillRect(0, 0, W, H);
+          drawVideoFit(ctx, vid, W, H);
+          drawWM(ctx, W, H, displayHandle);
+          raf = requestAnimationFrame(frame);
+        } else {
+          // Fase END-CARD
+          if (videoStarted && !vid.paused) {
+            vid.pause();
+            if (audioSrcNode) { try { audioSrcNode.disconnect(); } catch(e){} }
+          }
+          const endElapsed = elapsed - videoDur;
+          if (endElapsed < ENDCARD_MS) {
+            drawEndCard(ctx, W, H, displayHandle, endElapsed / ENDCARD_MS);
+            raf = requestAnimationFrame(frame);
+          } else {
+            rec.stop();
+          }
+        }
+      }
+
+      raf = requestAnimationFrame(frame);
+
+      rec.onstop = async () => {
+        cancelAnimationFrame(raf);
+        vid.pause();
+        URL.revokeObjectURL(blobUrl);
+        if (audioCtx) { try { audioCtx.close(); } catch(e){} }
+        const blob = new Blob(chunks, { type: mime });
+        const ext = mime.includes('mp4') ? 'mp4' : 'webm';
+        const processedFile = new File([blob], 'clip.' + ext, { type: mime });
+        resolve(processedFile);
+      };
+
+    } catch(e) {
+      reject(e);
+    }
+  });
+}
+
 window.publishClip = async () => {
   if(!currentUser || !_pendingUploadFile) return;
   const desc     = document.getElementById('caption-text').value.trim();
@@ -3906,11 +4166,18 @@ window.publishClip = async () => {
   const isVideo  = _pendingUploadFile.type.startsWith('video');
   const handle   = (myProfile.handle || myProfile.name || currentUser.displayName || 'Clipuy').replace('@','');
 
-  showToast('📤 Subiendo clip...');
+  showToast('📤 Procesando clip...');
   document.getElementById('caption-modal').style.display = 'none';
 
   try {
     let mediaUrl;
+
+    // ── Si es video → procesar con marca de agua + end-card antes de subir ──
+    if (isVideo) {
+      showToast('🎬 Agregando marca de agua...');
+      _pendingUploadFile = await _procesarVideoParaFeed(_pendingUploadFile, handle);
+      showToast('📤 Subiendo clip...');
+    }
 
     // ── Si eligió un audio de Clipuy Y es un video → mezclar en el servidor ──
     if(_clipuySelectedAudio && isVideo) {
@@ -7819,32 +8086,45 @@ window.expStartExport = async function() {
     const vid = _EXP.mediaEl;
     _expSetProg(15, 'Iniciando grabación...');
 
-    // El video usa crossOrigin='anonymous' para poder dibujarse en canvas,
-    // lo que bloquea captureStream() para audio (restricción CORS del navegador).
-    // Solución: descargar el video con fetch(), decodificar el audio con
-    // AudioContext y reproducirlo sincronizado durante la grabación.
-    vid.muted = true;
+    // FIX AUDIO: desmutar ANTES de play() para que el navegador
+    // active los audio tracks en captureStream(). Si muted=false llega
+    // después del primer play/pause, el stream sale sin tracks de audio.
+    vid.muted = false;
+    vid.volume = 1;
     vid.currentTime = 0;
+    // Reproducir 300ms con audio activo para que captureStream() encuentre los tracks.
+    try {
+      await vid.play();
+      await new Promise(r => setTimeout(r, 300));
+      vid.pause();
+      vid.currentTime = 0;
+    } catch(e) {}
 
     // 1. Canvas stream (frames visuales)
     const canvasStream = rc.captureStream(30);
 
-    // 2. Descargar audio via fetch y decodificar con AudioContext
+    // 2. AudioContext único para video + intro/end sounds
     let audioCtxLive = null;
     let audioDestNode = null;
     let audioSrcNode = null;
-    let _audioBuffer = null;
     try {
       audioCtxLive = new AudioContext({ sampleRate: 44100 });
       audioDestNode = audioCtxLive.createMediaStreamDestination();
-      _expSetProg(16, 'Cargando audio...');
-      const resp = await fetch(_EXP.mediaUrl);
-      const arrayBuf = await resp.arrayBuffer();
-      _audioBuffer = await audioCtxLive.decodeAudioData(arrayBuf);
-    } catch(e) {
-      _audioBuffer = null;
-      // Si falla la descarga, exportamos sin audio
-    }
+
+      const vidStream = vid.captureStream
+        ? vid.captureStream()
+        : (vid.mozCaptureStream ? vid.mozCaptureStream() : null);
+
+      if (vidStream && vidStream.getAudioTracks().length > 0) {
+        audioSrcNode = audioCtxLive.createMediaStreamSource(vidStream);
+        // GainNode en 0 para silenciar al usuario, pero la señal sigue al grabador
+        const silentGain = audioCtxLive.createGain();
+        silentGain.gain.value = 0;
+        audioSrcNode.connect(silentGain);
+        silentGain.connect(audioCtxLive.destination); // silencio al parlante
+        audioSrcNode.connect(audioDestNode);           // audio completo al grabador
+      }
+    } catch(e) { audioCtxLive = null; audioDestNode = null; }
 
     // 3. Construir el MediaStream final
     let finalStream;
@@ -7959,13 +8239,6 @@ window.expStartExport = async function() {
           videoStarted = true;
           vid.currentTime = 0;
           vid.play().catch(() => {});
-          // Arrancar el AudioBuffer sincronizado con el video
-          if (audioCtxLive && audioDestNode && _audioBuffer) {
-            audioSrcNode = audioCtxLive.createBufferSource();
-            audioSrcNode.buffer = _audioBuffer;
-            audioSrcNode.connect(audioDestNode); // audio al grabador
-            audioSrcNode.start(0);
-          }
         }
         rctx.fillStyle = '#000';
         rctx.fillRect(0, 0, RW, RH);
