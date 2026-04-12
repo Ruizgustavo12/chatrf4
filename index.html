@@ -1703,8 +1703,7 @@ img { display:block; }
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup,
-  browserSessionPersistence, setPersistence
+  signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
   getFirestore, collection, addDoc, getDocs, doc, getDoc, setDoc, updateDoc,
@@ -2340,12 +2339,9 @@ window.doGoogle = () => {
 
 async function _execGoogleLogin() {
   const provider = new GoogleAuthProvider();
-  setPersistence(auth, browserSessionPersistence)
-    .then(() => {
-      return signInWithPopup(auth, provider);
-    })
+  signInWithPopup(auth, provider)
     .then(async (result) => {
-      console.log("¡Logueado dentro del EXE!", result.user);
+      console.log("Usuario logueado:", result.user);
       const u = result.user;
       const snap = await getDoc(doc(db, 'users', u.uid));
       if (!snap.exists()) {
@@ -2356,10 +2352,11 @@ async function _execGoogleLogin() {
           followers: 0, following: 0, posts: 0, followingList: [], createdAt: serverTimestamp()
         });
       }
+      window.location.reload();
     })
     .catch((error) => {
-      console.error("Error detallado:", error.code, error.message);
-      showToast('Error con Google: ' + error.message);
+      console.error("Error en el login:", error.message);
+      alert("Error: " + error.message);
     });
 }
 window.doLogout = async () => { closeSettings(); await signOut(auth); };
