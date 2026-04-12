@@ -1636,6 +1636,14 @@ img { display:block; }
         <input type="file" id="ep-avatar-file" accept="image/*" style="display:none" onchange="uploadAvatar(this.files[0]);updateEpAvatar(this.files[0])"/>
       </div>
 
+      <!-- Username -->
+      <div class="ep-section-title">Nombre de usuario</div>
+      <div style="position:relative;">
+        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.9rem;pointer-events:none;">@</span>
+        <input class="ep-inp" id="edit-username" placeholder="nombreusuario" type="text" maxlength="30" style="padding-left:28px;" oninput="this.value=this.value.replace(/[^a-zA-Z0-9_.]/g,'').toLowerCase()"/>
+      </div>
+      <div class="ep-hint">Solo letras, números, puntos y guiones bajos.</div>
+
       <!-- Website -->
       <div class="ep-section-title">Sitio web</div>
       <input class="ep-inp" id="edit-website" placeholder="Sitio web" type="url"/>
@@ -2420,7 +2428,6 @@ async function loadFeed(){
     const snap=await getDocs(query(collection(db,'posts'),orderBy('createdAt','desc'),limit(40)));
     list.innerHTML='';
     if(snap.empty){ list.innerHTML='<div style="padding:52px;text-align:center;color:var(--muted);font-size:.9rem;">Sin publicaciones todavía.<br/>¡Sé el primero en compartir algo!</div>'; return; }
-    loadStories(); // Carga historias reales desde colección stories
     // Filtrar: solo posts (no reels). Posts viejos sin contentType también se muestran.
     const feedDocs = snap.docs.filter(d=>{ const ct=d.data().contentType; return !ct||ct==='post'; }).slice(0,20);
     feedDocs.forEach(d=>{
@@ -5031,6 +5038,8 @@ window.openEditProfile = async () => {
   if(epAv) epAv.src=d.avatarUrl||CU.photoURL||`https://ui-avatars.com/api/?name=${encodeURIComponent(d.username||'U')}&background=222&color=fff&size=128`;
   const epUname=document.getElementById('ep-uname-display');
   if(epUname) epUname.textContent='@'+(d.username||'usuario');
+  const epUnameInp=document.getElementById('edit-username');
+  if(epUnameInp) epUnameInp.value=d.username||'';
   document.getElementById('edit-bio').value=d.bio||'';
   document.getElementById('ep-bio-count').textContent=(d.bio||'').length;
   const ws=document.getElementById('edit-website'); if(ws) ws.value=d.website||'';
@@ -5055,8 +5064,19 @@ window.saveProfile = async () => {
   const gender=document.getElementById('edit-gender')?.value||'';
   const showThreads=document.getElementById('edit-threads')?.checked!==false;
   const showSuggestions=document.getElementById('edit-suggestions')?.checked!==false;
+  const newUsername=(document.getElementById('edit-username')?.value||'').trim().toLowerCase();
   try{
-    await updateDoc(doc(db,'users',CU.uid),{bio,website,gender,showThreads,showSuggestions});
+    const updates={bio,website,gender,showThreads,showSuggestions};
+    if(newUsername && newUsername.length>=3){
+      // Verificar que el username no esté tomado por otro usuario
+      const snap=await getDocs(query(collection(db,'users'),where('username','==',newUsername)));
+      const takenByOther=snap.docs.some(d=>d.id!==CU.uid);
+      if(takenByOther){ showToast('❌ Ese @usuario ya está en uso'); return; }
+      updates.username=newUsername;
+      updates.displayName=newUsername;
+      await updateProfile(CU,{displayName:newUsername});
+    }
+    await updateDoc(doc(db,'users',CU.uid),updates);
     closeEditProfile(); showToast('✅ Perfil actualizado'); syncUI(CU);
   }catch(e){ showToast('Error al guardar'); }
 };
