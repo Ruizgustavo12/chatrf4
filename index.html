@@ -2359,17 +2359,22 @@ const authErr  = code => ({'auth/invalid-email':'Correo inválido.','auth/user-n
 
 // ── AUTH STATE ──
 onAuthStateChanged(auth, async user => {
+  console.log("onAuthStateChanged disparado — user:", user ? user.email : "null");
   CU = user;
   if(user){
     document.getElementById('auth-screen').classList.remove('show');
+    document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('app').classList.add('show');
+    document.getElementById('app').style.display = 'flex';
     await syncUI(user);
     loadFeed();
     loadStories();
     loadSuggestions();
   } else {
     document.getElementById('auth-screen').classList.add('show');
+    document.getElementById('auth-screen').style.display = 'flex';
     document.getElementById('app').classList.remove('show');
+    document.getElementById('app').style.display = 'none';
   }
 });
 
