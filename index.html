@@ -1355,9 +1355,7 @@ img { display:block; }
 
     <!-- REELS -->
     <div id="page-reels" style="display:none;">
-      <div style="padding:16px 0 10px;display:flex;align-items:center;gap:10px;"><span style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;background:linear-gradient(135deg,#fff,var(--accent2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Reels</span><span style="font-size:.75rem;color:var(--muted);font-weight:500;">Videos destacados</span></div>
-      <div id="reels-grid" class="media-grid"></div>
-      <div id="reels-container" style="display:none;"></div>
+      <div id="reels-container" style="position:relative;width:100%;max-width:var(--feed-max);margin:0 auto;"></div>
     </div>
 
     <!-- NOTIFICATIONS -->
@@ -3641,6 +3639,7 @@ window.openOptions = (postId, ownerUid, ownerUsername, caption, mediaUrl) => {
       </div>`;
   }
   box.innerHTML=`
+    ${isOwn?`<button class="opt-item" onclick="editPostCaption('${postId}','${esc(caption||'')}');closeOptions();">✏️ Editar descripción</button>`:''}
     ${isOwn?`<button class="opt-item danger" onclick="deletePost('${postId}');closeOptions();">🗑️ Eliminar publicación</button>`:''}
     ${isAdmin&&isOwn?`<button class="opt-item danger" onclick="adminDeleteThisPost('${postId}');closeOptions();">🗑️ Eliminar (Admin)</button>`:''}
     <button class="opt-item" onclick="sharePost('${postId}');closeOptions();">🔗 Copiar enlace</button>
@@ -3668,7 +3667,19 @@ window.adminEditPost = async (postId, currentCaption) => {
 };
 
 window.deletePost = async postId => {
-  try{ await deleteDoc(doc(db,'posts',postId)); showToast('Eliminado'); loadFeed(); }catch(e){ showToast('Error'); }
+  if(!confirm('¿Eliminar esta publicación?')) return;
+  try{ await deleteDoc(doc(db,'posts',postId)); showToast('✅ Eliminado'); loadFeed(); }catch(e){ showToast('Error'); }
+};
+
+window.editPostCaption = async (postId, currentCaption) => {
+  if(!CU) return;
+  const newCaption = prompt('Editar descripción:', currentCaption||'');
+  if(newCaption===null) return;
+  try{
+    await updateDoc(doc(db,'posts',postId),{caption:newCaption});
+    showToast('✅ Descripción actualizada');
+    loadFeed();
+  }catch(e){ showToast('Error: '+e.message); }
 };
 
 // ── SHARE ──
@@ -4364,6 +4375,30 @@ async function loadExplore(term=''){
     grid.innerHTML = '';
     if(!filtered.length){ grid.innerHTML='<div style="grid-column:1/-1;padding:44px;text-align:center;color:var(--muted);">Sin resultados</div>'; return; }
 
+    // Throttle para no lanzar muchas descargas a la vez
+    let _thumbQueue = [], _thumbActive = 0, _thumbMax = 3;
+    const drainThumbQueue = () => {
+      while(_thumbActive < _thumbMax && _thumbQueue.length){
+        const {url, el} = _thumbQueue.shift();
+        _thumbActive++;
+        generateVideoThumb(url, el);
+        // Detectar cuando termina observando el cache
+        const poll = setInterval(()=>{
+          const v = _thumbCache.get(url);
+          if(v && v !== 'pending'){ _thumbActive = Math.max(0, _thumbActive-1); clearInterval(poll); drainThumbQueue(); }
+        }, 200);
+      }
+    };
+
+    const _thumbIO = new IntersectionObserver(entries=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          const url = e.target.dataset.thumbUrl;
+          if(url){ _thumbQueue.push({url, el:e.target}); drainThumbQueue(); }
+          _thumbIO.unobserve(e.target);
+        }
+      });
+    },{rootMargin:'500px'});
 
     filtered.forEach((p, i)=>{
       const el = document.createElement('div');
@@ -4371,21 +4406,26 @@ async function loadExplore(term=''){
       const isVid = p.mediaUrl?.match(/\.(mp4|mov|webm|ogg)/i) || p.mediaType==='video';
 
       if(isVid){
-        // Video siempre visible como thumbnail (paused), sin canvas/CORS
-        const v = document.createElement('video');
-        v.src = p.mediaUrl;
-        v.muted = true;
-        v.playsInline = true;
-        v.preload = 'metadata';
-        v.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;';
-        v.addEventListener('loadedmetadata', () => { v.currentTime = Math.min(0.5, v.duration * 0.05 || 0); }, {once:true});
-        el.addEventListener('mouseenter', () => { v.loop = true; v.play().catch(()=>{}); });
-        el.addEventListener('mouseleave', () => { v.pause(); v.currentTime = Math.min(0.5, v.duration * 0.05 || 0); });
-        const badge = document.createElement('div');
-        badge.className = 'media-thumb-badge';
-        badge.innerHTML = `<svg viewBox="0 0 24 24" fill="white" width="18" height="18" style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.8))"><polygon points="5,3 19,12 5,21"/></svg>`;
-        el.appendChild(v);
-        el.appendChild(badge);
+        el.classList.add('explore-thumb-loading');
+        el.dataset.thumbUrl = p.mediaUrl;
+        // Ícono ▶ siempre visible
+        el.innerHTML = `<div class="media-thumb-badge">▶</div>`;
+        // Preview en hover
+        el.addEventListener('mouseenter',()=>{
+          if(el.querySelector('video')) return;
+          const v = document.createElement('video');
+          v.src = p.mediaUrl; v.muted = true; v.loop = true; v.playsInline = true;
+          v.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
+          el.insertBefore(v, el.firstChild);
+          v.play().catch(()=>{});
+        });
+        el.addEventListener('mouseleave',()=>{
+          const v = el.querySelector('video');
+          if(v){ v.pause(); v.remove(); }
+        });
+        // Encolar thumbnail
+        if(i < 6){ _thumbQueue.push({url:p.mediaUrl, el}); }
+        else { _thumbIO.observe(el); }
       } else {
         const img = document.createElement('img');
         img.src = p.mediaUrl;
@@ -4398,6 +4438,9 @@ async function loadExplore(term=''){
       el.addEventListener('click', ()=> openExploreViewer(i));
       grid.appendChild(el);
     });
+
+    // Iniciar la cola de thumbnails para los primeros 6
+    drainThumbQueue();
 
     // Mostrar botones admin si corresponde
     if(CU && CU.email === ADMIN_EMAIL){
@@ -4412,9 +4455,8 @@ window.handleSearch = window.handleExploreSearch;
 
 // ── REELS ──
 async function loadReels(){
-  const grid = document.getElementById('reels-grid');
-  if(!grid) return;
-  grid.innerHTML = Array(9).fill(0).map(()=>'<div class="media-thumb skel" style="background:var(--surface2);"></div>').join('');
+  const container=document.getElementById('reels-container');
+  container.innerHTML='<div style="padding:60px;text-align:center;color:var(--muted);">Cargando reels...</div>';
   try{
     // Traer por likes desc (más reaccionados primero), fallback a createdAt
     // Pedimos dos queries y combinamos: top por likes y top por views
@@ -4442,51 +4484,179 @@ async function loadReels(){
       return sb - sa;
     });
 
-    if(!reelDocs.length){ grid.innerHTML='<div style="grid-column:1/-1;padding:44px;text-align:center;color:var(--muted);">Sin reels todavía</div>'; return; }
-    grid.innerHTML='';
-    let _reelsList = reelDocs.map(d=>({id:d.id,...d.data()}));
+    if(!reelDocs.length){ container.innerHTML='<div style="padding:60px;text-align:center;color:var(--muted);">Sin reels todavía</div>'; return; }
+    container.innerHTML='';
+    reelDocs.forEach((d)=>{
+      const p={id:d.id,...d.data()};
+      const av=p.avatarUrl||`https://ui-avatars.com/api/?name=${encodeURIComponent(p.username||'U')}&background=222&color=fff&size=128`;
+      const el=document.createElement('div');
+      el.className='reel-card';
+      el.innerHTML=`
+        <video class="reel-video" src="${p.mediaUrl}" playsinline preload="metadata"></video>
+        <div class="reel-overlay">
+          <div class="reel-side-actions">
+            <div class="reel-action" onclick="toggleLike('${p.id}',this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="26" height="26"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+              <span id="likes-label-${p.id}">${fmtN(p.likes||0)}</span>
+            </div>
+            <div class="reel-action" onclick="openComments('${p.id}','${fmtN(p.commentsCount||0)}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="26" height="26"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              <span>${fmtN(p.commentsCount||0)}</span>
+            </div>
+            <div class="reel-action" onclick="sharePost('${p.id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="26" height="26"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              <span>Compartir</span>
+            </div>
+            <div class="reel-action" style="pointer-events:none;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="26" height="26"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span id="views-label-${p.id}">${fmtN(p.views||0)}</span>
+            </div>
+          </div>
+          <div class="reel-info">
+            <div class="reel-user">
+              <img class="reel-av" src="${av}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff'" onclick="openUserProfile('${p.uid}','${esc(p.username||'usuario')}')" style="cursor:pointer;"/>
+              <span class="reel-username" onclick="openUserProfile('${p.uid}','${esc(p.username||'usuario')}')" style="cursor:pointer;">@${esc(p.username||'usuario')}</span>
+              ${CU&&p.uid!==CU.uid?`<button class="reel-follow-btn" onclick="toggleFollow('${p.uid}',this)">Seguir</button>`:''}
+              ${CU&&CU.email===ADMIN_EMAIL?`<button onclick="openAdminContentMenu('${p.id}','${p.uid}','${esc(p.username||'usuario')}','${esc(p.caption||'')}','reel')" style="background:rgba(255,45,85,.18);border:1px solid rgba(255,45,85,.35);color:var(--accent);border-radius:6px;padding:4px 8px;font-size:.7rem;font-weight:700;cursor:pointer;margin-left:auto;">⚙️ Admin</button>`:''}
+            </div>
+            ${p.caption?`<div class="reel-caption">${esc((p.caption||'').slice(0,120))}</div>`:''}
+            ${p.deezerTrack?`<div class="reel-music"><span>🎵</span><span>${esc(p.deezerTrack.title)} — ${esc(p.deezerTrack.artist)}</span></div>`:''}
+            <!-- Reel player controls -->
+            <div class="reel-controls">
+              <div class="reel-prog-wrap" data-reel="${p.id}">
+                <div class="reel-prog-bg">
+                  <div class="reel-prog-fill"></div>
+                  <div class="reel-prog-thumb"></div>
+                </div>
+              </div>
+              <div class="reel-ctrl-row">
+                <button class="vid-btn reel-play-btn">
+                  <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><polygon points="5,3 19,12 5,21"/></svg>
+                </button>
+                <span class="vid-time reel-time-label">0:00 / 0:00</span>
+                <div class="vid-vol-wrap" style="margin-left:auto;">
+                  <button class="vid-btn reel-mute-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>
+                  </button>
+                  <input type="range" class="vid-vol-slider reel-vol" min="0" max="1" step="0.05" value="1"/>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      container.appendChild(el);
 
-    _reelsList.forEach((p, i)=>{
-      const el = document.createElement('div');
-      el.className = 'media-thumb';
-      const v = document.createElement('video');
-      v.src = p.mediaUrl;
-      v.muted = true;
-      v.playsInline = true;
-      v.preload = 'metadata';
-      v.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;';
-      v.addEventListener('loadedmetadata', () => { v.currentTime = Math.min(0.5, v.duration * 0.05 || 0); }, {once:true});
-      el.addEventListener('mouseenter', () => { v.loop = true; v.play().catch(()=>{}); });
-      el.addEventListener('mouseleave', () => { v.pause(); v.currentTime = Math.min(0.5, v.duration * 0.05 || 0); });
-      const badge = document.createElement('div');
-      badge.className = 'media-thumb-badge';
-      badge.innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="18" height="18" style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.8))"><polygon points="5,3 19,12 5,21"/></svg>';
-      // Likes badge abajo izquierda
-      const likeBadge = document.createElement('div');
-      likeBadge.style.cssText = 'position:absolute;bottom:6px;left:7px;z-index:3;display:flex;align-items:center;gap:3px;color:#fff;font-size:.68rem;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.8);';
-      likeBadge.innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="11" height="11"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>' + fmtN(p.likes||0);
-      el.appendChild(v);
-      el.appendChild(badge);
-      el.appendChild(likeBadge);
-      el.addEventListener('click', ()=> openReelsViewer(_reelsList, i));
-      grid.appendChild(el);
+      const vid       = el.querySelector('.reel-video');
+      const fill      = el.querySelector('.reel-prog-fill');
+      const thumb     = el.querySelector('.reel-prog-thumb');
+      const timeEl    = el.querySelector('.reel-time-label');
+      const playBtn   = el.querySelector('.reel-play-btn');
+      const muteBtn   = el.querySelector('.reel-mute-btn');
+      const volSlider = el.querySelector('.reel-vol');
+      const progWrap  = el.querySelector('.reel-prog-wrap');
+
+      const SVG_PLAY  = `<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><polygon points="5,3 19,12 5,21"/></svg>`;
+      const SVG_PAUSE = `<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+      const SVG_VOL   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>`;
+      const SVG_MUTE  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`;
+
+      // ── Reel progress — guarda contra NaN/Infinity ──
+      const updProg = () => {
+        const dur = vid.duration;
+        const cur = vid.currentTime;
+        if(!isFinite(dur) || isNaN(dur) || dur <= 0){
+          timeEl.textContent = fmt(cur) + ' / --:--'; return;
+        }
+        const pct = Math.max(0, Math.min(100, (cur/dur)*100));
+        fill.style.width = pct + '%'; thumb.style.left = pct + '%';
+        timeEl.textContent = fmt(cur) + ' / ' + fmt(dur);
+      };
+      vid.addEventListener('timeupdate',    updProg);
+      vid.addEventListener('loadedmetadata', updProg);
+      vid.addEventListener('durationchange', updProg);
+      vid.addEventListener('play',  () => { playBtn.innerHTML = SVG_PAUSE; });
+      vid.addEventListener('pause', () => { playBtn.innerHTML = SVG_PLAY;  });
+
+      // ── OUTRO OVERLAY en reels ──
+      vid.loop = false; // desactivamos loop nativo para controlar el outro
+      let _outroTimer = null;
+      vid.addEventListener('ended', () => {
+        showOutroOverlay(el, p.username || 'trendlify');
+        _outroTimer = setTimeout(() => {
+          vid.currentTime = 0;
+          vid.play().catch(() => {});
+        }, 4200);
+      });
+
+      let _reelDblTap = 0;
+      vid.addEventListener('click', e => {
+        const now = Date.now();
+        if(now - _reelDblTap < 350){
+          toggleLike(p.id, el.querySelector('.reel-action'));
+          spawnHeartFlood(e.clientX, e.clientY);
+          _reelDblTap = 0;
+        } else { _reelDblTap = now; vid.paused ? vid.play() : vid.pause(); }
+      });
+      playBtn.addEventListener('click', e => { e.stopPropagation(); vid.paused ? vid.play() : vid.pause(); });
+
+      // ── Reel scrub — mouse + touch ──
+      let rs = false;
+      const reelScrub = e => {
+        const dur = vid.duration;
+        if(!isFinite(dur) || isNaN(dur) || dur <= 0) return;
+        const r   = progWrap.getBoundingClientRect();
+        const cx  = e.touches ? e.touches[0].clientX : e.clientX;
+        const pct = Math.max(0, Math.min(1, (cx - r.left) / r.width));
+        if(vid.readyState >= 1) { vid.currentTime = pct * dur; updProg(); }
+      };
+      progWrap.addEventListener('mousedown', e => { rs = true; reelScrub(e); e.stopPropagation(); });
+      window.addEventListener('mousemove',   e => { if(rs) reelScrub(e); });
+      window.addEventListener('mouseup',     () => { rs = false; });
+      progWrap.addEventListener('touchstart', e => { rs = true; reelScrub(e); e.preventDefault(); }, { passive: false });
+      progWrap.addEventListener('touchmove',  e => { if(rs) reelScrub(e); e.preventDefault(); }, { passive: false });
+      progWrap.addEventListener('touchend',   () => { rs = false; });
+
+      muteBtn.addEventListener('click', e => { e.stopPropagation(); vid.muted = !vid.muted; volSlider.value = vid.muted ? 0 : vid.volume; muteBtn.innerHTML = vid.muted ? SVG_MUTE : SVG_VOL; });
+      volSlider.addEventListener('input', e => { e.stopPropagation(); vid.volume = parseFloat(volSlider.value); vid.muted = vid.volume === 0; muteBtn.innerHTML = vid.muted ? SVG_MUTE : SVG_VOL; });
+
+      // ── Reel autoplay — espera canplay para no freezar ──
+      let _reelReady = vid.readyState >= 3;
+      vid.addEventListener('canplay', () => { _reelReady = true; }, { once: true });
+
+      const _viewedReels = window._viewedReels || (window._viewedReels = new Set());
+      new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if(e.isIntersecting){
+            vid.muted = false;
+            const tryPlay = () => {
+              const pp = vid.play();
+              if(pp) pp.catch(() => {
+                vid.muted = true;
+                vid.play().catch(() => {});
+                el.addEventListener('click', () => { vid.muted = false; }, { once: true });
+              });
+            };
+            _reelReady ? tryPlay() : vid.addEventListener('canplay', tryPlay, { once: true });
+            if(!_viewedReels.has(p.id)){
+              _viewedReels.add(p.id);
+              setTimeout(() => {
+                updateDoc(doc(db,'posts',p.id), { views: increment(1) }).catch(() => {});
+                const vl = document.getElementById(`views-label-${p.id}`);
+                if(vl) vl.textContent = fmtN((p.views||0) + 1);
+              }, 2000);
+            }
+          } else {
+            vid.pause(); vid.currentTime = 0;
+            // Cancelar outro pendiente y limpiar overlay
+            if(_outroTimer){ clearTimeout(_outroTimer); _outroTimer = null; }
+            el.querySelectorAll('.outro-overlay').forEach(c => c.remove());
+          }
+        });
+      }, { threshold: 0.6 }).observe(el);
     });
-  }catch(e){ grid.innerHTML='<div style="grid-column:1/-1;padding:44px;text-align:center;color:var(--muted);">Error al cargar</div>'; console.error(e); }
+  }catch(e){ container.innerHTML='<div style="padding:60px;text-align:center;color:var(--muted);">Error al cargar reels</div>'; console.error(e); }
 }
 window.toggleReelMute = ()=>{/* handled inline */};
-
-// ── REELS VIEWER (fullscreen, igual que explorar) ──
-function openReelsViewer(reelsList, startIdx){
-  if(!reelsList.length) return;
-  // Reutilizar openExploreViewer pasando la lista de reels
-  const prev = _explorePostsList;
-  _explorePostsList = reelsList;
-  openExploreViewer(startIdx);
-  // Restaurar después de que el viewer cierra
-  const orig = window._origExploreList;
-  window._origExploreList = prev;
-}
-
 
 // ── DIRECT MESSAGES ──
 let _dmMsgsUnsub=null, _activeDMConvId=null;
@@ -5049,7 +5219,15 @@ async function loadSuggestions(){
       const av=u.avatarUrl||`https://ui-avatars.com/api/?name=${encodeURIComponent(u.username||'U')}&background=222&color=fff`;
       const el=document.createElement('div');
       el.className='sug-item';
-      el.innerHTML=`<img class="sug-av" src="${av}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff'"/><div><div class="sug-name">@${esc(u.username||'usuario')}</div><div class="sug-sub">Sugerencia para ti</div></div><button class="sug-follow" data-uid="${u.uid}" onclick="toggleFollow('${u.uid}',this)">Seguir</button>`;
+      const displayName = u.displayName || u.username || 'usuario';
+      const handle = '@' + esc(u.username || 'usuario');
+      el.innerHTML=`
+        <img class="sug-av" src="${av}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff'" style="cursor:pointer;" onclick="openUserProfile('${u.uid}','${esc(u.username||'usuario')}')"/>
+        <div style="cursor:pointer;flex:1;min-width:0;" onclick="openUserProfile('${u.uid}','${esc(u.username||'usuario')}')">
+          <div class="sug-name">${esc(displayName)}</div>
+          <div class="sug-sub">${handle} · Sugerencia para ti</div>
+        </div>
+        <button class="sug-follow" data-uid="${u.uid}" onclick="toggleFollow('${u.uid}',this)">Seguir</button>`;
       list.appendChild(el);
     });
     if(!count) list.innerHTML='<div style="font-size:.8rem;color:var(--muted);padding:4px 0;">Sin sugerencias por ahora</div>';
