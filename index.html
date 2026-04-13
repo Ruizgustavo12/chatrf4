@@ -3177,6 +3177,16 @@ function initVideoPlayer(postId, card, username){
     if(timeEl) timeEl.textContent = fmt(cur) + ' / ' + fmt(dur);
   }
 
+  // Reintentar actualizar la duración cuando el video ya tiene metadata completa
+  function waitForDuration() {
+    if (isFinite(vid.duration) && vid.duration > 0) { updateProgress(); return; }
+    // Algunos videos subidos demoran en reportar la duración — polling corto
+    const t = setInterval(() => {
+      if (isFinite(vid.duration) && vid.duration > 0) { updateProgress(); clearInterval(t); }
+    }, 200);
+    setTimeout(() => clearInterval(t), 8000); // máx 8s de espera
+  }
+
   function setPlayIcon(){ if(playBtn) playBtn.innerHTML = vid.paused ? SVG_PLAY : SVG_PAUSE; }
   function setMuteIcon(){ if(muteBtn) muteBtn.innerHTML = vid.muted ? SVG_MUTE : SVG_VOL; }
 
@@ -3195,8 +3205,8 @@ function initVideoPlayer(postId, card, username){
   vid.addEventListener('play',         () => { wrap.classList.remove('paused'); setPlayIcon(); });
   vid.addEventListener('pause',        () => { wrap.classList.add('paused'); setPlayIcon(); });
   vid.addEventListener('timeupdate',   updateProgress);
-  vid.addEventListener('loadedmetadata', updateProgress);
-  vid.addEventListener('durationchange', updateProgress);  // fires when duration becomes known
+  vid.addEventListener('loadedmetadata', waitForDuration);
+  vid.addEventListener('durationchange', waitForDuration);  // fires when duration becomes known
   vid.addEventListener('canplay', updateProgress);
   vid.addEventListener('volumechange', setMuteIcon);
 
@@ -3223,10 +3233,16 @@ function initVideoPlayer(postId, card, username){
     if(!isFinite(dur) || isNaN(dur) || dur <= 0) return;
     const rect = progWrap.getBoundingClientRect();
     const pct  = Math.max(0, Math.min(1, (getClientX(e) - rect.left) / rect.width));
-    // readyState >= 1 (HAVE_METADATA) is enough to seek
+    const seekTime = pct * dur;
     if(vid.readyState >= 1){
-      vid.currentTime = pct * dur;
+      vid.currentTime = seekTime;
       updateProgress();
+    } else {
+      // Esperar a que el video tenga metadata y luego hacer el seek
+      vid.addEventListener('loadedmetadata', () => {
+        vid.currentTime = seekTime;
+        updateProgress();
+      }, { once: true });
     }
   }
 
@@ -3933,7 +3949,7 @@ async function _wm_addWatermarkToVideo(videoUrl, username) {
   return new Promise((resolve, reject) => {
     const video = document.createElement('video');
     video.crossOrigin = 'anonymous';
-    video.muted = true;
+    video.muted = false; // NO silenciar: necesitamos el audio
     video.playsInline = true;
     video.preload = 'auto';
     video.src = videoUrl;
@@ -3949,18 +3965,43 @@ async function _wm_addWatermarkToVideo(videoUrl, username) {
       canvas.width  = W; canvas.height = H;
       const ctx = canvas.getContext('2d');
 
+      // Capturar audio del video con AudioContext
+      let audioCtx = null, destNode = null;
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const srcNode = audioCtx.createMediaElementSource(video);
+        destNode = audioCtx.createMediaStreamDestination();
+        srcNode.connect(destNode);
+        srcNode.connect(audioCtx.destination); // reproducir localmente también
+      } catch(e) { console.warn('AudioContext no disponible:', e); }
+
+      // Elegir el mejor codec que incluya audio (opus)
+      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
+        ? 'video/webm;codecs=vp9,opus'
+        : MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
+        ? 'video/webm;codecs=vp8,opus'
+        : 'video/webm';
+
       let stream, recorder, chunks = [];
       try {
-        stream   = canvas.captureStream(fps);
-        recorder = new MediaRecorder(stream, {
-          mimeType: MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-                    ? 'video/webm;codecs=vp9'
-                    : 'video/webm'
-        });
-      } catch(e) { return reject(e); }
+        stream = canvas.captureStream(fps);
+        // Agregar tracks de audio al stream del canvas
+        if (destNode) {
+          destNode.stream.getAudioTracks().forEach(t => stream.addTrack(t));
+        }
+        recorder = new MediaRecorder(stream, { mimeType });
+      } catch(e) {
+        // Fallback sin opciones de codec
+        try { recorder = new MediaRecorder(stream); }
+        catch(e2) { return reject(e2); }
+      }
 
       recorder.ondataavailable = e => { if(e.data.size > 0) chunks.push(e.data); };
-      recorder.onstop = () => resolve(new Blob(chunks, { type: 'video/webm' }));
+      recorder.onstop = () => {
+        if (audioCtx) audioCtx.close();
+        stream.getTracks().forEach(t => t.stop());
+        resolve(new Blob(chunks, { type: mimeType }));
+      };
 
       recorder.start(200);
 
@@ -3975,7 +4016,6 @@ async function _wm_addWatermarkToVideo(videoUrl, username) {
       video.addEventListener('ended', () => {
         cancelAnimationFrame(raf);
         recorder.stop();
-        stream.getTracks().forEach(t => t.stop());
       });
 
       video.play().catch(reject);
@@ -4006,7 +4046,7 @@ async function _convertWebMtoMP4(webmBlob) {
   const ff = await _loadFFmpeg();
   const { fetchFile } = await import('https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js');
   await ff.writeFile('input.webm', await fetchFile(webmBlob));
-  await ff.exec(['-i','input.webm','-c:v','libx264','-preset','ultrafast','-c:a','aac','-movflags','+faststart','output.mp4']);
+  await ff.exec(['-i','input.webm','-c:v','libx264','-preset','ultrafast','-c:a','aac','-b:a','128k','-movflags','+faststart','output.mp4']);
   const data = await ff.readFile('output.mp4');
   await ff.deleteFile('input.webm');
   await ff.deleteFile('output.mp4');
@@ -4791,9 +4831,18 @@ async function loadReels(){
         fill.style.width = pct + '%'; thumb.style.left = pct + '%';
         timeEl.textContent = fmt(cur) + ' / ' + fmt(dur);
       };
+      // Polling para duraciones que tardan en llegar (WebM/MP4 sin faststart)
+      const waitReelDuration = () => {
+        if (isFinite(vid.duration) && vid.duration > 0) { updProg(); return; }
+        const t = setInterval(() => {
+          if (isFinite(vid.duration) && vid.duration > 0) { updProg(); clearInterval(t); }
+        }, 200);
+        setTimeout(() => clearInterval(t), 8000);
+      };
       vid.addEventListener('timeupdate',    updProg);
-      vid.addEventListener('loadedmetadata', updProg);
-      vid.addEventListener('durationchange', updProg);
+      vid.addEventListener('loadedmetadata', waitReelDuration);
+      vid.addEventListener('durationchange', waitReelDuration);
+      vid.addEventListener('canplay', updProg);
       vid.addEventListener('play',  () => { playBtn.innerHTML = SVG_PAUSE; });
       vid.addEventListener('pause', () => { playBtn.innerHTML = SVG_PLAY;  });
 
@@ -4827,7 +4876,12 @@ async function loadReels(){
         const r   = progWrap.getBoundingClientRect();
         const cx  = e.touches ? e.touches[0].clientX : e.clientX;
         const pct = Math.max(0, Math.min(1, (cx - r.left) / r.width));
-        if(vid.readyState >= 1) { vid.currentTime = pct * dur; updProg(); }
+        const seekTime = pct * dur;
+        if(vid.readyState >= 1) {
+          vid.currentTime = seekTime; updProg();
+        } else {
+          vid.addEventListener('loadedmetadata', () => { vid.currentTime = seekTime; updProg(); }, { once: true });
+        }
       };
       progWrap.addEventListener('mousedown', e => { rs = true; reelScrub(e); e.stopPropagation(); });
       window.addEventListener('mousemove',   e => { if(rs) reelScrub(e); });
