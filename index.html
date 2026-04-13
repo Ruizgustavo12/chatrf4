@@ -2351,6 +2351,11 @@ const checkTerms   = () => { if(!localStorage.getItem('trendlify_terms_v1')) doc
           throw e;
         }
       }
+      // Login exitoso — forzar navegación al feed
+      document.getElementById('auth-screen').classList.remove('show');
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('app').classList.add('show');
+      document.getElementById('app').style.display = 'flex';
     } catch(err) {
       console.error('Discord login error:', err);
       const errEl = document.getElementById('login-err');
