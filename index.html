@@ -1261,6 +1261,11 @@ img { display:block; }
         <span class="nav-label">Notificaciones</span>
       </button>
 
+      <button class="nav-item" id="nav-marketing" onclick="setPage('marketing')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span class="nav-label">Publicidad B2B</span>
+      </button>
+
       <button class="nav-create" onclick="openUpload()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="5"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
         <span>Crear</span>
@@ -1380,6 +1385,25 @@ img { display:block; }
     </div>
 
     <!-- MESSAGES -->
+    <div id="page-marketing" style="display:none;">
+      <div style="background:#23272a;padding:30px;border-radius:15px;border:1px solid #5865f2;max-width:600px;margin:20px auto;">
+        <h2 style="color:#5865f2;margin-bottom:10px;">🚀 Impulsor de Marcas IA</h2>
+        <p style="color:#b9bbbe;margin-bottom:20px;">
+          Nuestra IA promocionará tu marca en grupos de nicho y perfiles interesados de forma automática.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:15px;">
+          <label style="color:white;font-size:.9em;">Link de tu Marca o Facebook:</label>
+          <input type="text" id="b2b-link" placeholder="https://facebook.com/tu-marca"
+                 style="padding:12px;border-radius:8px;border:none;background:#2c2f33;color:white;font-size:16px;outline:none;">
+          <button onclick="ejecutarRobot()"
+                  style="background:#5865f2;color:white;border:none;padding:15px;border-radius:8px;cursor:pointer;font-weight:bold;font-size:1.1em;">
+            ¡Iniciar Difusión Ahora!
+          </button>
+        </div>
+        <div id="b2b-log" style="margin-top:20px;padding:10px;background:#1a1a1a;border-radius:5px;font-family:monospace;font-size:.85em;color:#43b581;display:none;"></div>
+      </div>
+    </div>
+
     <div id="page-messages" style="display:none;">
       <div style="display:flex;height:calc(100vh - 40px);gap:0;">
         <div id="dm-list-panel" style="width:300px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;">
@@ -2562,6 +2586,29 @@ window.loginConDiscord = function() {
   const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}`;
   window.location.href = url;
 };
+
+async function ejecutarRobot() {
+  const link = document.getElementById('b2b-link').value;
+  const log = document.getElementById('b2b-log');
+  if (!link) { alert('Por favor, ingresa un link válido.'); return; }
+  log.style.display = 'block';
+  log.innerHTML = '> Conectando con el servidor de publicidad...<br>';
+  try {
+    const response = await fetch('/promocionar', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ link: link })
+    });
+    const res = await response.json();
+    if (res.status === 'success') {
+      log.innerHTML += `> <span style="color:#43b581">${res.message}</span><br>`;
+      log.innerHTML += '> Buscando grupos de Facebook...<br>';
+      log.innerHTML += '> Escaneando audiencia activa...<br>';
+    }
+  } catch (error) {
+    log.innerHTML += '> <span style="color:#f04747">Error: No se pudo contactar al robot.</span>';
+  }
+}
 
 window.doLogout = async () => { closeSettings(); await signOut(auth); };
 const authErr  = code => ({'auth/invalid-email':'Correo inválido.','auth/user-not-found':'Usuario no encontrado.','auth/wrong-password':'Contraseña incorrecta.','auth/email-already-in-use':'Correo ya registrado.','auth/weak-password':'Contraseña muy corta.','auth/invalid-credential':'Credenciales inválidas.'}[code]||'Error: '+code);
