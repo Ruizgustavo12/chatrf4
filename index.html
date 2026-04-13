@@ -2305,6 +2305,64 @@ window.acceptTerms = () => {
 };
 const checkTerms   = () => { if(!localStorage.getItem('trendlify_terms_v1')) document.getElementById('terms-modal').classList.add('show'); };
 
+// ── DISCORD CALLBACK HANDLER ──
+(async () => {
+  const hash = window.location.hash;
+  if (hash.startsWith('#discord_callback=')) {
+    try {
+      const raw = decodeURIComponent(hash.replace('#discord_callback=', ''));
+      const userData = JSON.parse(raw);
+      // Limpiar el hash de la URL
+      history.replaceState(null, '', window.location.pathname);
+
+      const { discordId, username, email, avatarUrl } = userData;
+
+      // Crear o buscar usuario en Firebase usando email de Discord
+      // Si no tiene email usamos discordId@discord.com como fallback
+      const firebaseEmail = email || `${discordId}@discord.trendlify`;
+      const tempPass = `discord_${discordId}_trendlify`;
+
+      let firebaseUser;
+      try {
+        // Intentar login primero
+        const cred = await signInWithEmailAndPassword(auth, firebaseEmail, tempPass);
+        firebaseUser = cred.user;
+      } catch(e) {
+        if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
+          // Crear cuenta nueva
+          const cred = await createUserWithEmailAndPassword(auth, firebaseEmail, tempPass);
+          firebaseUser = cred.user;
+          await updateProfile(firebaseUser, { displayName: username, photoURL: avatarUrl });
+          // Guardar en Firestore
+          const cleanUsername = username.replace(/[^a-zA-Z0-9_.]/g, '').toLowerCase();
+          await setDoc(doc(db, 'users', firebaseUser.uid), {
+            uid: firebaseUser.uid,
+            username: cleanUsername,
+            displayName: username,
+            email: firebaseEmail,
+            bio: '',
+            avatarUrl: avatarUrl || '',
+            discordId: discordId,
+            followers: 0, following: 0, posts: 0,
+            followingList: [],
+            createdAt: serverTimestamp()
+          });
+        } else {
+          throw e;
+        }
+      }
+    } catch(err) {
+      console.error('Discord login error:', err);
+      const errEl = document.getElementById('login-err');
+      if(errEl) errEl.textContent = 'Error al iniciar sesión con Discord: ' + err.message;
+    }
+  } else if (hash === '#discord_error=1') {
+    history.replaceState(null, '', window.location.pathname);
+    const errEl = document.getElementById('login-err');
+    if(errEl) errEl.textContent = 'Error al conectar con Discord. Intentá de nuevo.';
+  }
+})();
+
 // ── AUTH TABS ──
 window.switchAuthTab = (tab,btn) => {
   document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
@@ -2397,11 +2455,7 @@ window.loginConDiscord = function() {
   const redirectUri = encodeURIComponent('http://localhost:5000/callback');
   const scope = encodeURIComponent('identify email');
   const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}`;
-  if (window.pywebview) {
-    window.pywebview.api.open_url(url);
-  } else {
-    window.open(url, '_blank');
-  }
+  window.location.href = url;
 };
 
 window.doLogout = async () => { closeSettings(); await signOut(auth); };
