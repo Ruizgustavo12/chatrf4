@@ -2587,7 +2587,7 @@ window.loginConDiscord = function() {
   window.location.href = url;
 };
 
-async function ejecutarRobot() {
+window.ejecutarRobot = async function() {
   const link = document.getElementById('b2b-link').value;
   const log = document.getElementById('b2b-log');
   if (!link) { alert('Por favor, ingresa un link válido.'); return; }
