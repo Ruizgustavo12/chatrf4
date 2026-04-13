@@ -2323,6 +2323,7 @@ const checkTerms   = () => { if(!localStorage.getItem('trendlify_terms_v1')) doc
       const tempPass = `discord_${discordId}_trendlify`;
 
       let firebaseUser;
+      console.log('Discord login - email:', firebaseEmail, 'pass:', tempPass);
       try {
         // Intentar login primero
         const cred = await signInWithEmailAndPassword(auth, firebaseEmail, tempPass);
