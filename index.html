@@ -2308,6 +2308,7 @@ const checkTerms   = () => { if(!localStorage.getItem('trendlify_terms_v1')) doc
 // ── DISCORD CALLBACK HANDLER ──
 (async () => {
   const hash = window.location.hash;
+  console.log('HASH AL CARGAR:', hash);
   if (hash.startsWith('#discord_callback=')) {
     try {
       const raw = decodeURIComponent(hash.replace('#discord_callback=', ''));
@@ -2323,7 +2324,6 @@ const checkTerms   = () => { if(!localStorage.getItem('trendlify_terms_v1')) doc
       const tempPass = `discord_${discordId}_trendlify`;
 
       let firebaseUser;
-      console.log('Discord login - email:', firebaseEmail, 'pass:', tempPass);
       try {
         // Intentar login primero
         const cred = await signInWithEmailAndPassword(auth, firebaseEmail, tempPass);
