@@ -3837,8 +3837,37 @@ function upmRenderGrid(gridId, docs, emptyMsg, ownerUid){
 }
 
 window.upmOpenViewer = (postId, p) => {
-  // Abrir el post en el overlay de comentarios para verlo completo
-  openComments(postId, fmtN(p.commentsCount||0));
+  const isVid = p.mediaUrl?.match(/\.(mp4|mov|webm|ogg)/i) || p.mediaType==='video';
+  // Si tiene media, mostrar en overlay con el post completo
+  let ov = document.getElementById('upm-viewer-overlay');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'upm-viewer-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:8500;background:rgba(0,0,0,.92);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:16px;';
+    ov.onclick = e => { if(e.target===ov) ov.style.display='none'; };
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = `
+    <div style="width:100%;max-width:420px;max-height:92vh;background:var(--surface);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;animation:fadeUp .2s ease;">
+      <div style="display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;">
+        <span style="font-size:.9rem;font-weight:700;flex:1;">@${esc(p.username||'usuario')}</span>
+        <button onclick="document.getElementById('upm-viewer-overlay').style.display='none'" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.3rem;line-height:1;padding:4px 8px;">✕</button>
+      </div>
+      ${p.mediaUrl ? `<div style="background:#000;flex-shrink:0;max-height:60vh;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+        ${isVid
+          ? `<video src="${p.mediaUrl}" controls playsinline autoplay style="width:100%;max-height:60vh;object-fit:contain;display:block;"></video>`
+          : `<img src="${p.mediaUrl}" style="width:100%;max-height:60vh;object-fit:contain;display:block;"/>`
+        }
+      </div>` : ''}
+      <div style="padding:14px 16px;overflow-y:auto;">
+        ${p.caption ? `<div style="font-size:.88rem;line-height:1.5;margin-bottom:10px;"><span style="font-weight:700;">@${esc(p.username||'usuario')}</span> ${esc(p.caption)}</div>` : ''}
+        <div style="display:flex;align-items:center;gap:16px;padding-top:8px;border-top:1px solid var(--border);">
+          <span style="font-size:.82rem;color:var(--muted);">❤️ ${fmtN(p.likes||0)} me gusta</span>
+          <button onclick="document.getElementById('upm-viewer-overlay').style.display='none';openComments('${postId}','${fmtN(p.commentsCount||0)}')" style="background:none;border:none;color:var(--accent2);font-size:.82rem;font-weight:700;cursor:pointer;">💬 Ver comentarios</button>
+        </div>
+      </div>
+    </div>`;
+  ov.style.display = 'flex';
 };
 
 window.closeUserProfile = () => {
@@ -5586,11 +5615,14 @@ async function loadSuggestions(){
           if(action==='profile'){
             openUserProfile(b.dataset.uid, b.dataset.username);
           } else if(action==='story'){
-            // Buscar todas las historias de ese uid y abrirlas
             try{
               const now2=new Date();
-              const stSnap=await getDocs(query(collection(db,'stories'),where('uid','==',b.dataset.uid),orderBy('createdAt','asc')));
-              const userStories=stSnap.docs.map(d=>({id:d.id,...d.data()})).filter(st=>{ const exp=st.expiresAt?.toDate?.(); return !exp||exp>=now2; });
+              // Usar solo where sin orderBy para evitar índice compuesto
+              const stSnap=await getDocs(query(collection(db,'stories'),where('uid','==',b.dataset.uid)));
+              const userStories=stSnap.docs
+                .map(d=>({id:d.id,...d.data()}))
+                .filter(st=>{ const exp=st.expiresAt?.toDate?.(); return !exp||exp>=now2; })
+                .sort((a,b2)=>(a.createdAt?.seconds||0)-(b2.createdAt?.seconds||0));
               if(userStories.length) openStory(userStories);
               else showToast('Esta historia ya expiró');
             }catch(err){ console.warn(err); showToast('Error al cargar historia'); }
