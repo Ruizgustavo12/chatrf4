@@ -503,6 +503,27 @@ img { display:block; }
 .opt-item.danger { color:var(--accent); }
 .opt-cancel { padding:16px; text-align:center; font-weight:700; color:var(--muted); background:none; border:none; width:100%; cursor:pointer; font-size:.9rem; border-top:5px solid var(--bg); }
 
+/* ───── CONTEXT MENU ───── */
+#video-ctx-menu {
+  position:fixed; z-index:9999; display:none;
+  background:var(--surface2); border:1px solid var(--border2);
+  border-radius:14px; overflow:hidden; min-width:220px;
+  box-shadow:0 16px 48px rgba(0,0,0,.75);
+  animation:fadeUp .15s cubic-bezier(.22,1,.36,1) both;
+}
+#video-ctx-menu.show { display:block; }
+.ctx-item {
+  display:flex; align-items:center; gap:14px;
+  padding:14px 18px; background:none; border:none;
+  width:100%; text-align:left; color:var(--text);
+  font-size:.88rem; font-weight:500; cursor:pointer;
+  transition:background .12s; border-bottom:1px solid var(--border);
+  font-family:var(--font-body);
+}
+.ctx-item:last-child { border-bottom:none; }
+.ctx-item:hover { background:rgba(255,255,255,.07); }
+.ctx-item svg { width:18px; height:18px; flex-shrink:0; opacity:.8; }
+
 /* ───── TOAST ───── */
 #toast {
   position:fixed; bottom:36px; left:50%; transform:translateX(-50%) translateY(16px);
@@ -3037,6 +3058,7 @@ function buildPost(post){
   const card=document.createElement('div');
   card.className='post-card';
   card.dataset.postId=post.id;
+  card.dataset.username=post.username||'trendlify';
   const isVid=post.mediaUrl?.match(/\.(mp4|mov|webm|ogg)/i)||post.mediaType==='video';
   const av=post.avatarUrl||`https://ui-avatars.com/api/?name=${encodeURIComponent(post.username||'U')}&background=222&color=fff&size=128`;
   const likes=fmtN(post.likes||0);
@@ -4743,6 +4765,8 @@ async function loadReels(){
       const av=p.avatarUrl||`https://ui-avatars.com/api/?name=${encodeURIComponent(p.username||'U')}&background=222&color=fff&size=128`;
       const el=document.createElement('div');
       el.className='reel-card';
+      el.dataset.postId=p.id;
+      el.dataset.username=p.username||'trendlify';
       el.innerHTML=`
         <video class="reel-video" src="${p.mediaUrl}" playsinline preload="metadata"></video>
         <div class="reel-overlay">
@@ -5598,6 +5622,85 @@ window.doCompose = async () => {
     </div>
   </div>
 </div>
+
+<!-- ════ VIDEO CONTEXT MENU ════ -->
+<div id="video-ctx-menu">
+  <button class="ctx-item" onclick="_ctxDownload()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Descargar vídeo
+  </button>
+  <button class="ctx-item" onclick="_ctxSend()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    Enviar a un amigo
+  </button>
+  <button class="ctx-item" onclick="_ctxCopy()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+    Copiar enlace
+  </button>
+  <button class="ctx-item" onclick="_ctxDetails()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    Ver los detalles del vídeo
+  </button>
+</div>
+
+<script>
+// ── VIDEO CONTEXT MENU ──
+(function(){
+  let _ctxUrl = '', _ctxPostId = '', _ctxUsername = '';
+  const menu = document.getElementById('video-ctx-menu');
+
+  function closeCtx(){ menu.classList.remove('show'); }
+
+  // Delegate contextmenu on video elements (post feed + reels)
+  document.addEventListener('contextmenu', e => {
+    const vid = e.target.closest('video');
+    if(!vid) { closeCtx(); return; }
+    e.preventDefault();
+
+    // Get post data from closest card
+    const card = vid.closest('[data-post-id]') || vid.closest('.post-card') || vid.closest('.reel-card');
+    _ctxUrl      = vid.src || vid.currentSrc || '';
+    _ctxPostId   = card?.dataset?.postId || '';
+    _ctxUsername = card?.dataset?.username || 'trendlify';
+
+    // Position menu near cursor, keep inside viewport
+    const vw = window.innerWidth, vh = window.innerHeight;
+    let x = e.clientX, y = e.clientY;
+    menu.style.left = '0'; menu.style.top = '0';
+    menu.classList.add('show');
+    const mw = menu.offsetWidth, mh = menu.offsetHeight;
+    if(x + mw > vw) x = vw - mw - 8;
+    if(y + mh > vh) y = vh - mh - 8;
+    menu.style.left = x + 'px';
+    menu.style.top  = y + 'px';
+  });
+
+  document.addEventListener('click', e => { if(!menu.contains(e.target)) closeCtx(); });
+  document.addEventListener('scroll', closeCtx, true);
+  document.addEventListener('keydown', e => { if(e.key==='Escape') closeCtx(); });
+
+  window._ctxDownload = () => {
+    closeCtx();
+    if(!_ctxUrl){ showToast('No se encontró el video'); return; }
+    downloadVideo(_ctxUrl, _ctxUsername + '_' + _ctxPostId);
+  };
+  window._ctxSend = () => {
+    closeCtx();
+    const url = _ctxPostId ? `${location.origin}/?p=${_ctxPostId}` : _ctxUrl;
+    if(navigator.share){ navigator.share({ title:'Trendlify', url }).catch(()=>{}); }
+    else { navigator.clipboard?.writeText(url).then(()=>showToast('¡Link copiado! Compartilo con quien quieras 🔗')); }
+  };
+  window._ctxCopy = () => {
+    closeCtx();
+    const url = _ctxPostId ? `${location.origin}/?p=${_ctxPostId}` : _ctxUrl;
+    navigator.clipboard?.writeText(url).then(()=>showToast('🔗 ¡Enlace copiado!')).catch(()=>showToast('No se pudo copiar'));
+  };
+  window._ctxDetails = () => {
+    closeCtx();
+    if(_ctxPostId) openComments(_ctxPostId, '');
+  };
+})();
+</script>
 
 </body>
 </html>
