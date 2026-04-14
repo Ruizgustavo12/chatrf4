@@ -5523,21 +5523,19 @@ async function loadSuggestions(){
   list.innerHTML='';
   try{
     const now=new Date();
-    // Traer las últimas historias ordenadas por más reciente
-    const snap=await getDocs(query(collection(db,'stories'),orderBy('createdAt','desc'),limit(30)));
-    // Agrupar por uid, quedarnos con los 5 usuarios más recientes (sin el propio usuario)
+    // Traer las últimas historias sin filtrar por usuario
+    const snap=await getDocs(query(collection(db,'stories'),orderBy('createdAt','desc'),limit(50)));
     const seen=new Set();
     const recentUsers=[];
     snap.docs.forEach(d=>{
       const s={id:d.id,...d.data()};
       const exp=s.expiresAt?.toDate?.();
-      if(exp&&exp<now) return;
-      if(s.uid===CU.uid) return;
-      if(seen.has(s.uid)) return;
+      if(exp&&exp<now) return; // expirada
+      if(seen.has(s.uid)) return; // ya hay una de este usuario
       seen.add(s.uid);
       recentUsers.push(s);
     });
-    const top=recentUsers.slice(0,5);
+    const top=recentUsers.slice(0,2); // últimas 2
     if(!top.length){
       list.innerHTML='<div style="font-size:.8rem;color:var(--muted);padding:4px 0;">Sin historias recientes</div>';
       return;
