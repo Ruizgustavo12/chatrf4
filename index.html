@@ -258,6 +258,30 @@ img { display:block; }
 .sug-sub { font-size:.72rem; color:var(--muted); }
 .sug-follow { margin-left:auto; background:none; border:none; color:var(--accent2); font-size:.78rem; font-weight:700; cursor:pointer; white-space:nowrap; }
 
+/* ── Story recent item actions ── */
+.sug-item { display:flex; align-items:center; gap:10px; margin-bottom:14px; position:relative; cursor:pointer; border-radius:var(--r-sm); padding:6px 4px; transition:background .15s; }
+.sug-item:hover { background:rgba(255,255,255,.05); }
+.sug-actions-popup {
+  position:absolute; right:0; top:calc(100% + 4px); z-index:200;
+  background:var(--surface2); border:1px solid var(--border2);
+  border-radius:12px; overflow:hidden; min-width:170px;
+  box-shadow:0 12px 36px rgba(0,0,0,.7);
+  animation:fadeUp .15s cubic-bezier(.22,1,.36,1) both;
+  display:none;
+}
+.sug-actions-popup.show { display:block; }
+.sug-act-btn {
+  display:flex; align-items:center; gap:10px;
+  padding:11px 14px; background:none; border:none;
+  width:100%; text-align:left; color:var(--text);
+  font-size:.82rem; font-weight:500; cursor:pointer;
+  transition:background .12s; border-bottom:1px solid var(--border);
+  font-family:var(--font-body);
+}
+.sug-act-btn:last-child { border-bottom:none; }
+.sug-act-btn:hover { background:rgba(255,255,255,.07); }
+.sug-act-btn svg { width:15px; height:15px; opacity:.75; flex-shrink:0; }
+
 .rp-footer { margin-top:32px; font-size:.68rem; color:var(--dim); line-height:2; }
 .rp-footer a:hover { color:var(--muted); }
 
@@ -1521,7 +1545,7 @@ img { display:block; }
       </div>
       <button class="rp-switch" onclick="setPage('profile')">Cambiar</button>
     </div>
-    <div class="rp-section-title">Sugerencias para ti</div>
+    <div class="rp-section-title">Historias recientes</div>
     <div id="suggestions-list"></div>
     <div class="rp-footer">
       <div style="margin-bottom:4px;"><a href="#">Información</a> · <a href="#">Ayuda</a> · <a href="#">Privacidad</a> · <a href="#">Condiciones</a></div>
@@ -5495,24 +5519,88 @@ function loadNotifications(){
 // ── SUGGESTIONS ──
 async function loadSuggestions(){
   if(!CU) return;
+  const list=document.getElementById('suggestions-list');
+  list.innerHTML='';
   try{
-    const fl=(await getDoc(doc(db,'users',CU.uid))).data()?.followingList||[];
-    const snap=await getDocs(query(collection(db,'users'),limit(8)));
-    const list=document.getElementById('suggestions-list');
-    list.innerHTML='';
-    let count=0;
+    const now=new Date();
+    // Traer las últimas historias ordenadas por más reciente
+    const snap=await getDocs(query(collection(db,'stories'),orderBy('createdAt','desc'),limit(30)));
+    // Agrupar por uid, quedarnos con los 5 usuarios más recientes (sin el propio usuario)
+    const seen=new Set();
+    const recentUsers=[];
     snap.docs.forEach(d=>{
-      const u=d.data();
-      if(u.uid===CU.uid||fl.includes(u.uid)) return;
-      if(count>=5) return;
-      count++;
-      const av=u.avatarUrl||`https://ui-avatars.com/api/?name=${encodeURIComponent(u.username||'U')}&background=222&color=fff`;
+      const s={id:d.id,...d.data()};
+      const exp=s.expiresAt?.toDate?.();
+      if(exp&&exp<now) return;
+      if(s.uid===CU.uid) return;
+      if(seen.has(s.uid)) return;
+      seen.add(s.uid);
+      recentUsers.push(s);
+    });
+    const top=recentUsers.slice(0,5);
+    if(!top.length){
+      list.innerHTML='<div style="font-size:.8rem;color:var(--muted);padding:4px 0;">Sin historias recientes</div>';
+      return;
+    }
+    // Cerrar cualquier popup abierto al click fuera
+    document.addEventListener('click', e=>{
+      document.querySelectorAll('.sug-actions-popup.show').forEach(p=>{
+        if(!p.closest('.sug-item').contains(e.target)) p.classList.remove('show');
+      });
+    }, true);
+    top.forEach(s=>{
+      const av=s.avatarUrl||`https://ui-avatars.com/api/?name=${encodeURIComponent(s.username||'U')}&background=222&color=fff`;
       const el=document.createElement('div');
       el.className='sug-item';
-      el.innerHTML=`<img class="sug-av" src="${av}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff'"/><div><div class="sug-name">@${esc(u.username||'usuario')}</div><div class="sug-sub">Sugerencia para ti</div></div><button class="sug-follow" data-uid="${u.uid}" onclick="toggleFollow('${u.uid}',this)">Seguir</button>`;
+      // Tiempo relativo
+      const timeAgo=relT(s.createdAt?.toDate?.());
+      el.innerHTML=`
+        <img class="sug-av" src="${av}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=222&color=fff'"/>
+        <div style="flex:1;min-width:0;">
+          <div class="sug-name">@${esc(s.username||'usuario')}</div>
+          <div class="sug-sub">Historia · ${timeAgo}</div>
+        </div>
+        <button style="background:none;border:none;color:var(--accent2);cursor:pointer;font-size:1.1rem;padding:4px 6px;border-radius:6px;transition:background .12s;" title="Opciones">···</button>
+        <div class="sug-actions-popup">
+          <button class="sug-act-btn" data-action="story" data-uid="${s.uid}" data-sid="${s.id}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+            Ver historia
+          </button>
+          <button class="sug-act-btn" data-action="profile" data-uid="${s.uid}" data-username="${esc(s.username||'usuario')}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Ver perfil
+          </button>
+        </div>`;
+      // Toggle popup al click en los 3 puntos
+      const btn=el.querySelector('button[title="Opciones"]');
+      const popup=el.querySelector('.sug-actions-popup');
+      btn.addEventListener('click', e=>{
+        e.stopPropagation();
+        document.querySelectorAll('.sug-actions-popup.show').forEach(p=>{ if(p!==popup) p.classList.remove('show'); });
+        popup.classList.toggle('show');
+      });
+      // Acciones
+      popup.querySelectorAll('.sug-act-btn').forEach(b=>{
+        b.addEventListener('click', async e=>{
+          e.stopPropagation();
+          popup.classList.remove('show');
+          const action=b.dataset.action;
+          if(action==='profile'){
+            openUserProfile(b.dataset.uid, b.dataset.username);
+          } else if(action==='story'){
+            // Buscar todas las historias de ese uid y abrirlas
+            try{
+              const now2=new Date();
+              const stSnap=await getDocs(query(collection(db,'stories'),where('uid','==',b.dataset.uid),orderBy('createdAt','asc')));
+              const userStories=stSnap.docs.map(d=>({id:d.id,...d.data()})).filter(st=>{ const exp=st.expiresAt?.toDate?.(); return !exp||exp>=now2; });
+              if(userStories.length) openStory(userStories);
+              else showToast('Esta historia ya expiró');
+            }catch(err){ console.warn(err); showToast('Error al cargar historia'); }
+          }
+        });
+      });
       list.appendChild(el);
     });
-    if(!count) list.innerHTML='<div style="font-size:.8rem;color:var(--muted);padding:4px 0;">Sin sugerencias por ahora</div>';
   }catch(e){ console.warn(e); }
 }
 
