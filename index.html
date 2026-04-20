@@ -1,196 +1,118 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Trendlify — En mantenimiento</title>
-<link rel="manifest" href="/manifest.json"/>
-<meta name="theme-color" content="#000"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-title" content="Trendlify"/>
-<link rel="apple-touch-icon" href="/icon-192.png"/>
-<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"/>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet"/>
-<style>
-:root {
-  --bg:      #050506;
-  --bg2:     #0a0a0d;
-  --surface: #111118;
-  --surface2:#18181f;
-  --border:  rgba(255,255,255,.06);
-  --border2: rgba(255,255,255,.12);
-  --accent:  #ff2d55;
-  --accent2: #0ff;
-  --accent3: #bf5fff;
-  --text:    #f0f0f4;
-  --muted:   #888899;
-  --dim:     #44444f;
-  --font-display: 'Syne', sans-serif;
-  --font-body:    'DM Sans', sans-serif;
-}
-
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-html, body {
-  min-height:100%;
-  background:var(--bg);
-  color:var(--text);
-  font-family:var(--font-body);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-body {
-  background:
-    radial-gradient(ellipse at 15% 60%, rgba(255,45,85,.13) 0%, transparent 55%),
-    radial-gradient(ellipse at 85% 20%, rgba(0,255,255,.07) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 90%, rgba(191,95,255,.06) 0%, transparent 50%),
-    var(--bg);
-}
-
-.card {
-  width:100%;
-  max-width:440px;
-  margin:24px 16px;
-  background:var(--bg2);
-  border:1px solid var(--border2);
-  border-radius:22px;
-  padding:48px 40px 40px;
-  text-align:center;
-  box-shadow:0 40px 120px rgba(0,0,0,.85);
-  animation: fadeUp .5s cubic-bezier(.22,1,.36,1) both;
-}
-
-@keyframes fadeUp {
-  from { opacity:0; transform:translateY(24px); }
-  to   { opacity:1; transform:translateY(0); }
-}
-
-.logo {
-  font-family:var(--font-display);
-  font-size:2.6rem;
-  font-weight:800;
-  letter-spacing:-2px;
-  background:linear-gradient(135deg,#fff 0%,var(--accent2) 45%,var(--accent) 100%);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  margin-bottom:32px;
-  display:inline-block;
-}
-
-.icon-wrap {
-  width:72px;
-  height:72px;
-  margin:0 auto 24px;
-  border-radius:50%;
-  background:var(--surface);
-  border:1px solid var(--border2);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.icon-wrap svg {
-  width:34px;
-  height:34px;
-}
-
-h1 {
-  font-family:var(--font-display);
-  font-size:1.45rem;
-  font-weight:700;
-  letter-spacing:-.5px;
-  margin-bottom:12px;
-  color:#fff;
-}
-
-p {
-  color:var(--muted);
-  font-size:.9rem;
-  font-weight:300;
-  line-height:1.65;
-  max-width:320px;
-  margin:0 auto;
-}
-
-.divider {
-  height:1px;
-  background:var(--border);
-  margin:28px 0;
-}
-
-.eta {
-  font-size:.78rem;
-  color:var(--dim);
-  letter-spacing:.3px;
-}
-
-.eta span {
-  background:linear-gradient(90deg, var(--accent2), var(--accent));
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  font-weight:700;
-}
-
-/* pulsing dot */
-.pulse-row {
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  margin-top:28px;
-}
-.dot {
-  width:7px; height:7px;
-  border-radius:50%;
-  background:var(--accent2);
-  animation: pulse 1.6s ease-in-out infinite;
-}
-.dot:nth-child(2){ animation-delay:.2s; background:var(--accent3); }
-.dot:nth-child(3){ animation-delay:.4s; background:var(--accent); }
-
-@keyframes pulse {
-  0%,80%,100%{ transform:scale(.6); opacity:.3; }
-  40%        { transform:scale(1);   opacity:1; }
-}
-
-@media(max-width:480px){
-  .card { padding:36px 24px 30px; }
-  .logo { font-size:2.1rem; }
-}
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MiRed Oscura</title>
+  <style>
+    body {
+      margin:0;
+      font-family: Arial, sans-serif;
+      background:#000;
+      color:#fff;
+    }
+    header {
+      background:#111;
+      padding:12px 20px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-bottom:1px solid #333;
+    }
+    header h1 { color:#0ff; font-size:1.4rem; }
+    nav { display:flex; gap:16px; }
+    nav a { color:#fff; text-decoration:none; }
+    .container { display:flex; }
+    aside {
+      width:220px;
+      background:#0a0a0a;
+      padding:20px;
+      border-right:1px solid #333;
+    }
+    main { flex:1; padding:20px; }
+    .post, .story, .reel {
+      background:#111;
+      border:1px solid #333;
+      border-radius:8px;
+      padding:16px;
+      margin-bottom:20px;
+    }
+    .post h2, .story h2, .reel h2 { margin:0 0 8px; font-size:1rem; color:#0ff; }
+    .post p, .story p, .reel p { margin:0; font-size:.9rem; }
+    .stories {
+      display:flex;
+      gap:10px;
+      margin-bottom:20px;
+    }
+    .story { flex:1; text-align:center; }
+    .story img { width:100%; border-radius:8px; }
+    .reel video { width:100%; border-radius:8px; }
+    .profile {
+      background:#111;
+      border:1px solid #333;
+      border-radius:8px;
+      padding:16px;
+      margin-top:20px;
+    }
+  </style>
 </head>
 <body>
+  <header>
+    <h1>MiRed Oscura</h1>
+    <nav>
+      <a href="#">Inicio</a>
+      <a href="#">Perfil</a>
+      <a href="#">Amigos</a>
+      <a href="#">Mensajes</a>
+    </nav>
+  </header>
+  <div class="container">
+    <aside>
+      <p><strong>Menú</strong></p>
+      <p>Noticias</p>
+      <p>Grupos</p>
+      <p>Eventos</p>
+    </aside>
+    <main>
+      <!-- Historias -->
+      <div class="stories">
+        <div class="story">
+          <h2>Historia 1</h2>
+          <img src="historia1.jpg" alt="historia">
+        </div>
+        <div class="story">
+          <h2>Historia 2</h2>
+          <img src="historia2.jpg" alt="historia">
+        </div>
+      </div>
 
-<div class="card">
-  <div class="logo">Trendlify</div>
+      <!-- Publicaciones -->
+      <div class="post">
+        <h2>Usuario 1</h2>
+        <p>Publicación de prueba en el muro.</p>
+        <img src="foto1.jpg" alt="foto" style="width:100%;border-radius:8px;margin-top:10px;">
+      </div>
+      <div class="post">
+        <h2>Usuario 2</h2>
+        <p>Otra publicación de prueba.</p>
+      </div>
 
-  <div class="icon-wrap">
-    <!-- wrench icon -->
-    <svg viewBox="0 0 24 24" fill="none" stroke="url(#g)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-      <defs>
-        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#0ff"/>
-          <stop offset="100%" stop-color="#ff2d55"/>
-        </linearGradient>
-      </defs>
-      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-    </svg>
+      <!-- Reels -->
+      <div class="reel">
+        <h2>Usuario 3</h2>
+        <video controls>
+          <source src="reel.mp4" type="video/mp4">
+        </video>
+      </div>
+
+      <!-- Perfil -->
+      <div class="profile">
+        <h2>Mi Perfil</h2>
+        <p>Nombre: Gustavo</p>
+        <p>Amigos: 120</p>
+        <p>Publicaciones: 45</p>
+      </div>
+    </main>
   </div>
-
-  <h1>Estamos mejorando la plataforma</h1>
-  <p>Trendlify se encuentra temporalmente fuera de servicio por tareas de mantenimiento. Volvemos pronto con novedades.</p>
-
-  <div class="divider"></div>
-
-  <p class="eta">Tiempo estimado: <span>muy pronto</span></p>
-
-  <div class="pulse-row">
-    <div class="dot"></div>
-    <div class="dot"></div>
-    <div class="dot"></div>
-  </div>
-</div>
-
 </body>
 </html>
