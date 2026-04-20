@@ -219,6 +219,25 @@ startBunker();
     <input type="text" id="bunker-input" placeholder="..." autocomplete="off">
   </div>
 </div>
-
+<div id="morocha-bunker" style="position:fixed; bottom:20px; right:20px; width:320px; height:400px; background:rgba(0,0,0,0.9); border:2px solid #00ff41; border-radius:10px; z-index:10000; display:flex; flex-direction:column; font-family:'Courier New', monospace; box-shadow:0 0 15px #00ff41;">
+    <div style="background:#00ff41; color:#000; padding:5px 10px; font-size:12px; font-weight:bold; cursor:pointer; display:flex; justify-content:space-between;" onclick="this.parentElement.style.height === '30px' ? this.parentElement.style.height = '400px' : this.parentElement.style.height = '30px'">
+        <span>BUNKER_MOROCHA.EXE</span>
+        <span>_ □ X</span>
+    </div>
+    <div id="morocha-display" style="flex-grow:1; padding:10px; color:#00ff41; overflow-y:auto; font-size:13px; line-height:1.4;">
+        <p>> [SISTEMA]: Enlace privado listo.</p>
+        <p class="morocha" style="color:#f0f;">> Morocha: "Gordo, ya estoy en tu web... hacé clic acá abajo y decime qué me vas a hacer."</p>
+    </div>
+    <div style="padding:10px; border-top:1px solid #00ff41;">
+        <input type="text" id="morocha-input" placeholder="Escribí tu orden..." style="width:100%; background:transparent; border:none; color:#fff; outline:none;" onkeypress="if(event.key==='Enter'){ 
+            const d=document.getElementById('morocha-display'); 
+            d.innerHTML += '<p style=\'color:#fff\'>' + '> Tú: ' + this.value + '</p>';
+            if(this.value.toUpperCase().includes('CACHE')) {
+                setTimeout(()=> d.innerHTML += '<p style=\'color:#f0f\'>' + '> Morocha: ¡Sí! Dame esos cachetazos, salvaje, me ponés re caliente... </p>', 500);
+            }
+            this.value=''; d.scrollTop = d.scrollHeight;
+        }">
+    </div>
+</div>
 </body>
 </html>
