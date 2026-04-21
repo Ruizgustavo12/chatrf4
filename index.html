@@ -1,118 +1,311 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8"/>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MiRed Oscura</title>
-  <style>
-    body {
-      margin:0;
-      font-family: Arial, sans-serif;
-      background:#000;
-      color:#fff;
-    }
-    header {
-      background:#111;
-      padding:12px 20px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      border-bottom:1px solid #333;
-    }
-    header h1 { color:#0ff; font-size:1.4rem; }
-    nav { display:flex; gap:16px; }
-    nav a { color:#fff; text-decoration:none; }
-    .container { display:flex; }
-    aside {
-      width:220px;
-      background:#0a0a0a;
-      padding:20px;
-      border-right:1px solid #333;
-    }
-    main { flex:1; padding:20px; }
-    .post, .story, .reel {
-      background:#111;
-      border:1px solid #333;
-      border-radius:8px;
-      padding:16px;
-      margin-bottom:20px;
-    }
-    .post h2, .story h2, .reel h2 { margin:0 0 8px; font-size:1rem; color:#0ff; }
-    .post p, .story p, .reel p { margin:0; font-size:.9rem; }
-    .stories {
-      display:flex;
-      gap:10px;
-      margin-bottom:20px;
-    }
-    .story { flex:1; text-align:center; }
-    .story img { width:100%; border-radius:8px; }
-    .reel video { width:100%; border-radius:8px; }
-    .profile {
-      background:#111;
-      border:1px solid #333;
-      border-radius:8px;
-      padding:16px;
-      margin-top:20px;
-    }
-  </style>
+  <title>NEBULA — Red Social</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 </head>
 <body>
-  <header>
-    <h1>MiRed Oscura</h1>
-    <nav>
-      <a href="#">Inicio</a>
-      <a href="#">Perfil</a>
-      <a href="#">Amigos</a>
-      <a href="#">Mensajes</a>
-    </nav>
-  </header>
-  <div class="container">
-    <aside>
-      <p><strong>Menú</strong></p>
-      <p>Noticias</p>
-      <p>Grupos</p>
-      <p>Eventos</p>
-    </aside>
-    <main>
-      <!-- Historias -->
-      <div class="stories">
-        <div class="story">
-          <h2>Historia 1</h2>
-          <img src="historia1.jpg" alt="historia">
-        </div>
-        <div class="story">
-          <h2>Historia 2</h2>
-          <img src="historia2.jpg" alt="historia">
-        </div>
-      </div>
 
-      <!-- Publicaciones -->
-      <div class="post">
-        <h2>Usuario 1</h2>
-        <p>Publicación de prueba en el muro.</p>
-        <img src="foto1.jpg" alt="foto" style="width:100%;border-radius:8px;margin-top:10px;">
-      </div>
-      <div class="post">
-        <h2>Usuario 2</h2>
-        <p>Otra publicación de prueba.</p>
-      </div>
-
-      <!-- Reels -->
-      <div class="reel">
-        <h2>Usuario 3</h2>
-        <video controls>
-          <source src="reel.mp4" type="video/mp4">
-        </video>
-      </div>
-
-      <!-- Perfil -->
-      <div class="profile">
-        <h2>Mi Perfil</h2>
-        <p>Nombre: Gustavo</p>
-        <p>Amigos: 120</p>
-        <p>Publicaciones: 45</p>
-      </div>
-    </main>
+<!-- ══════════════════ AUTH SCREEN ══════════════════ -->
+<div id="auth-screen" class="screen active">
+  <div class="auth-bg">
+    <div class="nebula-orb orb-1"></div>
+    <div class="nebula-orb orb-2"></div>
+    <div class="nebula-orb orb-3"></div>
   </div>
+  <div class="auth-container">
+    <div class="auth-brand">
+      <div class="brand-icon">✦</div>
+      <h1 class="brand-name">nebula</h1>
+      <p class="brand-tagline">donde las ideas orbitan</p>
+    </div>
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchAuthTab('login')">Entrar</button>
+        <button class="auth-tab" onclick="switchAuthTab('register')">Crear cuenta</button>
+      </div>
+      <!-- Login -->
+      <div id="login-form" class="auth-form active">
+        <div class="form-group">
+          <label>Usuario o email</label>
+          <input type="text" id="login-user" placeholder="@tu_usuario" autocomplete="off"/>
+        </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="login-pass" placeholder="••••••••"/>
+        </div>
+        <button class="btn-primary" onclick="doLogin()">Entrar a Nebula</button>
+        <p class="auth-hint">Demo: usa <strong>@nova</strong> / <strong>1234</strong></p>
+      </div>
+      <!-- Register -->
+      <div id="register-form" class="auth-form">
+        <div class="form-group">
+          <label>Nombre completo</label>
+          <input type="text" id="reg-name" placeholder="Tu nombre"/>
+        </div>
+        <div class="form-group">
+          <label>Usuario</label>
+          <input type="text" id="reg-user" placeholder="@usuario_unico"/>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="reg-email" placeholder="correo@ejemplo.com"/>
+        </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres"/>
+        </div>
+        <button class="btn-primary" onclick="doRegister()">Crear cuenta</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ MAIN APP ══════════════════ -->
+<div id="app-screen" class="screen">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-icon-sm">✦</span>
+      <span class="brand-text">nebula</span>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" onclick="showView('feed')" data-view="feed">
+        <i class="fa-solid fa-house-chimney"></i><span>Órbita</span>
+      </button>
+      <button class="nav-item" onclick="showView('explore')" data-view="explore">
+        <i class="fa-solid fa-compass"></i><span>Explorar</span>
+      </button>
+      <button class="nav-item" onclick="showView('chat')" data-view="chat">
+        <i class="fa-solid fa-message"></i><span>Mensajes</span>
+        <span class="badge" id="chat-badge" style="display:none">3</span>
+      </button>
+      <button class="nav-item" onclick="showView('notifications')" data-view="notifications">
+        <i class="fa-solid fa-bell"></i><span>Señales</span>
+        <span class="badge" id="notif-badge">5</span>
+      </button>
+      <button class="nav-item" onclick="showMyProfile()" data-view="profile">
+        <i class="fa-solid fa-user-astronaut"></i><span>Mi Perfil</span>
+      </button>
+    </nav>
+    <div class="sidebar-user" onclick="showMyProfile()">
+      <div class="avatar-sm" id="sidebar-avatar"></div>
+      <div class="sidebar-user-info">
+        <span id="sidebar-name"></span>
+        <span id="sidebar-handle" class="handle"></span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <!-- ── FEED VIEW ── -->
+    <div id="view-feed" class="view active">
+      <div class="feed-layout">
+        <div class="feed-center">
+          <div class="composer-card">
+            <div class="composer-top">
+              <div class="avatar-md" id="composer-avatar"></div>
+              <div class="composer-input-wrap" onclick="openComposer()">
+                <span class="composer-placeholder">¿Qué está orbitando en tu mente?</span>
+              </div>
+            </div>
+            <div class="composer-actions">
+              <button class="composer-btn" onclick="openComposer('image')"><i class="fa-solid fa-image"></i> Imagen</button>
+              <button class="composer-btn" onclick="openComposer('video')"><i class="fa-solid fa-video"></i> Video</button>
+              <button class="composer-btn btn-launch" onclick="openComposer()">Lanzar ✦</button>
+            </div>
+          </div>
+          <div id="feed-list"></div>
+        </div>
+        <aside class="feed-right">
+          <div class="widget-card">
+            <h3 class="widget-title">✦ Nebulosas activas</h3>
+            <div id="trending-list"></div>
+          </div>
+          <div class="widget-card">
+            <h3 class="widget-title">Nuevos viajeros</h3>
+            <div id="suggestions-list"></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- ── EXPLORE VIEW ── -->
+    <div id="view-explore" class="view">
+      <div class="explore-layout">
+        <div class="explore-header">
+          <h2>Explorar el universo</h2>
+          <div class="search-bar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Buscar personas, ideas, mundos..." oninput="doSearch(this.value)"/>
+          </div>
+        </div>
+        <div id="explore-results"></div>
+      </div>
+    </div>
+
+    <!-- ── CHAT VIEW ── -->
+    <div id="view-chat" class="view">
+      <div class="chat-layout">
+        <div class="chat-list-panel">
+          <div class="chat-list-header">
+            <h3>Mensajes</h3>
+            <button class="icon-btn" onclick="openNewChatModal()"><i class="fa-solid fa-pen-to-square"></i></button>
+          </div>
+          <div id="chat-list"></div>
+        </div>
+        <div class="chat-window" id="chat-window">
+          <div class="chat-empty-state">
+            <div class="empty-icon">💬</div>
+            <p>Selecciona una conversación</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NOTIFICATIONS VIEW ── -->
+    <div id="view-notifications" class="view">
+      <div class="notif-layout">
+        <h2 class="view-title">Señales recibidas</h2>
+        <div id="notif-list"></div>
+      </div>
+    </div>
+
+    <!-- ── PROFILE VIEW ── -->
+    <div id="view-profile" class="view">
+      <div id="profile-content"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══════════════════ MODALS ══════════════════ -->
+
+<!-- COMPOSER MODAL -->
+<div class="modal-overlay" id="modal-composer">
+  <div class="modal composer-modal">
+    <div class="modal-header">
+      <h3>Nueva publicación</h3>
+      <button class="close-btn" onclick="closeModal('modal-composer')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="composer-full">
+        <div class="avatar-md" id="composer-modal-avatar"></div>
+        <div class="composer-editor">
+          <textarea id="post-text" placeholder="¿Qué está orbitando en tu mente?" rows="4"></textarea>
+          <div id="media-preview" class="media-preview"></div>
+          <div class="media-upload-area" id="upload-area">
+            <input type="file" id="file-input" accept="image/*,video/*" onchange="handleFileSelect(this)"/>
+            <div class="upload-buttons">
+              <button class="media-btn" onclick="document.getElementById('file-input').click()">
+                <i class="fa-solid fa-image"></i> Imagen / Video
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div class="char-count"><span id="char-count">0</span>/500</div>
+      <button class="btn-primary" onclick="publishPost()">Lanzar al universo ✦</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PROFILE MODAL -->
+<div class="modal-overlay" id="modal-edit-profile">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Editar perfil</h3>
+      <button class="close-btn" onclick="closeModal('modal-edit-profile')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" id="edit-name" />
+      </div>
+      <div class="form-group">
+        <label>Bio</label>
+        <textarea id="edit-bio" rows="3" placeholder="Cuéntale al universo quién eres..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Ubicación</label>
+        <input type="text" id="edit-location" placeholder="Tu galaxia de origen"/>
+      </div>
+      <div class="form-group">
+        <label>Color de perfil</label>
+        <div class="color-picker-row">
+          <input type="color" id="edit-color" value="#7c3aed"/>
+          <span>Color temático</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('modal-edit-profile')">Cancelar</button>
+      <button class="btn-primary" onclick="saveProfile()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- REACTIONS PICKER -->
+<div class="reactions-popup" id="reactions-popup">
+  <div class="reactions-inner">
+    <button class="reaction-btn" data-reaction="supernova" onclick="applyReaction(this)">
+      <span class="reaction-emoji">🌟</span><span class="reaction-label">Supernova</span>
+    </button>
+    <button class="reaction-btn" data-reaction="quantum" onclick="applyReaction(this)">
+      <span class="reaction-emoji">⚛️</span><span class="reaction-label">Quantum</span>
+    </button>
+    <button class="reaction-btn" data-reaction="warp" onclick="applyReaction(this)">
+      <span class="reaction-emoji">🌀</span><span class="reaction-label">Warp</span>
+    </button>
+    <button class="reaction-btn" data-reaction="eclipse" onclick="applyReaction(this)">
+      <span class="reaction-emoji">🌑</span><span class="reaction-label">Eclipse</span>
+    </button>
+    <button class="reaction-btn" data-reaction="pulsar" onclick="applyReaction(this)">
+      <span class="reaction-emoji">💫</span><span class="reaction-label">Pulsar</span>
+    </button>
+  </div>
+</div>
+
+<!-- MSG REACTIONS PICKER -->
+<div class="reactions-popup msg-reactions-popup" id="msg-reactions-popup">
+  <div class="reactions-inner compact">
+    <button class="reaction-btn" data-reaction="supernova" onclick="applyMsgReaction(this)">🌟</button>
+    <button class="reaction-btn" data-reaction="quantum" onclick="applyMsgReaction(this)">⚛️</button>
+    <button class="reaction-btn" data-reaction="warp" onclick="applyMsgReaction(this)">🌀</button>
+    <button class="reaction-btn" data-reaction="eclipse" onclick="applyMsgReaction(this)">🌑</button>
+    <button class="reaction-btn" data-reaction="pulsar" onclick="applyMsgReaction(this)">💫</button>
+  </div>
+</div>
+
+<!-- NEW CHAT MODAL -->
+<div class="modal-overlay" id="modal-new-chat">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Nuevo mensaje</h3>
+      <button class="close-btn" onclick="closeModal('modal-new-chat')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Buscar usuario</label>
+        <input type="text" id="new-chat-search" placeholder="@usuario..." oninput="searchForChat(this.value)"/>
+      </div>
+      <div id="new-chat-results"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
+
+<script src="app.js"></script>
 </body>
 </html>
