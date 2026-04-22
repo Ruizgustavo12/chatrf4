@@ -15,9 +15,6 @@ const firebaseConfig = {
   authDomain: "charlasrf4.firebaseapp.com",
   databaseURL: "https://charlasrf4-default-rtdb.firebaseio.com",
   projectId: "charlasrf4",
-  storageBucket: "charlasrf4.firebasestorage.app",
-  messagingSenderId: "345019626508",
-  appId: "1:345019626508:web:d099ca499acb29eac12a29"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -27,18 +24,23 @@ const provider = new GoogleAuthProvider();
 
 let currentUser = null;
 
+// LOGIN
 window.loginGoogle = async () => {
   await signInWithPopup(auth, provider);
 };
 
+// AUTH
 onAuthStateChanged(auth, (user) => {
   if (user) {
     currentUser = user;
-    login.style.display = 'none';
-    appDiv.style.display = 'flex';
-    userName.innerText = user.displayName;
-    userPhoto.src = user.photoURL;
-    userAvatar.src = user.photoURL;
+
+    document.getElementById("login").style.display = "none";
+    document.getElementById("app").style.display = "flex";
+
+    document.getElementById("userName").innerText = user.displayName;
+    document.getElementById("userPhoto").src = user.photoURL;
+    document.getElementById("userAvatar").src = user.photoURL;
+
     loadFeed();
     loadTrends();
   }
@@ -49,7 +51,7 @@ const cloudName = "ds4ejt5sp";
 const uploadPreset = "VIDEOS";
 
 async function uploadFile(){
-  const file = filePost.files[0];
+  const file = document.getElementById("filePost").files[0];
   if(!file) return "";
 
   const formData = new FormData();
@@ -67,10 +69,15 @@ async function uploadFile(){
 
 // PUBLICAR
 window.publish = async () => {
-  const text = postText.value;
+  const text = document.getElementById("postText").value;
   const file = await uploadFile();
 
-  push(ref(db, 'posts'), {
+  if(!text && !file){
+    alert("Escribí algo o subí un archivo");
+    return;
+  }
+
+  await push(ref(db, 'posts'), {
     user: currentUser.displayName,
     photo: currentUser.photoURL,
     text,
@@ -81,16 +88,18 @@ window.publish = async () => {
     time: Date.now()
   });
 
-  postText.value = "";
-  preview.innerHTML = "";
+  document.getElementById("postText").value = "";
+  document.getElementById("filePost").value = "";
+  document.getElementById("preview").innerHTML = "";
 };
 
 // PREVIEW
 window.previewFile = () => {
-  const file = filePost.files[0];
+  const file = document.getElementById("filePost").files[0];
   if(!file) return;
 
   const url = URL.createObjectURL(file);
+  const preview = document.getElementById("preview");
 
   if(file.type.includes("video")){
     preview.innerHTML = `<video src="${url}" controls></video>`;
@@ -101,11 +110,19 @@ window.previewFile = () => {
 
 // FEED
 function loadFeed(){
+  const feed = document.getElementById("feed");
+
   onValue(ref(db, 'posts'), snapshot => {
     feed.innerHTML = '';
 
+    if(!snapshot.exists()){
+      feed.innerHTML = "<p style='opacity:.6'>No hay publicaciones aún...</p>";
+      return;
+    }
+
     let arr=[];
     snapshot.forEach(c=>arr.push({id:c.key,...c.val()}));
+
     arr.sort((a,b)=>b.time-a.time);
 
     arr.forEach(p=>{
@@ -120,7 +137,7 @@ function loadFeed(){
           <b>${p.user}</b>
         </div>
 
-        <p>${p.text}</p>
+        <p>${p.text || ""}</p>
 
         ${p.file ? (p.file.includes('video') 
         ? `<video src="${p.file}" controls></video>` 
@@ -130,13 +147,6 @@ function loadFeed(){
           ❤️ ${p.likes || 0}
           <button onclick="likePost('${p.id}',${p.likes||0})">Like</button>
         </div>
-
-        <div class="commentBox">
-          <input placeholder="comentario" id="c-${p.id}">
-          <button onclick="commentPost('${p.id}')">Enviar</button>
-        </div>
-
-        <div>${renderComments(p.comments)}</div>
       `;
 
       feed.appendChild(div);
@@ -144,41 +154,32 @@ function loadFeed(){
   });
 }
 
+// LIKE
 window.likePost = (id,likes)=>{
   update(ref(db,'posts/'+id),{likes:likes+1});
 }
 
-window.commentPost = (id)=>{
-  const text = document.getElementById('c-'+id).value;
-  push(ref(db,'posts/'+id+'/comments'),{
-    user:currentUser.displayName,
-    text
-  });
-}
-
-function renderComments(comments){
-  if(!comments) return '';
-  let html='';
-  Object.values(comments).forEach(c=>{
-    html+=`<p><b>${c.user}:</b> ${c.text}</p>`;
-  });
-  return html;
-}
-
 // TENDENCIAS
 function loadTrends(){
+  const trends = document.getElementById("trends");
+
   onValue(ref(db,'posts'),snapshot=>{
+    trends.innerHTML='';
+
+    if(!snapshot.exists()){
+      trends.innerHTML="<p style='opacity:.6'>Sin tendencias</p>";
+      return;
+    }
+
     let arr=[];
     snapshot.forEach(c=>arr.push(c.val()));
 
     arr.sort((a,b)=>(b.views + b.likes*2)-(a.views + a.likes*2));
 
-    trends.innerHTML='';
-
     arr.slice(0,5).forEach(p=>{
       let div=document.createElement('div');
       div.className='card';
-      div.innerHTML=`🔥 ${p.text} <br> 👁 ${p.views} ❤️ ${p.likes}`;
+      div.innerHTML=`🔥 ${p.text || "Post"} <br> 👁 ${p.views||0} ❤️ ${p.likes||0}`;
       trends.appendChild(div);
     });
   });
@@ -194,11 +195,18 @@ body{
   display:flex;
 }
 
+/* LOGIN */
 #login{
   display:flex;
   justify-content:center;
   align-items:center;
   height:100vh;
+  width:100%;
+}
+
+/* APP */
+#app{
+  display:none;
   width:100%;
 }
 
@@ -250,7 +258,7 @@ body{
   border-radius:50%;
 }
 
-/* PUBLICAR */
+/* POST BOX */
 .postBox{
   background:#141a2e;
   padding:15px;
@@ -305,11 +313,10 @@ button:hover{
   margin-top:10px;
 }
 
-/* COMENTARIOS */
-.commentBox{
-  display:flex;
-  gap:5px;
-  margin-top:10px;
+/* FEED */
+#feed{
+  margin-top:20px;
+  min-height:200px;
 }
 
 /* ANIMACIÓN */
@@ -330,7 +337,7 @@ button:hover{
 <button onclick="loginGoogle()">Login con Google</button>
 </div>
 
-<div id="appDiv" style="display:none;width:100%">
+<div id="app">
 
 <div class="sidebar">
 <h2>Nebula</h2>
