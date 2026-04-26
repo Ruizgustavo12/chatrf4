@@ -833,14 +833,17 @@
         const imageUrls = await Promise.all(files.map(async (file) => {
           const formData = new FormData();
           formData.append('file', file);
-          formData.append('upload_preset', 'dblmunvjx');
+          formData.append('upload_preset', 'markeplace');
           formData.append('folder', 'marketplace');
           const res = await fetch('https://api.cloudinary.com/v1_1/dblmunvjx/image/upload', {
             method: 'POST',
             body: formData
           });
-          if (!res.ok) throw new Error('Error al subir imagen a Cloudinary');
           const data = await res.json();
+          if (!res.ok) {
+            console.error('Cloudinary error:', JSON.stringify(data));
+            throw new Error(data?.error?.message || `HTTP ${res.status}`);
+          }
           return data.secure_url;
         }));
 
