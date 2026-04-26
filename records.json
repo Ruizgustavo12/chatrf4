@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-26 10:27 UTC",
+  "updated": "2026-04-26 11:12 UTC",
   "records": [
     {
       "pez": "Albino barbel",
@@ -5967,6 +5967,28 @@
       "pez": "Gudgeon",
       "rank": 1,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/gudgeon.png",
+      "peso": "159 g",
+      "ubicacion": "Winding Rivulet",
+      "señuelo": "Caddisfly; Wheat seeds",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/caddisfly.png",
+      "jugador": "Tima77",
+      "fecha": "26.04.26"
+    },
+    {
+      "pez": "Gudgeon",
+      "rank": 2,
+      "img_pez": "https://en.rf4-stat.ru/images/rf4game/gudgeon.png",
+      "peso": "152 g",
+      "ubicacion": "Belaya River",
+      "señuelo": "Brandling Worm ",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/worm_asurv.png",
+      "jugador": "neonna",
+      "fecha": "26.04.26"
+    },
+    {
+      "pez": "Gudgeon",
+      "rank": 3,
+      "img_pez": "https://en.rf4-stat.ru/images/rf4game/gudgeon.png",
       "peso": "152 g",
       "ubicacion": "Winding Rivulet",
       "señuelo": "Bloodworm",
@@ -5976,7 +5998,7 @@
     },
     {
       "pez": "Gudgeon",
-      "rank": 2,
+      "rank": 4,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/gudgeon.png",
       "peso": "151 g",
       "ubicacion": "Winding Rivulet",
@@ -5987,7 +6009,7 @@
     },
     {
       "pez": "Gudgeon",
-      "rank": 3,
+      "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/gudgeon.png",
       "peso": "150 g",
       "ubicacion": "Winding Rivulet",
@@ -5995,28 +6017,6 @@
       "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/bloodworm.png",
       "jugador": "Abe_YNWA",
       "fecha": "26.04.26"
-    },
-    {
-      "pez": "Gudgeon",
-      "rank": 4,
-      "img_pez": "https://en.rf4-stat.ru/images/rf4game/gudgeon.png",
-      "peso": "143 g",
-      "ubicacion": "Winding Rivulet",
-      "señuelo": "Worm",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/worm_01.png",
-      "jugador": "KazkoksPasimetes",
-      "fecha": "24.04.26"
-    },
-    {
-      "pez": "Gudgeon",
-      "rank": 5,
-      "img_pez": "https://en.rf4-stat.ru/images/rf4game/gudgeon.png",
-      "peso": "142 g",
-      "ubicacion": "Winding Rivulet",
-      "señuelo": "Red compost worm",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/muckworm.png",
-      "jugador": "MISHA14",
-      "fecha": "23.04.26"
     },
     {
       "pez": "Haddock",
@@ -6561,12 +6561,12 @@
       "pez": "Kohaku",
       "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/kohaku.png",
-      "peso": "18.838 kg",
+      "peso": "18.968 kg",
       "ubicacion": "Copper lake",
-      "señuelo": "Vanilla Pellets 18; Fresh Cranberry 20",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/plt_hvz_vp18.png",
-      "jugador": "Carrey_A2",
-      "fecha": "22.04.26"
+      "señuelo": "Vanilla Pellets 14; Fresh Cranberry 16",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/plt_hvz_vp14.png",
+      "jugador": "janis07zakrepskis12",
+      "fecha": "26.04.26"
     },
     {
       "pez": "Kuori Char",
@@ -7056,12 +7056,12 @@
       "pez": "Largemouth bass",
       "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/lm_b_bass.png",
-      "peso": "5.613 kg",
+      "peso": "5.634 kg",
       "ubicacion": "Elk Lake",
-      "señuelo": "Pro Double Willow 3/8 oz 001",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/spinner_2858.png",
-      "jugador": "сигма картель",
-      "fecha": "24.04.26"
+      "señuelo": "Frog",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/baitfrog.png",
+      "jugador": "ondra-hirsch",
+      "fecha": "26.04.26"
     },
     {
       "pez": "Leather Carp",
@@ -11236,6 +11236,17 @@
       "pez": "Spotted bass",
       "rank": 2,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/sp_bass.png",
+      "peso": "3.132 kg",
+      "ubicacion": "Elk Lake",
+      "señuelo": "Vibra Colorado 3/8 oz 006",
+      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/spinner_2705.png",
+      "jugador": "D4RT",
+      "fecha": "26.04.26"
+    },
+    {
+      "pez": "Spotted bass",
+      "rank": 3,
+      "img_pez": "https://en.rf4-stat.ru/images/rf4game/sp_bass.png",
       "peso": "3.007 kg",
       "ubicacion": "Elk Lake",
       "señuelo": "Perfect Craw 3.5 007",
@@ -11245,7 +11256,7 @@
     },
     {
       "pez": "Spotted bass",
-      "rank": 3,
+      "rank": 4,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/sp_bass.png",
       "peso": "2.684 kg",
       "ubicacion": "Elk Lake",
@@ -11256,7 +11267,7 @@
     },
     {
       "pez": "Spotted bass",
-      "rank": 4,
+      "rank": 5,
       "img_pez": "https://en.rf4-stat.ru/images/rf4game/sp_bass.png",
       "peso": "2.663 kg",
       "ubicacion": "Elk Lake",
@@ -11264,17 +11275,6 @@
       "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/spinner_2712.png",
       "jugador": "BaiRiban",
       "fecha": "25.04.26"
-    },
-    {
-      "pez": "Spotted bass",
-      "rank": 5,
-      "img_pez": "https://en.rf4-stat.ru/images/rf4game/sp_bass.png",
-      "peso": "2.507 kg",
-      "ubicacion": "Elk Lake",
-      "señuelo": "Balsa walker 65F-005",
-      "img_senuelo": "https://en.rf4-stat.ru/images/rf4game/hm_walker_65f_005_hq.png",
-      "jugador": "jack94",
-      "fecha": "20.04.26"
     },
     {
       "pez": "Spotted Gar",
