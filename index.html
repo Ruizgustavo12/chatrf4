@@ -230,7 +230,21 @@
     .uploading-bar { background: var(--fb-card); border-radius: var(--fb-radius); padding: 0.8rem; text-align: center; color: var(--fb-text-secondary); font-size: 0.9rem; display: none; }
     .uploading-bar.active { display: block; }
 
-    /* RESPONSIVE */
+    /* CATEGORÍAS SIDEBAR */
+    .cat-group { margin-bottom: 0.2rem; }
+    .cat-group-header { display: flex; align-items: center; gap: 0.7rem; padding: 0.5rem 0.8rem; border-radius: var(--fb-radius); cursor: pointer; font-size: 0.92rem; font-weight: 600; transition: 0.15s; user-select: none; }
+    .cat-group-header:hover { background: var(--fb-card); }
+    .cat-group-header.active { background: var(--fb-card); color: var(--fb-blue); }
+    .cat-group-header .cat-arrow { margin-left: auto; font-size: 0.7rem; transition: transform 0.2s; color: var(--fb-text-secondary); }
+    .cat-group-header.open .cat-arrow { transform: rotate(90deg); }
+    .cat-sub-list { display: none; padding-left: 1.2rem; }
+    .cat-sub-list.open { display: block; }
+    .cat-sub-item { padding: 0.35rem 0.8rem; border-radius: var(--fb-radius); cursor: pointer; font-size: 0.85rem; color: var(--fb-text-secondary); transition: 0.15s; }
+    .cat-sub-item:hover { background: var(--fb-card); color: var(--fb-text); }
+    .cat-sub-item.active { background: var(--fb-card); color: var(--fb-blue); font-weight: 600; }
+
+    /* BADGE CATEGORÍA en card */
+    .product-cat-badge { display: inline-block; font-size: 0.7rem; background: var(--fb-hover); color: var(--fb-text-secondary); padding: 1px 6px; border-radius: 4px; margin-bottom: 0.3rem; }
     @media (max-width: 1200px) {
       .sidebar-left { display: none; }
       .detail-grid { grid-template-columns: 1fr; }
@@ -346,16 +360,7 @@
       </div>
 
       <div class="section-title">Categorías</div>
-      <ul class="category-list">
-        <li class="category-item active" onclick="filterCategory('')">🚗 Vehículos</li>
-        <li class="category-item" onclick="filterCategory('propiedades')">🏠 Alquiler de propiedades</li>
-        <li class="category-item" onclick="filterCategory('deportes')">⚽ Artículos deportivos</li>
-        <li class="category-item" onclick="filterCategory('gratis')">🎁 Artículos gratuitos</li>
-        <li class="category-item" onclick="filterCategory('hogar')">🏡 Artículos para el hogar</li>
-        <li class="category-item" onclick="filterCategory('electronica')">📱 Electrónica</li>
-        <li class="category-item" onclick="filterCategory('ropa')">👕 Ropa y accesorios</li>
-        <li class="category-item" onclick="filterCategory('mascotas')">🐕 Productos para mascotas</li>
-      </ul>
+      <div id="catSidebar"></div>
 
       <div class="section-title">Ubicación</div>
       <div style="padding: 0.6rem 0.8rem; color: var(--fb-blue); font-size: 0.9rem;">
@@ -415,7 +420,11 @@
       </div>
       <div class="modal-body">
         <div class="form-group"><label class="form-label">Título</label><input type="text" class="form-input" id="prodTitle" required></div>
-        <div class="form-group"><label class="form-label">Precio (UYU)</label><input type="number" class="form-input" id="prodPrice" required></div>
+        <div class="form-group"><label class="form-label">Precio (UYU)</label><input type="number" class="form-input" id="prodPrice" required min="0"></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.8rem;">
+          <div class="form-group"><label class="form-label">Categoría</label><select class="form-select" id="prodCat" onchange="onCatChange()" required></select></div>
+          <div class="form-group"><label class="form-label">Subcategoría</label><select class="form-select" id="prodSubCat" required></select></div>
+        </div>
         <div class="form-group"><label class="form-label">Departamento</label><select class="form-select" id="prodDept" required></select></div>
         <div class="form-group">
           <label class="form-label">Fotos (máx. 6)</label>
@@ -453,6 +462,7 @@
           </div>
           <div class="detail-info">
             <h1 id="detailTitle"></h1>
+            <div id="detailCatBadge" style="margin-bottom:0.5rem;"></div>
             <div id="detailPrice" class="detail-price"></div>
             <div class="detail-meta">
               <span>📍 <span id="detailLocation"></span></span>
@@ -604,6 +614,10 @@
       const sel = document.getElementById(id);
       if(sel) departamentos.forEach(d => sel.innerHTML += `<option value="${d}">${d}</option>`);
     });
+
+    // ===== INIT UI =====
+    buildSidebar();
+    buildCatSelects();
 
     // ===== AUTH LISTENER =====
     onAuthStateChanged(auth, async user => {
@@ -849,6 +863,8 @@
         const prod = {
           titulo,
           precio: Number(precio),
+          categoria: document.getElementById('prodCat').value,
+          subcategoria: document.getElementById('prodSubCat').value,
           departamento: document.getElementById('prodDept').value,
           descripcion: document.getElementById('prodDesc').value.trim(),
           imagenes: imageUrls,
@@ -869,6 +885,8 @@
         closeModal('publishModal');
         document.getElementById('prodTitle').value = '';
         document.getElementById('prodPrice').value = '';
+        document.getElementById('prodCat').value = '';
+        document.getElementById('prodSubCat').innerHTML = '<option value="">— Seleccioná subcategoría —</option>';
         document.getElementById('prodDesc').value = '';
         document.getElementById('prodImages').value = '';
         document.getElementById('imgPreview').innerHTML = '';
@@ -886,6 +904,8 @@
       const ts = p.fecha?.toDate ? p.fecha.toDate() : new Date(p.fecha || Date.now());
       const hours = Math.floor((Date.now() - ts) / 3600000);
       const time = hours < 1 ? 'Hace poco' : hours < 24 ? `Hace ${hours} h` : `Hace ${Math.floor(hours/24)} d`;
+      const catObj = CATEGORIAS.find(c => c.id === p.categoria);
+      const catLabel = p.subcategoria || (catObj ? catObj.label.split(' ').slice(1).join(' ') : '');
       return `
         <div class="product-card" onclick="openDetail('${p.id}')">
           <div style="position: relative;">
@@ -893,6 +913,7 @@
             ${hours < 24 ? '<span class="badge-new">Recién publicado</span>' : ''}
           </div>
           <div class="product-info">
+            ${catLabel ? `<div class="product-cat-badge">${catLabel}</div>` : ''}
             <div class="product-price">$U${Number(p.precio).toLocaleString('es-UY')}</div>
             <div class="product-title">${p.titulo}</div>
             <div class="product-meta">
@@ -906,11 +927,14 @@
     function renderProducts() {
       const grid = document.getElementById('productsGrid');
       const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
-      const filtered = state.products.filter(p =>
-        p.titulo?.toLowerCase().includes(q) || p.descripcion?.toLowerCase().includes(q)
-      );
+      const filtered = state.products.filter(p => {
+        const matchText = p.titulo?.toLowerCase().includes(q) || p.descripcion?.toLowerCase().includes(q);
+        const matchCat = !activeFilter.cat || p.categoria === activeFilter.cat;
+        const matchSub = !activeFilter.sub || p.subcategoria === activeFilter.sub;
+        return matchText && matchCat && matchSub;
+      });
       if(filtered.length === 0) {
-        grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:3rem; color:var(--fb-text-secondary);"><h3>No hay publicaciones</h3><p>Sé el primero en publicar</p></div>';
+        grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:3rem; color:var(--fb-text-secondary);"><h3>No hay publicaciones</h3><p>Sé el primero en publicar en esta categoría</p></div>';
         return;
       }
       grid.innerHTML = filtered.map(p => productCardHTML(p)).join('');
@@ -926,6 +950,11 @@
       const p = state.currentProd;
       const v = p.vendedor || {};
       
+      const catObj = CATEGORIAS.find(c => c.id === p.categoria);
+      const catLabel = catObj ? catObj.label : '';
+      document.getElementById('detailCatBadge').innerHTML = catLabel
+        ? `<span class="product-cat-badge" style="font-size:0.8rem; padding:3px 10px;">${catLabel}</span>${p.subcategoria ? ` <span class="product-cat-badge" style="font-size:0.8rem; padding:3px 10px;">${p.subcategoria}</span>` : ''}`
+        : '';
       document.getElementById('detailMainImg').src = p.imagenes?.[0] || '';
       document.getElementById('detailTitle').textContent = p.titulo;
       document.getElementById('detailPrice').textContent = `$U${Number(p.precio).toLocaleString('es-UY')}`;
@@ -1114,10 +1143,86 @@
       document.getElementById('publishModal').classList.add('active');
     }
     function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-    function showHome() { renderProducts(); }
-    function filterCategory(cat) {
-      document.querySelectorAll('.category-item').forEach(c => c.classList.remove('active'));
-      event.target.classList.add('active');
+    // ===== CATEGORÍAS =====
+    const CATEGORIAS = [
+      { id: 'electronica', label: '📱 Electrónica', subs: ['Celulares y smartphones','Computadoras y laptops','Tablets','Accesorios tecnológicos','Gaming y consolas','TV y audio','Cámaras y fotografía','Otros electrónicos'] },
+      { id: 'vehiculos', label: '🚗 Vehículos', subs: ['Autos','Motos','Camionetas y SUVs','Camiones','Bicicletas','Repuestos y accesorios','Embarcaciones','Maquinaria agrícola','Otros vehículos'] },
+      { id: 'hogar', label: '🏠 Hogar y muebles', subs: ['Muebles','Electrodomésticos','Decoración','Iluminación','Cocina y comedor','Baño','Jardín y exterior','Herramientas del hogar','Otros hogar'] },
+      { id: 'ropa', label: '👕 Ropa y accesorios', subs: ['Ropa de mujer','Ropa de hombre','Ropa de niños','Calzado','Bolsos y carteras','Joyería y bijouterie','Relojes','Lentes y accesorios','Otros moda'] },
+      { id: 'deportes', label: '⚽ Deportes y fitness', subs: ['Fútbol','Gimnasia y fitness','Ciclismo','Natación','Running','Artes marciales','Deportes de invierno','Pesca y caza','Otros deportes'] },
+      { id: 'juguetes', label: '🧸 Juguetes y niños', subs: ['Juguetes','Ropa de bebé','Cochecitos y sillas','Educación infantil','Videojuegos infantiles','Cunas y muebles de bebé','Otros niños'] },
+      { id: 'belleza', label: '💄 Belleza y cuidado personal', subs: ['Maquillaje','Perfumes','Cuidado de la piel','Cuidado del cabello','Higiene personal','Equipos de estética','Otros belleza'] },
+      { id: 'alimentos', label: '🍎 Alimentos y bebidas', subs: ['Alimentos artesanales','Bebidas','Frutas y verduras','Carnes y lácteos','Dulces y repostería','Plantas y semillas','Otros alimentos'] },
+      { id: 'herramientas', label: '🔧 Herramientas y construcción', subs: ['Herramientas manuales','Herramientas eléctricas','Materiales de construcción','Pinturas','Plomería','Electricidad','Maquinaria industrial','Otros herramientas'] },
+      { id: 'mascotas', label: '🐾 Mascotas', subs: ['Perros','Gatos','Aves','Peces y acuarios','Roedores','Accesorios para mascotas','Alimento para mascotas','Otros mascotas'] },
+      { id: 'servicios', label: '💼 Servicios', subs: ['Diseño y creatividad','Tecnología y programación','Clases y tutorías','Servicios del hogar','Transporte y logística','Salud y bienestar','Eventos y fotografía','Legales y contables','Otros servicios'] },
+      { id: 'inmuebles', label: '🏘️ Inmuebles', subs: ['Casas en venta','Apartamentos en venta','Alquiler de casas','Alquiler de apartamentos','Terrenos','Locales comerciales','Garajes','Otros inmuebles'] },
+      { id: 'empleo', label: '💼 Empleo', subs: ['Tiempo completo','Medio tiempo','Freelance / Remoto','Pasantías','Búsqueda de trabajo','Otros empleo'] },
+      { id: 'arte', label: '🎨 Arte y coleccionables', subs: ['Pintura y dibujo','Fotografía artística','Esculturas','Monedas y billetes','Estampillas','Antigüedades','Cómics y manga','Otros coleccionables'] },
+      { id: 'libros', label: '📚 Libros y educación', subs: ['Libros de texto','Literatura','Cursos y capacitaciones','Material escolar','Idiomas','Revistas','Otros libros'] },
+      { id: 'musica', label: '🎸 Música e instrumentos', subs: ['Guitarras','Teclados y pianos','Percusión','Instrumentos de viento','Equipos de sonido','Vinilos y CDs','Clases de música','Otros música'] },
+      { id: 'viajes', label: '✈️ Viajes y turismo', subs: ['Paquetes turísticos','Alojamiento','Excursiones','Equipaje y accesorios','Otros viajes'] },
+      { id: 'otros', label: '📦 Otros', subs: ['General','Gratis','Permuta / Trueque','Otros'] },
+    ];
+
+    let activeFilter = { cat: '', sub: '' };
+
+    function buildSidebar() {
+      const container = document.getElementById('catSidebar');
+      // "Todos" option
+      let html = `<div class="cat-group-header ${activeFilter.cat===''?'active':''}" onclick="filterCategory('','')">🏪 Todas las categorías</div>`;
+      CATEGORIAS.forEach(cat => {
+        const isOpen = activeFilter.cat === cat.id;
+        html += `
+          <div class="cat-group">
+            <div class="cat-group-header ${isOpen?'active open':''}" onclick="toggleCatGroup('${cat.id}')">
+              ${cat.label}
+              <span class="cat-arrow">▶</span>
+            </div>
+            <div class="cat-sub-list ${isOpen?'open':''}">
+              <div class="cat-sub-item ${isOpen&&activeFilter.sub===''?'active':''}" onclick="filterCategory('${cat.id}','')">Todo en ${cat.label.split(' ').slice(1).join(' ')}</div>
+              ${cat.subs.map(sub => `<div class="cat-sub-item ${isOpen&&activeFilter.sub===sub?'active':''}" onclick="filterCategory('${cat.id}','${sub}')">${sub}</div>`).join('')}
+            </div>
+          </div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    function toggleCatGroup(catId) {
+      if(activeFilter.cat === catId) {
+        filterCategory('','');
+      } else {
+        filterCategory(catId,'');
+      }
+    }
+
+    function filterCategory(cat, sub) {
+      activeFilter = { cat, sub };
+      buildSidebar();
+      renderProducts();
+      // Update section title
+      if(!cat) {
+        document.querySelector('.section-title-main').textContent = 'Sugerencias de hoy';
+      } else {
+        const catObj = CATEGORIAS.find(c => c.id === cat);
+        const label = catObj ? catObj.label.split(' ').slice(1).join(' ') : cat;
+        document.querySelector('.section-title-main').textContent = sub ? sub : label;
+      }
+    }
+
+    function buildCatSelects() {
+      const catSel = document.getElementById('prodCat');
+      catSel.innerHTML = '<option value="">— Seleccioná categoría —</option>';
+      CATEGORIAS.forEach(c => catSel.innerHTML += `<option value="${c.id}">${c.label}</option>`);
+      onCatChange();
+    }
+
+    function onCatChange() {
+      const catId = document.getElementById('prodCat').value;
+      const subSel = document.getElementById('prodSubCat');
+      const cat = CATEGORIAS.find(c => c.id === catId);
+      subSel.innerHTML = '<option value="">— Seleccioná subcategoría —</option>';
+      if(cat) cat.subs.forEach(s => subSel.innerHTML += `<option value="${s}">${s}</option>`);
     }
     window.onclick = e => {
       if(e.target.classList.contains('modal') && !e.target.id.includes('auth')) {
@@ -1139,7 +1244,7 @@
       openPublishModal, publishProduct, closeModal,
       openDetail, navGallery, goToSlide, deleteCurrentProduct,
       openContactChoice, contactWA, openChat, openChatById, sendChat, closeChatModal,
-      showHome, filterCategory
+      showHome, filterCategory, toggleCatGroup, onCatChange
     });
   </script>
 </body>
